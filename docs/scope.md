@@ -1,10 +1,10 @@
-## Scope
+# Scope
 
-The `maia` CLI tool uses a layered configuration and data management model called **Scopes** to organize settings, snippets, system prompts, and other resources.
+MAIA uses a layered configuration and data management model called **Scopes** to organize settings, snippets, system prompts, and other resources.
 
 Each scope corresponds to a level of specificity and persists in distinct directories or files. This layered approach allows flexible customization and inheritance of configurations and resources.
 
-### Scope Levels (From Most Specific to Least Specific)
+## Scope Levels (From Most Specific to Least Specific)
 
 - **Session**
   The most specific scope, tied to the current conversational session. Session scope stores history, outbox, system prompts, and snippets that apply only to that session.
@@ -24,7 +24,7 @@ Each scope corresponds to a level of specificity and persists in distinct direct
 - **Default**
   Built-in defaults hardcoded within the tool itself. This is the fallback for any configuration or resource not defined in higher scopes.
 
-### How Scopes Work
+## How Scopes Work
 
 When the tool reads configuration or resources, it merges values from these scopes in order of specificity: session overrides workspace, which overrides home, and so forth. This ensures that more specific settings take precedence.
 
@@ -36,7 +36,7 @@ This scope hierarchy enables:
 - Global defaults for consistency across projects.
 - Easy overrides for experiments or temporary changes in a session.
 
-### Examples of Use
+## Examples of Use
 
 - Editing the system prompt for a single session without affecting other sessions or workspaces.
 - Defining a fileset in the workspace scope that is shared by all sessions.
