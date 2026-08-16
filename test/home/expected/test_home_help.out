@@ -1,0 +1,39 @@
+USAGE
+
+  maia home <command> [<dir>]
+  maia home
+
+Manage your MAIA "home" (i.e. the directory where MAIA stores its metadata).
+
+COMMANDS
+
+  create [<dir>]
+    Initialize an MAIA home in the given directory.
+    If <dir> is omitted, defaults to the current working directory.
+
+  delete [<dir>]
+    Delete the MAIA home from the given directory.
+    If <dir> is omitted, defaults to the current working directory.
+
+  (no command)
+    Show the current MAIA home directory.
+
+OPTIONS
+
+  -h, --help
+    Show this help message.
+
+EXAMPLES
+
+  maia home create
+    Initialize MAIA home in the current directory.
+
+  maia home delete /path/to/home
+    Delete the MAIA home at the specified directory.
+
+  maia home
+    Show the current MAIA home directory.
+
+NOTES
+
+  The MAIA home directory stores metadata and configuration for the tool.

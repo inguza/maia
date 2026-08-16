@@ -1,0 +1,17 @@
+[test5filematch.txt]
+
+```perl
+if (@default_filenames) {
+    my $filename = shift @default_filenames;
+    info "Assigning default filename '$filename' to snippet #$n";
+    process_file_block($filename, $block);
+
+    # Update the default filenames file on disk
+    if (defined $default_filenames_file) {
+        open my $dfh, '>', $default_filenames_file or die_log "Can't update default filenames file: $!";
+        print $dfh join("\n", @default_filenames), "\n";
+        close $dfh;
+    }
+    return;
+}
+```

@@ -1,0 +1,26 @@
+# Some text before
+
+    # Some previous comment
+    # We have now changed it in the following way:
+    # a...
+    sub can_splice_snippet {
+        my ($body) = @_;
+        #$body = expand_tabs($body);
+        my @lines = split /\r?\n/, $body;
+        return 0 if @lines < 2;
+
+        my $first_line = $lines[0];
+        my $last_line  = $lines[-1];
+        my ($first_indent) = ($first_line =~ /^([ \t]*)/);
+        my $first_indent_len = length($first_indent);
+	# Do not check empty lines (this one contains one tab)
+        for my $i (1 .. $#lines - 1) {
+            next if ($lines[$i] =~ /^[ \t]*$/); # 8 spaces
+            my ($indent) = ($lines[$i] =~ /^([ \t]*)/); # 12 spaces
+            return 0 if length($indent) <= $first_indent_len; # 12 spaces
+        }
+# Some comment in the middle but elsewhere
+        return 1;
+    }
+
+# Some text after

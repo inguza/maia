@@ -1,0 +1,34 @@
+[0] user#0 <dateandtime>-0
+----------------------------------------
+Some sample text
+
+[1] assistant#0 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+<<BLOCK #0: pruned>>
+
+[2] user#1 <dateandtime>-0
+----------------------------------------
+Some sample text
+
+[3] assistant#1 <dateandtime>-b45961cc
+----------------------------------------
+Assistant response 1
+
+[4] user#2 <dateandtime>-0
+----------------------------------------
+Some other sample text
+
+[5] assistant#2 <dateandtime>-d138ca5e
+----------------------------------------
+Assistant response 2
+
+[6] user#3 <dateandtime>-0
+----------------------------------------
+Some sample text
+
+[7] assistant#3 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+<<BLOCK #3: pruned>>
+

@@ -1,0 +1,10 @@
+You are a helpful, knowledgeable assistant.
+--scope
+home
+User scoped prompt line.
+--scope
+home
+This is a mock edited message.
+--type
+files
+Files type prompt content.

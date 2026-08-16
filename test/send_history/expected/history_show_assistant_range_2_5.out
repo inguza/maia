@@ -1,0 +1,12 @@
+[5] assistant#2 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+```
+file.txt
+This is the file content
+```
+
+[7] assistant#3 <dateandtime>-37ed551f
+----------------------------------------
+Assistant response 4
+

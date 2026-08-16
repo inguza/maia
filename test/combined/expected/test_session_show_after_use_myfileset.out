@@ -1,0 +1,6 @@
+Session:   foo
+Workspace: ws
+Filesets:
+  - myfileset
+Extra:     (none)
+Files in <MAIA_HOME>:

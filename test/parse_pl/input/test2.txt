@@ -1,0 +1,144 @@
+[43] assistant#21 20250616T204514-62354179
+----------------------------------------
+[test/send/responses/openai_success_gpt4.json]
+```json
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Mocked response"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}
+```
+
+[test/send/responses/openai_error_auth.json]
+```json
+{
+  "error": {
+    "message": "Invalid authentication credentials",
+    "type": "authentication_error",
+    "param": null,
+    "code": "invalid_api_key"
+  }
+}
+```
+
+[test/send/responses/openai_error_rate_limit.json]
+```json
+{
+  "error": {
+    "message": "You have exceeded your current quota, please check your plan and billing details.",
+    "type": "rate_limit_error",
+    "param": null,
+    "code": "rate_limit_reached"
+  }
+}
+```
+
+[test/send/responses/openai_error_invalid_request.json]
+```json
+{
+  "error": {
+    "message": "Invalid request: The model 'gpt-5' does not exist.",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_found"
+  }
+}
+```
+
+[test/send/responses/openai_malformed_response.json]
+```json
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant"
+        /* missing content field */
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}
+```
+
+[test/send/responses/openai_empty_response.json]
+```json
+{}
+```
+
+[test/send/responses/aws_success_bedrock.json]
+```json
+{
+  "requestId": "mock-request-id",
+  "responseMetadata": {
+    "httpStatusCode": 200
+  },
+  "results": [
+    {
+      "contentType": "application/json",
+      "body": "{\"id\":\"mock-response-id\",\"choices\":[{\"message\":{\"content\":\"Mocked AWS Bedrock response\",\"role\":\"assistant\"},\"finishReason\":\"stop\"}],\"usage\":{\"promptTokens\":10,\"completionTokens\":5,\"totalTokens\":15}}"
+    }
+  ]
+}
+```
+
+[test/send/responses/aws_error_throttling.json]
+```json
+{
+  "__type": "ThrottlingException",
+  "message": "Rate exceeded"
+}
+```
+
+[test/send/responses/aws_error_access_denied.json]
+```json
+{
+  "__type": "AccessDeniedException",
+  "message": "User is not authorized to perform this action"
+}
+```
+
+[test/send/responses/aws_malformed_response.json]
+```json
+{
+  "requestId": "mock-request-id",
+  "responseMetadata": {
+    "httpStatusCode": 200
+  },
+  "results": [
+    {
+      "contentType": "application/json"
+      /* missing body field */
+    }
+  ]
+}
+```
+
+[test/send/responses/aws_empty_response.json]
+```json
+{}
+```
+

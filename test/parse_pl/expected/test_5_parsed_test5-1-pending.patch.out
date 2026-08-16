@@ -1,0 +1,15 @@
+--- a/test5filematch.txt
++++ b/test5filematch.txt
+@@ -5,6 +5,12 @@
+     info "Assigning default filename '$filename' to snippet #$n";
+     process_file_block($filename, $block);
+ 
++    # Update the default filenames file on disk
++    if (defined $default_filenames_file) {
++        open my $dfh, '>', $default_filenames_file or die_log "Can't update default filenames file: $!";
++        print $dfh join("\n", @default_filenames), "\n";
++        close $dfh;
++    }
+     return;
+ }
+ 

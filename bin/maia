@@ -1,0 +1,288 @@
+#!/usr/bin/env bash
+#
+# Main entrypoint for the `maia` CLI tool.
+#
+# Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
+#
+# This software is available under the GNU General Public License v3.0 and under
+# separate commercial licensing terms.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+set -o pipefail
+shopt -s nullglob
+
+maia_bin_path="$(command -v "$0")"
+maia_real_path="$(realpath "$maia_bin_path")"
+export MAIA_ROOT="$(dirname "$(dirname "$maia_real_path")")"
+export MAIA_BIN="$maia_real_path"
+export MAIA_CORE_LIB_DIR="$MAIA_ROOT/lib/maia/core"
+export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
+# Load shared utilities
+. "$MAIA_CORE_LIB_DIR/common.sh"
+
+# Load merged config up to history scope
+_cfg=$(load_merged_config session)
+export TERM_LOGLEVEL=$(echo "$_cfg" | jq -r '.term_loglevel')
+
+# Check for required tools
+require_command curl
+require_command jq
+
+COMMAND="${1:-}"
+
+# If no arguments, show help
+if [[ $# -eq 0 ]]; then
+    COMMAND=""
+fi
+
+version() {
+    local VER=$(cat "$MAIA_CORE_LIB_DIR/version")
+    echo $VER
+}
+
+# Resolve the active history (use "default" if not set)
+usage() {
+    cat <<EOF
+Usage: aia <command> [options] [<text-or-file>...]
+       aia [<text-or-file>...]
+
+Manage the message to send to the AI.
+
+COMMANDS:
+
+  Configuration / General
+    config           Configuration (list, scope, get, set, unset)
+    home             Manage aia home directory (create, delete, show)
+    api              AI introspection (models, model, fine-tunes, fine-tune, usage)
+    tools|tool       Tool management (list, enable/append, replace, disable, clear, delete)
+
+  Session
+    session          Session management (create, use, list, show)
+    send|s           Send prompt to API (with dry-run, response-file options)
+    user|u|outbox    User outbox management (show, append, replace, clear, delete)
+    count            Estimate token count for API payload
+    history|h        History operations (show, pop, top, delete, search, clear, export)
+    parse            Parse assistant response and produce change suggestions.
+    interactive|i    Launch interactive REPL
+    chat             Chat mode (interactive or single-send)
+    system           System prompt management (show, append, replace, clear)
+    edit             An alias of 'aia user edit'
+    compose	     An alias of 'aia send compose'
+    read	     An alias of 'aia user read'
+
+  Workspace
+    workspace|w      Workspace management (create, use, show, list, clear, delete)
+    filesets|fileset Fileset management (list, create, delete, show, clear)
+    files|file|f     File management (add, forget, remove)
+    change|c         Change management (list, show, edit, gen, apply, applied, delete, skip)
+
+OPTIONS:
+
+  -h, --help        Show this help message and exit
+  --version         Show version information and exit
+
+ENVIRONMENT:
+
+  Authentication:
+  - OPENAI_API_KEY
+  - AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY
+  - AWS_SESSION_TOKEN
+  - MAIA_CURL_EXTRA_HEADERS
+
+  Editor:
+  - MAIA_EDITOR
+  - EDITOR
+
+  Session select:
+  - MAIA_SESSION
+
+EXAMPLES:
+
+ Command examples:
+
+  aia send "Hello, AI!"
+    Send the message "Hello, AI!" to the AI API.
+
+  aia fileset list
+    List all filesets in the current workspace.
+
+  aia change list --pending
+    List all pending changes.
+
+  aia compose
+    Open an editor where instructions are given and then send that to the AI API.
+
+  aia
+    Show the outbox.
+
+ Environment examples:
+
+  export OPENAI_API_KEY='xxxxxx'
+  export MAIA_CURL_EXTRA_HEADERS=\$'X-My-Auth: mytoken\nX-Another-Header: value'
+  export MAIA_EDITOR="emacs -nw"
+  export MAIA_SESSION="somesessionname"
+
+NOTES:
+
+  When aia [<text-or-file>] alternative is detected it is treated as
+  'aia user append [<text-or-file>]' except that the <text-or-file> must start
+  with a capital letter or be a quoted string with at least one space.
+  This helps differentiate commands from user input.
+
+  <text-or-file> can be:
+    - "Text"      - A text
+    - filename    - A file name
+    - read        - Read from stdin
+    - compose     - Start en editor to fill in the content
+    - snippet     - A named snippet text defined by 'aia snippet'.
+
+  If multiple <text-or-file> is provied they are added together.
+
+  This example command:
+     aia send "This is the error message:" compose " followed by:" compose
+  will send the following to the AI:
+     This is the error message:
+     <the composed text from the editor>
+     followed by:
+     <the composed text from the second editor>
+
+EOF
+    exit 0
+}
+
+case "$COMMAND" in
+    home)
+	shift
+	. "$MAIA_CORE_LIB_DIR/home.sh"
+	handle_home_command "$@"
+	;;
+    debug)
+	;;
+    user|u|outbox)
+	shift
+	. "$MAIA_CORE_LIB_DIR/user.sh"
+	handle_user_command "$@"
+	;;
+    system)
+	shift
+	. "$MAIA_CORE_LIB_DIR/system.sh"
+	handle_system_command "$@"
+	;;
+    snippets|snippet|snip)
+	shift
+	. "$MAIA_CORE_LIB_DIR/snippet.sh"
+	handle_snippet_command "$@"
+	;;
+    session)
+	shift
+	. "$MAIA_CORE_LIB_DIR/session.sh"
+	handle_session_command "$@"
+	;;
+    history|h)
+	shift
+	. "$MAIA_CORE_LIB_DIR/history.sh"
+	handle_history_command "$@"
+	;;
+    workspace|ws|w)
+	shift
+	. "$MAIA_CORE_LIB_DIR/workspace.sh"
+	handle_workspace_command "$@"
+	;;
+    tools|tool)
+	shift
+	. "$MAIA_CORE_LIB_DIR/tool.sh"
+	handle_tool_command "$@"
+	;;
+    files|file|f)
+	shift
+	. "$MAIA_CORE_LIB_DIR/file.sh"
+	handle_file_command "$@"
+	;;
+    parse)
+	shift
+	. "$MAIA_CORE_LIB_DIR/parse.sh"
+	handle_parse_command "$@"
+	;;
+    filesets|fileset)
+	shift
+	. "$MAIA_CORE_LIB_DIR/fileset.sh"
+	handle_fileset_command "$@"
+	;;
+    config)
+	shift
+	. "$MAIA_CORE_LIB_DIR/config.sh"
+	handle_config_command "$@"
+	;;
+    api)
+	shift
+	. "$MAIA_CORE_LIB_DIR/api.sh"
+	handle_api_command "$@"
+	;;
+    send|s)
+	shift
+	. "$MAIA_CORE_LIB_DIR/send.sh"
+	handle_send_command "$@"
+	;;
+    count)
+	shift
+	. "$MAIA_CORE_LIB_DIR/count.sh"
+	handle_count_command "$@"
+	;;
+    interactive|i)
+	shift
+	. "$MAIA_CORE_LIB_DIR/interactive.sh"
+	handle_interactive_command "$@"
+	;;
+    chat)
+	shift
+	. "$MAIA_CORE_LIB_DIR/chat.sh"
+	handle_chat_command "$@"
+	;;
+    change|c)
+	shift
+	. "$MAIA_CORE_LIB_DIR/change.sh"
+	handle_change_command "$@"
+	;;
+    help|--help|-h)
+	usage
+	exit 0
+	;;
+    version|--version)
+	version
+	exit 0
+	;;
+    "")
+	. "$MAIA_CORE_LIB_DIR/user.sh"
+	handle_user_command show
+	;;
+    edit|read)
+	. "$MAIA_CORE_LIB_DIR/user.sh"
+	handle_user_command "$@"
+	;;
+    compose)
+	. "$MAIA_CORE_LIB_DIR/send.sh"
+	handle_send_command "$@"
+	;;
+    *)
+	. "$MAIA_CORE_LIB_DIR/send.sh"
+	# No recognized command, but args were passed → default to the send command
+	if ! is_first_letter_upper "$COMMAND" && [[ "$COMMAND" != *" "* ]]; then
+	    error "Unrecognized command '$COMMAND'. Use a capitalized command or quote a multi-word message."
+	    usage
+	fi
+	handle_send_command "$@"
+	;;
+esac
+exit 0

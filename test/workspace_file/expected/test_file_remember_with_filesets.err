@@ -1,0 +1,3 @@
+[WARN] File '--filesets' not found, skipping
+[WARN] File 'default' not found, skipping
+[NOTICE] 'y1.txt' already in fileset 'default'

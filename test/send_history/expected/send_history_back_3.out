@@ -1,0 +1,5 @@
+Here is some sample text with a fenced file:
+```
+file.txt
+This is the file content
+```

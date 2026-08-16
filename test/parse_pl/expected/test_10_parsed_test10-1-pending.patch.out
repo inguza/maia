@@ -1,0 +1,48 @@
+--- a/test10match.sh
++++ b/test10match.sh
+@@ -235,6 +235,24 @@
+ 		shopt -u dotglob nullglob
+ 
+ 		# Update session metadata file with new workspace and filesets
++                # New logic: If src_fs is exactly ["src_session"], then
++                # create fileset named "name" copying src_session.fileset, and set filesets_json=["name"]
++                if [[ "$src_fs" == "[$(printf '"%s"' "$src_session")]" ]]; then
++                    # Fileset file paths
++                    local old_ws_dir=$(resolve_workspace_path "$src_ws")
++                    local new_ws_dir=$(resolve_workspace_path "$workspace")
++                    local old_fileset_file="$old_ws_dir/${src_session}.fileset"
++                    local new_fileset_file="$new_ws_dir/${name}.fileset"
++                    if [[ -f "$old_fileset_file" ]]; then
++                        cp "$old_fileset_file" "$new_fileset_file"
++                        info "Copied fileset content from '$old_fileset_file' to '$new_fileset_file'"
++                    else
++                        # If no old fileset file, create empty new one
++                        : > "$new_fileset_file"
++                        info "Created empty fileset '$new_fileset_file'"
++                    fi
++                    filesets_json="[$(printf '"%s"' "$name")]"
++                fi
+ 		update_session "$name" "false" "$workspace" "$filesets_json"
+ 		notice "Created session '$name' by copying from session '$src_session'"
+ 	    else
+@@ -243,19 +261,7 @@
+ 		update_session "$name" "true" "$workspace" "$filesets_json"
+ 		notice "Created session '$name'"
+ 	    fi
+-	    # If filesets include __SESSION_NAME__, copy the old session fileset file to the new session fileset file
+-	    if [[ -n "$src_ws" && -n "$src_fs" && \
+-		      "$src_fs" == *"__SESSION_NAME__"* && \
+-		      "$filesets_json" == *"__SESSION_NAME__"* ]]; then
+-		local old_ws_dir=$(resolve_workspace_path "$src_ws")
+-		local new_ws_dir=$(resolve_workspace_path "$workspace")
+-		local old_fileset_file="$old_ws_dir/${src_session}.fileset"
+-		local new_fileset_file="$new_ws_dir/${name}.fileset"
+-		if [[ -f "$old_fileset_file" ]]; then
+-		    cp "$old_fileset_file" "$new_fileset_file"
+-		    info "Copied fileset content from '$old_fileset_file' to '$new_fileset_file'"
+-		fi
+-	    fi
++
+ 	    # Ensure that any supplied session filesets exist in the workspace
+ 	    local resworkspace="$(resolve_workspace_name "$workspace")"
+ 	    if [[ -n "$resworkspace" ]]; then

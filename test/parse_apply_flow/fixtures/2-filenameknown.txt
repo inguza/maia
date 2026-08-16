@@ -1,0 +1,8 @@
+[testfile1.sh]
+```
+foobar() {
+    # Initial function, to be replaced again
+    a=1
+    return a
+}
+```

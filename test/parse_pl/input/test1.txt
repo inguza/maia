@@ -1,0 +1,96 @@
+----- Muiltiple tests in one file -----
+----- First test -----
+
+This is a test file
+
+### 1. ** test/f1.txt **
+
+```bash
+This is test content1
+```
+
+Something more here
+
+----- Second test -----
+This is a test file
+
+### 1. ** test/f2.txt **
+
+Some multi-line text.
+Here.
+
+```bash
+This is test content2
+```
+
+Something more here
+
+----- Third test -----
+
+### 4. ** test/f3.txt **
+
+1. ** test/fe1.txt **
+
+Some instruction text here
+
+```
+We should not match this one with f1 but with g1
+```
+
+Some more text here
+
+----- Fourth test -----
+
+2. ** test/f4.txt **
+
+Let us describe something here.
+It may be multi-line as well.
+
+```bash
+This is test content4
+```
+
+Extra text after.
+
+
+----- Fifth test -----
+
+[test/f5.txt]
+
+```
+Test content 5
+```
+
+Extra text here.
+
+
+----- Sixth test -----
+
+Here is the updated `test/u1.txt` file:
+
+```bash
+Some content for 6
+```
+
+Something after.
+
+----- Seventh test -----
+
+Finally we have a snippet that should be matched because it is >=2 lines:
+
+```
+Some text here
+With extra line here
+```
+
+Extra
+
+----- Eight test -----
+
+Finally we have a snippet that should not be matched because it is just one line:
+
+```
+Some text here
+```
+
+Extra

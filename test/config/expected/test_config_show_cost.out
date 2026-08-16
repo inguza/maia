@@ -1,0 +1,15 @@
+CONFIG NAME                    SCOPE      VALUE
+----------------------------------------------------------------------------
+cost_input_gpt_4_1             default    2
+cost_input_gpt_4_1_mini        default    0.4
+cost_input_gpt_4_1_nano        default    0.1
+cost_output_gpt_4_1            default    8
+cost_output_gpt_4_1_mini       default    1.6
+cost_output_gpt_4_1_nano       default    0.4
+
+ENVIRONMENT NAME               VALUE
+----------------------------------------------------------------------------
+AWS_ACCESS_KEY_ID              ********************************
+AWS_SECRET_ACCESS_KEY          ********************************
+AWS_SESSION_TOKEN              ********************************
+OPENAI_API_KEY                 ********************************

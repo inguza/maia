@@ -1,0 +1,58 @@
+[
+  {
+    "name":"net-request-tcp",
+    "description": "Establish a tcp connection to a host and port to send data to it.",
+    "command": "net-request-tcp.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "IP address or host name to connect to"
+        },
+        "port": {
+          "type": "string",
+          "description": "Port number or port name to connect to"
+        },
+        "data": {
+          "type": "string",
+          "description": "Data to transmit on the TCP connection"
+        },
+	"timeout":{
+	  "type": "string",
+	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+	}
+      },
+      "required": ["host","port","data"]
+    },
+    "strict": true
+  },
+  {
+    "name": "net-request-ssl",
+    "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
+    "command": "net-request-ssl.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "IP address or host name to connect to"
+        },
+        "port": {
+          "type": "string",
+          "description": "Port number or port name to connect to"
+        },
+        "data": {
+          "type": "string",
+          "description": "Data to transmit on the SSL connection"
+        },
+	"timeout":{
+	  "type": "string",
+	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+	}
+      },
+      "required": ["host", "port", "data"]
+    },
+    "strict": true
+  }
+]

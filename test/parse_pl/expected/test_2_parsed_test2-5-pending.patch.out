@@ -1,0 +1,23 @@
+--- /dev/null
++++ b/test/send/responses/openai_malformed_response.json
+@@ -0,0 +1,20 @@
++{
++  "id": "mock-response-id",
++  "object": "chat.completion",
++  "created": 1234567890,
++  "choices": [
++    {
++      "index": 0,
++      "message": {
++        "role": "assistant"
++        /* missing content field */
++      },
++      "finish_reason": "stop"
++    }
++  ],
++  "usage": {
++    "prompt_tokens": 10,
++    "completion_tokens": 5,
++    "total_tokens": 15
++  }
++}

@@ -1,0 +1,316 @@
+#
+# Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
+#
+# Manage LLM tool/function calling support:
+#
+#  - Discover .td tool definition files under all scopes in tools/ directory
+#  - Maintain merged enabled tools file per scope as a cache of enabled tools
+#  - Commands to list, show, edit, enable, refresh, verify, delete tool definitions
+#  - Provide functions to read enabled tools and resolve commands for execution
+#
+
+# Load all discovered tool definitions into an associative array keyed by name,
+# respecting scope priority (first found wins).
+# Output JSON array of tool definitions (merged)
+# Important! init_tool_search_dirs must be called prior to this
+load_all_tool_defs() {
+    local files=()
+    local scope
+    for scope in "${TOOL_SEARCH_ORDER[@]}"; do
+        local dir="${TOOL_DIRS[$scope]}"
+        if [[ -d "$dir" ]]; then
+	    local file
+            for file in "$dir"/*"$TOOL_DEF_EXT"; do
+                [[ -f "$file" ]] && files+=("$file")
+            done
+        fi
+    done
+    # Output JSON array of all tools (flatten into a single array)
+    jq -n '
+        [inputs | .[] | . + {source: input_filename}]
+    ' "${files[@]}"
+}
+
+# Helper: build jq filter from array of regex patterns
+build_list_filter_from_patterns() {
+    local enabled_tools_list_file="$1"
+    local patterns=()
+
+    if [ -e "$enabled_tools_list_file" ] ; then
+	while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            patterns+=("$line")
+	done < "$enabled_tools_list_file"
+    fi
+
+    printf '%s\n' "${patterns[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))'
+}
+
+list_tools() {
+    # Load all tools}
+    init_tool_search_dirs
+    local all_tools_json=$(load_all_tool_defs)
+    local scope="$1"
+    local enabled_tools_list_file="$2"
+
+    # Default to list all tools
+    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+    # Deduplicate tools by name (keep last occurrence)
+    local deduped_tools_json=$(jq '
+        reduce .[] as $item ({}; .[$item.name] = $item) | [.[]]
+    ' <<< "$all_tools_json")
+
+    # Output list with enabled mark
+    jq -r --argjson patterns "$patterns_json" '
+      def glob_to_regex:
+        "^" +
+	(gsub("\\."; "\\.")
+	| gsub("\\*"; ".*")
+	| gsub("\\?"; ".")) +
+	"$";
+
+      def enabled_filter:
+        .name as $name |
+        any($patterns[];
+	  . as $pattern |
+	  $name | test($pattern | glob_to_regex)
+	);
+
+      .[] |
+      if enabled_filter
+      then "* " + .name + "   (" + .source + ")"
+      else "  " + .name + "   (" + .source + ")"
+      end
+    ' <<< "$deduped_tools_json"
+}
+   
+# IMPOPRTANT! init_tool_search_dirs
+generate_enabled_tools_def_file() {
+    local enabled_tools_list_file="$1"
+    local enabled_tools_def_file="$2"
+    # Important to call this because it is used by load_all_tool_defs below
+    init_tool_search_dirs
+    
+    local all_tool_defs_json=$(load_all_tool_defs)
+    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+
+    # We match the names against the regexp and then for the matched ones we keep only the last if there are
+    # several with the same name.
+    # This uses the object index method that overwrites earlier entries
+    jq --argjson patterns "$patterns_json" '
+      def glob_to_regex:
+        "^" +
+	(gsub("\\."; "\\.")
+	| gsub("\\*"; ".*")
+	| gsub("\\?"; ".")) +
+	"$";
+
+  [
+    .[] |
+    select(
+      .name as $name |
+      any($patterns[];
+        . as $pattern |
+        $name | test($pattern | glob_to_regex)
+      )
+    )
+  ]
+  |
+  reduce .[] as $item (
+    {};
+    .[$item.name] = $item
+  )
+  | [.[]]
+' <<< "$all_tool_defs_json" > "$enabled_tools_def_file"
+}
+
+# Refresh: regenerate tools.json based on the tools.txt file
+# This merges all discovered .td files and enabled tools state per scope
+refresh_enabled_tools_def_file() {
+    local scope="$1"
+    local enabled_tools_list_file="$2"
+    local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
+    if [ ! -e "$enabled_tools_list_file" ] ; then
+	rm -f "$enabled_tools_def_file"
+    else
+	generate_enabled_tools_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}"
+	info "Refreshed enabled tools JSON for scope '$scope'"
+    fi
+}
+
+# Verify: check that enabled tool definitions are current with discovered .td files for scope
+# Optionally for a specific function pattern
+verify_tools_def_file() {
+    local scope="$1"
+    local enabled_tools_list_file="$2"
+    local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
+    if [ ! -e "$enabled_tools_list_file" ] ; then
+	if [ -e "$enabled_tools_def_file" ] ; then
+	    warn "No tool definitions but tools JSON file exist for $scope"
+	fi
+    else
+	if [ ! -e "$enabled_tools_def_file" ] ; then
+	    warn "Tool definitions but no tools JSON file exist for $scope"
+	else
+	    generate_enabled_tools_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}.tmp"
+	    if ! diff "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp" > /dev/null ; then
+		warn "Enabled tools JSON cache for scope '$scope' is out of sync with tools.txt"
+		diff -u "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp"
+		return 1
+	    else
+		notice "Enabled tools JSON cache for scope '$scope' is up to date"
+		return 0
+	    fi
+	fi
+    fi
+}
+
+# Handle the aia tool command line
+handle_tool_command() {
+    # help
+    [[ "$1" =~ ^-h|--help$ ]] && system_usage
+    [[ "$2" =~ ^-h|--help$ ]] && system_usage
+
+    # 1) consume global flags: -h/--help, --scope
+    local scopearg=""
+    while [[ $# -gt 0 ]]; do
+	case "$1" in
+	    -h|--help)
+		system_usage
+		return 0
+		;;
+	    --scope)
+		consumed="$consumed $1 $2"
+		shift
+		scope="$1"; shift || true
+		scopearg=yes
+		if [[ -n "$scope" ]] ; then
+		    if [[ -z "${SCOPE_DIRS[$scope]+x}" ]]; then
+			die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
+		    fi
+		fi
+		;;
+	    *)
+		break
+		;;
+	esac
+    done
+    prompt_type="tools"
+    
+    if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
+	determine_implicit_scope "$prompt_type"
+	echo "$implicit_scope"
+	return
+    fi
+    # default scope if none given
+    determine_implicit_scope "$prompt_type"
+    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+	scope="$implicit_scope"
+    fi
+    if [[ -z "$scope" ]]; then
+	scope="home"
+    fi
+
+    local subcmd="${1:-}"
+    
+    # compute filename & path
+    filename="${prompt_type}.txt"
+    filepath="${SCOPE_DIRS[$scope]}/$filename"
+
+    case "$subcmd" in
+        list)
+	    list_tools "$scope" "$filepath"
+            ;;
+	view|"")
+	    prompt_for_scope "$scope" "tools"
+	    ;;
+	show)
+	    echo "Enabled tools:"
+	    echo "--------------"
+	    prompt_for_scope "$scope" "tools"
+	    echo "Tool definitions:"
+	    echo "-----------------"
+	    tools_for_scope "$scope"
+	    ;;
+	append|enable)
+	    # seed on first append
+	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    if [[ ! -f "$filepath" ]]; then
+		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
+		if [[ -z "$msg" ]] ; then
+		    touch "$filepath"
+		else
+		    echo "$msg" > "$filepath"
+		fi
+	    fi
+	    if [[ "$subcmd" = "enable" ]] ; then
+		subcmd="append"
+	    fi
+	    handle_text_file_command "$filepath" "$@"
+	    refresh_enabled_tools_def_file "$scope" "$filepath"
+	    ;;
+        edit|read|compose|replace|clear|delete)
+	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    handle_text_file_command "$filepath" "$@"
+	    refresh_enabled_tools_def_file "$scope" "$filepath"
+            ;;
+        refresh)
+	    refresh_enabled_tools_def_file "$scope" "$filepath"
+            ;;
+        verify)
+            verify_tools_def_file "$scope" "$filepath"
+            ;;
+        *)
+            die "Unknown tool command: $subcmd"
+            ;;
+    esac
+}
+
+tool_usage() {
+    cat <<EOF
+USAGE
+
+  aia tool [--scope <scope>] <command> [args...]
+     Manage tools
+  aia tool --scope
+     Show the scope for the current tool definitions
+
+Manage LLM tools/functions.
+
+COMMANDS
+
+  list
+      List tools with enabled status and scope.
+
+  show
+      Show enabled tool definitions matching regex.
+
+  edit
+      Edit the tool definition in specified scope.
+
+  append|enable <functionname-regex> [<functionname-regex> ...]
+      Enable tool(s) matching regex in current scope.
+
+  replace [<functionname-regex> ...]
+      Replace tool definition (same as clear and append)
+
+  clear
+      Clear all tool definitions in the current scope.
+
+  refresh
+      Refresh enabled tools file to sync with discovered .td files.
+
+  verify
+      Verify enabled tools are current with discovered .td files.
+
+  delete
+      Delete the tool definitions from this scope.
+
+OPTIONS
+
+  --scope <scope>
+      Specify scope: session, workspace, home, user, system, extra.
+
+EOF
+    exit 0
+}

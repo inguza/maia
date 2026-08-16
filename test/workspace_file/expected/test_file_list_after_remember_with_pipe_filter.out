@@ -1,0 +1,7 @@
+<MAIA_HOME>:
+   x2.txt
+   y3.txt|cat|grep "y3"
+   y2.txt:send_usage
+   y1.txt
+   x1.txt
+   x3.txt

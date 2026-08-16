@@ -1,0 +1,5 @@
+[NOTICE] Applied change '<dateandtime>-b000fd4f-1'
+[NOTICE] Applied change '<dateandtime>-b000fd4f-2'
+[NOTICE] Added new file 'foo/bar/file2.txt' to active session filesets.
+[NOTICE] Applied change '<dateandtime>-b000fd4f-3'
+[NOTICE] Applied all patches for change set <dateandtime>-b000fd4f

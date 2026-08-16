@@ -1,0 +1,75 @@
+USAGE
+
+  maia history [OPTIONS] <subcommand> [ARGS...]
+  maia history [ARGS...]
+
+Manage and manipulate the command history.
+
+COMMANDS
+
+  show [options] [<range>]
+    Display entries in the given range.
+
+  pop [options] [<n>]
+    Remove & print last n entries (default 1).
+
+  top [options] [<n>]
+    Remove & print first n entries (default 1).
+
+  delete [<range>]
+    Delete entries in n–m inclusive.
+
+  prune [options] [<range>]
+    Options to override the default 'prune_mode' configuration.
+    --reduce replace large blocks with a placeholder
+    --edit adjust in an editor
+    --cut replace the entire message with a placeholder
+
+  search [options] <keyword>
+    Find entries containing keyword.
+
+  clear
+    Wipe the active history.
+
+OPTIONS
+
+  -h, --help
+    Show this help message and exit.
+
+  -a, --assistant
+    Only show assistant messages. Applicable to show and search.
+
+  -u, --user
+    Only show user messages. Applicable to show and search.
+
+  If both --user and --assistant are provided, it shows both.
+
+  --raw, --json
+    Print in json format. Applicable to show, search, pop and top.
+
+EXAMPLES
+
+    maia history show 0-10
+      Show the first 11 entries in history.
+
+    maia history pop 2
+      Remove and print the last two entries.
+
+    maia history
+      Show the last assistant response.
+
+    maia history -
+      Show full history.
+
+NOTES
+
+  Range syntax:
+    n-m       entries n through m (inclusive)
+    n-        entries n through end
+    -n        first (n+1) entries
+    n         entry n (same as n-n)
+    - or ""   the entire history
+    last      the last entry
+    last-1    the 2 last entries
+    all       the entire history
+

@@ -1,0 +1,36 @@
+{
+  "model": "gpt-4",
+  "temperature": 0.7,
+  "max_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant."
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test model override"
+    }
+  ]
+}

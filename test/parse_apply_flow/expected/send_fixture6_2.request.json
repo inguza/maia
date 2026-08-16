@@ -1,0 +1,72 @@
+{
+  "model": "gpt-4.1-mini",
+  "temperature": 0.7,
+  "max_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant.\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify. Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 (testfile1.sh)[f1]>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "[testfile1.sh]\n```\nfoobar() {\n    # Initial function, to be replaced again\n    a=1\n    return a\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 snippet>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 (wrong_file_name)[f1]>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 (wrong_file_name)[f1]>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request for existing files with no patch."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 (foo/bar/file1.txt)[f1]>>\n\n<<BLOCK #2 (foo/bar/file3.txt)[f1]>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Files:\n[testfile1.sh]\n```\nHere we replace the beginning of the file too\n\n# We make it even more complicated this time\nfoobar() {\n    # You throught this was the final content of this, but this one is\n    local a=1*2*$1*2\n    return a*1*2\n}\n# and we should handle this too\n\nAnd the end\n```\n[foo/bar/file1.txt]\n```\n# Project - Overall Context\n\n# Project Goal\nPort xxx\nline 2\n\n## Header 1\n- Some content\n- More\n- More\n- More\n- More\n\n## Header 2\n- More content\n- More\n- More\n- [Other things]\n```\n[foo/bar/file3.txt]\n```\nPort yyy\nline 2\n\n## Header 1\n- Other things\n- more\n- more\nSome content\n\n## Header 2\n- More\n- More content\n```"
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request for new files with patches."
+    }
+  ]
+}

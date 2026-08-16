@@ -1,0 +1,5 @@
+  ID                             TYPE       STATUS     FILENAME
+  <dateandtime>-b000fd4f       set        pending    
+    <dateandtime>-b000fd4f-1   patch      pending    foo/bar/file1.txt
+    <dateandtime>-b000fd4f-2   patch      pending    foo/bar/file2.txt
+    <dateandtime>-b000fd4f-3   patch      pending    foo/bar/file3.txt

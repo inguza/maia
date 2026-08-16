@@ -1,0 +1,20 @@
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "[testfile1.sh]\n```\n# This is a shell file with some content in the beginning. It is new.\n#\n\nfoobar() {\n    # Some initial todo, to be replaced later\n}\n\nbarfoo() {\n    # This should not be removed.\n}\n\n# And this should be kept too.\n```\n"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}

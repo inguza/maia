@@ -1,0 +1,18 @@
+[1] assistant#0 <dateandtime>-21766010
+----------------------------------------
+[testfile1.sh]
+```
+# This is a shell file with some content in the beginning. It is new.
+#
+
+foobar() {
+    # Some initial todo, to be replaced later
+}
+
+barfoo() {
+    # This should not be removed.
+}
+
+# And this should be kept too.
+```
+

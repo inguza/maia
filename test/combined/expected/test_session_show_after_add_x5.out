@@ -1,0 +1,12 @@
+Session:   foo
+Workspace: ws
+Filesets:
+  - myfileset2 (ro)
+  - myfileset4
+Extra send filesets:
+  - myextrafileset1
+Files in <MAIA_HOME>:
+    x/2.txt
+    x/4.txt
+    x/5.txt
+    x/3.txt

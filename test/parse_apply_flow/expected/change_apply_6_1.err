@@ -1,0 +1,5 @@
+[NOTICE] Applied change '<dateandtime>-07787476-1'
+[NOTICE] Added new file 'foo/bar/file1.txt' to active session filesets.
+[NOTICE] Applied change '<dateandtime>-07787476-2'
+[NOTICE] Added new file 'foo/bar/file3.txt' to active session filesets.
+[NOTICE] Applied all patches for change set <dateandtime>-07787476

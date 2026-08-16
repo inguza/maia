@@ -1,0 +1,47 @@
+USAGE
+
+  maia count [--model <model>] [<text-or-file>…]
+
+Prints an approximate token count (chars/4 ≈ tokens) per message and total.
+Also prints an approximate cost in USD assuming a cost per token based on the model,
+separately for user and assistant messages.
+
+COMMANDS
+
+  (No subcommands)
+
+OPTIONS
+
+  --model <model>
+    Specify the model to use for cost calculation (overrides config).
+    Supported models: gpt-4, gpt-4-32k, gpt-3.5-turbo, gpt-4.1-mini.
+
+  --file-handling <mode>
+    Override file handling mode for this send command.
+    Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
+
+  -h, --help
+    Show this help message and exit.
+
+EXAMPLES
+
+    maia count --model gpt-4 file.txt
+      Estimate token count and cost for the contents of file.txt using GPT-4.
+
+NOTES
+
+  The token count is an approximation calculated as characters divided by 4.
+  Costs are calculated separately for user and assistant tokens.
+
+  It is also important to understand that the assistant cost was for that
+  specific assistant reply. The user cost is for each time that is sent
+  and that do not count the fact that assistant reply is also counted.
+
+  <text-or-file> can be any of the following:
+  - A Word
+  - a "quoted text"
+  - the command compose
+  - the command read
+  - the command edit
+  If multiple are provided they are appended as new lines (except edit).
+

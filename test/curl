@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -o pipefail
+
+# Check that CAPTURE_FILE and CAPTURE_HEADERS_FILE environment variables are set
+if [[ -z "${CAPTURE_FILE:-}" || -z "${CAPTURE_HEADERS_FILE:-}" ]]; then
+    echo "[mock curl] ERROR: CAPTURE_FILE and CAPTURE_HEADERS_FILE must be set" >&2
+    exit 1
+fi
+
+# Initialize empty files
+: > "$CAPTURE_FILE"
+: > "$CAPTURE_HEADERS_FILE"
+
+# Parse arguments to capture headers (-H) and data (--data or --data-binary)
+args=("$@")
+num_args=$#
+i=0
+
+while [[ $i -lt $num_args ]]; do
+    arg="${args[$i]}"
+    case "$arg" in
+        -H)
+            ((i++))
+            header="${args[$i]}"
+            echo "$header" >> "$CAPTURE_HEADERS_FILE"
+            ;;
+        --header)
+            ((i++))
+            header="${args[$i]}"
+            echo "$header" >> "$CAPTURE_HEADERS_FILE"
+            ;;
+        --data|--data-binary)
+            ((i++))
+            data="${args[$i]}"
+	    if [[ "$data" == @* ]]; then
+		file_path="${data#@}"
+		if [[ -f "$file_path" ]]; then
+		    cat "$file_path" > "$CAPTURE_FILE"
+		else
+		    echo "[mock curl] ERROR: Data file '$file_path' not found" >&2
+		    exit 1
+		fi
+	    else
+		echo "$data" > "$CAPTURE_FILE"
+	    fi
+            ;;
+        *)
+            # ignore other args
+            ;;
+    esac
+    ((i++))
+done
+
+# Determine which response to output
+if [[ -n "${MOCK_CURL_RESPONSE_FILE:-}" ]]; then
+    if [[ -f "$MOCK_CURL_RESPONSE_FILE" ]]; then
+	cat "$MOCK_CURL_RESPONSE_FILE"
+    else
+	echo "$MOCK_CURL_RESPONSE_FILE not found!"
+    fi
+else
+    # Default canned success response
+    cat <<EOF
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "model": "gpt-4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Mocked response"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}
+EOF
+fi
+
+exit 0

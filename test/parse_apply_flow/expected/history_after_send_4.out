@@ -1,0 +1,13 @@
+[7] assistant#3 <dateandtime>-3a1e5575
+----------------------------------------
+[wrong_file_name]
+```bash
+# We make it even more complicated this time
+foobar() {
+    # You throught this was the final content of this, but this one is
+    local a=1*2*$1*2
+    return a*1*2
+}
+# and we should handle this too
+```
+

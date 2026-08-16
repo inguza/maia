@@ -1,0 +1,15 @@
+--- /dev/null
++++ b/test/send/responses/aws_malformed_response.json
+@@ -0,0 +1,12 @@
++{
++  "requestId": "mock-request-id",
++  "responseMetadata": {
++    "httpStatusCode": 200
++  },
++  "results": [
++    {
++      "contentType": "application/json"
++      /* missing body field */
++    }
++  ]
++}

@@ -1,0 +1,11 @@
+--- /dev/null
++++ b/test/send/responses/openai_error_auth.json
+@@ -0,0 +1,8 @@
++{
++  "error": {
++    "message": "Invalid authentication credentials",
++    "type": "authentication_error",
++    "param": null,
++    "code": "invalid_api_key"
++  }
++}

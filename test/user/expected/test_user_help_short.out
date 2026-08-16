@@ -1,0 +1,69 @@
+USAGE
+
+  maia user <command> [ARGS...]
+  maia user [<text-or-file>...]
+
+Manage the user outbox: show, append, replace, clear, delete.
+
+COMMANDS
+
+  show
+    Print pending outbox.
+
+  edit
+    Edit the outbox.
+
+  append <text>
+    Append text or file to outbox.
+
+  replace <text>
+    Replace outbox content.
+
+  clear
+    Remove outbox entirely.
+
+  delete
+    Delete the outbox file.
+
+OPTIONS
+
+  -h, --help
+    Show this help message and exit.
+
+EXAMPLES
+
+    maia user append "New message"
+      Append "New message" to the outbox.
+
+    maia user show
+      View the current outbox content.
+
+NOTES
+
+  When 'maia user [<text-or-file>]' is called without a command, it is 
+  treated as 'maia user append [<text-or-file>]' only if the argument starts 
+  with a capital letter or is a quoted string with at least one space.
+
+  You can also run:
+
+    maia user append read
+      Read from stdin.
+
+    maia user append compose
+      Open an editor to compose the text.
+
+    maia user "This is the error message I get:" compose
+      First add the text and then open up an editor for the error message.
+
+    maia user show
+      Show what's in the outbox.
+
+  <text-or-file> can be any of the following:
+  - A Word
+  - a "quoted text"
+  - the command compose
+  - the command read
+  - the command edit
+  If multiple are provided they are appended as new lines (except edit) which
+  opens the editor inline.
+

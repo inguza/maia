@@ -1,0 +1,7 @@
+Session:   bar
+Workspace: __WORKSPACE_USED__
+Filesets:
+  - __SESSION_NAME__ (ro)
+Extra:     (none)
+Files in <MAIA_HOME>:
+    x/1.txt

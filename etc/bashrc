@@ -1,0 +1,9 @@
+# The Alias for the command. You need to change the path to the maia executable
+alias maia='/path/to/maia/bin/maia'
+# For easy session setting
+maias() {
+  export AIA_SESSION="$1"
+}
+# To see the session in your bash shell
+# Change 35m to 34m to get blue path
+export PS1='\[\e]0;\u@\h${MAIA_SESSION:+[$MAIA_SESSION]}: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]${MAIA_SESSION:+\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]]\[\033[00m\]}:\[\033[01;35m\]\w\[\033[00m\]\$ '

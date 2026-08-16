@@ -1,0 +1,10 @@
+[5] assistant#2 <dateandtime>-004f5f65
+----------------------------------------
+```
+foobar() {
+    # Final content of this
+    local a=1*2*$1
+    return a
+}
+```
+

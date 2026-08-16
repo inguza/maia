@@ -1,0 +1,16 @@
+# This is a shell file with some content in the beginning. It is new.
+#
+
+# We make it even more complicated this time
+foobar() {
+    # You throught this was the final content of this, but this one is
+    local a=1*2*$1*2
+    return a*1*2
+}
+# and we should handle this too
+
+barfoo() {
+    # This should not be removed.
+}
+
+# And this should be kept too.

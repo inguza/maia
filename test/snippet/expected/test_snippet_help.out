@@ -1,0 +1,59 @@
+USAGE
+
+  maia snippet [--scope <scope>] <command> [<name>] [<text-or-file>...]
+  maia snippet [--scope <scope>] <name> [<text-or-file>...]
+     If <text-or-file> is present default to show, else to append.
+
+Manage named reusable user message snippet.
+
+COMMANDS
+
+  list
+    List all snippet names available in the effective scope(s).
+
+  show <name>
+    Display the content of the named snippet.
+
+  append <name> <text-or-file>...
+    Append text or file contents to the end of the snippet (append).
+    If no scope is given and an earlier name exists in another scope
+    the text is first copied from the other scope to the current and
+    then the text is appended to that.
+
+  add <name> <text-or-file>...
+    Add text or file contents to the end of the snippet (append).
+
+  replace <name> <text-or-file>...
+    Replace the content of the named snippet.
+
+  edit <name>
+    Edit the snippet file.
+
+  delete <name>
+    Delete the named snippet.
+
+FLAGS
+
+  -h, --help
+    Show this help and exit.
+
+  --scope <scope>
+    Explicitly select one of history, workspace, home, user, system.
+
+NOTES
+
+  - If --scope is omitted, commands search all scopes in priority order for
+    show, delete, and list; add and replace write to the highest priority
+    writable scope (default: home if exists, else user).
+
+  - Snippets are stored as plain text files under <scope_dir>/snippets/<name>.txt.
+
+  <text-or-file> can be any of the following:
+  - A Word
+  - a "quoted text"
+  - the command compose
+  - the command read
+  - the command edit
+  If multiple are provided they are appended as new lines, except for 'edit'
+  which opens the editor inline.
+

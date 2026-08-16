@@ -1,0 +1,16 @@
+Some instruction here with
+multiple lines.
+
+--- a/testd2match.sh
++++ b/testd2match.sh
+@@ -8,4 +8,6 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++}

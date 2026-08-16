@@ -1,0 +1,48 @@
+CONFIG NAME                    SCOPE      VALUE
+----------------------------------------------------------------------------
+additional_tool_paths          default    ""
+api_base_url                   default    "https://api.openai.com"
+api_type                       default    "AUTODETECT"
+auto_add_new_files_on_apply    default    true
+auto_parse                     default    true
+auto_use_at_create             default    true
+auto_use_at_set                default    true
+cost_input_gpt_4_1             default    2
+cost_input_gpt_4_1_mini        default    0.4
+cost_input_gpt_4_1_nano        default    0.1
+cost_output_gpt_4_1            default    8
+cost_output_gpt_4_1_mini       default    1.6
+cost_output_gpt_4_1_nano       default    0.4
+default_filter                 default    ""
+default_session_extra_send_filesets default    "[]"
+default_session_filesets       default    "[\"__SESSION_NAME__\"]"
+file_handling_mode             default    "DEFAULT"
+file_handling_mode_mistral_24b default    "APPEND"
+file_handling_mode_qwen2_5_14b default    "APPEND"
+frequency_penalty              default    0
+http_logging                   default    true
+max_input_tokens               default    64000
+max_output_tokens              default    32000
+model                          default    "gpt-4.1-mini"
+n                              default    1
+presence_penalty               default    0
+prune_mode                     default    "reduce"
+prune_when_applied             default    true
+prune_when_skipped             default    true
+send_hook                      default    ""
+splice_allowed_files           default    "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$"
+stream                         default    false
+tab_width                      default    8
+temperature                    default    0.7
+term_loglevel                  home       "NOTICE"
+top_p                          default    1
+
+ENVIRONMENT NAME               VALUE
+----------------------------------------------------------------------------
+MAIA_EDITOR                    ""
+MAIA_SESSION                   ""
+EDITOR                         ""
+AWS_ACCESS_KEY_ID              ********************************
+AWS_SECRET_ACCESS_KEY          ********************************
+AWS_SESSION_TOKEN              ********************************
+OPENAI_API_KEY                 ********************************

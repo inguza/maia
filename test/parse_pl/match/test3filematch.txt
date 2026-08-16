@@ -1,0 +1,9 @@
+#include <stdlib.h>
+
+// Commment above
+  int main(int argc, char** argv) {
+      int a=1;
+      int b=1;
+  }
+
+// We want to keep things after as well

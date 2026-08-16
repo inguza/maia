@@ -1,0 +1,4 @@
+[WARN] No workspace defined. Create a workspace with 'maia workspace create <name> --use' first.
+[NOTICE] Bootstrapped session 'bar'
+[NOTICE] Created session 'bar'
+[NOTICE] Now using session 'bar'

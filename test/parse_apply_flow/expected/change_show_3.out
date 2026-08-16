@@ -1,0 +1,29 @@
+{
+  "type": "set"
+}
+
+Assistant response text below:
+==============================
+<<BLOCK #1 snippet>>
+
+Sub-change: <dateandtime>-004f5f65-1
+{
+  "filename": "testfile1.sh",
+  "lang": "",
+  "type": "patch"
+}
+Suggested patch below:
+======================
+--- a/testfile1.sh
++++ b/testfile1.sh
+@@ -2,8 +2,8 @@
+ #
+ 
+ foobar() {
+-    # Initial function, to be replaced again
+-    a=1
++    # Final content of this
++    local a=1*2*$1
+     return a
+ }
+ 

@@ -1,0 +1,92 @@
+{
+  "model": "gpt-4.1-mini",
+  "temperature": 0.7,
+  "max_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant."
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test model override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test temperature override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling default"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling before"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling append"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test prompt content"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "This is a start\nTest prompt content\nSomething more"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    }
+  ]
+}

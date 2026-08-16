@@ -1,0 +1,20 @@
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "[wrong_file_name]\n```bash\n# We make it even more complicated this time\nfoobar() {\n    # You throught this was the final content of this, but this one is\n    local a=1*2*$1*2\n    return a*1*2\n}\n# and we should handle this too\n```\n"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}

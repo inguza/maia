@@ -1,0 +1,42 @@
+--- a/test16match.md
++++ b/test16match.md
+@@ -2,15 +2,35 @@
+ 
+ With some text
+ 
++```php
++# PHP code here
++$extra = true;
++```
++
++```markdown
++
++This is a second level nesting
++
++```php
++<?php
++# PHP code here again
++#
++$foobar = false;
++```
++
++# Code description
++
++More description just before end of markdown end
++```
++
+ ## Second header
+ 
+ With some text
+ 
++```php
++# Again some PHP code
++```
+ 
+ ## Third header
+ 
+ With some more text
+-
+-## A header to be removed
+-
+-With some text

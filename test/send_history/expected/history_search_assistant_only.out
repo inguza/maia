@@ -1,0 +1,18 @@
+[1] assistant#0 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+<<BLOCK #0: pruned>>
+
+[7] assistant#3 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+<<BLOCK #3: pruned>>
+
+[13] assistant#6 <dateandtime>-18f6548e
+----------------------------------------
+Here is some sample text with a fenced file:
+```
+file.txt
+This is the file content
+```
+

@@ -1,0 +1,11 @@
+Some preamble text
+
+    # Header comment
+    sub example_function {
+        my $x = 1;
+
+        print $x;
+# Different internal comment text
+    }
+
+Some postamble text

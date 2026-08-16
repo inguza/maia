@@ -1,0 +1,99 @@
+#!/usr/bin/env perl
+#
+# Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
+#
+# Licensed under the GNU General Public License v3.0.
+# See LICENSE-GPLv3.txt for the full license text.
+# Commercial licensing is available separately.
+#
+use strict;
+use warnings;
+use JSON::PP;
+use Getopt::Long;
+# Use the common.pm in the same directory
+use FindBin qw($Bin);
+use lib $Bin;
+use common;
+
+# Parse options
+my $loglevel;
+GetOptions(
+    'loglevel|l=s' => \$loglevel
+    ) or die_log "Invalid options\n";
+
+# Set TERM_LOGLEVEL (default NOTICE)
+$ENV{TERM_LOGLEVEL} = $loglevel
+    ? uc $loglevel
+    : ($ENV{TERM_LOGLEVEL} // 'NOTICE');
+
+# Expect at 5 positional args
+my $argc = scalar @ARGV;
+if ($argc != 4) {
+    print "#arguments: $argc\n";
+    die_log "Usage: $0 [--loglevel LEVEL] <source-file> <target-file> <change-json-file> <ws-root>";
+}
+
+# We expect first positional argument to be command: parse or process
+my $filename = shift @ARGV;
+my $targetfile = shift @ARGV;
+my $changefile = shift @ARGV;
+
+my $ws_root = shift @ARGV;
+my $sourcefile = "$ws_root/$filename";
+
+my $source = &read_file("$sourcefile");
+my $change = &read_json_file("$changefile");
+
+# We use a global variable here, not the nicest but it works well enough
+# for this small tool.
+my $error = "";
+my $content = &change_file($source, $change);
+print $error;
+&write_file($targetfile, $content);
+
+exit 0;
+
+###############################################################
+################# Help Functions ##############################
+###############################################################
+
+sub change_file {
+    my ($content, $change) = @_;
+    
+    if (ref($change) ne 'ARRAY') {
+	$error = "No changes provided.\n";
+	return;
+    }
+
+    my $sep = "";
+    my $i = 0;
+    for my $item (@$change) {
+	$i++;
+	if (ref($item) ne 'HASH') {
+	    $error = "Change $i is not a change. Aborting.\n";
+	    last;
+	}
+	for my $key (qw(old new)) {
+	    if (!exists $item->{$key}) {
+		$error = "Change $i is missing '$key'. Aborting.\n";
+		last;
+	    }
+	}
+        my $old = $item->{'old'};
+	if ($old eq "") {
+	    $error = "Change $i has an empty string to remove. Aborting.\n";
+	    last;
+	}
+        my $new = $item->{'new'};
+
+	# Find the old text and substitute
+	my $pos = index($content, $old);
+	if ($pos < 0) {
+	    $error = "Change $i: old text not found. Aborting.\n";
+	    last;
+	}
+	substr($content, $pos, length($old)) = $new;
+    }
+    
+    return $content;
+}

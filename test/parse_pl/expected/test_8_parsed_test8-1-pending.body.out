@@ -1,0 +1,24 @@
+forget_entries() {
+    for fs in "${FILESET_FILES[@]}"; do
+        local tmp="$(mktemp)"
+        while IFS= read -r line; do
+            local keep=true
+            for pat in "$@"; do
+                if [[ "$pat" == *:* ]]; then
+                    # pattern contains colon, exact match
+                    [[ "$line" == "$pat" ]] && keep=false && break
+                else
+                    # pattern without colon: match glob or prefix with colon
+                    # Using [[ ]] glob match with pattern
+                    if [[ "$line" == $pat || "$line" == $pat:* ]]; then
+                        keep=false
+                        break
+                    fi
+                fi
+            done
+            $keep && echo "$line" >> "$tmp"
+        done < "$fs"
+        mv "$tmp" "$fs"
+        info "  Updated $(basename "$fs")"
+    done
+}

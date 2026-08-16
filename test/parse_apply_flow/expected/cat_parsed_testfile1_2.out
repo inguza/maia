@@ -1,0 +1,14 @@
+# This is a shell file with some content in the beginning. It is new.
+#
+
+foobar() {
+    # Initial function, to be replaced again
+    a=1
+    return a
+}
+
+barfoo() {
+    # This should not be removed.
+}
+
+# And this should be kept too.

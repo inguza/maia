@@ -1,0 +1,7 @@
+--- /dev/null
++++ b/test/send/responses/aws_error_throttling.json
+@@ -0,0 +1,4 @@
++{
++  "__type": "ThrottlingException",
++  "message": "Rate exceeded"
++}

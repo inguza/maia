@@ -1,0 +1,19 @@
+[testd2match.sh]
+```diff
+Some instruction here with
+multiple lines.
+
+--- testd2match.sh
++++ testd2match.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++}
+```

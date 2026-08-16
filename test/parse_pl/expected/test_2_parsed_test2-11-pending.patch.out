@@ -1,0 +1,4 @@
+--- /dev/null
++++ b/test/send/responses/aws_empty_response.json
+@@ -0,0 +1 @@
++{}

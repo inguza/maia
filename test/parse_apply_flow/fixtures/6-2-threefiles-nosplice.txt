@@ -1,0 +1,49 @@
+[foo/bar/file1.txt]
+```
+# Project - Overall Context
+
+# Project Goal
+Port xxx
+line 2
+
+## Header 1
+- Some content
+- More
+- More
+- More
+- More
+
+## Header 2
+- More content
+- More
+- More
+- [Other things]
+```
+
+[foo/bar/file2.txt]
+```
+## New header
+
+With content
+
+## More header
+
+With content
+``` 
+
+[foo/bar/file3.txt]
+```
+Port yyy
+line 2
+
+## Header 1
+- Other things
+- more
+- more
+Some content
+
+## Header 2
+- More only this changed
+- More content
+```
+

@@ -1,0 +1,10 @@
+[
+  {
+    "role": "assistant",
+    "timestamp": "<dateandtime>",
+    "id": "18f6548e",
+    "content": "Here is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```",
+    "index": 13,
+    "assistant_index": 6
+  }
+]

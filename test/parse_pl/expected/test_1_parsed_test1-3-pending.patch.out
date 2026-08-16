@@ -1,0 +1,4 @@
+--- /dev/null
++++ b/test/fe1.txt
+@@ -0,0 +1 @@
++We should not match this one with f1 but with g1

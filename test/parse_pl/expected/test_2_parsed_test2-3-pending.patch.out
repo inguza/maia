@@ -1,0 +1,11 @@
+--- /dev/null
++++ b/test/send/responses/openai_error_rate_limit.json
+@@ -0,0 +1,8 @@
++{
++  "error": {
++    "message": "You have exceeded your current quota, please check your plan and billing details.",
++    "type": "rate_limit_error",
++    "param": null,
++    "code": "rate_limit_reached"
++  }
++}

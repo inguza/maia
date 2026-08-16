@@ -1,0 +1,7 @@
+    bar
+*   default
+    foo
+^   myextrafileset1
++   myfileset2 (ro)
+    myfileset3
++   myfileset4

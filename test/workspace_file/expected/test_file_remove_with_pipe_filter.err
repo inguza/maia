@@ -1,0 +1,1 @@
+[WARN] Pattern 'y3.txt|cat|grep "y3"' contains filter suffix; skipping removal (only file removal supported)

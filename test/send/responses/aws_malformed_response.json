@@ -1,0 +1,12 @@
+{
+  "requestId": "mock-request-id",
+  "responseMetadata": {
+    "httpStatusCode": 200
+  },
+  "results": [
+    {
+      "contentType": "application/json"
+      /* missing body field */
+    }
+  ]
+}

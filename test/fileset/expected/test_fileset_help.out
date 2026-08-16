@@ -1,0 +1,69 @@
+USAGE
+
+  maia fileset <command> [options]
+  maia fileset
+
+Manage filesets within the active workspace.
+
+COMMANDS
+
+  list|ls
+    List all filesets in the active workspace.
+
+  create <name> [<src>]
+    Create a new fileset named <name>, optionally copying from <src>.
+
+  use [<name>[,<name2>...]]
+    Make <name>(s) the fileset(s) for the current workspace or session.
+    If no name is provided print the fileset(s) currently in use.
+    The workspace use is updated if the session filesets is defined
+    as __WORKSPACE_FILESETS__. If not the session filesets list is updated.
+
+  select - an alias of use
+
+  show [<name>] [--all] [--workspace]
+    Show entries in <name> (glob patterns), optional slice “n-m”.
+    If name is omitted session active filesets are shown unless
+    any of the below options are used.
+    --all show all filesets
+    --workspace show workspace active filesets
+
+  clear [<name>]
+    Delete all patterns from <name>.
+    If name is omitted, it clears all current files sets.
+
+  delete [<name>]
+    Delete the fileset <name>.
+    If name is omitted, it deletes all current files sets.
+
+  readonly [<name>]
+    Make <name> read-only, meaning the entries cannot be modified. Note that the
+    content that the entries represent are not read-only. Only the list.
+
+  readwrite [<name>}
+    Make <name> read-write.
+
+OPTIONS
+
+  -h, --help
+    Show this help message.
+
+EXAMPLES
+
+    maia fileset list
+      List all filesets in the current workspace.
+
+    maia fileset create myfileset
+      Create a new fileset named "myfileset".
+
+    maia fileset use myfileset,default
+      Use "myfileset" and "default" as active filesets.
+
+NOTES
+
+  Filesets are collections of file patterns used to manage project files.
+
+  For fileset list and fileset show:
+  '*' the fileset is in the workspace fileset list currently in use.
+  '+' the fileset is in the session fileset list currently in use.
+

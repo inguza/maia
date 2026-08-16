@@ -1,0 +1,98 @@
+USAGE
+
+  maia config [options] <command> [<name>] [<value>]
+  maia config [options] [<name>] [<value>]
+  maia config
+
+Manage configuration settings for the MAIA tool.
+
+COMMANDS
+
+  list|ls
+    List all available configuration keys.
+
+  get [<name>]
+    Display the effective merged setting for each key, or only <name> if given.
+    Honors the --scope option for restricting to a particular layer.
+    Ignores --all and --cost.
+
+  set <name> <value>
+    Set the configuration key <name> to <value> in the specified scope.
+    Ignores --all and --cost.
+    Use --effective to target the highest-priority scope where the key is currently defined.
+
+  unset <name>
+    Remove <name> from the specified scope, reverting to a lower-level setting
+    or default.
+    Ignores --all and --cost.
+    Use --effective to target the highest-priority scope where the key is currently defined.
+
+  When no command is given it defaults to set when both name and value is provided and
+  defaults to get if only name is provided.
+
+OPTIONS
+
+  --scope <scope>
+    Specify the configuration layer: session, workspace, home (default), user, or system.
+
+  --effective
+    For set/unset: target the highest-priority scope where the key is currently defined.
+    If the key is not present in any scope, behaves like a normal write (home by default).
+
+  --all
+    Show all configuration items.
+
+  --cost
+    Show only cost related configuration items.
+
+  --file
+    Show only file handling mode related configuration items.
+
+  -h, --help
+    Show this help message and exit.
+
+EXAMPLES
+
+  maia config list
+    List all available configuration keys, except cost related.
+
+  maia config --all list
+    List all available configuration keys.
+
+  maia config --cost list
+    List all cost related configuration keys.
+
+  maia config scope model
+    Show the scope for the "model" configuration key.
+
+  maia config --scope workspace get
+    Show configuration for the workspace scope.
+
+  maia config temperature 0.5
+    Set temperature to 0.5 in the default scope.
+
+  maia config --scope user unset stream
+    Unset the "stream" key in the user scope.
+
+  maia config
+    Show non-cost related configuration.
+
+  maia config --all
+    Show all configuration.
+
+NOTES
+
+  The configuration scopes follow a priority order from most specific to least:
+    session, workspace, home, user, system, default.
+
+  The default write scope is home.
+
+  When no command is given it defaults to maia config show to show the
+  current active configuration.
+
+  Cost configuration is in \$/1M tokens
+
+  For the configuration key 'default_session_filesets', you may set it using a
+  simple comma-separated list instead of JSON. For example:
+    maia config set default_session_filesets default,test1
+  This will be converted automatically to a JSON array.

@@ -1,0 +1,20 @@
+{
+  "id": "mock-response-id",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "[foo/bar/file1.txt]\n```\n# Project - Overall Context\n\n# Project Goal\nPort xxx\nline 2\n\n## Header 1\n- Some content\n- More\n- More\n- More\n- More\n\n## Header 2\n- More content\n- More\n- More\n- [Other things]\n```\n\n[foo/bar/file2.txt]\n```\n## New header\n\nWith content\n\n## More header\n\nWith content\n``` \n\n[foo/bar/file3.txt]\n```\nPort yyy\nline 2\n\n## Header 1\n- Other things\n- more\n- more\nSome content\n\n## Header 2\n- More only this changed\n- More content\n```\n\n"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 5,
+    "total_tokens": 15
+  }
+}

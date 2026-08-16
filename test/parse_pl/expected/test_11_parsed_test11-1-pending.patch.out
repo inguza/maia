@@ -1,0 +1,36 @@
+--- a/test11match.pl
++++ b/test11match.pl
+@@ -777,9 +777,30 @@
+ 
+ sub expand_tabs {
+     my ($text) = @_;
+-    # Replace tabs with $tab_width spaces
+-    $text =~ s/\t/' ' x $tab_width/eg;
+-    return $text;
++    my $tab_width_local = $tab_width // 8;
++
++    my @lines = split /(\r?\n)/, $text;  # preserve line endings in split
++    my $result = '';
++
++    for (my $i = 0; $i < @lines; $i += 2) {
++        my $line = $lines[$i];
++        my $newline = $lines[$i + 1] // '';
++
++        my $expanded_line = '';
++        my $col = 0;
++        foreach my $char (split //, $line) {
++            if ($char eq "\t") {
++                my $spaces = $tab_width_local - ($col % $tab_width_local);
++                $expanded_line .= ' ' x $spaces;
++                $col += $spaces;
++            } else {
++                $expanded_line .= $char;
++                $col++;
++            }
++        }
++        $result .= $expanded_line . $newline;
++    }
++    return $result;
+ }
+ 
+ sub get_indentation {

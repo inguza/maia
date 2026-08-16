@@ -1,0 +1,18 @@
+sub can_splice_snippet_something {
+    my ($body) = @_;
+    #$body = expand_tabs($body);
+    my @lines = split /\r?\n/, $body;
+    return 0 if @lines < 2;
+
+    my $first_line = $lines[0];
+    my $last_line  = $lines[-1];
+    my ($first_indent) = ($first_line =~ /^([ \t]*)/);
+    my $first_indent_len = length($first_indent);
+    # Do not check empty lines
+    for my $i (1 .. $#lines - 1) {
+	next if ($lines[$i] =~ /^[ \t]*$/);
+	my ($indent) = ($lines[$i] =~ /^([ \t]*)/);
+	return 0 if length($indent) <= $first_indent_len;
+    }
+    return 1;
+}

@@ -1,0 +1,11 @@
+#include <stdlib.h>
+
+// Commment above
+  int main(int argc, char** argv) {
+      // This is a main function
+      int a=1;
+      int b=2;
+      int c=a*2;
+  }
+
+// We want to keep things after as well

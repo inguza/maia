@@ -1,0 +1,9 @@
+[
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 12,
+    "user_index": 6
+  }
+]

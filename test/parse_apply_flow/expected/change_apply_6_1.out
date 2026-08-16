@@ -1,0 +1,4 @@
+checking file foo/bar/file1.txt
+checking file foo/bar/file3.txt
+patching file foo/bar/file1.txt
+patching file foo/bar/file3.txt

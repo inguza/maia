@@ -1,0 +1,79 @@
+USAGE
+
+  maia system [--scope <scope>] <command> [<text-or-file>…]
+  maia system [<text-or-file>…]
+
+Manage your system-prompt in various scopes.
+
+COMMANDS
+
+  show
+    Display the prompt (searching from the given or implicit scope).
+
+  append <...>
+    Add text or file contents to the end of the prompt file.
+
+  edit
+    Edit the text.
+
+  read
+    Append text from stdin.
+
+  replace <...>
+    Clear and then append.
+
+  clear
+    Empty the prompt file.
+
+  delete
+    Remove the prompt file.
+
+OPTIONS
+
+  -h, --help
+    Show this help and exit.
+
+  --scope <s>
+    Explicitly select one of session, workspace, home, user, system.
+
+  --type <t>
+    Which prompt to manage: "system" (default) or "files".
+
+SCOPES
+
+  session
+    <maia_home>/histories/<history>.system.txt
+
+  workspace
+    <maia_home>/projects/<project>.system.txt
+
+  home
+    first matching .maia in cwd/ancestors
+
+  user
+    ~/.maia/system.txt (or $MAIA_HOME/.maia)
+
+  system
+    read-only /etc/maia/system.txt
+
+NOTES
+
+  When maia system [<text-or-file>] alternative is detected it is treated as
+  'maia system append [<text-or-file>]' except that the <text-or-file> must
+  either start with a capital letter or be a quoted string with at least one
+  space.
+
+  If no --scope is given, the CLI searches for an existing <type>.txt in the
+  order session, workspace, home, user, system; and uses that same scope for
+  reads and writes. If it does not find a suitable file, then home is used
+  as scope.
+
+  <text-or-file> can be any of the following:
+  - A Word
+  - a "quoted text"
+  - the command compose
+  - the command read
+  - the command edit
+  If multiple are provided they are appended as new lines, except for 'edit'
+  which opens the editor inline.
+

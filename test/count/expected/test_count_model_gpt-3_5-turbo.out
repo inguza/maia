@@ -1,0 +1,12 @@
+
+Approximate token counts per message (chars/4 ≈ tokens):
+0    SYSTEM       ->   11 tokens (chars: 43)
+0    USER[0]      ->   35 tokens (chars: 138)
+──────────────────────────────
+APPROXIMATE TOKENS for model 'gpt-3.5-turbo':
+Total:          46
+  Input:        35
+  Output:        0
+──────────────────────────────
+  User:         35
+  Assistant:     0

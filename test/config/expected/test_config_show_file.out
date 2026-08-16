@@ -1,0 +1,11 @@
+CONFIG NAME                    SCOPE      VALUE
+----------------------------------------------------------------------------
+file_handling_mode_mistral_24b default    "APPEND"
+file_handling_mode_qwen2_5_14b default    "APPEND"
+
+ENVIRONMENT NAME               VALUE
+----------------------------------------------------------------------------
+AWS_ACCESS_KEY_ID              ********************************
+AWS_SECRET_ACCESS_KEY          ********************************
+AWS_SESSION_TOKEN              ********************************
+OPENAI_API_KEY                 ********************************

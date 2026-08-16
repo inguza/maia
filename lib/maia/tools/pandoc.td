@@ -1,0 +1,30 @@
+[
+  {
+    "name":"pandoc",
+    "description": "General markup converter",
+    "command": "pandoc.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes."
+        },
+	"input-format": {
+          "type": "string",
+          "description": "Input format."
+	},
+	"output-format": {
+          "type": "string",
+          "description": "Output format."
+	},
+	"arguments": {
+	  "type": "string",
+	  "description": "Space separated list of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
+	}
+      },
+      "required": ["path"]
+    },
+    "strict": true
+  }
+]

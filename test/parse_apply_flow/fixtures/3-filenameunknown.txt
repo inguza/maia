@@ -1,0 +1,7 @@
+```
+foobar() {
+    # Final content of this
+    local a=1*2*$1
+    return a
+}
+```

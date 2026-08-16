@@ -1,0 +1,24 @@
+[43] assistant#21 <dateandtime>-62354179
+----------------------------------------
+<<BLOCK #1 (test/send/responses/openai_success_gpt4.json)[f1]>>
+
+<<BLOCK #2 (test/send/responses/openai_error_auth.json)[f1]>>
+
+<<BLOCK #3 (test/send/responses/openai_error_rate_limit.json)[f1]>>
+
+<<BLOCK #4 (test/send/responses/openai_error_invalid_request.json)[f1]>>
+
+<<BLOCK #5 (test/send/responses/openai_malformed_response.json)[f1]>>
+
+<<BLOCK #6 (test/send/responses/openai_empty_response.json)[f1]>>
+
+<<BLOCK #7 (test/send/responses/aws_success_bedrock.json)[f1]>>
+
+<<BLOCK #8 (test/send/responses/aws_error_throttling.json)[f1]>>
+
+<<BLOCK #9 (test/send/responses/aws_error_access_denied.json)[f1]>>
+
+<<BLOCK #10 (test/send/responses/aws_malformed_response.json)[f1]>>
+
+<<BLOCK #11 (test/send/responses/aws_empty_response.json)[f1]>>
+

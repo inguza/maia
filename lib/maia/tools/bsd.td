@@ -1,0 +1,22 @@
+[
+  {
+    "name":"bsd-file",
+    "description": "Determine file type.",
+    "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes."
+        },
+	"arguments": {
+	  "type": "string",
+	  "description": "Space separated list of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
+	}
+      },
+      "required": ["pathspec"]
+    },
+    "strict": true
+  }
+]

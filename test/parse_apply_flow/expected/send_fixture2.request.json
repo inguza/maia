@@ -1,0 +1,32 @@
+{
+  "model": "gpt-4.1-mini",
+  "temperature": 0.7,
+  "max_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant.\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify. Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    },
+    {
+      "role": "assistant",
+      "content": "<<BLOCK #1 (testfile1.sh)[f1]>>\n\nThe above has been considered and the history is pruned."
+    },
+    {
+      "role": "user",
+      "content": "Files:\n[testfile1.sh]\n```\n# This is a shell file with some content in the beginning. It is new.\n#\n\nfoobar() {\n    # Some initial todo, to be replaced later\n}\n\nbarfoo() {\n    # This should not be removed.\n}\n\n# And this should be kept too.\n```"
+    },
+    {
+      "role": "user",
+      "content": "Dummy generate request."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+First content here
+
+if (@default_filenames) {
+    my $filename = shift @default_filenames;
+    info "Assigning default filename '$filename' to snippet #$n";
+    process_file_block($filename, $block);
+
+    return;
+}
+
+Other text here
+
+Some other code here too
+
+anotherfunction {
+    ...
+}

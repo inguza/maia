@@ -1,0 +1,13 @@
+--- a/testd5match.sh
++++ b/testd5match.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++}

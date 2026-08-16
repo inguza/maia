@@ -1,0 +1,21 @@
+--- a/test8match.sh
++++ b/test8match.sh
+@@ -17,7 +17,17 @@
+             while IFS= read -r line; do
+                 local keep=true
+                 for pat in "$@"; do
+-                    [[ "$line" == $pat ]] && keep=false && break
++                    if [[ "$pat" == *:* ]]; then
++                        # pattern contains colon, exact match
++                        [[ "$line" == "$pat" ]] && keep=false && break
++                    else
++                        # pattern without colon: match glob or prefix with colon
++                        # Using [[ ]] glob match with pattern
++                        if [[ "$line" == $pat || "$line" == $pat:* ]]; then
++                            keep=false
++                            break
++                        fi
++                    fi
+                 done
+                 $keep && echo "$line" >> "$tmp"
+             done < "$fs"

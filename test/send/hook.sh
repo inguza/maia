@@ -1,0 +1,5 @@
+echo "Send hook triggered"
+export AWS_ACCESS_KEY_ID="mockedapikey"
+export AWS_SECRET_ACCESS_KEY="mockedsecret"
+export AWS_SESSION_TOKEN="mockedtoken"
+export OPENAI_API_KEY="mockedapikey"

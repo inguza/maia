@@ -1,0 +1,13 @@
+--- a/test14match.txt
++++ b/test14match.txt
+@@ -1,7 +1,10 @@
+ Some preamble text
+ 
++    # Header comment
+     sub example_function {
+         my $x = 1;
++
++    # Internal comment but in a new place
+         print $x;
+     }
+ 

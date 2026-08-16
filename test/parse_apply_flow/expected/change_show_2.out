@@ -1,0 +1,29 @@
+{
+  "type": "set"
+}
+
+Assistant response text below:
+==============================
+<<BLOCK #1 (testfile1.sh)[f1]>>
+
+Sub-change: <dateandtime>-0764efc0-1
+{
+  "filename": "testfile1.sh",
+  "lang": "",
+  "type": "patch"
+}
+Suggested patch below:
+======================
+--- a/testfile1.sh
++++ b/testfile1.sh
+@@ -2,7 +2,9 @@
+ #
+ 
+ foobar() {
+-    # Some initial todo, to be replaced later
++    # Initial function, to be replaced again
++    a=1
++    return a
+ }
+ 
+ barfoo() {

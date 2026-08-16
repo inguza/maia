@@ -1,0 +1,14 @@
+diff --git b/testd7match2.sh c/testd7match2.sh
+index 0000000..7c321e1
+@@ -8,4 +8,7 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment with an alternative
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++    return 0
++}

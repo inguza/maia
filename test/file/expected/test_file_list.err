@@ -1,0 +1,3 @@
+[NOTICE] Bootstrapped session 'default'
+[WARN] No workspace defined. Create a workspace with 'maia workspace create <name> --use' first.
+[ERROR] No workspace defined. File operations require a workspace.

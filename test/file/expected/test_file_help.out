@@ -1,0 +1,73 @@
+USAGE
+
+  aia file [options] <command>
+
+Manage files in your workspace's filesets.
+
+COMMANDS
+
+  list|ls
+    List all files in each fileset for the active session's workspace.
+
+  content
+    Show the content of the files.
+
+  remember <paths...>
+    Remember to include one or more files (relative to CWD) into the selected filesets.
+
+  add ...
+    Alias of remember.
+
+  forget <patterns...>
+    Forget entries matching the given filename or glob from the selected
+    filesets.
+
+  delete ...
+    Alias of forget.
+
+  remove <patterns...>
+    Remove matching files from the filesystem and then forget entries related to these files.
+
+OPTIONS
+
+  --all
+    Operate on every .fileset under the session's workspace directory.
+
+  --filesets fs1[,fs2]
+    Comma-separated override of which workspace filesets to use.
+
+  -h, --help
+    Show this help message and exit.
+
+EXAMPLES
+
+    aia file list
+      List files in the active session's workspace filesets.
+
+    aia file remember src/*.js README.md
+      Add specified files to the session's workspace filesets.
+
+    aia file remember src/send.sh:send_usage src/count.sh:count_usage
+      Add specified files with function filter to workspace active filesets.
+
+    aia file forget *.tmp
+      Forget entries matching local files *.tmp from workspace active filesets.
+
+    aia file forget "*.tmp"
+      Forget entries matching *.tmp from session's workspace filesets.
+
+   aia file forget "*:*_usage"
+      Forget all function filters ending with _usage in all files.
+
+   aia file remove old_data.csv
+      Remove specified file in the filesystem and delete from workspace active filesets.
+
+NOTES
+
+  Paths are relative to the workspace root. Files outside the workspace is allowed
+  if relative paths are used.
+
+  Use globs carefully to avoid unintended matches.
+  If you use globs (*) to match in the list and not local files, ensure you
+  quote it.
+

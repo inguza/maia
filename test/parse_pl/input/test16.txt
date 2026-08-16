@@ -1,0 +1,44 @@
+[test16match.md]
+```
+## First header
+
+With some text
+
+```php
+# PHP code here
+$extra = true;
+```
+
+```markdown
+
+This is a second level nesting
+
+```php
+<?php
+# PHP code here again
+#
+$foobar = false;
+```
+
+# Code description
+
+More description just before end of markdown end
+```
+
+## Second header
+
+With some text
+
+```php
+# Again some PHP code
+```
+
+## Third header
+
+With some more text
+```
+
+```php
+# Adjust the above with this
+$foobar = true;
+```

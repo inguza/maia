@@ -1,0 +1,46 @@
+```
+Some instruction here with
+multiple lines.
+
+--- old/testd6match1.sh
++++ new/testd6match1.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++}
+--- b/testd6match2.sh
++++ c/testd6match2.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment with an alternative
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++    return 0
++}
+--- b/testd6matchnew.sh
++++ c/testd6matchnew.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment with an alternative
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++    return 0
++}
+```

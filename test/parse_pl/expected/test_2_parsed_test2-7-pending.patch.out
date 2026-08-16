@@ -1,0 +1,15 @@
+--- /dev/null
++++ b/test/send/responses/aws_success_bedrock.json
+@@ -0,0 +1,12 @@
++{
++  "requestId": "mock-request-id",
++  "responseMetadata": {
++    "httpStatusCode": 200
++  },
++  "results": [
++    {
++      "contentType": "application/json",
++      "body": "{\"id\":\"mock-response-id\",\"choices\":[{\"message\":{\"content\":\"Mocked AWS Bedrock response\",\"role\":\"assistant\"},\"finishReason\":\"stop\"}],\"usage\":{\"promptTokens\":10,\"completionTokens\":5,\"totalTokens\":15}}"
++    }
++  ]
++}

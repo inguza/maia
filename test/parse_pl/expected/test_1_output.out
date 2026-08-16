@@ -1,0 +1,79 @@
+----- Muiltiple tests in one file -----
+----- First test -----
+
+This is a test file
+
+### 1. ** test/f1.txt **
+
+<<BLOCK #1 (test/f1.txt)[t1]>>
+
+Something more here
+
+----- Second test -----
+This is a test file
+
+### 1. ** test/f2.txt **
+
+Some multi-line text.
+Here.
+
+<<BLOCK #2 (test/f2.txt)[t1]>>
+
+Something more here
+
+----- Third test -----
+
+### 4. ** test/f3.txt **
+
+1. ** test/fe1.txt **
+
+Some instruction text here
+
+<<BLOCK #3 (test/fe1.txt)[t2]>>
+
+Some more text here
+
+----- Fourth test -----
+
+2. ** test/f4.txt **
+
+Let us describe something here.
+It may be multi-line as well.
+
+<<BLOCK #4 (test/f4.txt)[t2]>>
+
+Extra text after.
+
+
+----- Fifth test -----
+
+<<BLOCK #5 (test/f5.txt)[f1]>>
+
+Extra text here.
+
+
+----- Sixth test -----
+
+Here is the updated `test/u1.txt` file:
+
+<<BLOCK #6 (test/u1.txt)[u3]>>
+
+Something after.
+
+----- Seventh test -----
+
+Finally we have a snippet that should be matched because it is >=2 lines:
+
+<<BLOCK #7 snippet>>
+
+Extra
+
+----- Eight test -----
+
+Finally we have a snippet that should not be matched because it is just one line:
+
+```
+Some text here
+```
+
+Extra

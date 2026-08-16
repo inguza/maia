@@ -1,0 +1,71 @@
+USAGE
+
+  maia send [OPTIONS] [<text-or-file>...]
+
+Send the pending outbox to the API, update history, and print the assistant’s reply.
+
+COMMANDS
+
+  (none - this command does not have subcommands)
+
+OPTIONS
+
+  -h, --help
+    Show this help message and exit.
+
+  --dry-run
+    Don’t call the API; record the outbox in history and print “Dry-run response.”
+
+  --response-file <file>
+    Read the assistant’s response from FILE instead of calling the API.
+
+  --model <model>
+    Override the model to use for this send command.
+
+  --temperature FLOAT
+    Override the temperature (0.0 to 1.0) for this send command.
+
+  --file-handling <mode>
+    Override file handling mode for this send command.
+    Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
+
+EXAMPLES
+
+    maia send "Hello, AI!"
+      Send the message "Hello, AI!" to the API.
+
+    maia send --dry-run
+      Record the current outbox in history without sending.
+
+    maia send --model gpt-3.5-turbo --temperature 0.5 "Hi there"
+      Send the message overriding model and temperature.
+
+    maia send --file-handling APPEND "Message with files appended."
+      Send with files instructions appended after last user message.
+
+NOTES
+
+  The behavior with given text or files is different from the case when not
+
+  When given text or files is given as an argument that given text replaces
+  the outbox before sending. When no text or files are given as arguments the
+  existing outbox is used when sending.
+
+  The reason for this handling is to avoid adding a message twice in the case
+  a send command fails and the user run it again (with text provided).
+
+  It builds a chat payload including system prompt, full history, files from
+  session filesets, and the outbox as the final user message.
+
+  <text-or-file> can be any of the following:
+  - Aword
+  - a "quoted text"
+  - the command compose
+  - the command read
+  - the command edit
+  If multiple are provided they are appended as new lines, except for 'edit'
+  which opens the editor inline.
+
+  It is possible to configure a send_hook that is executed just before checking
+  for authentication environment variables.
+

@@ -1,0 +1,34 @@
+--- a/test9match.txt
++++ b/test9match.txt
+@@ -1,25 +1,26 @@
+ # Some text before
+ 
+     # Some previous comment
++    # We have now changed it in the following way:
++    # a...
+     sub can_splice_snippet {
+         my ($body) = @_;
+         #$body = expand_tabs($body);
+         my @lines = split /\r?\n/, $body;
+-	return 0 if @lines < 2; # has one tab
++        return 0 if @lines < 2;
+ 
+-# We have some comment in the middle
+         my $first_line = $lines[0];
+         my $last_line  = $lines[-1];
+         my ($first_indent) = ($first_line =~ /^([ \t]*)/);
+         my $first_indent_len = length($first_indent);
+ 	# Do not check empty lines (this one contains one tab)
+         for my $i (1 .. $#lines - 1) {
+-	next if ($lines[$i] =~ /^[ \t]*$/); # also one tab
++            next if ($lines[$i] =~ /^[ \t]*$/); # 8 spaces
+             my ($indent) = ($lines[$i] =~ /^([ \t]*)/); # 12 spaces
+-	    my $li = length($indent); # onetab + 4 spaces
+             return 0 if length($indent) <= $first_indent_len; # 12 spaces
+         }
+-        return 1; # can splice
++# Some comment in the middle but elsewhere
++        return 1;
+     }
+ 
+ # Some text after

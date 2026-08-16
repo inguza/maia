@@ -1,0 +1,35 @@
+{
+  "type": "set"
+}
+
+Assistant response text below:
+==============================
+<<BLOCK #1 (wrong_file_name)[f1]>>
+
+Sub-change: <dateandtime>-3a1e5575-1
+{
+  "filename": "testfile1.sh",
+  "lang": "bash",
+  "type": "patch"
+}
+Suggested patch below:
+======================
+--- a/testfile1.sh
++++ b/testfile1.sh
+@@ -1,11 +1,13 @@
+ # This is a shell file with some content in the beginning. It is new.
+ #
+ 
++# We make it even more complicated this time
+ foobar() {
+-    # Final content of this
+-    local a=1*2*$1
+-    return a
++    # You throught this was the final content of this, but this one is
++    local a=1*2*$1*2
++    return a*1*2
+ }
++# and we should handle this too
+ 
+ barfoo() {
+     # This should not be removed.

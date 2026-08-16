@@ -1,0 +1,145 @@
+Yes, now that you have confirmed that `resolve_file_in_scopes` (or `file_for_scope`) is the canonical function for searching a file through scopes starting at a given scope, here are some suggestions where it can be used to reduce code duplication or simplify the code:
+
+---
+
+### 1. **In `prompt_for_scope`**
+
+Currently:
+
+```bash
+prompt_for_scope() {
+    local target="$1" type="$2"
+    local f="$(file_for_scope "$target" "${type}.txt")"
+    if [[ -n "$f" ]]; then
+        cat "$f"
+    else
+        local T="${type^^}"
+        local var="DEFAULT_${T}_PROMPT"
+        echo "${!var}"
+    fi
+}
+```
+
+No change needed here because it already uses `file_for_scope`. If you switch to `resolve_file_in_scopes`, you can replace `file_for_scope` by `resolve_file_in_scopes` (adjusting for return value behavior). This unifies usage.
+
+---
+
+### 2. **In `determine_implicit_scope` (lib/system.sh)**
+
+Currently, this function loops over `SCOPE_ORDER` and checks for the existence of `<type>.txt` files directly:
+
+```bash
+determine_implicit_scope() {
+    type=$1
+
+    for s in "${SCOPE_ORDER[@]}"; do
+        [[ "$s" == "default" ]] && break
+        if [[ -f "${SCOPE_DIRS[$s]}/${type}.txt" ]]; then
+            implicit_scope="$s"
+            return
+        fi
+    done
+
+    implicit_scope="default"
+}
+```
+
+You can simplify this by calling `resolve_file_in_scopes` with the relative filename `${type}.txt` starting at the highest priority scope (e.g., `session` or first in `SCOPE_ORDER`):
+
+```bash
+determine_implicit_scope() {
+    type=$1
+    local file
+    file=$(resolve_file_in_scopes "${SCOPE_ORDER[0]}" "${type}.txt")
+    if [[ -n "$file" ]]; then
+        # Extract scope from file path
+        for s in "${SCOPE_ORDER[@]}"; do
+            [[ "$s" == "default" ]] && continue
+            if [[ "$file" == "${SCOPE_DIRS[$s]}"* ]]; then
+                implicit_scope="$s"
+                return
+            fi
+        done
+    fi
+    implicit_scope="default"
+}
+```
+
+This centralizes the file existence check into one function.
+
+---
+
+### 3. **In `find_snippet_scope_and_path` (lib/common.sh)**
+
+This function currently loops over scopes and calls `snippet_file_path` to build full path and checks if the file exists.
+
+It can be refactored to use `resolve_file_in_scopes` by passing the relative path `snippets/<name>.txt`:
+
+```bash
+find_snippet_scope_and_path() {
+    local name="$1"
+    local scope="$2"
+    local relpath="snippets/${name}.txt"
+
+    if [[ -n "$scope" ]]; then
+        local file="${SCOPE_DIRS[$scope]}/$relpath"
+        [[ -f "$file" ]] && echo "$scope|$file" && return 0 || return 1
+    fi
+
+    local file
+    if file=$(resolve_file_in_scopes "${SCOPE_ORDER[0]}" "$relpath"); then
+        for s in "${SCOPE_ORDER[@]}"; do
+            [[ "$s" == "default" ]] && continue
+            if [[ "$file" == "${SCOPE_DIRS[$s]}"* ]]; then
+                echo "$s|$file"
+                return 0
+            fi
+        done
+    fi
+    return 1
+}
+```
+
+---
+
+### 4. **In `load_merged_config` (lib/common.sh)**
+
+Currently, `load_merged_config` calls `content_of_file_in_scope` to check if `config.json` exists in a scope. `content_of_file_in_scope` checks only a single scope.
+
+You might want to replace that with `resolve_file_in_scopes` to load configs across scopes starting at the highest priority scope or to check for config files consistently.
+
+However, since config files are merged in reverse scope order, you have to carefully adjust the logic.
+
+---
+
+### 5. **In `content_of_file_in_scope`**
+
+This function currently checks only a single scope for a file. You could replace usages that want to find a file in a scope or higher priority scopes with `resolve_file_in_scopes`.
+
+---
+
+### 6. **In any other file existence checks across scopes**
+
+Anywhere in the code where you manually loop over scopes to find a file or check for its existence, you can replace that logic by calling `resolve_file_in_scopes`.
+
+Examples might include:
+
+- Workspace metadata files
+- Session metadata files (if searching through scopes)
+- Fileset files if they are scoped (depending on your design)
+
+---
+
+## Summary of Suggested Refactors Using `resolve_file_in_scopes`
+
+| Function / Location              | Suggested Change                                           |
+|--------------------------------|------------------------------------------------------------|
+| `determine_implicit_scope`      | Use `resolve_file_in_scopes` to find first existing prompt file. |
+| `find_snippet_scope_and_path`   | Use `resolve_file_in_scopes` to find snippet files.        |
+| `load_merged_config`            | Consider using `resolve_file_in_scopes` for consistent config file detection. |
+| Other manual loops over `SCOPE_ORDER` checking files | Replace with `resolve_file_in_scopes` to centralize logic. |
+
+---
+
+If you want, I can help you refactor these functions accordingly!
+

@@ -1,0 +1,14 @@
+--- a/test15match.md
++++ b/test15match.md
+@@ -6,11 +6,6 @@
+ 
+ With some text
+ 
+-
+ ## Third header
+ 
+ With some more text
+-
+-## A header to be removed
+-
+-With some text

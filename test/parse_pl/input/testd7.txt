@@ -1,0 +1,53 @@
+```
+Some instruction here with
+multiple lines.
+
+diff --git old/testd7match1.sh new/testd7match1.sh
+new file mode 100644
+index 0000000..7c321e1
+--- old/testd7match1.sh
++++ new/testd7match1.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++}
+diff --git b/testd7match2.sh c/testd7match2.sh
+index 0000000..7c321e1
+--- b/testd7match2.sh
++++ c/testd7match2.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment with an alternative
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++    return 0
++}
+diff --git b/testd7matchnew.sh c/testd7matchnew.sh
+index 0000000..7c321e1
+--- b/testd7matchnew.sh
++++ c/testd7matchnew.sh
+@@ -8,8 +8,15 @@
+-secondfunction() {
+-    # That have some comment
+-    andtosomething=1
+-}
++secondfunction() {
++    # That have some comment with an alternative
++    local arg1=$1
++    local arg2=$2
++    echo $((arg1 * arg2))
++    return 0
++}
+```

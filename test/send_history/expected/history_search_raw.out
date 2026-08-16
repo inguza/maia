@@ -1,0 +1,75 @@
+[
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 0,
+    "user_index": 0
+  },
+  {
+    "role": "assistant",
+    "timestamp": "<dateandtime>",
+    "id": "18f6548e",
+    "content": "Here is some sample text with a fenced file:\n<<BLOCK #0: pruned>>",
+    "index": 1,
+    "assistant_index": 0
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 2,
+    "user_index": 1
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some other sample text",
+    "index": 4,
+    "user_index": 2
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 6,
+    "user_index": 3
+  },
+  {
+    "role": "assistant",
+    "timestamp": "<dateandtime>",
+    "id": "18f6548e",
+    "content": "Here is some sample text with a fenced file:\n<<BLOCK #3: pruned>>",
+    "index": 7,
+    "assistant_index": 3
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 8,
+    "user_index": 4
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some other sample text",
+    "index": 10,
+    "user_index": 5
+  },
+  {
+    "role": "user",
+    "timestamp": "<dateandtime>",
+    "content": "Some sample text",
+    "index": 12,
+    "user_index": 6
+  },
+  {
+    "role": "assistant",
+    "timestamp": "<dateandtime>",
+    "id": "18f6548e",
+    "content": "Here is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```",
+    "index": 13,
+    "assistant_index": 6
+  }
+]
