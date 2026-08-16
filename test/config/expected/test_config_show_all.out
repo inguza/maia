@@ -5,8 +5,8 @@ api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
 auto_add_new_files_on_apply    default    true
 auto_parse                     default    true
-auto_use_at_create             default    true
-auto_use_at_set                default    true
+auto_use_at_create             default    false
+auto_use_at_set                default    false
 cost_input_gpt_4_1             default    2
 cost_input_gpt_4_1_mini        default    0.4
 cost_input_gpt_4_1_nano        default    0.1

@@ -27,7 +27,7 @@ COMMANDS
   set [<name>] [--use|--nouse] [--workspace <ws>] [--filesets <fs>[,fs2...]]
     Set properties for a session.
 
-  edit [<name>] [--use|--nouse]
+  edit [<name>]
     Edit the session in an editor.
 
   use [<name>]
@@ -200,7 +200,7 @@ handle_session_command() {
 	    if [[ -d "$path" ]] ; then
 		die "Session '$name' already exists."
 	    fi
-	    local USE=$(jq -r '.auto_use_at_create // true' <<< "$_cfg")
+	    local USE=$(jq -r '.auto_use_at_create' <<< "$_cfg")
             # Parse options first to get workspace, filesets and extra_send_filesets
             parse_session_options "$@"
 	    # The remaining args after options may contain an optional source session name
@@ -361,9 +361,6 @@ handle_session_command() {
             local name="$1"
 	    ensure_session_exists "$name"
             handle_x_edit "session" "session" "$name" # Handles optional name
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use --no-use-notice session "$name"
-	    fi
             ;;
 
         list|ls)
@@ -504,7 +501,7 @@ handle_session_command() {
 	    local current_fs="$(jq -c '.filesets'  < "$meta")"
 	    local current_extra_fs="$(jq -c '.extra_send_filesets // []' < "$meta")"
 	    # Parse flags
-	    local USE=$(jq -r '.auto_use_at_set // true' <<< "$_cfg")
+	    local USE=$(jq -r '.auto_use_at_set' <<< "$_cfg")
 	    parse_session_options "$@"
 	    # Fallback to current if flags omitted
 	    local ws="${PARSED_WS:-$current_ws}"
