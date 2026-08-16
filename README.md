@@ -1,39 +1,44 @@
 # Introduction
 
-MAIA is a command-line tool designed to help you manage conversations with AI APIs in a structured way.
+MAIA is a lightweight, command-line AI assistant designed to run on most Linux systems. It provides a
+structured environment for working with AI models through sessions, workspaces, context management and tools.
 
-It supports managing:
-- sessions
-- workspaces
-- files
-- change suggestions
-- tools
+It is built around the Unix environment rather than requiring a separate application ecosystem. It uses common
+command-line tools, can run over SSH, and can be extended with ordinary executables.
+
+It takes a different approach to many other AI tools. Rather than building a large integrated AI development
+environment, it aims to provide a small, portable AI assistant that you can deploy almost anywhere you have a shell.
 
 ## The name
 
-The name stands for Multi-purpose Artificial Intelligence Assistant.
+The name stands for Multipurpose Artificial Intelligence Assistant.
 The individual letters can also be interpreted in other ways that reflect MAIA's characteristics.
 
 The M can be interpreted as:
-- Model-agnostic - because it does not depend on a specific LLM model
+- Model-agnostic - because it does not depend on a specific AI model
 - Multi-provider - because it can work with many different AI providers
 - Modular - because it is built on modules and can be extended
 
-The last A can be interpreted as:
+The final A can be interpreted as:
 - Assistant - because it is primarily intended to be used with direct user interaction
-- Agent - because it has agentic properties (if allowed to)
+- Agent - because it can operate agentically when permitted
 
 ## Why MAIA
 
-MAIA was developed because no other tools, at the time, could meet the following design principles.
+MAIA was developed around the following design principles.
 
-### Compatibility
+### Portability
 
-Minimal dependencies, with a preference for common, well-established tools available on most Linux installations, including really old ones and stripped-down server deployments.
+Easy to deploy anywhere you have a shell.
+
+It is designed to run on most Linux installations, including older systems and stripped-down server deployments.
+
+It has no compiled components or heavy runtime dependencies. Installation requires little more than copying
+the files to a system and making the command available.
 
 ### Security
 
-Open source, so its capabilities and behavior can be inspected and understood.
+Open source, so its capabilities and behavior can be inspected and audited.
 
 By default, the AI cannot directly make changes; changes are presented as suggestions that the user can review and explicitly apply. Additional capabilities can be granted through optional tools.
 
@@ -43,7 +48,7 @@ Designed to work naturally from the command line and to be easy to incorporate i
 
 ### User-controlled Context
 
-The user should have control over what the AI knows. Extensive history editing, session management, filesets, and context management make it possible to control what information is provided to the AI and how conversations are structured.
+The user should have control over what the AI knows. History editing, session management, filesets, and context management make it possible to control what information is provided to the AI and how conversations are structured.
 
 ### Model and Provider Independence
 
