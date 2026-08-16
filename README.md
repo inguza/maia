@@ -1,7 +1,11 @@
 # Introduction
 
-Multi-purpose Artificial Intelligence Assistant (MAIA) MAIA is a command-line
-tool designed to help you manage conversations with AI APIs in a structured way.
+MAIA is a command-line tool designed to help you manage conversations with AI APIs in a structured way.
+
+## The name
+
+The name stands for Multi-purpose Artificial Intelligence Assistant.
+The individual letters can also be interpreted in other ways that reflect MAIA's characteristics.
 
 It supports managing:
 - sessions
@@ -13,7 +17,7 @@ The name is an acronym for Multi-purpose Artificial Intelligence Assistant, but
 it can be interpreted as an acronym for other things as well.
 
 The M can be interpreted as:
-- Model-agnostic - because it can does not depend on a specific LLM model
+- Model-agnostic - because it does not depend on a specific LLM model
 - Multi-provider - because it can work with many different AI providers
 - Modular - because it is built on modules and can be extended
 
@@ -21,28 +25,119 @@ The A can be interpreted as:
 - Assistant - because it is primarily intended to be used with direct user interaction
 - Agent - because it has agentic properties (if allowed to)
 
+## Why MAIA
+
+MAIA was developed because no other tools, at the time, could meet the following design principles.
+
+### Compatibility
+
+Minimal dependencies, with a preference for common, well-established tools available on most Linux installations, including really old ones and stripped-down server deployments.
+
+### Security
+
+Open source, so its capabilities and behavior can be inspected and understood.
+
+By default, the AI cannot directly make changes; changes are presented as suggestions that the user can review and explicitly apply. Additional capabilities can be granted through optional tools.
+
+### Command-line First
+
+Designed to work naturally from the command line and to be easy to incorporate into scripts, applications, and other software as a command-line tool.
+
+### User-controlled Context
+
+The user should have control over what the AI knows. Extensive history editing, session management, filesets, and context management make it possible to control what information is provided to the AI and how conversations are structured.
+
+### Model and Provider Independence
+
+No dependency on a specific AI model or provider. MAIA is designed to work with different AI APIs and providers, allowing the user to choose the models and services that best fit their needs.
+
+
+# Installation & Setup
+
+## Prerequisites
+
+Ensure you have the following software installed:
+
+- `jq` 1.5 or later
+- `curl`
+- `perl`
+- `bash`
+
+It can optionally use the following tools:
+
+- pandoc
+- lynx
+- GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, head, find, ls
+- BSD utilities: file
+- netcat
+
+## Install the software
+
+The installation is easy. Simply copy to a directory where you want it to be and you are done.
+The directory where you want MAIA to reside is called `$MAIA_ROOT` below.
+
+1. Unpack the software
+
+   ```bash
+   tar xfz maia-xxxx.tar.gz
+   ```
+
+2. Copy where you want it to be
+
+   ```bash
+   mkdir -p /some-path
+   cp -a maia-<version>/* /some-path
+   ```
+
+## Configuration
+
+### Aliases
+
+The maia executable can be called directly but for easier use copy the content of `$MAIA_ROOT/etc/bashrc` to, for example, your ~/.bashrc file.
+
+It may also be useful to set the preferred editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
+
+```bash
+export MAIA_EDITOR="emacs -nw"  # or your preferred editor
+maia config term_loglevel INFO  # to get more information about what the tool does
+```
+
+### Used AI APIs
+
+Depending on what AI provider you choose you configure it a little differenty. The access information
+is set as environment variables, preferrably in a ~/.bashrc file.
+
+#### OpenAI
+
+```bash
+export OPENAI_API_KEY='your_api_key_here'
+```
+
+#### AWS Bedrock
+
+```bash
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_SESSION_TOKEN="..."
+maia config api_base_url https://bedrock-runtime.us-east-1.amazonaws.com
+maia config model someavailablemodel
+maia config file_handling_mode APPEND
+maia config send_hook "~/.maia/send-hook.sh"
+```
+
+For AWS Bedrock a send hook can be useful to automatically set the
+needed environment variables. Set it using send_hook configuration option.
+
+#### Optional extra authentication headers
+
+```bash
+export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
+```
+
 ---
 
-## Licensing
 
-Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
-
-This software is available under the GNU General Public License v3.0 and under
-separate commercial licensing terms.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-## Key Concepts
+# Key Concepts
 
 ### Workspace
 
@@ -60,6 +155,8 @@ A **session** is a conversation or interaction context with the AI, including us
 - Sessions allow you to maintain separate dialogues or experiments.
 - You can create, switch between, and manage multiple sessions within a workspace.
 
+A session is typically connected to a workspace and can have files and filesets associated to it.
+
 ### Filesets and Files
 
 - **Filesets** are named collections of files within a workspace, helping you specify which files are relevant for your AI interactions.
@@ -72,7 +169,7 @@ A **session** is a conversation or interaction context with the AI, including us
 
 ### Change Suggestions
 
-- Parsed AI assistant responses can be converted into **changes** — suggested edits or patches to your files.
+- Parsed AI assistant responses and AI initiated tool calls can be converted into **changes** — suggested edits or patches to your files.
 - You can review, edit, and apply these changes to your workspace files.
 
 ### Snippets
@@ -322,74 +419,6 @@ When the AI requests a tool function call, `maia` executes the corresponding too
    prune_mode=prune is always used.
 ---
 
-## Why Use maia?
-
-- Structure AI interactions for reproducibility and context management.
-- Manage multiple projects and conversation threads cleanly.
-- Integrate AI-generated suggestions directly into your codebase.
-- Maintain clear separation between user messages, system prompts, and AI responses.
-- Manage files relevant to AI prompts efficiently.
-
----
-
-## Installation & Setup
-
-### Prerequisites
-
-Ensure you have the following software installed:
-
-- `jq` 1.5 or later
-- `curl`
-- `perl`
-- `bash`
-
-### Unpack the maia package
-
-```bash
-tar xfz maia-xxxx.tar.gz
-```
-
-### Make an alias to `maia`
-
-```bash
-alias maia=/path/to/maia-xxxxx/maia
-```
-
-### Configuration
-
-#### General
-
-```bash
-export MAIA_EDITOR="emacs -nw"  # or your preferred editor
-maia config term_loglevel INFO  # to get more information about what the tool does
-```
-
-#### OpenAI
-
-```bash
-export OPENAI_API_KEY='your_api_key_here'
-```
-
-#### AWS Bedrock
-
-```bash
-export AWS_ACCESS_KEY_ID="..."
-export AWS_SECRET_ACCESS_KEY="..."
-export AWS_SESSION_TOKEN="..."
-maia config api_base_url https://bedrock-runtime.us-east-1.amazonaws.com
-maia config model someavailablemodel
-maia config file_handling_mode APPEND
-maia config send_hook "~/.maia/send-hook.sh"
-```
-
-For AWS Bedrock a send hook can be useful to automatically set the
-needed environment variables. Set it using send_hook configuration option.
-
-#### Optional extra authentication headers
-
-```bash
-export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
-```
 
 ## Help and Documentation
 
@@ -419,10 +448,31 @@ This README provides an overview; use the CLI help for command-specific details.
 
 ---
 
+# Additional information
+
 ## Support
 
 For issues, feature requests, or questions, please visit the project repository or contact the maintainers.
 
----
+https://github.com/inguza/maia
 
-Thank you for using `maia`!
+## Authors
+
+Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
+
+## Licensing
+
+This software is available under the GNU General Public License v3.0 and under
+separate commercial licensing terms.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
