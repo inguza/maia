@@ -1,6 +1,25 @@
-# maia CLI Tool
+# Introduction
 
-`maia` is a command-line tool designed to help you manage conversations with AI APIs in a structured way. It supports managing sessions, workspaces, files, change suggestions, and more, enabling a powerful AI-assisted development workflow.
+Multi-purpose Artificial Intelligence Assistant (MAIA) MAIA is a command-line
+tool designed to help you manage conversations with AI APIs in a structured way.
+
+It supports managing:
+- sessions
+- workspaces
+- files , change
+suggestions, and more, enabling a powerful AI-assisted workflow.
+
+The name is an acronym for Multi-purpose Artificial Intelligence Assistant, but
+it can be interpreted as an acronym for other things as well.
+
+The M can be interpreted as:
+- Model-agnostic - because it can does not depend on a specific LLM model
+- Multi-provider - because it can work with many different AI providers
+- Modular - because it is built on modules and can be extended
+
+The A can be interpreted as:
+- Assistant - because it is primarily intended to be used with direct user interaction
+- Agent - because it has agentic properties (if allowed to)
 
 ---
 
