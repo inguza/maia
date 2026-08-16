@@ -2,26 +2,24 @@
 
 MAIA is a command-line tool designed to help you manage conversations with AI APIs in a structured way.
 
+It supports managing:
+- sessions
+- workspaces
+- files
+- change suggestions
+- tools
+
 ## The name
 
 The name stands for Multi-purpose Artificial Intelligence Assistant.
 The individual letters can also be interpreted in other ways that reflect MAIA's characteristics.
-
-It supports managing:
-- sessions
-- workspaces
-- files , change
-suggestions, and more, enabling a powerful AI-assisted workflow.
-
-The name is an acronym for Multi-purpose Artificial Intelligence Assistant, but
-it can be interpreted as an acronym for other things as well.
 
 The M can be interpreted as:
 - Model-agnostic - because it does not depend on a specific LLM model
 - Multi-provider - because it can work with many different AI providers
 - Modular - because it is built on modules and can be extended
 
-The A can be interpreted as:
+The last A can be interpreted as:
 - Assistant - because it is primarily intended to be used with direct user interaction
 - Agent - because it has agentic properties (if allowed to)
 
@@ -95,17 +93,17 @@ The directory where you want MAIA to reside is called `$MAIA_ROOT` below.
 
 The maia executable can be called directly but for easier use copy the content of `$MAIA_ROOT/etc/bashrc` to, for example, your ~/.bashrc file.
 
-It may also be useful to set the preferred editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
+It may also be useful to set the prefered editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
 
 ```bash
-export MAIA_EDITOR="emacs -nw"  # or your preferred editor
+export MAIA_EDITOR="emacs -nw"  # or your prefered editor
 maia config term_loglevel INFO  # to get more information about what the tool does
 ```
 
 ### Used AI APIs
 
 Depending on what AI provider you choose you configure it a little differenty. The access information
-is set as environment variables, preferrably in a ~/.bashrc file.
+is set as environment variables, preferrbly in a ~/.bashrc file.
 
 #### OpenAI
 
