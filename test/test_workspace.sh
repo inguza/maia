@@ -30,10 +30,10 @@ run_workspace_cmd() {
 # Test 1: list workspaces in a fresh home (should be empty or default)
 run_workspace_cmd "list_empty" list
 
-# Test 2: create a new workspace named 'foo' with default auto_use_at_create=true config (should auto use)
+# Test 2: create a new workspace named 'foo' with default auto_use_at_create=false config (should not auto use)
 run_workspace_cmd "create_foo_default" create foo
 run_workspace_cmd "list_after_create_foo" list
-run_workspace_cmd "show_after_create_foo" show
+run_workspace_cmd "show_after_create_foo" show foo
 
 # Test 3: create a new workspace named 'bar' with explicit --use (force use)
 run_workspace_cmd "create_bar_use" create bar --use

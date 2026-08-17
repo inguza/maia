@@ -47,6 +47,8 @@ declare -A DEFAULT_CONFIG=(
     [default_filter]=''
     [default_session_filesets]='["__SESSION_NAME__"]'
     [default_session_extra_send_filesets]='[]'
+    [default_workspace]='__WORKSPACE_USED__'
+    [auto_resolve_workspace]=true
     [send_hook]=''
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_4_1]=2
@@ -601,7 +603,7 @@ validate_workspace_exists() {
 	if [[ -n "$ws_name" ]] ; then
             die "Workspace '$ws_name' does not exist. Create it with 'maia workspace create $ws_name' first."
 	else
-            warn "No workspace defined. Create a workspace with 'maia workspace create <name> --use' first."
+            warn "No workspace defined. Create a workspace with 'maia workspace create <name>' first and uset or or set <name> to be the default-workspace in the configuration."
 	fi
     fi
 }

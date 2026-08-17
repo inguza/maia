@@ -2,6 +2,7 @@ http_logging
 splice_allowed_files
 max_output_tokens
 tab_width
+default_workspace
 frequency_penalty
 term_loglevel
 stream
@@ -21,6 +22,7 @@ model
 file_handling_mode
 top_p
 prune_when_skipped
+auto_resolve_workspace
 auto_parse
 default_filter
 default_session_extra_send_filesets

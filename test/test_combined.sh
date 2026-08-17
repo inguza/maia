@@ -81,7 +81,7 @@ run_workspace_cmd "create_and_use_workspace" create ws --use
 
 # Test 2: create a new session named 'foo'
 run_session_cmd "create_foo" create foo --use
-run_session_cmd "show_after_foo" show
+run_session_cmd "show_after_foo" show foo
 
 cd x
 run_file_cmd "add_file_x1" add 1.txt
@@ -247,16 +247,18 @@ run_session_cmd "delete_foo" delete foo
 # Test session copy with files
 # First with normal session set
 run_session_cmd "create_zoo" create zoo
-run_session_cmd "show_after_zoo" show
+run_session_cmd "show_after_zoo" show zoo
+export MAIA_SESSION=zoo
 run_file_cmd "add_file_x1" add x/1.txt
-run_session_cmd "show_after_zoox1" show
+run_session_cmd "show_after_zoox1" show zoo
 run_session_cmd "create_boonr" create boonr zoo
-run_session_cmd "show_after_boonr" show
+run_session_cmd "show_after_boonr" show boonr
 # And then when the orig session is in resolved mode
+unset MAIA_SESSION
 run_session_cmd "use_zoo" use zoo
 run_session_cmd "set_zoo_resolve" set --resolve
 run_session_cmd "create_boore" create boore zoo
-run_session_cmd "show_after_boore" show
+run_session_cmd "show_after_boore" show boore
 
 # Cleanup
 cleanup_maia_home

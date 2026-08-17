@@ -1,6 +1,7 @@
-Session:   zoo
+Session:   boore
 Workspace: ws
 Filesets:
-  - zoo
+  - boore
 Extra:     (none)
 Files in <MAIA_HOME>:
+    x/1.txt

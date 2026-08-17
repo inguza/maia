@@ -848,7 +848,7 @@ handle_change_command() {
 	    # Global root
 	    local workspace_root="$(resolve_workspace_root "$ws_name")"
 	    if [[ ! -f "$ws_meta" ]]; then
-		die "No workspace in use. Create a workspace and use it first."
+		die "No workspace in use. Create a workspace and set it as the session workspace first."
 	    fi
 	    for id in "$@"; do
 		# If this is a sub-entry (numeric suffix), treat individually

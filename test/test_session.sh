@@ -30,7 +30,7 @@ run_session_cmd() {
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
 
-# Test 2: create a new session named 'foo' with default auto_use_at_create=true config (should auto use)
+# Test 2: create a new session named 'foo' with default auto_use_at_create=false config (should not auto use)
 run_session_cmd "create_foo_default" create foo
 run_session_cmd "list_after_create_foo" list
 run_session_cmd "show_after_create_foo" show
@@ -43,12 +43,12 @@ run_session_cmd "show_after_create_bar" show
 # Test 4: create a new session named 'baz' with explicit --nouse (force no use)
 run_session_cmd "create_baz_nouse" create baz --nouse
 run_session_cmd "list_after_create_baz" list
-run_session_cmd "show_after_create_baz" show
+run_session_cmd "show_after_create_baz" show baz
 
 # Test 5: list sessions again, should show foo, bar, baz
 run_session_cmd "list_after_create" list
 
-# Test 6: set session 'baz' with default auto_use_at_set=true config (should auto use)
+# Test 6: set session 'baz' with default auto_use_at_set=false config (should not auto use)
 run_session_cmd "set_baz_default" set baz
 run_session_cmd "list_after_set_baz_default" list
 run_session_cmd "show_after_set_baz_default" show baz

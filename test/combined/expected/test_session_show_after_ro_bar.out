@@ -1,5 +1,5 @@
 Session:   bar
-Workspace: __WORKSPACE_USED__
+Workspace: ws
 Filesets:
   - __SESSION_NAME__ (ro)
 Extra:     (none)

@@ -178,7 +178,7 @@ handle_workspace_command() {
 
 	create)
 	    shift
-	    local USE=$(jq -r '.auto_use_at_create // true' <<< "$_cfg")
+	    local USE=$(jq -r '.auto_use_at_create' <<< "$_cfg")
 	    # 1) Parse flags into PARSED_PATH / PARSED_FILESETS
 	    parse_workspace_options "$@"
 	    # 2) Determine name and path
@@ -211,7 +211,7 @@ handle_workspace_command() {
 
 	set)
             shift
-	    local USE=$(jq -r '.auto_use_at_set // true' <<< "$_cfg")
+	    local USE=$(jq -r '.auto_use_at_set' <<< "$_cfg")
             parse_workspace_options "$@"
             # 1) Determine workspace name (first non-flag) or fallback
             local name="${REMAINING_ARGS[0]:-$(resolve_workspace_name)}"

@@ -1,2 +1,3 @@
+[WARN] No workspace defined. Create a workspace with 'maia workspace create <name>' first and uset or or set <name> to be the default-workspace in the configuration.
 [NOTICE] Bootstrapped session 'foo'
 [NOTICE] Created session 'foo'

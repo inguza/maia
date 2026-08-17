@@ -7,6 +7,7 @@ max_output_tokens
 tab_width
 file_handling_mode_qwen2_5_14b
 cost_input_gpt_4_1_nano
+default_workspace
 frequency_penalty
 term_loglevel
 stream
@@ -29,6 +30,7 @@ cost_output_gpt_4_1_mini
 file_handling_mode
 top_p
 prune_when_skipped
+auto_resolve_workspace
 auto_parse
 default_filter
 default_session_extra_send_filesets

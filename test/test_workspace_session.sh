@@ -33,13 +33,10 @@ run_workspace_cmd() {
     run_and_check "test_workspace_${test_id}" $MAIA workspace "$@"
 }
 
-# Create and use workspace 'ws' explicitly with --use
-run_workspace_cmd "create_and_use_workspace" create ws --use
-
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
 
-# Test 2: create a new session named 'foo' with default auto_use_at_create=true config (should auto use)
+# Test 2: create a new session named 'foo' with default auto_use_at_create=false config (should not auto use)
 run_session_cmd "create_foo_default" create foo
 run_session_cmd "list_after_create_foo" list
 run_session_cmd "show_after_create_foo" show
@@ -57,7 +54,7 @@ run_session_cmd "show_after_create_baz" show
 # Test 5: list sessions again, should show foo, bar, baz
 run_session_cmd "list_after_create" list
 
-# Test 6: set session 'baz' with default auto_use_at_set=true config (should auto use)
+# Test 6: set session 'baz' with default auto_use_at_set=false config (cannot set since there is no workspace)
 run_session_cmd "set_baz_default" set baz
 run_session_cmd "list_after_set_baz_default" list
 run_session_cmd "show_after_set_baz_default" show baz
@@ -86,6 +83,34 @@ run_session_cmd "unuse" unuse
 # Now delete 'foo'
 run_session_cmd "delete_foo" delete foo
 run_session_cmd "list_after_delete_foo" list
+
+# Now test to create sessions with and without resolving (use is off by default)
+run_workspace_cmd "create_workspace_no_use" create wsnouse
+run_workspace_cmd "workspace_no_use"
+
+# Now create the session with and without resolving
+run_session_cmd "create_session_defaultresolve_noneused" create newsession-defaultresolve-noneused
+run_session_cmd "show_session_defaultresolve_noneused" show newsession-defaultresolve-noneused
+
+run_session_cmd "create_session_noresolve_noneused" create newsession-noresolve-noneused --noresolve-workspace
+run_session_cmd "show_session_noresolve_noneused" show newsession-noresolve-noneused
+
+run_session_cmd "create_session_resolve_noneused" create newsession-resolve-noneused --resolve-workspace
+run_session_cmd "show_session_resolve_noneused" show newsession-resolve-noneused
+
+# Create and use workspace 'ws' explicitly with --use
+run_workspace_cmd "create_and_use_workspace" create wsuse --use
+run_workspace_cmd "workspace_use"
+
+# Now create the session with and without resolving
+run_session_cmd "create_session_defaultresolve_used" create newsession-defaultresolve-used
+run_session_cmd "show_session_defaultresolve_used" show newsession-defaultresolve-used
+
+run_session_cmd "create_session_noresolve_used" create newsession-noresolve-used --noresolve-workspace
+run_session_cmd "show_session_noresolve_used" show newsession-noresolve-used
+
+run_session_cmd "create_session_resolve_used" create newsession-resolve-used --resolve-workspace
+run_session_cmd "show_session_resolve_used" show newsession-resolve-used
 
 # Cleanup
 cleanup_maia_home

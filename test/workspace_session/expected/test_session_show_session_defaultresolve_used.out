@@ -1,5 +1,5 @@
-Session:   zoo
-Workspace: ws
+Session:   newsession-defaultresolve-used
+Workspace: wsuse
 Filesets:
   - __SESSION_NAME__
 Extra:     (none)

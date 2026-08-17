@@ -29,7 +29,7 @@ run_workspace_cmd() {
 }
 
 # We just need a workspace to work in
-$MAIA workspace create foo > /dev/null 2>&1
+$MAIA workspace create foo --use > /dev/null 2>&1
 
 # Test list filesets (likely empty initially)
 run_fileset_cmd "list" list
