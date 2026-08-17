@@ -18,4 +18,8 @@ if [[ -n "$ttmp" && "$ttmp" =~ ^[0-9]+$ ]] ; then
     timeout="$ttmp"
 fi
 
-timeout $timeout bash -c "printf '%b' \"${param[data]}\" | netcat \"${param[host]}\" \"${param[port]}\""
+if [[ -v "param[data]" ]] ; then
+    timeout $timeout bash -c "printf '%b' \"${param[data]}\" | netcat \"${param[host]}\" \"${param[port]}\""
+else
+    timeout $timeout bash -c "netcat \"${param[host]}\" \"${param[port]}\""
+fi

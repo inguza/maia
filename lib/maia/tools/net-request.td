@@ -16,14 +16,14 @@
         },
         "data": {
           "type": "string",
-          "description": "Data to transmit on the TCP connection"
+          "description": "Data to transmit on the TCP connection. If absent data is read from stdin, to be used with pipes."
         },
 	"timeout":{
 	  "type": "string",
 	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
 	}
       },
-      "required": ["host","port","data"]
+      "required": ["host","port"]
     },
     "strict": true
   },
@@ -44,14 +44,14 @@
         },
         "data": {
           "type": "string",
-          "description": "Data to transmit on the SSL connection"
+          "description": "Data to transmit on the SSL connection. If absent data is read from stdin, to be used with pipes."
         },
 	"timeout":{
 	  "type": "string",
 	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
 	}
       },
-      "required": ["host", "port", "data"]
+      "required": ["host", "port"]
     },
     "strict": true
   }
