@@ -392,9 +392,8 @@ handle_send_command() {
                              type: "function",
                              function: {
                                name,
-                               description,
-                               parameters
-                             }
+                               description
+                             } + (.parameters // {} | if . == {} then {} else {parameters: .} end)
                            }
                        else
                            error("Invalid json")
@@ -411,10 +410,23 @@ handle_send_command() {
 
 	# Extract enabled tools for Bedrock (toolSpecs) but do NOT add to messages
 	if (( tools_count > 0 )); then
+	    # AWS Bedrock do not allow null parameters definition. Translated to an empty object.
 	    if ! toolSpecs_json=$(jq '
 	      [ .[] |
-	        if (.name and .description and .parameters) then
-		    { toolSpec: { name: .name, description: .description, inputSchema: { json: .parameters } } }
+	        if (.name and .description) then
+		  {
+		    toolSpec: {
+		    name: .name,
+		    description: .description,
+		    inputSchema: {
+		      json: (.parameters // {
+		        type: "object",
+			properties: {},
+			additionalProperties: false
+		      })		
+		    }
+		  }
+		}
 		else
 		  error("Invalid tool definition: missing required fields")
     		end
