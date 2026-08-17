@@ -60,5 +60,22 @@
       "additionalProperties": false
     },
     "strict": true
+  },
+  {
+    "name": "print",
+    "description": "Print content.",
+    "command": "print.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "content": {
+	  "type": "string",
+	  "description": "The content to print."
+        }
+      },
+      "required": [ "content" ],
+      "additionalProperties": false
+    },
+    "strict": true
   }
 ]
