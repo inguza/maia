@@ -387,13 +387,17 @@ handle_send_command() {
             if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
 		if ! tools_json=$(jq '
 		   [.[] |
-                       if (.name and .description and .parameters) then
+                       if (.name and .description) then
                            {
                              type: "function",
-                             function: {
-                               name,
-                               description
-                             } + (.parameters // {} | if . == {} then {} else {parameters: .} end)
+                             function: (
+			       {
+                                 name,
+                                 description,
+			         parameters: .parameters
+                               }
+			       | if .parameters == null then del(.parameters) else . end
+			     )
                            }
                        else
                            error("Invalid json")
