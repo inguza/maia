@@ -26,7 +26,7 @@ path="${param[path]}"
 validate_path "$path"
 
 baseid="${ASSISTANT_BASEID}"
-index="$(find_index "$ws_changes")"
+index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
 
 wpath="$path"

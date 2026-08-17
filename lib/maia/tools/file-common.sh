@@ -8,9 +8,10 @@
 
 find_index() {
     local change_dir="$1"
-    local baseid="$ASSISTANT_BASEID"
+    local baseid="$2"
     local index=1
     # Match any file with this pattern
+    # TODO: This has a race condition between check and touch
     while compgen -G "$change_dir/${baseid}-${index}-*.json" > /dev/null; do
         ((index++))
     done
@@ -28,6 +29,12 @@ change_file_name() {
     local change_dir="$1"
     local id="$2"
     printf '%s' "$change_dir/${id}-pending.change"
+}
+
+txt_file_name() {
+    local change_dir="$1"
+    local id="$2"
+    printf '%s' "$change_dir/${id}-pending.txt"
 }
 
 patch_file_name() {
@@ -60,6 +67,8 @@ write_meta() {
     local type=""
     if [[ -e "$change_dir/${baseid}-${index}-pending.patch" ]] ; then
 	type="patch"
+    elif [[ -e "$change_dir/${baseid}-${index}-pending.txt" ]] ; then
+	type="manual"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.file" ]] ; then
 	type="file"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.snippet" ]] ; then
@@ -68,8 +77,6 @@ write_meta() {
 	type="diff"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.change" ]] ; then
 	type="change"
-    elif [[ -e "$change_dir/${baseid}-${index}-pending.txt" ]] ; then
-	type="manual"
     fi
     jq -n --arg type "$type" --arg filename "$fname" \
        '{type: $type, filename: $filename}' > \

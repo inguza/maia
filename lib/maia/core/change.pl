@@ -28,15 +28,16 @@ $ENV{TERM_LOGLEVEL} = $loglevel
 
 # Expect at 5 positional args
 my $argc = scalar @ARGV;
-if ($argc != 4) {
+if ($argc != 5) {
     print "#arguments: $argc\n";
-    die_log "Usage: $0 [--loglevel LEVEL] <source-file> <target-file> <change-json-file> <ws-root>";
+    die_log "Usage: $0 [--loglevel LEVEL] <source-file> <target-file> <change-json-file> <fallback-txt-description-file> <ws-root>";
 }
 
 # We expect first positional argument to be command: parse or process
 my $filename = shift @ARGV;
 my $targetfile = shift @ARGV;
 my $changefile = shift @ARGV;
+my $txtfile = shift @ARGV;
 
 my $ws_root = shift @ARGV;
 my $sourcefile = "$ws_root/$filename";
@@ -89,8 +90,19 @@ sub change_file {
 	# Find the old text and substitute
 	my $pos = index($content, $old);
 	if ($pos < 0) {
-	    $error = "Change $i: old text not found. Aborting.\n";
-	    last;
+	    $error = "Change $i: old text not found. Skipping.\n";
+	    # Provide diagnostics
+	    open TF, ">>$txtfile";
+	    print TF "Change $i. Could not find the exact old text. Please replace the following text manually:\n";
+	    print TF "---- Old text to replace ----\n";
+	    print TF "$old\n";
+	    print TF "---- End ----\n";
+	    print TF "\n";
+	    print TF "---- New replacement text ----\n";
+	    print TF "$new\n";
+	    print TF "---- End ----\n";
+	    close(TF);
+	    next;
 	}
 	substr($content, $pos, length($old)) = $new;
     }

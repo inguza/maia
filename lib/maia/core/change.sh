@@ -725,17 +725,20 @@ handle_change_command() {
 		else
 		    jq . "$file"; echo
 		    local patch=$(match_single_file "$prefix" .patch)
+		    local text=$(match_single_file "$prefix" .txt)
+		    local snippet=$(match_single_file "$prefix" .snippet)
 		    if [ -n "$patch" ] ; then
 			echo "Suggested patch below:"
 			echo "======================"
 			cat "$patch"
-		    else
-			local snippet=$(match_single_file "$prefix" .snippet)
-			if [ -n "$snippet" ] ; then
-			    echo "Suggested code snippet below:"
-			    echo "============================="
-			    cat "$snippet"
-			fi
+		    elif [ -n "$text" ] ; then
+			echo "Manual change description below:"
+			echo "================================"
+			cat "$text"
+		    elif [ -n "$snippet" ] ; then
+			echo "Suggested code snippet below:"
+			echo "============================="
+			cat "$snippet"
 		    fi
 		    echo "Assistant response text below:"
 		    echo "=============================="
@@ -754,17 +757,20 @@ handle_change_command() {
 		    if [[ "$raw" == false ]]; then
 			local subprefix="${changes_dir}/$session/${subbase}"
 			local patch=$(match_single_file "$subprefix" .patch)
+			local text=$(match_single_file "$subprefix" .txt)
+			local snippet=$(match_single_file "$subprefix" .snippet)
 			if [ -n "$patch" ] ; then
 			    echo "Suggested patch below:"
 			    echo "======================"
 			    cat "$patch"
-			else
-			    local snippet=$(match_single_file "$subprefix" .snippet)
-			    if [ -n "$snippet" ] ; then
-				echo "Suggested code snippet below:"
-				echo "============================="
-				cat "$snippet"
-			    fi
+			elif [ -n "$text" ] ; then
+			    echo "Manual change description below:"
+			    echo "================================"
+			    cat "$text"
+			elif [ -n "$snippet" ] ; then
+			    echo "Suggested code snippet below:"
+			    echo "============================="
+			    cat "$snippet"
 			fi
 		    fi
 		done
@@ -782,17 +788,20 @@ handle_change_command() {
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"
 		    jq . "$file"; echo
 		    local patch=$(match_single_file "$prefix" .patch)
+		    local text=$(match_single_file "$prefix" .txt)
+		    local snippet=$(match_single_file "$prefix" .snippet)
 		    if [ -n "$patch" ] ; then
 			echo "Suggested patch below:"
 			echo "======================"
 			cat "$patch"
-		    else
-			local snippet=$(match_single_file "$prefix" .snippet)
-			if [ -n "$snippet" ] ; then
-			    echo "Suggested code snippet below:"
-			    echo "============================="
-			    cat "$snippet"
-			fi
+		    elif [ -n "$text" ] ; then
+			echo "Manual change description below:"
+			echo "================================"
+			cat "$text"
+		    elif [ -n "$snippet" ] ; then
+			echo "Suggested code snippet below:"
+			echo "============================="
+			cat "$snippet"
 		    fi
 		fi
 	    fi
