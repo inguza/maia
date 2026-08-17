@@ -56,7 +56,7 @@
           }
         }
       },
-      "required": [ "pipeline" ],
+      "required": [ "sequence" ],
       "additionalProperties": false
     },
     "strict": true
