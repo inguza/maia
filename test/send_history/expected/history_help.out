@@ -19,7 +19,7 @@ COMMANDS
   delete [<range>]
     Delete entries in n–m inclusive.
 
-  prune [options] [<range>]
+  prune [<range> [options]]
     Options to override the default 'prune_mode' configuration.
     --reduce replace large blocks with a placeholder
     --edit adjust in an editor
