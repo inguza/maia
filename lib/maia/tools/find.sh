@@ -1,4 +1,4 @@
-#!/bin/bash#
+#!/bin/bash
 #
 # Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
 #
