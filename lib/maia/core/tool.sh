@@ -236,15 +236,15 @@ verify_tools_def_file() {
 # Handle the aia tool command line
 handle_tool_command() {
     # help
-    [[ "$1" =~ ^-h|--help$ ]] && system_usage
-    [[ "$2" =~ ^-h|--help$ ]] && system_usage
+    [[ "$1" =~ ^-h|--help$ ]] && tool_usage
+    [[ "$2" =~ ^-h|--help$ ]] && tool_usage
 
     # 1) consume global flags: -h/--help, --scope
     local scopearg=""
     while [[ $# -gt 0 ]]; do
 	case "$1" in
 	    -h|--help)
-		system_usage
+		tool_usage
 		return 0
 		;;
 	    --scope)
