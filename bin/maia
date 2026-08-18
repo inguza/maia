@@ -65,7 +65,7 @@ COMMANDS:
     config           Configuration (list, scope, get, set, unset)
     home             Manage aia home directory (create, delete, show)
     api              AI introspection (models, model, fine-tunes, fine-tune, usage)
-    tools|tool       Tool management (list, enable/append, replace, disable, clear, delete)
+    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
 
   Session
     session          Session management (create, use, list, show)

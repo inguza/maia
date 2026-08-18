@@ -7,16 +7,17 @@
 #
 
 # The built-in fallback system prompt
-DEFAULT_SYSTEM_PROMPT="You are a helpful, knowledgeable assistant."
-DEFAULT_FILES_PROMPT="Whenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify. Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
-DEFAULT_TOOLS_PROMPT=""
+DEFAULT_SYSTEM_PROMPT="You are a helpful, knowledgeable assistant.\n"
+DEFAULT_FILES_PROMPT="Files:\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.\n"
+DEFAULT_TOOLS_PROMPT="Tools:\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+DEFAILT_TOOL_INSTR_PROMPT=""
+DEFAULT_TOOLSET_PROMPT=""
 # TODO: Get rid of this and instead expand from the default tools prompt
-DEFAULT_TOOLS_DEF="[]"
+DEFAULT_TOOLSET_DEF="[]"
 
 # Constants related to tools
 TOOLS_DIRNAME="tools"
-TOOL_DEF_EXT=".td"
-ENABLED_TOOLS_FILE="tools.json"
+TOOLSET_DEF_EXT=".td"
 
 # Default configuration values
 declare -A DEFAULT_CONFIG=(
@@ -1136,19 +1137,20 @@ prompt_for_scope() {
     else
 	local T="${type^^}"
 	local var="DEFAULT_${T}_PROMPT"
-	echo "${!var}"
+	printf '%b' "${!var}"
     fi
 }
 
 tools_for_scope() {
-    local target="$1" type="tools"
+    local target="$1" type="toolset"
     local f="$(file_for_scope "$target" "${type}.json")"
     if [[ -n "$f" ]]; then
 	cat "$f"
     else
 	local T="${type^^}"
-	local var="DEFAULT_TOOLS_DEF"
-	echo "${!var}"
+	# TODO expand to teh tools enabled by the DEFAULT_TOOLSET_PROMPT
+	local var="DEFAULT_TOOLSET_DEF"
+	printf '%b' "${!var}"
     fi
 }
 
@@ -1166,6 +1168,22 @@ tool_exec_dir() {
 	fi
     done
     printf "%s" "$tool_exec_dir"
+}
+
+tool_instr_dir() {
+    local tool_instr="$1"
+    local tool_search_path="$2"
+    # Find full path to executable without relying on PATH for security reasons
+    local tool_instr="${tool_instr%% *}"
+    local tool_instr_dir=""
+    IFS=: read -ra dirs <<< "$tool_search_path"
+    for d in "${dirs[@]}"; do
+	if [[ -e "$d/$tool_instr" ]]; then
+	    tool_instr_dir="$d"
+	    break
+	fi
+    done
+    printf "%s" "$tool_instr_dir"
 }
 
 # IMPORTANT! init_tool_search_dirs must be called before a call to this

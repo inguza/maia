@@ -1,8 +1,9 @@
 [
   {
     "name": "pipe",
-    "description": "Use multiple tools in sequence, piping the output from one to the next.",
+    "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
+    "instructions": [ "pipe.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -32,8 +33,9 @@
   },
   {
     "name": "sequence",
-    "description": "Use multiple tools in sequence, executed one after the other in sequence order.",
+    "description": "Execute multiple tools in sequence order.",
     "command": "sequence.sh",
+    "instructions": [ "sequence.txt" ],
     "parameters": {
       "type": "object",
       "properties": {

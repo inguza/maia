@@ -140,8 +140,9 @@ tool_fork()
 build_messages_json() {
     local outbox_file="$1"
     local model="$2"
-    local file_handling_mode_raw="$3"
-    local api_type="${4:-OPENAI_CHAT_COMPLETIONS}"
+    local tools_enabled="$3"
+    local file_handling_mode_raw="$4"
+    local api_type="${5:-OPENAI_CHAT_COMPLETIONS}"
     
     local session=$(resolve_session_name)
     local history_file=$(resolve_history_meta "$session")
@@ -182,8 +183,20 @@ build_messages_json() {
         BEFORE)
             # System prompt (and “Files:” instructions if any)
             local sys="$(prompt_for_scope "session" system)"
-            if [[ -n "${ws_name}" ]]; then
-                sys+=$'\n\n'"$(prompt_for_scope "session" files)"
+	    if [[ "$tools_enabled" == true ]] ; then
+		local t
+		for t in tools tool_instr ; do
+		    local tool_instruction="$(prompt_for_scope "session" "$t")"
+		    if [[ -n "$tool_instruction" ]] ; then
+			sys+=$'\n\n'"$tool_instruction"$'\n'
+		    fi
+		done
+	    fi
+	    if [[ -n "${ws_name}" ]]; then
+		local file_instruction="$(prompt_for_scope "session" files)"
+		if [[ -n "$file_instruction" ]] ; then
+                    sys+=$'\n\n'"$file_instruction"
+		fi
             fi
             if [[ -n "$sys" ]]; then
                 msgs=$(jq --slurpfile txt <(printf '%s' "$sys" | jq -R -s '.') '. + [{role:"'$systemrole'",content:$txt[0]}]' <<< "$msgs")
@@ -212,6 +225,15 @@ build_messages_json() {
         APPEND)
             # System prompt only, no files instructions here
             local sys="$(prompt_for_scope "session" system)"
+	    if [[ "$tools_enabled" == true ]] ; then
+		local t
+		for t in tools tool_instr ; do
+		    local tool_instruction="$(prompt_for_scope "session" "$t")"
+		    if [[ -n "$tool_instruction" ]] ; then
+			sys+=$'\n\n'"$tool_instruction"$'\n'
+		    fi
+		done
+	    fi
             if [[ -n "$sys" ]]; then
                 msgs=$(jq --slurpfile txt <(printf '%s' "$sys" | jq -R -s '.') '. + [{role:"'$systemrole'",content:$txt[0]}]' <<< "$msgs")
             fi
@@ -369,7 +391,7 @@ handle_send_command() {
     fi
 
     # Tools preparation
-    local enabled_tools_json=$(tools_for_scope "session")
+    local enabled_tools_json=$(tools_for_scope "session" "toolset")
     local tools_count=$(jq 'length' <<<"$enabled_tools_json")
 
     # Build API payload JSON
@@ -378,6 +400,7 @@ handle_send_command() {
     local url=""
     local tools_json=""
     local toolSpecs_json=""
+    local etools=false
     if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
 	# Ensure API key is set
 	if [[ -z "$OPENAI_API_KEY" ]]; then
@@ -392,6 +415,7 @@ handle_send_command() {
 	# Add enabled tools definitions to messages for the LLM if any enabled tools exist
 	if (( tools_count > 0 )); then
             if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
+		etools=true
 		if ! tools_json=$(jq '
 		   [.[] |
                        if (.name and .description) then
@@ -413,6 +437,7 @@ handle_send_command() {
 		   ' <<<"$enabled_tools_json"); then
 		    warn "Invalid tool definition. Tools not shown to the AI." >&2
 		    tools_json="[]"
+		    etools=false
 		fi
             fi
 	fi
@@ -422,6 +447,7 @@ handle_send_command() {
 	# Extract enabled tools for Bedrock (toolSpecs) but do NOT add to messages
 	if (( tools_count > 0 )); then
 	    # AWS Bedrock do not allow null parameters definition. Translated to an empty object.
+	    etools=true
 	    if ! toolSpecs_json=$(jq '
 	      [ .[] |
 	        if (.name and .description) then
@@ -445,6 +471,7 @@ handle_send_command() {
 	      ' <<<"$enabled_tools_json"); then
 		warn "Invalid tool definition. Tools not shown to the AI." >&2
 		toolSpecs_json=""
+		etools=false
 	    fi
 	fi
     else
@@ -472,7 +499,7 @@ handle_send_command() {
     declare -A seen_commands
     while (( allowed_iterations_left > 0 )); do
 
-	local messages_json=$(build_messages_json "$outbox_file" "$model" "$file_handling_mode_raw" "$api_type")
+	local messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type")
 	if [[ -z "$messages_json" ]]; then
 	    release_lock "$session_lock"
 	    exit 1

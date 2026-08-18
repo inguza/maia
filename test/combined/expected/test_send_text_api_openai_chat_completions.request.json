@@ -10,7 +10,7 @@
   "messages": [
     {
       "role": "system",
-      "content": "You are a helpful, knowledgeable assistant.\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify. Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
+      "content": "You are a helpful, knowledgeable assistant.\n\nFiles:\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
     },
     {
       "role": "user",

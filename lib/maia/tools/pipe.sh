@@ -14,7 +14,7 @@ set -eo pipefail
 declare -A param
 parseparam
 
-enabled_tools_json=$(tools_for_scope "session")
+enabled_tools_json=$(tools_for_scope "session" "toolset")
 tool_search_path=$(build_tool_search_path)
 export PATH="$tool_search_path:$PATH"
 

@@ -20,7 +20,7 @@ load_all_tool_defs() {
         local dir="${TOOL_DIRS[$scope]}"
         if [[ -d "$dir" ]]; then
 	    local file
-            for file in "$dir"/*"$TOOL_DEF_EXT"; do
+            for file in "$dir"/*"$TOOLSET_DEF_EXT"; do
                 [[ -f "$file" ]] && files+=("$file")
             done
         fi
@@ -30,6 +30,8 @@ load_all_tool_defs() {
         [inputs | .[] | . + {source: input_filename}]
     ' "${files[@]}"
 }
+
+
 
 # Helper: build jq filter from array of regex patterns
 build_list_filter_from_patterns() {
@@ -85,7 +87,7 @@ list_tools() {
 }
    
 # IMPOPRTANT! init_tool_search_dirs
-generate_enabled_tools_def_file() {
+generate_enabled_toolset_def_file() {
     local enabled_tools_list_file="$1"
     local enabled_tools_def_file="$2"
     # Important to call this because it is used by load_all_tool_defs below
@@ -124,17 +126,62 @@ generate_enabled_tools_def_file() {
 ' <<< "$all_tool_defs_json" > "$enabled_tools_def_file"
 }
 
+generate_enabled_tools_instr_file() {
+    local enabled_tools_list_file="$1"
+    local enabled_tools_instr_file="$2"
+    # Important to call this because it is used by load_all_tool_defs below
+    init_tool_search_dirs
+    local all_tool_defs_json=$(load_all_tool_defs)
+    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+    local instruction_files=$(jq -r --argjson patterns "$patterns_json" '
+      def glob_to_regex:
+        "^" +
+	(gsub("\\."; "\\.")
+	| gsub("\\*"; ".*")
+	| gsub("\\?"; ".")) +
+	"$";
+
+      [
+        .[] |
+	select(
+	  .name as $name |
+	  any($patterns[];
+	    . as $pattern |
+	    $name | test($pattern | glob_to_regex)
+	  )
+	) | .instructions[]?
+      ] | unique[]
+      ' <<< "$all_tool_defs_json")
+    : > "$enabled_tools_instr_file"
+    local tool_search_path=$(build_tool_search_path)
+
+    while IFS= read -r tool_instr_file; do
+        [[ -z "$tool_instr_file" ]] && continue
+
+	local tool_instr_dir="$(tool_instr_dir "${tool_instr_file}" "$tool_search_path")"
+	if [[ -z "$tool_instr_dir" ]]; then
+	    warn "Tool instruction file $tool_instr_file not found."
+	    continue
+	else
+	    cat "$tool_instr_dir/$tool_instr_file" >> "$enabled_tools_instr_file"
+	fi
+    done <<< "$instruction_files"
+}
+
 # Refresh: regenerate tools.json based on the tools.txt file
 # This merges all discovered .td files and enabled tools state per scope
-refresh_enabled_tools_def_file() {
+refresh_enabled_toolset_files() {
     local scope="$1"
     local enabled_tools_list_file="$2"
     local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
+    local enabled_tools_instr_file="${enabled_tools_list_file%set.txt}_instr.txt"
     if [ ! -e "$enabled_tools_list_file" ] ; then
 	rm -f "$enabled_tools_def_file"
+	rm -f "$enabled_tools_instr_file"
     else
-	generate_enabled_tools_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}"
-	info "Refreshed enabled tools JSON for scope '$scope'"
+	generate_enabled_toolset_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}"
+	generate_enabled_tools_instr_file "$enabled_tools_list_file" "${enabled_tools_instr_file}"
+	info "Refreshed enabled toolset for scope '$scope'"
     fi
 }
 
@@ -144,25 +191,46 @@ verify_tools_def_file() {
     local scope="$1"
     local enabled_tools_list_file="$2"
     local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
+    local enabled_tools_instr_file="${enabled_tools_list_file%set.txt}_instr.txt"
+    local err=0
     if [ ! -e "$enabled_tools_list_file" ] ; then
 	if [ -e "$enabled_tools_def_file" ] ; then
-	    warn "No tool definitions but tools JSON file exist for $scope"
+	    warn "No tool definitions but toolset JSON file exist for $scope"
+	    err=1
+	fi
+	if [ -e "$enabled_tools_instr_file" ] ; then
+	    warn "No tool instructions but toolset JSON file exist for $scope"
+	    err=1
 	fi
     else
 	if [ ! -e "$enabled_tools_def_file" ] ; then
-	    warn "Tool definitions but no tools JSON file exist for $scope"
+	    warn "Tool definitions but no toolset JSON file exist for $scope"
+	    err=1
 	else
-	    generate_enabled_tools_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}.tmp"
+	    generate_enabled_toolset_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}.tmp"
 	    if ! diff "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp" > /dev/null ; then
-		warn "Enabled tools JSON cache for scope '$scope' is out of sync with tools.txt"
+		warn "Enabled toolset for scope '$scope' is out of sync with the available tools."
 		diff -u "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp"
-		return 1
+		err=1
 	    else
-		notice "Enabled tools JSON cache for scope '$scope' is up to date"
-		return 0
+		notice "Enabled toolset JSON cache for scope '$scope' is up to date"
+	    fi
+	fi
+	if [ ! -e "$enabled_tools_instr_file" ] ; then
+	    warn "Tool definitions but no tool instructions file exist for $scope"
+	    err=1
+	else
+	    generate_enabled_tools_instr_file "$enabled_tools_list_file" "${enabled_tools_instr_file}.tmp"
+	    if ! diff "$enabled_tools_instr_file" "${enabled_tools_instr_file}.tmp" > /dev/null ; then
+		warn "Enabled toolset instruction for scope '$scope' is out of sync with the available tools."
+		diff -u "$enabled_tools_instr_file" "${enabled_tools_instr_file}.tmp"
+		err=1
+	    else
+		notice "Enabled tools instruction cache for scope '$scope' is up to date"
 	    fi
 	fi
     fi
+    return $err
 }
 
 # Handle the aia tool command line
@@ -195,7 +263,7 @@ handle_tool_command() {
 		;;
 	esac
     done
-    prompt_type="tools"
+    prompt_type="toolset"
     
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
 	determine_implicit_scope "$prompt_type"
@@ -222,15 +290,15 @@ handle_tool_command() {
 	    list_tools "$scope" "$filepath"
             ;;
 	view|"")
-	    prompt_for_scope "$scope" "tools"
+	    prompt_for_scope "$scope" "$prompt_type"
 	    ;;
 	show)
 	    echo "Enabled tools:"
 	    echo "--------------"
-	    prompt_for_scope "$scope" "tools"
+	    prompt_for_scope "$scope" "$prompt_type"
 	    echo "Tool definitions:"
 	    echo "-----------------"
-	    tools_for_scope "$scope"
+	    tools_for_scope "$scope" "$prompt_type"
 	    ;;
 	append|enable)
 	    # seed on first append
@@ -247,15 +315,15 @@ handle_tool_command() {
 		subcmd="append"
 	    fi
 	    handle_text_file_command "$filepath" "$@"
-	    refresh_enabled_tools_def_file "$scope" "$filepath"
+	    refresh_enabled_toolset_files "$scope" "$filepath"
 	    ;;
         edit|read|compose|replace|clear|delete)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    handle_text_file_command "$filepath" "$@"
-	    refresh_enabled_tools_def_file "$scope" "$filepath"
+	    refresh_enabled_toolset_files "$scope" "$filepath"
             ;;
         refresh)
-	    refresh_enabled_tools_def_file "$scope" "$filepath"
+	    refresh_enabled_toolset_files "$scope" "$filepath"
             ;;
         verify)
             verify_tools_def_file "$scope" "$filepath"

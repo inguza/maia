@@ -94,10 +94,10 @@ maia config additional_tools_path "/opt/maia-tools:/home/user/custom-tools"
 Tools are enabled using the `maia tool` command. It is scoped in the same way as system and user prompts are.
 
 There are two files maintained.
-- tools.txt with the list of enabled tools
-- tools.json with the enabled tool definition file
+- toolset.txt with the list of enabled tools
+- toolset.json with the enabled tool definition file
 
-If the tool definitions are updated after the `maia tool` command is run it may result in an out-of-date tools.json file.
+If the tool definitions are updated after the `maia tool` command is run it may result in an out-of-date toolset.json file.
 You can check that by executing `maia tool verify` and if it is out of date, you can update it with `maia tool refresh`
 
 ## Using Tools in AI Conversations
