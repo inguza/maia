@@ -23,5 +23,5 @@ fi
 subsession="${param[session]:-}"
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
-if
+fi
 "$MAIA_BIN" file remember "$filepattern"
