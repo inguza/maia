@@ -73,10 +73,11 @@ unset EDITOR
 run_system_cmd "show_scope_user" show --scope user
 
 # Test append with --type files
-run_system_cmd "append_type_files" append --type files "Files type prompt content."
+run_system_cmd "show_type_files" --type files show
+run_system_cmd "append_type_files" --type files append "Files type prompt content."
 
 # Test show with --type files
-run_system_cmd "show_type_files" show --type files
+run_system_cmd "show_type_files_after_append" --type files show
 export EDITOR="$TEST_ROOT/mock_editor.sh"
 run_system_cmd "append_scope_user_compose" append --scope home compose
 unset EDITOR
@@ -90,6 +91,11 @@ run_system_cmd "show_after_edit" show
 
 # Test read command (simulate read from stdin by echo piped in)
 echo "Read from stdin prompt line." | run_system_cmd "read_from_stdin" read
+
+# Test tool instructions a little
+run_system_cmd "show_type_tools" --type tools show
+run_system_cmd "append_type_files" --type tools "- One more generic tool instruction."
+run_system_cmd "show_type_tools_after_append" --type tools show
 
 # Cleanup
 cleanup_maia_home
