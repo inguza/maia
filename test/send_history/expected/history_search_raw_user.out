@@ -2,6 +2,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 0,
     "user_index": 0
@@ -9,6 +10,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 2,
     "user_index": 1
@@ -16,6 +18,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "eecab352",
     "content": "Some other sample text",
     "index": 4,
     "user_index": 2
@@ -23,6 +26,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 6,
     "user_index": 3
@@ -30,6 +34,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 8,
     "user_index": 4
@@ -37,6 +42,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "eecab352",
     "content": "Some other sample text",
     "index": 10,
     "user_index": 5
@@ -44,6 +50,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 12,
     "user_index": 6

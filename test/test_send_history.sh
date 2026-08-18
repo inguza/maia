@@ -307,13 +307,13 @@ run_history_cmd "prune_reduce_show" show last
 add_assistant_entry "User message for reduce prune" "Here is code:\n\`\`\`bash\necho hello\n\`\`\`\nEnd."
 
 # Run prune --reduce explicitly on last entry
-run_history_cmd "prune_explicit_reduce" prune last --reduce
+run_history_cmd "prune_explicit_reduce" prune --reduce last
 run_history_cmd "prune_explicit_reduce_show" show last
 
 # Test prune --cut replaces entire content with placeholder
 add_assistant_entry "User message for cut prune" "This entire message will be replaced."
 
-run_history_cmd "prune_cut" prune last --cut
+run_history_cmd "prune_cut" prune --cut last
 run_history_cmd "prune_cut_show" show last
 
 # Test prune --edit opens editor (simulate editor by overriding EDITOR)
@@ -321,7 +321,7 @@ add_assistant_entry "User message for edit prune" "This message contains old tex
 
 # Run prune --edit last entry (should replace 'old' with 'new')
 export EDITOR="$TEST_ROOT/mock_editor_sed.sh"
-run_history_cmd "prune_edit" prune last --edit
+run_history_cmd "prune_edit" prune --edit last
 unset EDITOR
 run_history_cmd "prune_edit_show" show last
 
@@ -331,7 +331,7 @@ add_assistant_entry "User message A" "Message A content"
 add_assistant_entry "User message B" "Message B content"
 
 # Prune last two assistant messages with --cut
-run_history_cmd "prune_cut_multiple" prune last-1 --cut
+run_history_cmd "prune_cut_multiple" prune --cut last-1
 run_history_cmd "prune_cut_multiple_show" show last-1
 
 # Clear history (wipe all entries)

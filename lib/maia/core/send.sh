@@ -635,10 +635,11 @@ handle_send_command() {
 	fi
 	# Only if we have outbox content and a proper reply
 	if [[ -n "$outbox_content" && ( -n "$tools_call_json" || -n "$reply" ) ]] ; then
+	    local usershaid="$(printf '%s' "$outbox_content" | sha256sum | cut -c1-8)"
 	    # We do this late in case an error have occured
 	    # Append user message with timestamp to history
-	    jq --arg txt "$outbox_content" --arg ts "$timestamp" \
-	       '. + [{role:"user",timestamp:$ts,content:$txt}]' \
+	    jq --arg txt "$outbox_content" --arg ts "$timestamp" --arg id "$usershaid" \
+	       '. + [{role:"user",timestamp:$ts,id:$id,content:$txt}]' \
 	       "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
 
 	    # Clear outbox after sending
@@ -651,7 +652,7 @@ handle_send_command() {
 	fi
 
 	# Append assistant reply to history. This depends on whether we have function call or message or both
-	local shaid=$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)
+	local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
 
 	# We need error detection here
 	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then

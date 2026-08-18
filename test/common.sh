@@ -129,6 +129,7 @@ run_cmd() {
 
     local raw_out=$(mktemp)
     local raw_err=$(mktemp)
+    local temp=$(mktemp)
 
     # Run command, capture raw outputs
     "${cmd[@]}" > "$raw_out" 2> "$raw_err"
@@ -137,6 +138,10 @@ run_cmd() {
     # Normalize outputs before saving
     normalize_output < "$raw_out" > "$OUTPUT_DIR/${testname}.out"
     normalize_output < "$raw_err" > "$OUTPUT_DIR/${testname}.err"
+    if [ -e "$OUTPUT_DIR/${testname}.request.json" ] ; then
+	cat "$OUTPUT_DIR/${testname}.request.json" > "$temp"
+	normalize_output < "$temp" > "$OUTPUT_DIR/${testname}.request.json"
+    fi
 
     # Remove empty normalized output files
     remove_if_empty "$OUTPUT_DIR/${testname}.request.json"

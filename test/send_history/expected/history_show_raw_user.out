@@ -2,6 +2,7 @@
   {
     "role": "user",
     "timestamp": "<dateandtime>",
+    "id": "b630face",
     "content": "Some sample text",
     "index": 12,
     "user_index": 6

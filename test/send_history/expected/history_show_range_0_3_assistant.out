@@ -2,6 +2,7 @@
 ----------------------------------------
 Here is some sample text with a fenced file:
 <<BLOCK #0: pruned>>
+<<Original text reference: <dateandtime>-b45961cc>>
 
 [3] assistant#1 <dateandtime>-b45961cc
 ----------------------------------------
@@ -15,4 +16,5 @@ Assistant response 2
 ----------------------------------------
 Here is some sample text with a fenced file:
 <<BLOCK #3: pruned>>
+<<Original text reference: <dateandtime>-18f6548e>>
 

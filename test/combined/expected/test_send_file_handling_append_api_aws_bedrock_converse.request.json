@@ -10,6 +10,7 @@
     },
     {
       "role": "user",
+      "id": "b705c5bc",
       "content": [
         {
           "text": "Hello, AI!"
@@ -27,6 +28,7 @@
     },
     {
       "role": "user",
+      "id": "e8621625",
       "content": [
         {
           "text": "Test file handling default"
@@ -44,6 +46,7 @@
     },
     {
       "role": "user",
+      "id": "24de1a2a",
       "content": [
         {
           "text": "Test file handling before"
@@ -61,6 +64,7 @@
     },
     {
       "role": "user",
+      "id": "d343594a",
       "content": [
         {
           "text": "Test file handling append"
@@ -78,6 +82,7 @@
     },
     {
       "role": "user",
+      "id": "b705c5bc",
       "content": [
         {
           "text": "Hello, AI!"
@@ -95,6 +100,7 @@
     },
     {
       "role": "user",
+      "id": "e8621625",
       "content": [
         {
           "text": "Test file handling default"
@@ -112,6 +118,7 @@
     },
     {
       "role": "user",
+      "id": "24de1a2a",
       "content": [
         {
           "text": "Test file handling before"
@@ -129,6 +136,7 @@
     },
     {
       "role": "user",
+      "id": "d343594a",
       "content": [
         {
           "text": "Test file handling append"

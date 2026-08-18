@@ -7,8 +7,8 @@ Manage and manipulate the command history.
 
 COMMANDS
 
-  show [options] [<range>]
-    Display entries in the given range.
+  show [options] [--assistant|--tool|--user] [<range>...]
+    Display entries in the given range(s), filtered by role(s).
 
   pop [options] [<n>]
     Remove & print last n entries (default 1).
@@ -16,14 +16,11 @@ COMMANDS
   top [options] [<n>]
     Remove & print first n entries (default 1).
 
-  delete [<range>]
-    Delete entries in n–m inclusive.
+  delete [<range>...]
+    Delete entries in n–m inclusive for all given ranges.
 
-  prune [<range> [options]]
-    Options to override the default 'prune_mode' configuration.
-    --reduce replace large blocks with a placeholder
-    --edit adjust in an editor
-    --cut replace the entire message with a placeholder
+  prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
+    Prune history entries by role and mode.
 
   search [options] <keyword>
     Find entries containing keyword.
@@ -37,29 +34,38 @@ OPTIONS
     Show this help message and exit.
 
   -a, --assistant
-    Only show assistant messages. Applicable to show and search.
+    Filter or prune assistant messages only.
+
+  -t, --tool
+    Filter or prune tool messages only.
 
   -u, --user
-    Only show user messages. Applicable to show and search.
+    Filter or prune user messages only.
 
-  If both --user and --assistant are provided, it shows both.
+  If multiple role flags are provided, pruning will error.
+
+  --reduce
+    Replace large blocks with a placeholder during pruning.
+
+  --edit
+    Edit messages in an editor during pruning.
+
+  --cut
+    Replace entire message with a placeholder during pruning.
 
   --raw, --json
     Print in json format. Applicable to show, search, pop and top.
 
 EXAMPLES
 
-    maia history show 0-10
-      Show the first 11 entries in history.
+    maia history prune --assistant --reduce 0-10 12 15-20
+      Prune assistant messages in specified ranges by reducing content.
 
-    maia history pop 2
-      Remove and print the last two entries.
+    maia history prune --tool --cut last
+      Cut tool messages in the last entry.
 
-    maia history
-      Show the last assistant response.
-
-    maia history -
-      Show full history.
+    maia history prune --user --edit
+      Edit user messages in the full history.
 
 NOTES
 
@@ -72,4 +78,8 @@ NOTES
     last      the last entry
     last-1    the 2 last entries
     all       the entire history
+
+  Role flags specify which type of entries to prune.
+  Pruning modes differ per role (see documentation).
+  Multiple ranges can be specified for batch pruning.
 

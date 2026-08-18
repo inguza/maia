@@ -1,4 +1,4 @@
-[0] user#0 <dateandtime>-0
+[0] user#0 <dateandtime>-b630face
 ----------------------------------------
 Some sample text
 
@@ -6,7 +6,7 @@ Some sample text
 ----------------------------------------
 Assistant response 1
 
-[2] user#1 <dateandtime>-0
+[2] user#1 <dateandtime>-eecab352
 ----------------------------------------
 Some other sample text
 

@@ -17,8 +17,8 @@ Manage and manipulate the command history.
 
 COMMANDS
 
-  show [options] [<range>]
-    Display entries in the given range.
+  show [options] [--assistant|--tool|--user] [<range>...]
+    Display entries in the given range(s), filtered by role(s).
 
   pop [options] [<n>]
     Remove & print last n entries (default 1).
@@ -26,14 +26,11 @@ COMMANDS
   top [options] [<n>]
     Remove & print first n entries (default 1).
 
-  delete [<range>]
-    Delete entries in n–m inclusive.
+  delete [<range>...]
+    Delete entries in n–m inclusive for all given ranges.
 
-  prune [<range> [options]]
-    Options to override the default 'prune_mode' configuration.
-    --reduce replace large blocks with a placeholder
-    --edit adjust in an editor
-    --cut replace the entire message with a placeholder
+  prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
+    Prune history entries by role and mode.
 
   search [options] <keyword>
     Find entries containing keyword.
@@ -47,29 +44,38 @@ OPTIONS
     Show this help message and exit.
 
   -a, --assistant
-    Only show assistant messages. Applicable to show and search.
+    Filter or prune assistant messages only.
+
+  -t, --tool
+    Filter or prune tool messages only.
 
   -u, --user
-    Only show user messages. Applicable to show and search.
+    Filter or prune user messages only.
 
-  If both --user and --assistant are provided, it shows both.
+  If multiple role flags are provided, pruning will error.
+
+  --reduce
+    Replace large blocks with a placeholder during pruning.
+
+  --edit
+    Edit messages in an editor during pruning.
+
+  --cut
+    Replace entire message with a placeholder during pruning.
 
   --raw, --json
     Print in json format. Applicable to show, search, pop and top.
 
 EXAMPLES
 
-    maia history show 0-10
-      Show the first 11 entries in history.
+    maia history prune --assistant --reduce 0-10 12 15-20
+      Prune assistant messages in specified ranges by reducing content.
 
-    maia history pop 2
-      Remove and print the last two entries.
+    maia history prune --tool --cut last
+      Cut tool messages in the last entry.
 
-    maia history
-      Show the last assistant response.
-
-    maia history -
-      Show full history.
+    maia history prune --user --edit
+      Edit user messages in the full history.
 
 NOTES
 
@@ -83,16 +89,18 @@ NOTES
     last-1    the 2 last entries
     all       the entire history
 
+  Role flags specify which type of entries to prune.
+  Pruning modes differ per role (see documentation).
+  Multiple ranges can be specified for batch pruning.
+
 EOF
     exit 0
 }
 
-readonly PRUNE_CUT_PLACEHOLDER='<<Assistant response removed from history to conserve space>>'
-
 # Global readonly variable for jq filter to add indexes
 readonly jq_add_indexes='
   [ foreach .[] as $item (
-      { index: -1, user: 0, assistant: 0 };
+      { index: -1, user: 0, assistant: 0, tool: 0 };
       .index += 1
       | {
           value: $item,
@@ -121,96 +129,227 @@ prune_content() {
     printf '%s' "$content" | "$MAIA_CORE_LIB_DIR/prune.pl" "$idx"
 }
 
-# Prune assistant messages by removing fenced code blocks and large blockquote blocks,
-# replacing each removed block with <<BLOCK #n: pruned>> where n is the assistant message zero-based index.
-# Usage:
-#   prune [<range or n>]
-# By default, prune last assistant message.
+add_original_reference() {
+    local content="$1"
+    local prune_id="$2"
+    local marker="<<Original text reference: $prune_id>>"
+
+    if [[ "$content" != *"$marker"* ]]; then
+        content="${content}\n${marker}"
+    fi
+    echo -e "$content"
+}
+
 history_prune() {
-    local range="last"
+    local role=""
+    local -a ranges=()
+
+    # Default mode from config
     local mode=$(jq -r '.prune_mode' <<<"$_cfg")
-    # Parse args: if last arg is one of --reduce, --edit, --cut, set mode accordingly
-    # Otherwise first arg is range, optional second arg is mode string
-    # Allow both styles for backward compatibility
-    if [[ "$#" -ge 1 ]]; then
+
+    # Parse flags before ranges
+    while [[ $# -gt 0 ]]; do
         case "$1" in
+            --assistant|--tool|--user)
+                if [[ -n "$role" ]]; then
+                    die "Only one of --assistant, --tool, or --user can be specified."
+                fi
+                role="${1#--}"
+                shift
+                ;;
             --reduce|--edit|--cut)
                 mode="${1#--}"
+                shift
+                ;;
+            --)
+                shift
+                break
                 ;;
             *)
-                range="$1"
-                if [[ "$#" -ge 2 ]]; then
-                    case "$2" in
-                        --reduce|--edit|--cut)
-                            mode="${2#--}"
-                            ;;
-                    esac
-                fi
+                break
                 ;;
         esac
+    done
+
+    # If no role specified, default to assistant
+    if [[ -z "$role" ]]; then
+        role="assistant"
+    fi
+
+    # Collect all positional range arguments
+    while [[ $# -gt 0 ]]; do
+        ranges+=("$1")
+        shift
+    done
+
+    # Default single range if none given
+    if (( ${#ranges[@]} == 0 )); then
+        ranges+=("last")
     fi
 
     local history_file="$(resolve_history_meta)"
-    local jq_slice
-    jq_slice=$(range_defaults "$range")
 
-    local entries_json=$(jq '
-        map(select(.role == "assistant")) | .['"$jq_slice"']
-    ' "$history_file")
+    # Load full history with indexes
+    local history_json=$(jq "$jq_add_indexes" "$history_file")
 
-    local count=$(jq 'length' <<<"$entries_json")
+    # For each range, process pruning
+    local tmpfile=$(mktemp)
+    echo "$history_json" > "$tmpfile"
+    local range
+    for range in "${ranges[@]}"; do
+        local jq_slice=$(range_defaults "$range")
+        # Select entries in range and role
+	local entries=$(jq --arg role "$role" '
+	   map(select(.role == $role)) | .['"$jq_slice"']
+	   ' "$tmpfile")
+        local count=$(jq 'length' <<<"$entries")
+        if [[ $count == 0 ]]; then
+            info "No entries of role '$role' in range '$range' to prune."
+            continue
+        fi
+	# Make a backup of all potentially updated entries
+	jq '
+	  . as $history
+	  | ($history
+	      | map(select(.role == "'"$role"'"))
+	      | .['"$jq_slice"']
+	      | map(.index)
+	    ) as $indexes
+	  | $history
+	  | map(
+	      .index as $index |
+	      if ($indexes | index($index)) != null and (has("backup") | not) then
+	        .backup = (
+		  {}
+		  + (if has("content") then {content: .content} else {} end)
+		  + (if has("tool_calls") then {tool_calls: .tool_calls} else {} end)
+		)
+	      else
+	        .
+	      end
+	    )
+	    ' "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
 
-    if [[ "$mode" == "cut" ]]; then
-        local tmpfile=$(mktemp)
-        cp "$history_file" "$tmpfile"
-        for (( i=0; i<count; i++ )); do
-            local ts=$(jq -r ".[$i].timestamp" <<<"$entries_json")
-            local id=$(jq -r ".[$i].id" <<<"$entries_json")
-            jq --arg ts "$ts" --arg id "$id" --arg content "$PRUNE_CUT_PLACEHOLDER" \
-               'map(if .timestamp == $ts and .id == $id and .role == "assistant" then .content = $content else . end)' \
-               "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+	local i=0
+        for (( i=0; i < count; i++ )); do
+            local ts=$(jq -r ".[$i].timestamp" <<<"$entries")
+            local id=$(jq -r ".[$i].id" <<<"$entries")
+            local prune_id="${ts}-${id}"
+
+            # Backup original if not already backed up
+	    local mapselect="map(select(.${role}_index == $i))"
+            local orig_content=$(jq -r "$mapselect | .[0].content" "$tmpfile")
+	    if [[ "$orig_content" == "null" ]] ; then
+		orig_content=""
+	    fi
+            local orig_tool_calls=$(jq -r "$mapselect | .[0].tool_calls" "$tmpfile")
+	    if [[ "$orig_tool_calls" == "null" ]] ; then
+		orig_tool_calls=""
+	    fi
+	    local new_content="$orig_content"
+	    local new_tool_calls="$orig_tool_calls"
+
+            if [[ "$mode" == "cut" ]]; then
+                # Cut mode replaces content and/or tool_calls accordingly
+                if [[ -n "$orig_content" ]]; then
+                    # Replace content with prune placeholder including prune_id
+		    new_content="<<Pruned>>\n"
+                fi
+                if [[ -n "$orig_tool_calls" ]]; then
+                    # Remove tool_calls completely
+                    # If no content, add prune placeholder to content to indicate pruning
+		    new_content="$new_content<<Pruned tool_calls>>"
+		fi
+		# For explanation see reduce case below
+		if (( ${#orig_content} + 64 + ${#orig_tool_calls} < ${#new_content} + ${#new_tool_calls} )); then
+		    # Restore because the pruning information is larger than the original
+		    new_content="$orig_content"
+		    new_tool_calls="$orig_tool_calls"
+		elif [[ -n "$orig_tool_calls" ]]; then
+		    # Delete the tool_calls first before we update the message
+		    jq "map(if ${role}_index == $i then del(.tool_calls) else . end)" \
+		       "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+                fi
+            elif [[ "$mode" == "edit" ]]; then
+                # Edit mode: open editor for content and tool_calls separately if present
+                local edit_tmp=$(mktemp)
+		local editor="${MAIA_EDITOR:-${EDITOR:-vi}}"
+                if [[ -n "$orig_content" ]]; then
+                    local edit_tmp=$(mktemp)
+                    printf '%s' "$orig_content" > "$edit_tmp"
+		    # TODO, allow either MAIA_EDITOR or EDITOR
+                    "$editor" "$edit_tmp"
+                    local new_content=$(cat "$edit_tmp")
+                fi
+                if [[ -n "$orig_tool_calls" ]]; then
+                    printf '%s' "$orig_tool_calls" > "$edit_tmp"
+		    # TODO, allow either MAIA_EDITOR or EDITOR
+                    "$editor" "$edit_tmp"
+                    local new_tool_calls=$(cat "$edit_tmp")
+                fi
+                rm -f "$edit_tmp"
+            elif [[ "$mode" == "reduce" ]]; then
+                # Reduce mode:
+                # - For content: prune large blocks using prune_content()
+                # - For tool_calls (only for assistant role): remove arguments for each function call, keep function names and IDs
+                if [[ "$role" == "assistant" && -n "$orig_content" ]] ; then
+                    new_content=$(prune_content "$orig_content" "$i")
+                fi
+                if [[ "$role" == "assistant" && -n "$orig_tool_calls" ]] ; then
+		    # If the string is less than 16 chacters there is no point to prune because the
+		    # prune information is larger.
+		    # <<Original text reference: 20260818T100213-db222f2e>> + <<Pruned>>
+                    local new_tool_calls="$(jq '
+		      map(
+		        if ((.function.arguments // "") | length) > 64
+			then
+			  .function.arguments = "<<Pruned>>"
+			else
+			  .
+			end
+		      )
+		      ' <<<"$orig_tool_calls")"
+                fi
+                if [[ "$role" == "tool" ]] ; then
+		    new_content="<<Pruned>>"
+		fi
+		# Reduce for user does nothing
+		# NOTE. We should not do this generally unless we get rid of the del call above
+		# 55 is the length of <<Original text reference: 20260818T100213-47388249>> (#54) + two \n
+		# We select a few more because it can be worth to keep history in slightly more casese when the
+		# pruning gain is really small.
+		if (( ${#orig_content} + 64 + ${#orig_tool_calls} < ${#new_content} + ${#new_tool_calls} )); then
+		    # Restore because the pruning information is larger than the original
+		    new_content="$orig_content"
+		    new_tool_calls="$orig_tool_calls"
+		fi
+            else
+                die "Unknown prune mode: '$mode'. Valid modes are reduce, edit, cut."
+            fi
+	    if [[ "$orig_content" != "$new_content" || "$orig_tool_calls" != "$new_tool_calls" ]] ; then
+		new_content=$(add_original_reference "$new_content" "$prune_id")
+	    fi
+	    # Now it is time to update
+	    if [[ "$orig_content" != "$new_content" ]] ; then
+		jq --arg content "$new_content" \
+		   "map(if .role == \"$role\" and .${role}_index == $i then .content = \$content else . end)" \
+		   "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+	    fi
+	    if [[ "$orig_tool_calls" != "$new_tool_calls" ]] ; then
+		jq --arg tool_calls "$new_tool_calls" \
+		   "map(if .role == \"$role\" and .${role}_index == $i then .tool_calls = \$tool_calls else . end)" \
+		   "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+	    fi
         done
-        mv "$tmpfile" "$history_file"
-        info "Assistant messages content replaced with placeholder in range '$range'."
-        return
-    elif [[ "$mode" == "edit" ]]; then
-        local tmpfile=$(mktemp)
-        cp "$history_file" "$tmpfile"
-        for (( i=0; i<count; i++ )); do
-            local ts=$(jq -r ".[$i].timestamp" <<<"$entries_json")
-            local id=$(jq -r ".[$i].id" <<<"$entries_json")
-            local orig_content=$(jq -r ".[$i].content" <<<"$entries_json")
-            local edit_tmp=$(mktemp)
-            printf '%s' "$orig_content" > "$edit_tmp"
-            "${EDITOR:-vi}" "$edit_tmp"
-            local new_content=$(cat "$edit_tmp")
-            rm -f "$edit_tmp"
-            jq --arg ts "$ts" --arg id "$id" --arg content "$new_content" \
-               'map(if .timestamp == $ts and .id == $id and .role == "assistant" then .content = $content else . end)' \
-               "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
-        done
-        mv "$tmpfile" "$history_file"
-        info "Assistant messages edited in range '$range'."
-        return
-    elif [[ "$mode" == "reduce" ]]; then
-        local tmpfile=$(mktemp)
-        cp "$history_file" "$tmpfile"
-        for (( i=0; i<count; i++ )); do
-            local ts=$(jq -r ".[$i].timestamp" <<<"$entries_json")
-            local id=$(jq -r ".[$i].id" <<<"$entries_json")
-            local orig_content=$(jq -r ".[$i].content" <<<"$entries_json")
-            local pruned_content=$(prune_content "$orig_content" "$i")
-            jq --arg ts "$ts" --arg id "$id" --arg content "$pruned_content" \
-               'map(if .timestamp == $ts and .id == $id and .role == "assistant" then .content = $content else . end)' \
-               "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
-        done
-        mv "$tmpfile" "$history_file"
-        info "Assistant messages pruned (reduced) in range '$range'."
-        return
-    else
-        die "Unknown prune mode: '$mode'. Valid modes are reduce, edit, cut."
-    fi
+
+    done
+
+    # Write final updated history
+    jq 'map(del(.index, .user_index, .assistant_index, .tool_index))' "$tmpfile" > "$history_file"
+    rm -f "$tmpfile"
+    info "Pruning done for role '$role' in ranges: ${ranges[*]} with mode '$mode'."
 }
+
 
 handle_history_command() {
     # 1) Help wins
