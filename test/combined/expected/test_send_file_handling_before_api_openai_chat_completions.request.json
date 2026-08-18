@@ -22,31 +22,7 @@
     },
     {
       "role": "user",
-      "content": "Test file handling default"
-    },
-    {
-      "role": "assistant",
-      "content": "Mocked response"
-    },
-    {
-      "role": "user",
-      "content": "Test file handling before"
-    },
-    {
-      "role": "assistant",
-      "content": "Mocked response"
-    },
-    {
-      "role": "user",
-      "content": "Test file handling append"
-    },
-    {
-      "role": "assistant",
-      "content": "Mocked response"
-    },
-    {
-      "role": "user",
-      "content": "Hello, AI!"
+      "content": "Hello again, AI!"
     },
     {
       "role": "assistant",

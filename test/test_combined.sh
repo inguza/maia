@@ -64,6 +64,18 @@ run_count_cmd() {
     run_and_check "test_count_${test_id}" $MAIA count "$@"
 }
 
+run_tool_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_tool_${test_id}" $MAIA tool "$@"
+}
+
+run_history_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_history_${test_id}" $MAIA history "$@"
+}
+
 # Initialize mock curl
 setup_mock_curl
 
@@ -113,6 +125,9 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Test 3: send with appended text arguments
     run_send_cmd "text${suffix}" "Hello, AI!"
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_1" enable pipe sequence
+    run_send_cmd "tool_text${suffix}" "Hello again, AI!"
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_1" delete
 
     # Test 6: send with file handling mode override (valid modes)
     run_send_cmd "file_handling_default${suffix}" --file-handling DEFAULT "Test file handling default"
@@ -122,6 +137,18 @@ for api in "${api_types_and_configs[@]}"; do
     run_send_cmd "file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
     run_count_cmd "count_file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
 
+    # Test 7: tool support
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_2" enable pipe sequence
+    run_tool_cmd "enable_pipe_seq_tool_show${suffix}_2" show
+    run_send_cmd "tool_file_handling_default${suffix}" --file-handling DEFAULT "Test tool and file handling default"
+    run_count_cmd "tool_count_file_handling_default${suffix}" --file-handling DEFAULT "Test tool and file handling default"
+    run_send_cmd "tool_file_handling_before${suffix}" --file-handling BEFORE "Test tool and file handling before"
+    run_count_cmd "tool_count_file_handling_before${suffix}" --file-handling BEFORE "Test tool and file handling before"
+    run_send_cmd "tool_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
+    run_count_cmd "tool_count_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_1" delete
+    run_history_cmd "history_clear${suffix}" clear
+    
     unset MOCK_CURL_RESPONSE_FILE
 done
 

@@ -1,0 +1,113 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "You are a helpful, knowledgeable assistant.\n\nTools:\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n\n\n- Use the pipe tool to pass the output from one tool to the next.\n- Use the sequence tool to execute tools in sequence.\n\n\nFiles:\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Files:\n[x/1.txt]\n```\nx1\n```"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test tool and file handling default"
+        }
+      ]
+    }
+  ],
+  "parameters": {
+    "maxTokensToSample": 32000,
+    "temperature": 0.7,
+    "stopSequences": [
+      "\n\n"
+    ]
+  },
+  "toolSpecs": [
+    {
+      "toolSpec": {
+        "name": "pipe",
+        "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
+        "inputSchema": {
+          "json": {
+            "type": "object",
+            "properties": {
+              "pipeline": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the function/tool to use."
+                    },
+                    "arguments": {
+                      "type": "object",
+                      "description": "Arguments for the function/tool use."
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "arguments"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "pipeline"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "toolSpec": {
+        "name": "sequence",
+        "description": "Execute multiple tools in sequence order.",
+        "inputSchema": {
+          "json": {
+            "type": "object",
+            "properties": {
+              "sequence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the function/tool to use."
+                    },
+                    "arguments": {
+                      "type": "object",
+                      "description": "Arguments for the function/tool use."
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "arguments"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sequence"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
+}

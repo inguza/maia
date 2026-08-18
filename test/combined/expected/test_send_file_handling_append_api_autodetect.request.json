@@ -24,6 +24,16 @@
     },
     {
       "role": "user",
+      "id": "74c77d8f",
+      "content": "Hello again, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
       "id": "e8621625",
       "content": "Test file handling default"
     },

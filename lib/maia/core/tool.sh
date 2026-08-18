@@ -311,10 +311,11 @@ handle_tool_command() {
 		    echo "$msg" > "$filepath"
 		fi
 	    fi
-	    if [[ "$subcmd" = "enable" ]] ; then
+	    if [[ "$subcmd" == "enable" ]] ; then
 		subcmd="append"
 	    fi
-	    handle_text_file_command "$filepath" "$@"
+	    shift
+	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_enabled_toolset_files "$scope" "$filepath"
 	    ;;
         edit|read|compose|replace|clear|delete)

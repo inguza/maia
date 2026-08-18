@@ -22,6 +22,14 @@
     },
     {
       "role": "user",
+      "content": "Hello again, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
       "content": "Test file handling default"
     },
     {
