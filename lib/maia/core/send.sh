@@ -634,9 +634,7 @@ handle_send_command() {
 	    die "$errormsg"
 	fi
 	# Only if we have outbox content and a proper reply
-	local user_logged="no"
 	if [[ -n "$outbox_content" && ( -n "$tools_call_json" || -n "$reply" ) ]] ; then
-	    user_logged="yes"
 	    # We do this late in case an error have occured
 	    # Append user message with timestamp to history
 	    jq --arg txt "$outbox_content" --arg ts "$timestamp" \
@@ -656,7 +654,7 @@ handle_send_command() {
 	local shaid=$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)
 
 	# We need error detection here
-	if [[ "$user_logged" == "yes" ]] ; then
+	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then
 	    jq --arg txt "$reply" \
 	       --arg ts "$timestamp" \
 	   --arg id "$shaid" \
