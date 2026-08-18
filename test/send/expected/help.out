@@ -29,6 +29,9 @@ OPTIONS
     Override file handling mode for this send command.
     Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
 
+  --continue
+    Used to continue tool loops.
+
 EXAMPLES
 
     maia send "Hello, AI!"

@@ -43,6 +43,9 @@ OPTIONS
     Override file handling mode for this send command.
     Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
 
+  --continue
+    Used to continue tool loops.
+
 EXAMPLES
 
     maia send "Hello, AI!"
@@ -290,11 +293,15 @@ handle_send_command() {
     local dry_run=false
     local response_file=""
     local args=()
+    local continue=false
     while [[ $# -gt 0 ]]; do
         case "$1" in
 	    --dry-run)
 		dry_run=true
                 ;;
+	    --continue)
+		continue=true
+		;;
             --response-file)
                 shift
                 response_file="$1"
@@ -454,7 +461,7 @@ handle_send_command() {
     fi
 
     # Ensure outbox is not empty.
-    if [[ ! -s "$outbox_file" ]]; then
+    if [[ ! -s "$outbox_file" && "$continue" == false ]]; then
 	release_lock "$session_lock"
         die "Outbox is empty. Nothing to send."
     fi
