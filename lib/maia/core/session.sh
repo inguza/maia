@@ -55,6 +55,11 @@ COMMANDS
   delete <name>
     Delete a session (cannot delete active).
 
+  exist [<name>]
+    Returns 0 if the session exists
+    Returns 1 if the session do not exist
+    No output, to be used in scripts
+
 OPTIONS
 
   --use (aliased as --select as well)
@@ -413,6 +418,14 @@ handle_session_command() {
 	    ensure_session_exists "$name"
             handle_x_edit "session" "session" "$name" # Handles optional name
             ;;
+
+	exist)
+	    shift
+            local name="${1:-$(resolve_session_name)}"
+            local meta="$(resolve_session_meta "$name")"
+            [[ -f "$meta" ]] || exit 1
+	    exit 0
+	    ;;
 
         list|ls)
 	    shift

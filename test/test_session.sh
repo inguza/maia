@@ -27,18 +27,27 @@ run_session_cmd() {
     run_and_check "test_session_${test_id}" $MAIA session "$@"
 }
 
+# Test 0: The help
+run_session_cmd "help" --help
+
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
+
+run_session_cmd "does_not_exist_1" exist unknown
 
 # Test 2: create a new session named 'foo' with default auto_use_at_create=false config (should not auto use)
 run_session_cmd "create_foo_default" create foo
 run_session_cmd "list_after_create_foo" list
 run_session_cmd "show_after_create_foo" show
+run_session_cmd "exist_after_create_foo_foo" exist foo
+run_session_cmd "does_not_exist_2" exist unknown
 
 # Test 3: create a new session named 'bar' with explicit --use (force use)
 run_session_cmd "create_bar_use" create bar --use
 run_session_cmd "list_after_create_bar" list
 run_session_cmd "show_after_create_bar" show
+run_session_cmd "exist_after_create_bar_use" exist
+run_session_cmd "exist_after_create_bar_bar" exist bar
 
 # Test 4: create a new session named 'baz' with explicit --nouse (force no use)
 run_session_cmd "create_baz_nouse" create baz --nouse

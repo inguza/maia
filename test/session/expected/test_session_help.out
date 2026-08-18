@@ -1,0 +1,113 @@
+USAGE
+
+  maia session <command> [options]
+  maia session
+
+Manage sessions, including creation, switching, and metadata.
+
+COMMANDS
+
+  create <name> [--use|--nouse] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]] [<src>]
+    Create a new session (empty history & outbox) or copy from an existing session.
+
+  list
+    List all sessions (active one marked with *).
+
+  set [<name>] [--use|--nouse] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]]
+    Set properties for a session.
+
+  edit [<name>]
+    Edit the session in an editor.
+
+  use [<name>]
+    Switch active session.
+    When no <name> is given it displays the active session in use.
+
+  select - an alias of use
+
+  unuse
+    No longer use any session.
+
+  unselect - an alias of unuse
+
+  show [options] [<name>]
+    Show session metadata.
+    Options are:
+      --raw|--json  Output in json format
+
+  content [<name>]
+    Show the file content in this session.
+
+  files [<name>]
+    Show a list of files in this session.
+
+  delete <name>
+    Delete a session (cannot delete active).
+
+  exist [<name>]
+    Returns 0 if the session exists
+    Returns 1 if the session do not exist
+    No output, to be used in scripts
+
+OPTIONS
+
+  --use (aliased as --select as well)
+    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
+    so that the workspace is used after creation/set.
+
+  --nouse (aliased as --unselect as well)
+    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
+    so that the workspace is not used after creation/set.
+
+  --workspace <name>
+    Set workspace <name>. See note below.
+
+  --filesets [fs1,[fs2...]]
+     Set the active session filesets. See note below.
+     The default is defined by config default_session_filesets.
+
+  --extra-send-filesets [fs1,[fs2...]]
+     Set the extra filesets to use when sending file content to the AI.
+     These are not updated with file or change operations.
+     The default is defined by config default_session_extra_send_filesets.
+
+  --extra alias of --extra-send-filesets
+
+  resolve-options:
+
+  --resolve
+     Same as --resolve-workspace --resolve-filesets
+
+  --resolve-workspace
+     Resolve __WORKSPACE_USED__ to the workspace in use. If no workspace is in use, the workspace default
+     to __WORKSPACE_USED__.
+
+  --resolve-filesets
+     Resolve __WORKSPACE_FILESETS__ to the filesets of the workspace in use.
+
+  --noresolve
+     Same as --noresolve-workspace --noresolve-filesets
+
+  --noresolve-workspace
+     Do not resolve __WORKSPACE_USED__ to the workspace in use.
+
+  --noresolve-filesets
+     Do not resolve __WORKSPACE_FILESETS__ to the filesets of the workspace in use.
+
+NOTES
+
+  When <name> is optional it defaults to the active session.
+
+  When no command is given it defaults to maia session use.
+
+  A session is described as defunct if the directory exist, but the session metadata do not.
+  Such sessions may contain history data and an outbox. Such sessions can be deleted and used
+  only. The 'use' command is only to allow the user to extract histry and outbox.
+
+  --workspace supports the special marker "__WORKSPACE_USED__" to
+    represent the current workspace.
+
+  --filesets supports the special marker "__WORKSPACE_FILESETS__" to
+    represent all workspace filesets and "__SESSION_NAME__" to represent the name of the
+    current session.
+
