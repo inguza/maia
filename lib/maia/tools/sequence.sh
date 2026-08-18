@@ -52,7 +52,7 @@ while IFS= read -r tool_call; do
 	notice "Tool call $i in sequence: $func_name($func_args)"
 	echo "----------------- Tool output $i start ------------------------------------"
 	bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" 2>&1
-	echo "----------------- Tool output $id end --------------------------------------"
+	echo "----------------- Tool output $i end --------------------------------------"
     fi
     ((i++))
 done < <(jq -c '.[]' <<< "$sequence")
