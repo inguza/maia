@@ -1,0 +1,1 @@
+- Use the pipe tool to pass the output from one tool to the next.
