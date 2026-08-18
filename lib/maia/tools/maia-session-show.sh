@@ -11,7 +11,11 @@ set -eo pipefail
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
+. "$MAIA_TOOLS_LIB_DIR/session-common.sh"
 declare -A param
 parseparam
 
-"$MAIA_BIN" session show "$(resolve_subsession_name "${param[session]}")"
+thissession="$(resolve_session_name)"
+actualsession="$(resolve_subsession_name "${param[name]}")"
+unset MAIA_SESSION
+"$MAIA_BIN" session show "$actualsession" 2>&1 | session_filter "$thissession"

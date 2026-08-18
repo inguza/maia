@@ -477,29 +477,6 @@ write_workspace_meta() {
        > "$meta"
 }
 
-#
-# Session handling
-#
-# Set session, primarily from tools point of view
-resolve_subsession_name() {
-    local session="$1"
-    local thissession="$(resolve_session_name)"
-    echo "${thissession}%${session}"
-}
-
-set_subsession() {
-    local session="$1"
-    if [[ ! "$session" =~ ^[a-zA-Z0-9._,:=+-]+$ ]]; then
-	die "[ERROR] Invalid session name: Only letters, digits, . _ - , : = + are allowed." >&2
-    fi
-    local subsession="$(resolve_subsession_name "$1")"
-    local path="$(resolve_session_path "${subsession}")"
-    if [[ ! -d "$path" ]] ; then
-	die "[ERROR] Invalid session name: Session does not exist." >&2
-    fi
-    export MAIA_SESSION="${subsession}"
-}
-
 resolve_logs_dir() {
     echo "$(resolve_session_path)/logs"
 }

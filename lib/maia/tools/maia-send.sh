@@ -11,12 +11,15 @@ set -eo pipefail
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
+. "$MAIA_TOOLS_LIB_DIR/session-common.sh"
 declare -A param
 parseparam
 
-set_subsession "${param[session]}" 
+thissession="$(resolve_session_name)"
+subsession="${param[session]}"
+set_subsession "$subsession"
 if [[ -v "param[content]" ]] ; then
-    printf "%b" "${param[content]}" | "$MAIA_BIN" send read
+    printf "%b" "${param[content]}" | "$MAIA_BIN" send read 2>&1 | session_filter "$thissession"
 else
-    "$MAIA_BIN" send read
+    "$MAIA_BIN" send read 2>&1 | session_filter "$thissession"
 fi
