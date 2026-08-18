@@ -23,7 +23,7 @@ fi
 
 # We use timeout to prevent hanging connections; adjust as needed
 if [[ -v "param[data]" ]] ; then
-    timeout $timeout bash -c "printf '%b' \"${param[data]}\" | openssl s_client -connect \"${param[host]}:${param[port]}\" -quiet" || exit 1
+    timeout $timeout bash -c "printf '%b' \"${param[data]}\" | openssl s_client -connect \"${param[host]}:${param[port]}\" -quiet"
 else
-    timeout $timeout bash -c "openssl s_client -connect \"${param[host]}:${param[port]}\" -quiet" || exit 1
+    timeout $timeout bash -c "openssl s_client -connect \"${param[host]}:${param[port]}\" -quiet"
 fi

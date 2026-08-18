@@ -43,6 +43,4 @@ else
 fi
 
 echo "$contentstr appended to $path."
-$MAIA_BIN file add "$path" > /dev/null 2>&1
-# Exit with 0 since otherwise you get an error when there is no match
-exit 0
+$MAIA_BIN file add "$path" > /dev/null 2>&1 || true

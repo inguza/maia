@@ -14,3 +14,5 @@ declare -A param
 parseparam
 
 printf '%b' "${param[content]}"
+exit 0
+

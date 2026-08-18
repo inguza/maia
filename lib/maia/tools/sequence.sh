@@ -59,5 +59,4 @@ done < <(jq -c '.[]' <<< "$sequence")
 
 rm -rf "${tool_tmp_dir}"
 
-# Exit with 0 since otherwise you get an error when there is no match
 exit 0

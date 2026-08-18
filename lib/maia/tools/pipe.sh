@@ -58,7 +58,7 @@ done < <(jq -c '.[]' <<< "$pipeline")
 
 # Make sure to quite since we execute with bash -c
 debug "Running pipelne as '$pipeline_cmd' from workspace root"
-bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); $pipeline_cmd"
+bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); $pipeline_cmd" || true
 
 rm -rf "${tool_tmp_dir}"
 

@@ -75,5 +75,3 @@ else
 	echo "\`\`\`"
     fi
 fi
-# Exit with 0 since otherwise you get an error when there is no match
-exit 0

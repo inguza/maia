@@ -38,5 +38,3 @@ script="${param[script]}"
 
 # Disable glob expansion
 $command --sandbox "${args[@]}" -e "$script" $pathspec
-# Exit with 0 since otherwise you get an error when there is no match
-exit 0

@@ -37,5 +37,3 @@ if [[ -n "$path" ] ; then
     validate_path "$path"
 fi
 $command "${args[@]}" "$path"
-# Exit with 0 since otherwise you get an error when there is no match
-exit 0

@@ -33,5 +33,3 @@ for path in $pathspec ; do
     validate_path "$path"
 done
 $command "${args[@]}" $pathspec
-# Exit with 0 since otherwise you get an error when there is no match
-exit 0
