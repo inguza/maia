@@ -7,7 +7,7 @@
 # Commercial licensing is available separately.
 #
 
-set -euo pipefail
+set -eo pipefail
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
