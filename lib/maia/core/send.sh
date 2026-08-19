@@ -391,7 +391,7 @@ handle_send_command() {
     fi
 
     # Tools preparation
-    local enabled_tools_json=$(tools_for_scope "session" "toolset")
+    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
     local tools_count=$(jq 'length' <<<"$enabled_tools_json")
 
     # Build API payload JSON

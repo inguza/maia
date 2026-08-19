@@ -194,10 +194,10 @@ run_tool_cmd "maia-subsession-create-ss1-1" "maia-subsession-create.sh" '{"name"
 run_tool_cmd "maia-subsession-list-ac1-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-show-ss1-1_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-delete-ss1-1" "maia-subsession-delete.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-list-ad1-1" "maia-subsession-list.sj" '{}'
+run_tool_cmd "maia-subsession-list-ad1-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-show-ss1-1_adelete" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-create-ss1-2" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-list-ac2-1" "maia-subsession-list.sj" '{}'
+run_tool_cmd "maia-subsession-list-ac2-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-show-ss1-2_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
 
 run_tool_cmd "maia-file-remember-ss1-1-missing" "maia-file-remember.sh" '{"filepattern": "icommon/icommon.info.yml","subsession": "'$subsession1'"}'
@@ -214,15 +214,17 @@ run_tool_cmd "maia-tool-list-1" "maia-tool-list.sh" ''
 # write
 run_tool_cmd "file-write-1-1" "file-write.sh" '{"path": "x/1.txt","content":"First write content 1\n"}'
 run_tool_cmd "file-write-2-1" "file-write.sh" '{"path": "pathx/2.txt","content": "First write content 2\n"}'
+export ASSISTANT_BASEID="20260717T214714-68e33e97"
 run_tool_cmd "file-write-1-2" "file-write.sh" '{"path": "x/1.txt","content":"Second write content 1\n"}'
 C1=$(capture_change "file-write-1-2")
+#export ASSISTANT_BASEID="20260817T214714-68e33e98"
 run_tool_cmd "file-write-2-2" "file-write.sh" '{"path": "pathx/2.txt","content": "First write content 2\nSecond write\n"}'
 C2=$(capture_change "file-write-2-2")
 run_tool_cmd "maia-change-apply-1" "maia-change-apply.sh" '{"id": ["'$C1'"]}'
 run_tool_cmd "maia-change-apply-2" "maia-change-apply.sh" '{"id": ["'$C1'","'$C2'"]}'
 run_tool_cmd "maia-change-apply-3" "maia-change-apply.sh" '{"id": []}'
 # Not existing
-run_tool_cmd "maia-change-apply-3" "maia-change-apply.sh" '{"id": ["20260817T214714-68e33e97-3"]}'
+run_tool_cmd "maia-change-apply-err" "maia-change-apply.sh" '{"id": ["20260817T214714-68e33e97-3"]}'
 # Out of path
 run_tool_cmd "file-write-3-1" "file-write.sh" '{"path": "../x/1.txt","content":"First write content 1"}'
 run_tool_cmd "file-write-4-1" "file-write.sh" '{"path": "/../x/1.txt","content":"First write content 1"}'
@@ -231,6 +233,7 @@ run_tool_cmd "file-write-6-1" "file-write.sh" '{"path": "x/../../1.txt","content
 
 # Append
 run_tool_cmd "file-append-1-3" "file-append.sh" '{"path": "x/1.txt","content":"Append it 1\n"}'
+#export ASSISTANT_BASEID="20260817T214714-68e33e99"
 run_tool_cmd "file-change-1-3" "file-change.sh" '{"path": "x/1.txt","changes":[{"old":"Second write content 1\n","new":"Rewritten content 1\n"}]}'
 C3=$(capture_change "file-change-1-3")
 run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"id": ["'$C3'"]}'

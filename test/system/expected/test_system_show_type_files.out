@@ -1,4 +1,4 @@
-Files:
+# Files
 
 Whenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.
 Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.

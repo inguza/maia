@@ -7,13 +7,13 @@
 #
 
 # The built-in fallback system prompt
-DEFAULT_SYSTEM_PROMPT="You are a helpful, knowledgeable assistant.\n"
-DEFAULT_FILES_PROMPT="Files:\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.\n"
-DEFAULT_TOOLS_PROMPT="Tools:\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
-DEFAILT_TOOL_INSTR_PROMPT=""
-DEFAULT_TOOLSET_PROMPT=""
+DEFAULT_SYSTEM_PROMPT_TXT="You are a helpful, knowledgeable assistant.\n"
+DEFAULT_FILES_PROMPT_TXT="# Files\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.\n"
+DEFAULT_TOOLS_PROMPT_TXT="# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+DEFAILT_TOOL_INSTR_PROMPT_TXT=""
+DEFAULT_TOOLSET_PROMPT_TXT=""
 # TODO: Get rid of this and instead expand from the default tools prompt
-DEFAULT_TOOLSET_DEF="[]"
+DEFAULT_TOOLSET_PROMPT_JSON="[]"
 
 # Constants related to tools
 TOOLS_DIRNAME="tools"
@@ -201,11 +201,15 @@ resolve_home_paths() {
 # (in SCOPE_ORDER) whose ${type}.txt exists, or “default” otherwise.
 determine_implicit_scope() {
     type="$1"
+    ext="txt"
+    if [[ -n "${2:-}" ]] ; then
+	ext="$2"
+    fi
 
     # look in order, but stop before “default” since it has no directory
     for s in "${SCOPE_ORDER[@]}"; do
 	[[ "$s" == "default" ]] && break
-	if [[ -f "${SCOPE_DIRS[$s]}/${type}.txt" ]]; then
+	if [[ -f "${SCOPE_DIRS[$s]}/${type}.${ext}" ]]; then
 	    implicit_scope="$s"
 	    return
 	fi
@@ -550,7 +554,7 @@ resolve_all_workspace_filesets() {
 	    die "Workspace directory $ws_dir does not exist."
 	fi
 	find "$ws_dir" -maxdepth 1 -type f -name '*.fileset' \
-	    | sed -e "s|.*/||" -e 's/\.fileset$//'
+	    | sed -e 's|.*/||;s/\.fileset$//;'
     fi
 }
 
@@ -1103,26 +1107,17 @@ handle_text_file_command() {
 }
 
 prompt_for_scope() {
-    local target="$1" type="$2"
-    local f="$(file_for_scope "$target" "${type}.txt")"
-    if [[ -n "$f" ]]; then
-	cat "$f"
-    else
-	local T="${type^^}"
-	local var="DEFAULT_${T}_PROMPT"
-	printf '%b' "${!var}"
+    local target="$1" type="$2" ext="txt"
+    if [[ -n "${3:-}" ]] ; then
+	ext=$3
     fi
-}
-
-tools_for_scope() {
-    local target="$1" type="toolset"
-    local f="$(file_for_scope "$target" "${type}.json")"
+    local f="$(file_for_scope "$target" "${type}.${ext}")"
     if [[ -n "$f" ]]; then
 	cat "$f"
     else
 	local T="${type^^}"
-	# TODO expand to teh tools enabled by the DEFAULT_TOOLSET_PROMPT
-	local var="DEFAULT_TOOLSET_DEF"
+	local E="${ext^^}"
+	local var="DEFAULT_${T}_PROMPT_${E}"
 	printf '%b' "${!var}"
     fi
 }

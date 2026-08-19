@@ -1,4 +1,4 @@
-Tools:
+# Tools
 
 - Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.
 - One more generic tool instruction.

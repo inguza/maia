@@ -31,8 +31,6 @@ load_all_tool_defs() {
     ' "${files[@]}"
 }
 
-
-
 # Helper: build jq filter from array of regex patterns
 build_list_filter_from_patterns() {
     local enabled_tools_list_file="$1"
@@ -264,14 +262,13 @@ handle_tool_command() {
 	esac
     done
     prompt_type="toolset"
-    
+
+    # default scope if none given
+    determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
-	determine_implicit_scope "$prompt_type"
 	echo "$implicit_scope"
 	return
     fi
-    # default scope if none given
-    determine_implicit_scope "$prompt_type"
     if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
 	scope="$implicit_scope"
     fi
@@ -298,7 +295,7 @@ handle_tool_command() {
 	    prompt_for_scope "$scope" "$prompt_type"
 	    echo "Tool definitions:"
 	    echo "-----------------"
-	    tools_for_scope "$scope" "$prompt_type"
+	    prompt_for_scope "$scope" "$prompt_type" "json"
 	    ;;
 	append|enable)
 	    # seed on first append

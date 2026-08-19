@@ -1,6 +1,6 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
-0    SYSTEM       ->   80 tokens (chars: 317)
+0    SYSTEM       ->   80 tokens (chars: 318)
 0    USER[0]      ->    7 tokens (chars: 27)
 1    USER[1]      ->   24 tokens (chars: 95)
 ──────────────────────────────

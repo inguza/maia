@@ -140,13 +140,12 @@ handle_system_command() {
 	esac
     done
 
+    # default scope if none given
+    determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
-	determine_implicit_scope "$prompt_type"
 	echo "$implicit_scope"
 	return
     fi
-    # default scope if none given
-    determine_implicit_scope "$prompt_type"
     if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
 	scope="$implicit_scope"
     fi
