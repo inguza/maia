@@ -13,5 +13,4 @@ set -euo pipefail
 declare -A param
 parseparam
 
-filepattern="${param[filepattern]}"
-"$MAIA_BIN" file forget "$filepattern"
+"$MAIA_BIN" tool list

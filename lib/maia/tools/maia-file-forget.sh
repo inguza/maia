@@ -11,12 +11,14 @@ set -eo pipefail
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
+. "$MAIA_TOOLS_LIB_DIR/session-common.sh"
 declare -A param
 parseparam
 
 filepattern="${param[filepattern]}"
+thissession="$(resolve_session_name)"
 subsession="${param[session]:-}"
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
-if
-"$MAIA_BIN" file forget "$filepattern"
+fi
+"$MAIA_BIN" file forget "$filepattern" 2>&1 | session_filter "$thissession"

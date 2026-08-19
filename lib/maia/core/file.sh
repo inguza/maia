@@ -85,6 +85,10 @@ EOF
     exit 0
 }
 
+realpath_or_readlink() {
+    realpath -q "$1" || readlink -f "$1"
+}
+
 handle_file_command() {
     # help flags
     [[ "$1" =~ ^-h|--help$ ]] && file_usage
@@ -251,9 +255,9 @@ handle_file_command() {
 		# Resolve absolute path of actual_file for existence check
                 local abs
                 if [[ "$actual_file" == /* ]]; then
-                    abs=$(realpath_safe "$actual_file")
+                    abs=$(realpath_or_readlink "$actual_file")
                 else
-                    abs=$(realpath_safe "$PWD/$actual_file")
+                    abs=$(realpath_or_readlink "$PWD/$actual_file")
                 fi
 
                 if [[ ! -e "$abs" ]]; then
@@ -351,7 +355,7 @@ handle_file_command() {
             # Compute relative paths of removed files to workspace_root for forgetting entries
             local -a relative_files=()
             for f in "${files_to_remove[@]}"; do
-                local rel=$(realpath --relative-to "$workspace_root" "$f")
+                local rel=$(realpath -q --relative-to "$workspace_root" "$f")
                 relative_files+=( "$rel" )
             done
 

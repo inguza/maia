@@ -33,7 +33,7 @@
   },
   {
     "name":"gnu-find",
-    "description": "Search files",
+    "description": "Search files - but not files starting with a .",
     "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
     "parameters": {
       "type": "object",

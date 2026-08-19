@@ -15,6 +15,7 @@ find_index() {
     while compgen -G "$change_dir/${baseid}-${index}-*.json" > /dev/null; do
         ((index++))
     done
+    mkdir -p "$change_dir"
     touch "$change_dir/${baseid}-${index}-pending.json"
     echo "$index"
 }

@@ -37,6 +37,10 @@ while IFS= read -r tool_call; do
 	func_args=$(jq -r '.arguments' <<<"$tool_call")
     fi
     tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
+    if [[ -z "$tool_cmd" ]] ; then
+	rm -rf "$tool_tmp_dir"
+	die "Executable '$func_name' does not have a defined tool command."
+    fi
 
     # Find full path to executable without relying on PATH for security reasons
     tool_exec="${tool_cmd%% *}"
@@ -49,7 +53,7 @@ while IFS= read -r tool_call; do
 	# TODO Call it
 	args_file="$tool_tmp_dir/$i.args"
 	printf '%s\n' "$func_args" > "$args_file"
-	notice "Tool call $i in sequence: $func_name($func_args)"
+	debug "Tool call $i in sequence: $func_name($func_args)"
 	echo "----------------- Tool output $i start ------------------------------------"
 	bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" 2>&1
 	echo "----------------- Tool output $i end --------------------------------------"

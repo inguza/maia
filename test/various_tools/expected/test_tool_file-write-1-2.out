@@ -1,0 +1,17 @@
+[ERROR] Permission denied.
+
+File x/1.txt already exists.
+
+Change created:
+<dateandtime>-68e33e97-3
+
+The requested file contents are now represented by this pending change.
+
+The content of the proposed change is the following:
+```patch
+--- a/x/1.txt
++++ b/x/1.txt
+@@ -1 +1 @@
+-First write content 1
++Second write content 1
+```

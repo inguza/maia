@@ -68,4 +68,4 @@ for path in $pathspec ; do
     validate_path "$path"
     paths+=("$path")
 done
-find -P "${paths[@]}" "${args[@]}"
+find -P "${paths[@]}" "${args[@]}" | grep -v "/\."

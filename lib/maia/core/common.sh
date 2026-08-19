@@ -930,10 +930,6 @@ json_get()   { jq -r "$1" "$2"; }
 json_pretty() { jq . "$1"; }
 json_write() { jq . > "$1"; }
 
-realpath_safe() {
-    command -v realpath &>/dev/null && realpath "$1" || readlink -f "$1"
-}
-
 ########################################
 # CLI Command Recognition
 ########################################

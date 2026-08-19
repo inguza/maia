@@ -37,7 +37,7 @@ validate_path()
 
     # No .. path components
     if [[ "$path" == ".." || "$path" == ../* || "$path" == */../* || "$path" == */.. ]]; then
-        echo "[ERROR] Path may not contain '..': $path"
+        echo "[ERROR] Path must not contain '..': $path"
 	exit 2
     fi
 }

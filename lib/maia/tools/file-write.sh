@@ -36,6 +36,7 @@ fi
 
 contentstr=""
 if [[ -v "param[content]" ]] ; then
+    mkdir -p "$(dirname "$wpath")"
     printf "%b" "${param[content]}" > "$wpath"
     contentstr="Content"
 else
