@@ -1,0 +1,10 @@
+[NOTICE] Tool call 1 in sequence: print({
+  "content": "Test"
+})
+[NOTICE] Tool call 2 in sequence: gnu-ls({
+  "pathspec": ".",
+  "arguments": ""
+})
+[NOTICE] Tool call 3 in sequence: gnu-find({
+  "pathspec": "."
+})

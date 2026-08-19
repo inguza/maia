@@ -53,7 +53,7 @@ while IFS= read -r tool_call; do
 	# TODO Call it
 	args_file="$tool_tmp_dir/$i.args"
 	printf '%s\n' "$func_args" > "$args_file"
-	debug "Tool call $i in sequence: $func_name($func_args)"
+	notice "Tool call $i in sequence: $func_name($func_args)"
 	echo "----------------- Tool output $i start ------------------------------------"
 	bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" 2>&1
 	echo "----------------- Tool output $i end --------------------------------------"
