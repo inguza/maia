@@ -4,9 +4,9 @@
 # Manage LLM tool/function calling support:
 #
 #  - Discover .td tool definition files under all scopes in tools/ directory
-#  - Maintain merged enabled tools file per scope as a cache of enabled tools
+#  - Maintain merged allowed tools file per scope as a cache of allowed tools
 #  - Commands to list, show, edit, enable, refresh, verify, delete tool definitions
-#  - Provide functions to read enabled tools and resolve commands for execution
+#  - Provide functions to read allowed tools and resolve commands for execution
 #
 
 # Load all discovered tool definitions into an associative array keyed by name,
@@ -33,14 +33,14 @@ load_all_tool_defs() {
 
 # Helper: build jq filter from array of regex patterns
 build_list_filter_from_patterns() {
-    local enabled_tools_list_file="$1"
+    local allowed_tools_list_file="$1"
     local patterns=()
 
-    if [ -e "$enabled_tools_list_file" ] ; then
+    if [ -e "$allowed_tools_list_file" ] ; then
 	while IFS= read -r line; do
             [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
             patterns+=("$line")
-	done < "$enabled_tools_list_file"
+	done < "$allowed_tools_list_file"
     fi
 
     printf '%s\n' "${patterns[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))'
@@ -51,16 +51,16 @@ list_tools() {
     init_tool_search_dirs
     local all_tools_json=$(load_all_tool_defs)
     local scope="$1"
-    local enabled_tools_list_file="$2"
+    local allowed_tools_list_file="$2"
 
     # Default to list all tools
-    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+    local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
     # Deduplicate tools by name (keep last occurrence)
     local deduped_tools_json=$(jq '
         reduce .[] as $item ({}; .[$item.name] = $item) | [.[]]
     ' <<< "$all_tools_json")
 
-    # Output list with enabled mark
+    # Output list with allowed mark
     jq -r --argjson patterns "$patterns_json" '
       def glob_to_regex:
         "^" +
@@ -69,7 +69,7 @@ list_tools() {
 	| gsub("\\?"; ".")) +
 	"$";
 
-      def enabled_filter:
+      def allowed_filter:
         .name as $name |
         any($patterns[];
 	  . as $pattern |
@@ -77,7 +77,7 @@ list_tools() {
 	);
 
       .[] |
-      if enabled_filter
+      if allowed_filter
       then "* " + .name + "   (" + .source + ")"
       else "  " + .name + "   (" + .source + ")"
       end
@@ -85,14 +85,14 @@ list_tools() {
 }
    
 # IMPOPRTANT! init_tool_search_dirs
-generate_enabled_toolset_def_file() {
-    local enabled_tools_list_file="$1"
-    local enabled_tools_def_file="$2"
+generate_allowed_toolset_def_file() {
+    local allowed_tools_list_file="$1"
+    local allowed_tools_def_file="$2"
     # Important to call this because it is used by load_all_tool_defs below
     init_tool_search_dirs
     
     local all_tool_defs_json=$(load_all_tool_defs)
-    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+    local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
     # We match the names against the regexp and then for the matched ones we keep only the last if there are
     # several with the same name.
@@ -121,16 +121,16 @@ generate_enabled_toolset_def_file() {
     .[$item.name] = $item
   )
   | [.[]]
-' <<< "$all_tool_defs_json" > "$enabled_tools_def_file"
+' <<< "$all_tool_defs_json" > "$allowed_tools_def_file"
 }
 
-generate_enabled_tools_instr_file() {
-    local enabled_tools_list_file="$1"
-    local enabled_tools_instr_file="$2"
+generate_allowed_tools_instr_file() {
+    local allowed_tools_list_file="$1"
+    local allowed_tools_instr_file="$2"
     # Important to call this because it is used by load_all_tool_defs below
     init_tool_search_dirs
     local all_tool_defs_json=$(load_all_tool_defs)
-    local patterns_json="$(build_list_filter_from_patterns "$enabled_tools_list_file")"
+    local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
     local instruction_files=$(jq -r --argjson patterns "$patterns_json" '
       def glob_to_regex:
         "^" +
@@ -150,7 +150,7 @@ generate_enabled_tools_instr_file() {
 	) | .instructions[]?
       ] | unique[]
       ' <<< "$all_tool_defs_json")
-    : > "$enabled_tools_instr_file"
+    : > "$allowed_tools_instr_file"
     local tool_search_path=$(build_tool_search_path)
 
     while IFS= read -r tool_instr_file; do
@@ -161,77 +161,77 @@ generate_enabled_tools_instr_file() {
 	    warn "Tool instruction file $tool_instr_file not found."
 	    continue
 	else
-	    cat "$tool_instr_dir/$tool_instr_file" >> "$enabled_tools_instr_file"
+	    cat "$tool_instr_dir/$tool_instr_file" >> "$allowed_tools_instr_file"
 	fi
     done <<< "$instruction_files"
 }
 
 # Refresh: regenerate tools.json based on the tools.txt file
-# This merges all discovered .td files and enabled tools state per scope
-refresh_enabled_toolset_files() {
+# This merges all discovered .td files and allowed tools state per scope
+refresh_allowed_toolset_files() {
     local scope="$1"
-    local enabled_tools_list_file="$2"
-    local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
-    local enabled_tools_instr_file="${enabled_tools_list_file%set.txt}_instr.txt"
-    if [ ! -e "$enabled_tools_list_file" ] ; then
-	rm -f "$enabled_tools_def_file"
-	rm -f "$enabled_tools_instr_file"
+    local allowed_tools_list_file="$2"
+    local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
+    local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"
+    if [ ! -e "$allowed_tools_list_file" ] ; then
+	rm -f "$allowed_tools_def_file"
+	rm -f "$allowed_tools_instr_file"
     else
-	generate_enabled_toolset_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}"
-	generate_enabled_tools_instr_file "$enabled_tools_list_file" "${enabled_tools_instr_file}"
-	info "Refreshed enabled toolset for scope '$scope'"
+	generate_allowed_toolset_def_file "$allowed_tools_list_file" "${allowed_tools_def_file}"
+	generate_allowed_tools_instr_file "$allowed_tools_list_file" "${allowed_tools_instr_file}"
+	info "Refreshed allowed toolset for scope '$scope'"
     fi
 }
 
-# Verify: check that enabled tool definitions are current with discovered .td files for scope
+# Verify: check that allowed tool definitions are current with discovered .td files for scope
 # Optionally for a specific function pattern
 verify_tools_def_file() {
     local scope="$1"
-    local enabled_tools_list_file="$2"
-    local enabled_tools_def_file="${enabled_tools_list_file%.txt}.json"
-    local enabled_tools_instr_file="${enabled_tools_list_file%set.txt}_instr.txt"
+    local allowed_tools_list_file="$2"
+    local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
+    local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"
     local err=0
-    if [ ! -e "$enabled_tools_list_file" ] ; then
-	if [ -e "$enabled_tools_def_file" ] ; then
+    if [ ! -e "$allowed_tools_list_file" ] ; then
+	if [ -e "$allowed_tools_def_file" ] ; then
 	    warn "No tool definitions but toolset JSON file exist for $scope"
 	    err=1
 	fi
-	if [ -e "$enabled_tools_instr_file" ] ; then
+	if [ -e "$allowed_tools_instr_file" ] ; then
 	    warn "No tool instructions but toolset JSON file exist for $scope"
 	    err=1
 	fi
     else
-	if [ ! -e "$enabled_tools_def_file" ] ; then
+	if [ ! -e "$allowed_tools_def_file" ] ; then
 	    warn "Tool definitions but no toolset JSON file exist for $scope"
 	    err=1
 	else
-	    generate_enabled_toolset_def_file "$enabled_tools_list_file" "${enabled_tools_def_file}.tmp"
-	    if ! diff "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp" > /dev/null ; then
-		warn "Enabled toolset for scope '$scope' is out of sync with the available tools."
-		diff -u "$enabled_tools_def_file" "${enabled_tools_def_file}.tmp"
+	    generate_allowed_toolset_def_file "$allowed_tools_list_file" "${allowed_tools_def_file}.tmp"
+	    if ! diff "$allowed_tools_def_file" "${allowed_tools_def_file}.tmp" > /dev/null ; then
+		warn "Allowed toolset for scope '$scope' is out of sync with the available tools."
+		diff -u "$allowed_tools_def_file" "${allowed_tools_def_file}.tmp"
 		err=1
 	    else
-		notice "Enabled toolset JSON cache for scope '$scope' is up to date"
+		notice "Allowed toolset JSON cache for scope '$scope' is up to date"
 	    fi
 	fi
-	if [ ! -e "$enabled_tools_instr_file" ] ; then
+	if [ ! -e "$allowed_tools_instr_file" ] ; then
 	    warn "Tool definitions but no tool instructions file exist for $scope"
 	    err=1
 	else
-	    generate_enabled_tools_instr_file "$enabled_tools_list_file" "${enabled_tools_instr_file}.tmp"
-	    if ! diff "$enabled_tools_instr_file" "${enabled_tools_instr_file}.tmp" > /dev/null ; then
-		warn "Enabled toolset instruction for scope '$scope' is out of sync with the available tools."
-		diff -u "$enabled_tools_instr_file" "${enabled_tools_instr_file}.tmp"
+	    generate_allowed_tools_instr_file "$allowed_tools_list_file" "${allowed_tools_instr_file}.tmp"
+	    if ! diff "$allowed_tools_instr_file" "${allowed_tools_instr_file}.tmp" > /dev/null ; then
+		warn "Allowed toolset instruction for scope '$scope' is out of sync with the available tools."
+		diff -u "$allowed_tools_instr_file" "${allowed_tools_instr_file}.tmp"
 		err=1
 	    else
-		notice "Enabled tools instruction cache for scope '$scope' is up to date"
+		notice "Allowed tools instruction cache for scope '$scope' is up to date"
 	    fi
 	fi
     fi
     return $err
 }
 
-# Handle the aia tool command line
+# Handle the maia tool command line
 handle_tool_command() {
     # help
     [[ "$1" =~ ^-h|--help$ ]] && tool_usage
@@ -290,14 +290,14 @@ handle_tool_command() {
 	    prompt_for_scope "$scope" "$prompt_type"
 	    ;;
 	show)
-	    echo "Enabled tools:"
+	    echo "Allowed tools:"
 	    echo "--------------"
 	    prompt_for_scope "$scope" "$prompt_type"
 	    echo "Tool definitions:"
 	    echo "-----------------"
 	    prompt_for_scope "$scope" "$prompt_type" "json"
 	    ;;
-	append|enable)
+	append|enable|allow)
 	    # seed on first append
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    if [[ ! -f "$filepath" ]]; then
@@ -313,15 +313,15 @@ handle_tool_command() {
 	    fi
 	    shift
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
-	    refresh_enabled_toolset_files "$scope" "$filepath"
+	    refresh_allowed_toolset_files "$scope" "$filepath"
 	    ;;
         edit|read|compose|replace|clear|delete)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    handle_text_file_command "$filepath" "$@"
-	    refresh_enabled_toolset_files "$scope" "$filepath"
+	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
         refresh)
-	    refresh_enabled_toolset_files "$scope" "$filepath"
+	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
         verify)
             verify_tools_def_file "$scope" "$filepath"
@@ -336,9 +336,9 @@ tool_usage() {
     cat <<EOF
 USAGE
 
-  aia tool [--scope <scope>] <command> [args...]
+  maia tool [--scope <scope>] <command> [<args>...]
      Manage tools
-  aia tool --scope
+  maia tool --scope
      Show the scope for the current tool definitions
 
 Manage LLM tools/functions.
@@ -346,28 +346,30 @@ Manage LLM tools/functions.
 COMMANDS
 
   list
-      List tools with enabled status and scope.
+      List allowed tools and scope.
 
   show
-      Show enabled tool definitions matching regex.
+      Show allowed tool definitions matching regex.
 
   edit
       Edit the tool definition in specified scope.
 
-  append|enable <functionname-regex> [<functionname-regex> ...]
-      Enable tool(s) matching regex in current scope.
+  append|enable|allow <toolname> [<toolname> ...]
+      Allowed tool(s) matching regex in current scope.
+      Wildcards are allowed in toolname.
 
-  replace [<functionname-regex> ...]
+  replace [<toolname> ...]
       Replace tool definition (same as clear and append)
+      Wildcards are allowed in toolname.
 
   clear
       Clear all tool definitions in the current scope.
 
   refresh
-      Refresh enabled tools file to sync with discovered .td files.
+      Refresh allowed tools file to sync with discovered .td files.
 
   verify
-      Verify enabled tools are current with discovered .td files.
+      Verify allowed tools are current with discovered .td files.
 
   delete
       Delete the tool definitions from this scope.
