@@ -1,15 +1,15 @@
-[NOTICE] Tool call 1 in sequence: maia-session-create({
+[NOTICE] Tool call 1 in sequence: maia-subsession-create({
   "name": "review-xcommon"
 })
 [NOTICE] Tool call 2 in sequence: maia-file-remember({
   "filepattern": "x/x.info.yml",
-  "session": "review-xcommon"
+  "subsession": "review-xcommon"
 })
 [NOTICE] Tool call 3 in sequence: maia-file-remember({
   "filepattern": "xcommon/tests/src/Functional/TestBase.php",
-  "session": "review-xcommon"
+  "subsession": "review-xcommon"
 })
 [NOTICE] Tool call 4 in sequence: maia-send({
-  "session": "review-xcommon",
-  "content": "Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET[p];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & session constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run maia-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."
+  "subsession": "review-xcommon",
+  "content": "Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET[p];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run maia-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."
 })

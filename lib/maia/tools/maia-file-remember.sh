@@ -22,8 +22,8 @@ if [[ -n "$startline" || -n "$stopline" ]] ; then
     filepattern="$filepattern:$startline-$stopline"
 fi
 thissession="$(resolve_session_name)"
-subsession="${param[session]:-}"
-# TODO check session name for unknown characters
+subsession="${param[subsession]:-}"
+# TODO check subsession name for unknown characters
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
 fi

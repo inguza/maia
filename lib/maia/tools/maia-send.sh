@@ -16,8 +16,8 @@ declare -A param
 parseparam
 
 thissession="$(resolve_session_name)"
-subsession="${param[session]}"
-# TODO check session that it does not contain any unknown characters
+subsession="${param[subsession]}"
+# TODO check subsession that it does not contain any unknown characters
 
 set_subsession "$subsession"
 if [[ -v "param[content]" ]] ; then

@@ -179,7 +179,7 @@ run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 
-run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"maia-session-create","arguments":{"name":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"x/x.info.yml","session":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"xcommon/tests/src/Functional/TestBase.php","session":"review-xcommon"}},{"name":"maia-send","arguments":{"session":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & session constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run maia-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
+run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"maia-subsession-create","arguments":{"name":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"x/x.info.yml","subsession":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"xcommon/tests/src/Functional/TestBase.php","subsession":"review-xcommon"}},{"name":"maia-send","arguments":{"subsession":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run maia-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
 
 ##### Print
 run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new line\n"}'
@@ -189,19 +189,23 @@ run_tool_cmd "grep-complicated-1" "grep.sh" '{"searchpattern":"unserialize\\(|ev
 
 ##### maia-* tools
 subsession1="sub-session-1"
-run_tool_cmd "maia-session-create-ss1-1" "maia-session-create.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-session-show-ss1-1_acreate" "maia-session-show.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-session-delete-ss1-1" "maia-session-delete.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-session-show-ss1-1_adelete" "maia-session-show.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-session-create-ss1-2" "maia-session-create.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-session-show-ss1-2_acreate" "maia-session-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-list-empty-1" "maia-subsession-list.sh" '{}'
+run_tool_cmd "maia-subsession-create-ss1-1" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-list-ac1-1" "maia-subsession-list.sh" '{}'
+run_tool_cmd "maia-subsession-show-ss1-1_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-delete-ss1-1" "maia-subsession-delete.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-list-ad1-1" "maia-subsession-list.sj" '{}'
+run_tool_cmd "maia-subsession-show-ss1-1_adelete" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-create-ss1-2" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-list-ac2-1" "maia-subsession-list.sj" '{}'
+run_tool_cmd "maia-subsession-show-ss1-2_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
 
-run_tool_cmd "maia-file-remember-ss1-1-missing" "maia-file-remember.sh" '{"filepattern": "icommon/icommon.info.yml","session": "'$subsession1'"}'
-run_tool_cmd "maia-file-forget-ss1-1-missing" "maia-file-forget.sh" '{"filepattern": "icommon/icommon.info.yml","session": "'$subsession1'"}'
+run_tool_cmd "maia-file-remember-ss1-1-missing" "maia-file-remember.sh" '{"filepattern": "icommon/icommon.info.yml","subsession": "'$subsession1'"}'
+run_tool_cmd "maia-file-forget-ss1-1-missing" "maia-file-forget.sh" '{"filepattern": "icommon/icommon.info.yml","subsession": "'$subsession1'"}'
 mkdir -p "$XMAIA_HOME/pathx"
 echo "File to remember" > "${XMAIA_HOME}/pathx/remember.txt"
-run_tool_cmd "maia-file-remember-ss1-2" "maia-file-remember.sh" '{"filepattern": "pathx/remember.txt","session": "'$subsession1'"}'
-run_tool_cmd "maia-file-forget-ss1-2" "maia-file-forget.sh" '{"filepattern": "pathx/remember.txt","session": "'$subsession1'"}'
+run_tool_cmd "maia-file-remember-ss1-2" "maia-file-remember.sh" '{"filepattern": "pathx/remember.txt","subsession": "'$subsession1'"}'
+run_tool_cmd "maia-file-forget-ss1-2" "maia-file-forget.sh" '{"filepattern": "pathx/remember.txt","subsession": "'$subsession1'"}'
 # maia-send not tested
 run_tool_cmd "maia-tool-list-1" "maia-tool-list.sh" ''
 # maia-change-apply tested below in file-* tools

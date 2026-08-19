@@ -18,9 +18,9 @@
           "type": "string",
           "description": "If the whole file is not needed, specify from what line to start remembering the file."
         },
-        "session": {
+        "subsession": {
           "type": "string",
-          "description": "The session name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
         }
       },
       "required": ["filepattern"]
@@ -38,9 +38,9 @@
           "type": "string",
           "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
         },
-        "session": {
+        "subsession": {
           "type": "string",
-          "description": "The session name that should forget the specified files. If absent current session is used."
+          "description": "The subsession name that should forget the specified files. If absent current session is used."
         }
       },
       "required": ["filepattern"]
@@ -78,15 +78,15 @@
     "strict": true
   },
   {
-    "name": "maia-session-create",
-    "description": "Create a new AI interaction session.",
-    "command": "maia-session-create.sh",
+    "name": "maia-subsession-create",
+    "description": "Create a new AI interaction subsession.",
+    "command": "maia-subsession-create.sh",
     "parameters": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the session to create."
+          "description": "Name of the subsession to create."
         }
       },
       "required": ["name"]
@@ -94,15 +94,15 @@
     "strict": true
   },
   {
-    "name": "maia-session-show",
-    "description": "Show information about a session.",
-    "command": "maia-session-show.sh",
+    "name": "maia-subsession-show",
+    "description": "Show information about a subsession.",
+    "command": "maia-subsession-show.sh",
     "parameters": {
       "type": "object",
       "properties": {
         "show": {
           "type": "string",
-          "description": "Name of the session to delete."
+          "description": "Name of the subsession to delete."
         }
       },
       "required": ["name"]
@@ -110,15 +110,15 @@
     "strict": true
   },
   {
-    "name": "maia-session-delete",
-    "description": "Remove an AI interaction session.",
-    "command": "maia-session-delete.sh",
+    "name": "maia-subsession-delete",
+    "description": "Remove an AI interaction subsession.",
+    "command": "maia-subsession-delete.sh",
     "parameters": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the session to delete."
+          "description": "Name of the subsession to delete."
         }
       },
       "required": ["name"]
@@ -126,29 +126,29 @@
     "strict": true
   },
   {
-    "name": "maia-session-list",
-    "description": "List AI interaction sessions.",
-    "command": "maia-session-list.sh",
+    "name": "maia-subsession-list",
+    "description": "List AI interaction subsessions.",
+    "command": "maia-subsession-list.sh",
     "parameters": null,
     "strict": true
   },
   {
     "name": "maia-send",
-    "description": "Send a request to the LLM in a session.",
+    "description": "Send a request to the LLM in a subsession.",
     "command": "maia-send.sh",
     "parameters": {
       "type": "object",
       "properties": {
-        "session": {
+        "subsession": {
           "type": "string",
-          "description": "Name of the session to send the request in."
+          "description": "Name of the subsession to send the request in."
         },
         "content": {
           "type": "string",
           "description": "The content to send to the LLM. If absent content is read from stdin (to be used with pipes)."
         }
       },
-      "required": ["session"]
+      "required": ["subsession"]
     },
     "strict": true
   }
