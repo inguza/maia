@@ -20,7 +20,7 @@ export PATH="$tool_search_path:$PATH"
 
 tool_tmp_dir="$(mktemp -d)"
 
-sequence="${param[sequence]}"
+sequence="$(printf '%b' "${param[sequence]}")"
 i=1
 
 debug "Running sequence from workspace root"

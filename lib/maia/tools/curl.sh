@@ -30,17 +30,17 @@ for argument in $arguments; do
     args+=("$argument")
 done
 
-url="${param[url]:-}"
+url="$(printf '%b' "${param[url]:-}")"
 
 if [[ -v "param[json]" ]] ; then
-    args+=(--json "${param[json]}")
+    args+=(--json "$(printf '%b' "${param[json]}")")
 fi
 
 for d in "data" "data-raw" "data-binary" "header" ; do
     if [[ -v "param[$d]" ]] ; then
 	while IFS= read -r value; do
 	    args+=(--$d "$value")
-	done < <(jq -r '.[]' <<< "${param[$d]}")
+	done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$d]}")")
     fi
 done
 

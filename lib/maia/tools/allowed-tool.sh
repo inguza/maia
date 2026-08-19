@@ -32,7 +32,7 @@ for argument in $arguments; do
     args+=("$argument")
 done
 
-pathspec="${param[pathspec]:-}"
+pathspec="$(printf '%b' "${param[pathspec]:-}")"
 for path in $pathspec ; do
     validate_path "$path"
 done

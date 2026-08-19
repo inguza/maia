@@ -15,9 +15,10 @@ set -eo pipefail
 declare -A param
 parseparam
 
-filepattern="${param[filepattern]}"
+filepattern="$(printf '%b' "${param[filepattern]}")"
 thissession="$(resolve_session_name)"
 subsession="${param[session]:-}"
+# TODO check session name for unknown characters
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
 fi

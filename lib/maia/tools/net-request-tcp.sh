@@ -18,6 +18,8 @@ if [[ -n "$ttmp" && "$ttmp" =~ ^[0-9]+$ ]] ; then
     timeout="$ttmp"
 fi
 
+# TODO check host and port for unknown characters
+
 if [[ -v "param[data]" ]] ; then
     timeout $timeout bash -c "printf '%b' \"${param[data]}\" | netcat \"${param[host]}\" \"${param[port]}\""
 else

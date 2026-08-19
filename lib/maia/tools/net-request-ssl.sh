@@ -18,6 +18,8 @@ if [[ -n "$ttmp" && "$ttmp" =~ ^[0-9]+$ ]] ; then
     timeout="$ttmp"
 fi
 
+# TODO check host and port for unknown characters
+
 # Use openssl s_client to establish SSL/TLS connection
 # Send the data and output the response
 

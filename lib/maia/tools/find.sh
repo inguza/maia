@@ -42,7 +42,7 @@ if [[ -n "$maxdepth" && "$maxdepth" =~ ^[0-9]+$ ]] ; then
     args+=(-maxdepth $maxdepth)
 fi
 # Name
-namepattern="${param[name]:-}"
+namepattern="$(printf '%b' "${param[name]:-}")"
 if [[ -n "$namepattern" ]] ; then
     args+=(-name "$namepattern")
 fi
@@ -52,18 +52,18 @@ if [[ -n "$type" ]] ; then
     args+=(-type "$type")
 fi
 # Path
-pathpattern="${param[path]:-}"
+pathpattern="$(printf '%b' "${param[path]:-}")"
 if [[ -n "$pathpattern" ]] ; then
     args+=(-path "$pathpattern")
 fi
 # Ipath
-ipathpattern="${param[ipath]:-}"
+ipathpattern="$(printf '%b' "${param[ipath]:-}")"
 if [[ -n "$ipathpattern" ]] ; then
     args+=(-ipath "$ipathpattern")
 fi
 
 paths=()
-pathspec="${param[pathspec]:-}"
+pathspec="$(printf '%b' "${param[pathspec]:-}")"
 for path in $pathspec ; do
     validate_path "$path"
     paths+=("$path")

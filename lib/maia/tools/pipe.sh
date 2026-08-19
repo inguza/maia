@@ -20,7 +20,7 @@ export PATH="$tool_search_path:$PATH"
 
 tool_tmp_dir="$(mktemp -d)"
 
-pipeline="${param[pipeline]}"
+pipeline="$(printf '%b' "${param[pipeline]}")"
 i=1
 pipeline_cmd="echo ''"
 

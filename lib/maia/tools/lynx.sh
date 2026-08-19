@@ -30,9 +30,9 @@ for argument in $arguments; do
     args+=("$argument")
 done
 
-url="${param[url]:-}"
+url="$(printf '%b' "${param[url]:-}")"
 if [[ -z "$url" ]] ; then
-    query="${param[query]:-}"
+    query="$(printf '%b' "${param[query]:-}")"
     url="https://html.duckduckgo.com/html/?q=$(urlencode "$query")"
 fi
 

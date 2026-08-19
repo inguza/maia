@@ -17,5 +17,6 @@ parseparam
 
 thissession="$(resolve_session_name)"
 actualsession="$(resolve_subsession_name "${param[name]}")"
+# TODO check name for unknown characters
 unset MAIA_SESSION
 "$MAIA_BIN" session show "$actualsession" 2>&1 | session_filter "$thissession"

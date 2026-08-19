@@ -22,7 +22,7 @@ session_name="$(resolve_session_name)"
 ws_path="$(resolve_workspace_path)"
 ws_changes="${ws_path}/changes/${session_name}"
 
-path="${param[path]}"
+path="$(printf '%b' "${param[path]}")"
 validate_path "$path"
 
 baseid="${ASSISTANT_BASEID}"

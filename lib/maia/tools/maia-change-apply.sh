@@ -14,5 +14,6 @@ declare -A param
 parseparam
 
 while IFS= read -r id; do
+    # TODO check that id does not contain any unknown characters
     "$MAIA_BIN" change apply "$id"
-done < <(jq -r '.[]' <<< "${param[id]}")
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[id]}")")

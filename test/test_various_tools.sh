@@ -30,7 +30,6 @@ $MAIA tool replace "*" > /dev/null 2>&1
 touch "$XMAIA_HOME/file-to-see.txt"
 #
 TOOL_DIR="$(realpath "$TEST_ROOT/../lib/maia/tools")"
-echo "TOOL_DIR=$TOOL_DIR"
 TMP_ARGS_FILE=$(mktemp)
 # Environment setup for tool running
 export AIA_ROOT="$(realpath "$TEST_ROOT/..")"
@@ -169,9 +168,10 @@ run_tool_cmd "pipe-to-head-1" "pipe.sh" '{"pipeline":[
 {"name":"gnu-head","arguments":{}}
 ]}'
 ##### Sequence
+# We can't test with ls -l because it generates a new timestamp each time
 run_tool_cmd "sequence-print-ls-find" "sequence.sh" '{"sequence":[
 {"name":"print","arguments":{"content":"Test"}},
-{"name":"gnu-ls","arguments":{"pathspec":".","arguments":"-l"}},
+{"name":"gnu-ls","arguments":{"pathspec":".","arguments":""}},
 {"name":"gnu-find","arguments":{"pathspec":"."}}
 ]}'
 run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
@@ -183,6 +183,9 @@ run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"maia-
 
 ##### Print
 run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new line\n"}'
+
+##### GNU
+run_tool_cmd "grep-complicated-1" "grep.sh" '{"searchpattern":"unserialize\\(|eval\\(|create_function\\(|shell_exec\\(|exec\\(|passthru\\(|system\\(|`\\$\\(|preg_replace\\(\\s*[\"].*e.*[\"]","pathspec":"."}'
 
 ##### maia-* tools
 subsession1="sub-session-1"

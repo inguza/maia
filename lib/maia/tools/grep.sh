@@ -30,11 +30,11 @@ for argument in $arguments; do
     args+=("$argument")
 done
 
-pathspec="${param[pathspec]:-}"
+pathspec="$(printf '%b' "${param[pathspec]:-}")"
 for path in $pathspec ; do
     validate_path "$path"
 done
-searchpattern="${param[searchpattern]}"
+searchpattern="$(printf '%b' "${param[searchpattern]}")"
 
 before="${param[before-context]:-}"
 if [[ -n "$before" && "$before" =~ ^[0-9]+$ ]] ; then

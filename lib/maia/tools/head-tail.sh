@@ -28,7 +28,7 @@ if [[ -n "$lines" && "$lines" =~ ^[0-9]+$ ]] ; then
     args+=(-n $lines)
 fi
 
-pathspec="${param[pathspec]:-}"
+pathspec="$(printf '%b' "${param[pathspec]:-}")"
 for path in $pathspec ; do
     validate_path "$path"
 done

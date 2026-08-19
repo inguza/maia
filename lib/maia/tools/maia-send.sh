@@ -17,6 +17,8 @@ parseparam
 
 thissession="$(resolve_session_name)"
 subsession="${param[session]}"
+# TODO check session that it does not contain any unknown characters
+
 set_subsession "$subsession"
 if [[ -v "param[content]" ]] ; then
     printf "%b" "${param[content]}" | "$MAIA_BIN" send read 2>&1 | session_filter "$thissession"
