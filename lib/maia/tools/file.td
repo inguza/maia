@@ -72,5 +72,72 @@
       "required": ["path", "changes"]
     },
     "strict": true
+  },
+  {
+    "name":"context-file-remember",
+    "description": "Remember/add a file to the known context",
+    "command": "maia-file-remember.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filepattern": {
+          "type": "string",
+          "description": "File(s) to add to the currently known context. Shell file pattern matching can be used."
+        },
+        "linestart": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+        },
+        "lineend": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": ["filepattern"]
+    },
+    "strict": true
+  },
+  {
+    "name": "context-file-forget",
+    "description": "Forget file content from the known context.",
+    "command": "maia-file-forget.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filepattern": {
+          "type": "string",
+          "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should forget the specified files. If absent current session is used."
+        }
+      },
+      "required": ["filepattern"]
+    },
+    "strict": true
+  },
+  {
+    "name": "change-apply",
+    "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
+    "command": "maia-change-apply.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"id": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+	    "description": "Change identities to apply in order."
+	  }
+	}
+      },
+      "required": ["id"]
+    },
+    "strict": true
   }
 ]
