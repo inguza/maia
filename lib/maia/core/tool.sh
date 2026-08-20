@@ -17,13 +17,16 @@ load_all_tool_defs() {
     local files=()
     local scope
     for scope in "${TOOL_SEARCH_ORDER[@]}"; do
-        local dir="${TOOL_DIRS[$scope]}"
-        if [[ -d "$dir" ]]; then
-	    local file
-            for file in "$dir"/*"$TOOLSET_DEF_EXT"; do
-                [[ -f "$file" ]] && files+=("$file")
-            done
-        fi
+        local dir_list="${TOOL_DIRS[$scope]}"
+        IFS=":" read -ra dirs <<< "$dir_list"
+        for dir in "${dirs[@]}"; do
+            if [[ -d "$dir" ]]; then
+                local file
+                for file in "$dir"/*"$TOOLSET_DEF_EXT"; do
+                    [[ -f "$file" ]] && files+=("$file")
+                done
+            fi
+        done
     done
     # Output JSON array of all tools (flatten into a single array)
     jq -n '
