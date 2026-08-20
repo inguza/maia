@@ -2,6 +2,7 @@
   {
     "name":"file-write",
     "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
+    "command": "file-write.sh",
     "parameters": {
       "type": "object",
       "properties": {
