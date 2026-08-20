@@ -12,7 +12,7 @@
         },
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to search in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes."
+          "description": "Pattern of files and directories to search in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"after-context": {
 	  "type": "string",
@@ -104,7 +104,7 @@
       "properties": {
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to sort. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes."
+          "description": "Pattern of files and directories to sort. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"arguments": {
           "type": "string",
@@ -124,7 +124,7 @@
       "properties": {
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to print the head for. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes.."
+          "description": "Pattern of files and directories to print the head for. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"lines": {
           "type": "string",
@@ -144,7 +144,7 @@
       "properties": {
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to print the tail of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes.."
+          "description": "Pattern of files and directories to print the tail of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"lines": {
           "type": "string",
@@ -164,7 +164,7 @@
       "properties": {
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to count in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes.."
+          "description": "Pattern of files and directories to count in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standin."
         },
 	"arguments": {
           "type": "string",
@@ -188,7 +188,7 @@
 	},
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes.."
+          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"arguments": {
           "type": "string",
@@ -212,7 +212,7 @@
 	},
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standard input to be used with pipes."
+          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
         },
 	"arguments": {
           "type": "string",
@@ -232,7 +232,7 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Specific file to operate on. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes.."
+          "description": "Specific file to operate on. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
           "type": "string",
@@ -272,7 +272,7 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Read the patch from path. Same as patch option -i. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes."
+          "description": "Read the patch from path. Same as patch option -i. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
           "type": "string",

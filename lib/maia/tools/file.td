@@ -1,8 +1,7 @@
 [
   {
     "name":"file-write",
-    "description": "Write content to file. If the file already exists a change id will be created and the file is not modified in that case.",
-    "command": "file-write.sh",
+    "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
     "parameters": {
       "type": "object",
       "properties": {
@@ -12,7 +11,7 @@
         },
 	"content": {
 	  "type": "string",
-	  "description": "The content to write to the file. If absent data is read from standard input (to be used with pipes)."
+	  "description": "The full content to write to the file. If absent data is read from stdin."
 	}
       },
       "required": ["path"]
@@ -21,7 +20,7 @@
   },
   {
     "name":"file-append",
-    "description": "Append content to file.",
+    "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
     "command": "file-append.sh",
     "parameters": {
       "type": "object",
@@ -32,7 +31,7 @@
         },
 	"content": {
 	  "type": "string",
-	  "description": "The content to write to the file. If absent data is read from standard input (to be used with pipes)."
+	  "description": "The content to write to the file. If absent data is read from stdin."
 	}
       },
       "required": ["path"]
@@ -41,7 +40,7 @@
   },
   {
     "name":"file-change",
-    "description": "Update an existing file by applying a change description. A change id will be created..",
+    "description": "Update an existing file. Always creates a change proposal.",
     "command": "file-change.sh",
     "parameters": {
       "type": "object",

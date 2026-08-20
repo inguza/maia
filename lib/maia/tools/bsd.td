@@ -8,7 +8,7 @@
       "properties": {
         "pathspec": {
           "type": "string",
-          "description": "Pattern of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes."
+          "description": "Pattern of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
 	  "type": "string",

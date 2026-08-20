@@ -1,6 +1,6 @@
 [
   {
-    "name":"curl",
+    "name":"web-browser-curl",
     "description": "Tool for transferring data from or to a server.",
     "command": "curl.sh -i -D -G --get --raw -s -S -X POST",
     "parameters": {

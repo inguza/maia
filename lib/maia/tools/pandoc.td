@@ -8,7 +8,7 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from standard input to be used with pipes."
+          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"input-format": {
           "type": "string",

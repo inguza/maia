@@ -1,9 +1,9 @@
 [
   {
-    "name": "pipe",
+    "name": "basics-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
-    "instructions": [ "pipe.txt" ],
+    "instructions": [ "basics.txt", "pipe.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -32,10 +32,10 @@
     "strict": true
   },
   {
-    "name": "sequence",
+    "name": "basics-sequence",
     "description": "Execute multiple tools in sequence order.",
     "command": "sequence.sh",
-    "instructions": [ "sequence.txt" ],
+    "instructions": [ "basics.txt", "sequence.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -64,7 +64,7 @@
     "strict": true
   },
   {
-    "name": "print",
+    "name": "basics-print",
     "description": "Print content.",
     "command": "print.sh",
     "parameters": {

@@ -132,7 +132,7 @@ run_tool_cmd() {
 ##### Pipe
 # Pipe with unknown
 run_tool_cmd "pipe-to-unknown-1" "pipe.sh" '{"pipeline":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 
@@ -151,35 +151,35 @@ run_tool_cmd "pipe-ls-to-grep-1" "pipe.sh" '{"pipeline":[
 
 # Pipe to grep
 run_tool_cmd "pipe-to-grep-1" "pipe.sh" '{"pipeline":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"gnu-grep","arguments":{"searchpattern":"Test"}}
 ]}'
 run_tool_cmd "pipe-to-grep-2-v" "pipe.sh" '{"pipeline":[
-{"name":"print","arguments":{"content":"Test\n"}},
+{"name":"basics-print","arguments":{"content":"Test\n"}},
 {"name":"gnu-grep","arguments":{"searchpattern":"Test","arguments":"-v"}}
 ]}'
 # Pipe to tail
 run_tool_cmd "pipe-to-tail-1" "pipe.sh" '{"pipeline":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"gnu-tail","arguments":{}}
 ]}'
 run_tool_cmd "pipe-to-head-1" "pipe.sh" '{"pipeline":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"gnu-head","arguments":{}}
 ]}'
 ##### Sequence
 # We can't test with ls -l because it generates a new timestamp each time
 run_tool_cmd "sequence-print-ls-find" "sequence.sh" '{"sequence":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"gnu-ls","arguments":{"pathspec":".","arguments":""}},
 {"name":"gnu-find","arguments":{"pathspec":"."}}
 ]}'
 run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
-{"name":"print","arguments":{"content":"Test"}},
+{"name":"basics-print","arguments":{"content":"Test"}},
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 
-run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"maia-subsession-create","arguments":{"name":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"x/x.info.yml","subsession":"review-xcommon"}},{"name":"maia-file-remember","arguments":{"filepattern":"xcommon/tests/src/Functional/TestBase.php","subsession":"review-xcommon"}},{"name":"maia-send","arguments":{"subsession":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run maia-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
+run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"subsession-create","arguments":{"name":"review-xcommon"}},{"name":"context-file-remember","arguments":{"filepattern":"x/x.info.yml","subsession":"review-xcommon"}},{"name":"context-file-remember","arguments":{"filepattern":"xcommon/tests/src/Functional/TestBase.php","subsession":"review-xcommon"}},{"name":"subsession-send","arguments":{"subsession":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run context-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
 
 ##### Print
 run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new line\n"}'
@@ -207,7 +207,6 @@ echo "File to remember" > "${XMAIA_HOME}/pathx/remember.txt"
 run_tool_cmd "maia-file-remember-ss1-2" "maia-file-remember.sh" '{"filepattern": "pathx/remember.txt","subsession": "'$subsession1'"}'
 run_tool_cmd "maia-file-forget-ss1-2" "maia-file-forget.sh" '{"filepattern": "pathx/remember.txt","subsession": "'$subsession1'"}'
 # maia-send not tested
-run_tool_cmd "maia-tool-list-1" "maia-tool-list.sh" ''
 # maia-change-apply tested below in file-* tools
 
 # file-* tools

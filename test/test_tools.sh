@@ -36,21 +36,21 @@ run_tools_cmd "scope_empty" --scope
 run_tools_cmd "refresh_empty" refresh
 run_tools_cmd "verify_empty" verify
 
-run_tools_cmd "append" append "pipe"
+run_tools_cmd "append" append "basics-pipe"
 run_tools_cmd "list_after_append_pipe" list
 run_tools_cmd "show_after_append_pipe" show
 run_tools_cmd "scope_after_append_pipe" --scope
 run_tools_cmd "refresh_after_append_pipe" refresh
 run_tools_cmd "verify_after_append_pipe" verify
 
-run_tools_cmd "enable" enable "sequence"
+run_tools_cmd "enable" enable "basics-sequence"
 run_tools_cmd "list_after_enable_seq" list
 run_tools_cmd "show_after_enable_seq" show
 run_tools_cmd "scope_after_enable_seq" --scope
 run_tools_cmd "refresh_after_enable_seq" refresh
 run_tools_cmd "verify_after_enable_seq" verify
 
-run_tools_cmd "allow" allow "print"
+run_tools_cmd "allow" allow "basics-print"
 run_tools_cmd "list_after_allow_print" list
 run_tools_cmd "show_after_allow_print" show
 run_tools_cmd "scope_after_allow_print" --scope

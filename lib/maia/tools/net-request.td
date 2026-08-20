@@ -16,7 +16,7 @@
         },
         "data": {
           "type": "string",
-          "description": "Data to transmit on the TCP connection. If absent data is read from stdin, to be used with pipes."
+          "description": "Data to transmit on the TCP connection. If absent data is read from stdin."
         },
 	"timeout":{
 	  "type": "string",
@@ -44,7 +44,7 @@
         },
         "data": {
           "type": "string",
-          "description": "Data to transmit on the SSL connection. If absent data is read from stdin, to be used with pipes."
+          "description": "Data to transmit on the SSL connection. If absent data is read from stdin."
         },
 	"timeout":{
 	  "type": "string",

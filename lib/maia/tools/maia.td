@@ -1,6 +1,6 @@
 [
   {
-    "name":"maia-file-remember",
+    "name":"context-file-remember",
     "description": "Remember/add a file to the known context",
     "command": "maia-file-remember.sh",
     "parameters": {
@@ -28,7 +28,7 @@
     "strict": true
   },
   {
-    "name": "maia-file-forget",
+    "name": "context-file-forget",
     "description": "Forget file content from the known context.",
     "command": "maia-file-forget.sh",
     "parameters": {
@@ -48,19 +48,8 @@
     "strict": true
   },
   {
-    "name": "maia-tool-list",
-    "description": "List available tools.",
-    "command": "maia-file-forget.sh",
-    "parameters": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "strict": true
-  },
-  {
-    "name": "maia-change-apply",
-    "description": "Apply one or more change requests to the workspace. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
+    "name": "change-apply",
+    "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "maia-change-apply.sh",
     "parameters": {
       "type": "object",
@@ -78,7 +67,7 @@
     "strict": true
   },
   {
-    "name": "maia-subsession-create",
+    "name": "subsession-create",
     "description": "Create a new AI interaction subsession.",
     "command": "maia-subsession-create.sh",
     "parameters": {
@@ -94,7 +83,7 @@
     "strict": true
   },
   {
-    "name": "maia-subsession-show",
+    "name": "subsession-show",
     "description": "Show information about a subsession.",
     "command": "maia-subsession-show.sh",
     "parameters": {
@@ -110,7 +99,7 @@
     "strict": true
   },
   {
-    "name": "maia-subsession-delete",
+    "name": "subsession-delete",
     "description": "Remove an AI interaction subsession.",
     "command": "maia-subsession-delete.sh",
     "parameters": {
@@ -126,14 +115,14 @@
     "strict": true
   },
   {
-    "name": "maia-subsession-list",
+    "name": "subsession-list",
     "description": "List AI interaction subsessions.",
     "command": "maia-subsession-list.sh",
     "parameters": null,
     "strict": true
   },
   {
-    "name": "maia-send",
+    "name": "subsession-send",
     "description": "Send a request to the LLM in a subsession.",
     "command": "maia-send.sh",
     "parameters": {
@@ -145,7 +134,7 @@
         },
         "content": {
           "type": "string",
-          "description": "The content to send to the LLM. If absent content is read from stdin (to be used with pipes)."
+          "description": "The content to send to the LLM. If absent content is read from stdin."
         }
       },
       "required": ["subsession"]

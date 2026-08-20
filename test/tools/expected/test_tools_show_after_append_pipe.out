@@ -1,14 +1,15 @@
 Allowed tools:
 --------------
-pipe
+basics-pipe
 Tool definitions:
 -----------------
 [
   {
-    "name": "pipe",
+    "name": "basics-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
     "instructions": [
+      "basics.txt",
       "pipe.txt"
     ],
     "parameters": {

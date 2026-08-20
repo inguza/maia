@@ -1,1 +1,2 @@
-- Use the pipe tool to pass the output from one tool to the next.
+- Use `basics-pipe` when the output from one tool should be passed to another tool.
+  The output of each tool in the pipeline is provided to the next tool through stdin.

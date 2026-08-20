@@ -1,4 +1,4 @@
-[NOTICE] Tool call 1 in sequence: print({
+[NOTICE] Tool call 1 in sequence: basics-print({
   "content": "Test"
 })
 [ERROR] Executable 'unknown' does not have a defined tool command.
