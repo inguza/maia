@@ -530,7 +530,11 @@ handle_send_command() {
     declare -A seen_commands
     while (( allowed_iterations_left > 0 )); do
 
-	local messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type")
+	local messages_json
+	if ! messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type") ; then
+	    # Here we silently fail because this will only happen at die
+	    exit 1
+	fi
 	if [[ -z "$messages_json" ]]; then
 	    release_lock "$session_lock"
 	    die "Internal error. Empty message json."
