@@ -131,7 +131,7 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Test 3: send with appended text arguments
     run_send_cmd "text${suffix}" "Hello, AI!"
-    run_tool_cmd "enable_pipe_seq_tool${suffix}_1" enable basics-pipe basics-sequence
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_1" enable core-pipe core-sequence
     run_send_cmd "tool_text${suffix}" "Hello again, AI!"
     run_tool_cmd "delete_pipe_seq_tool${suffix}_1" delete
     run_skill_cmd "skill_avail_pipe_seq_tool${suffix}_1" allow file
@@ -139,7 +139,7 @@ for api in "${api_types_and_configs[@]}"; do
     run_skill_cmd "skill_avail_pipe_seq_tool${suffix}_2" allow sequence
     run_skill_cmd "skill_remember_pipe_seq_tool${suffix}_1" remember file
     run_send_cmd "skill_remember_text${suffix}" "Hello with skills memory, AI!"
-    run_tool_cmd "enable_pipe_seq_tool${suffix}_2" enable basics-pipe basics-sequence
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_2" enable core-pipe core-sequence
     run_send_cmd "skill_remember_pipe_text${suffix}" "Hello with skills memory and tools, AI!"
     run_tool_cmd "delete_pipe_seq_tool${suffix}_2" delete
     run_skill_cmd "skill_delete_seq_tool${suffix}_1" delete
@@ -153,7 +153,7 @@ for api in "${api_types_and_configs[@]}"; do
     run_count_cmd "count_file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
 
     # Test 7: tool and skill support
-    run_tool_cmd "enable_pipe_seq_tool${suffix}_3" enable basics-pipe basics-sequence
+    run_tool_cmd "enable_pipe_seq_tool${suffix}_3" enable core-pipe core-sequence
     run_tool_cmd "enable_pipe_seq_tool_show${suffix}_2" show
     run_skill_cmd "skill_avail_pipe_seq_tool${suffix}_3" allow file sequence
     run_skill_cmd "skill_remember_pipe_seq_tool${suffix}_2" remember file

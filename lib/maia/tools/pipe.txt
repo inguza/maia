@@ -1,2 +1,2 @@
-- Use `basics-pipe` when the output from one tool should be passed to another tool.
+- Use `core-pipe` when the output from one tool should be passed to another tool.
   The output of each tool in the pipeline is provided to the next tool through stdin.

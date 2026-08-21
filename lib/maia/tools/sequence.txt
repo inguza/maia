@@ -1,1 +1,1 @@
-- Use the sequence tool to execute tools in sequence. Prefer parallel execution when possible, but use `basics-sequence` when operations depend on each other.
+- Use the sequence tool to execute tools in sequence. Prefer parallel execution when possible, but use `core-sequence` when operations depend on each other.

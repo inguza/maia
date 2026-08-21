@@ -1,11 +1,11 @@
 Allowed tools:
 --------------
-basics-pipe
+core-pipe
 Tool definitions:
 -----------------
 [
   {
-    "name": "basics-pipe",
+    "name": "core-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
     "instructions": [

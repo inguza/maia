@@ -132,54 +132,54 @@ run_tool_cmd() {
 ##### Pipe
 # Pipe with unknown
 run_tool_cmd "pipe-to-unknown-1" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test"}},
+{"name":"core-print","arguments":{"content":"Test"}},
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 
 # Pipe ls
 # We do not test with ls -l because that generate a new timestamp each run
 run_tool_cmd "pipe-ls-1" "pipe.sh" '{"pipeline":[
-{"name":"gnu-ls","arguments":{"pathspec":".","arguments":""}}
+{"name":"util-ls","arguments":{"pathspec":".","arguments":""}}
 ]}'
 
 # Pipe ls to grep
 # We do not test with ls -l because that generate a new timestamp each run
 run_tool_cmd "pipe-ls-to-grep-1" "pipe.sh" '{"pipeline":[
-{"name":"gnu-ls","arguments":{"pathspec":".","arguments":[]}},
-{"name":"gnu-grep","arguments":{"searchpattern":"file"}}
+{"name":"util-ls","arguments":{"pathspec":".","arguments":[]}},
+{"name":"util-grep","arguments":{"searchpattern":"file"}}
 ]}'
 
 # Pipe to grep
 run_tool_cmd "pipe-to-grep-1" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test"}},
-{"name":"gnu-grep","arguments":{"searchpattern":"Test"}}
+{"name":"core-print","arguments":{"content":"Test"}},
+{"name":"util-grep","arguments":{"searchpattern":"Test"}}
 ]}'
 run_tool_cmd "pipe-to-grep-2-v" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test\n"}},
-{"name":"gnu-grep","arguments":{"searchpattern":"Test","arguments":["-v"]}}
+{"name":"core-print","arguments":{"content":"Test\n"}},
+{"name":"util-grep","arguments":{"searchpattern":"Test","arguments":["-v"]}}
 ]}'
 run_tool_cmd "pipe-to-grep-2-v-wrong" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test\n"}},
-{"name":"gnu-grep","arguments":{"searchpattern":"Test","arguments":"-v"}}
+{"name":"core-print","arguments":{"content":"Test\n"}},
+{"name":"util-grep","arguments":{"searchpattern":"Test","arguments":"-v"}}
 ]}'
 # Pipe to tail
 run_tool_cmd "pipe-to-tail-1" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test"}},
-{"name":"gnu-tail","arguments":{}}
+{"name":"core-print","arguments":{"content":"Test"}},
+{"name":"util-tail","arguments":{}}
 ]}'
 run_tool_cmd "pipe-to-head-1" "pipe.sh" '{"pipeline":[
-{"name":"basics-print","arguments":{"content":"Test"}},
-{"name":"gnu-head","arguments":{}}
+{"name":"core-print","arguments":{"content":"Test"}},
+{"name":"util-head","arguments":{}}
 ]}'
 ##### Sequence
 # We can't test with ls -l because it generates a new timestamp each time
 run_tool_cmd "sequence-print-ls-find" "sequence.sh" '{"sequence":[
-{"name":"basics-print","arguments":{"content":"Test"}},
-{"name":"gnu-ls","arguments":{"pathspec":".","arguments":""}},
-{"name":"gnu-find","arguments":{"pathspec":"."}}
+{"name":"core-print","arguments":{"content":"Test"}},
+{"name":"util-ls","arguments":{"pathspec":".","arguments":""}},
+{"name":"util-find","arguments":{"pathspec":"."}}
 ]}'
 run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
-{"name":"basics-print","arguments":{"content":"Test"}},
+{"name":"core-print","arguments":{"content":"Test"}},
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 

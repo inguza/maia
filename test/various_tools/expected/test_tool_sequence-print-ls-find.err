@@ -1,10 +1,10 @@
-[NOTICE] Tool call 1 in sequence: basics-print({
+[NOTICE] Tool call 1 in sequence: core-print({
   "content": "Test"
 })
-[NOTICE] Tool call 2 in sequence: gnu-ls({
+[NOTICE] Tool call 2 in sequence: util-ls({
   "pathspec": ".",
   "arguments": ""
 })
-[NOTICE] Tool call 3 in sequence: gnu-find({
+[NOTICE] Tool call 3 in sequence: util-find({
   "pathspec": "."
 })

@@ -1,13 +1,13 @@
 Allowed tools:
 --------------
-basics-pipe
-basics-sequence
-basics-print
+core-pipe
+core-sequence
+core-print
 Tool definitions:
 -----------------
 [
   {
-    "name": "basics-pipe",
+    "name": "core-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
     "instructions": [
@@ -48,7 +48,7 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
-    "name": "basics-sequence",
+    "name": "core-sequence",
     "description": "Execute multiple tools in sequence order.",
     "command": "sequence.sh",
     "instructions": [
@@ -89,7 +89,7 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
-    "name": "basics-print",
+    "name": "core-print",
     "description": "Print content.",
     "command": "print.sh",
     "parameters": {

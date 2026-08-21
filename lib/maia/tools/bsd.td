@@ -1,6 +1,6 @@
 [
   {
-    "name":"bsd-file",
+    "name":"util-file",
     "description": "Determine file type.",
     "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
     "parameters": {
