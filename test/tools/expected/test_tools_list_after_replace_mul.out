@@ -21,6 +21,7 @@
   gnu-uniq   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   gnu-diff   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   w-gnu-patch   (/home/ola/git/maia/lib/maia/tools/gnu.td)
+  jq   (/home/ola/git/maia/lib/maia/tools/jq.td)
   web-browser-lynx   (/home/ola/git/maia/lib/maia/tools/lynx.td)
   web-search-lynx   (/home/ola/git/maia/lib/maia/tools/lynx.td)
 * net-request-tcp   (/home/ola/git/maia/lib/maia/tools/net-request.td)
