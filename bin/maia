@@ -21,6 +21,7 @@
 #
 set -o pipefail
 shopt -s nullglob
+shopt -s extglob
 
 maia_bin_path="$(command -v "$0")"
 maia_real_path="$(realpath "$maia_bin_path")"
@@ -28,6 +29,7 @@ export MAIA_ROOT="$(dirname "$(dirname "$maia_real_path")")"
 export MAIA_BIN="$maia_real_path"
 export MAIA_CORE_LIB_DIR="$MAIA_ROOT/lib/maia/core"
 export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
+export MAIA_SKILLS_LIB_DIR="$MAIA_ROOT/lib/maia/skills"
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
 
@@ -204,6 +206,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/tool.sh"
 	handle_tool_command "$@"
+	;;
+    skill)
+	shift
+	. "$MAIA_CORE_LIB_DIR/skill.sh"
+	handle_skill_command "$@"
 	;;
     files|file|f)
 	shift

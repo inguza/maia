@@ -1,5 +1,6 @@
 CONFIG NAME                    SCOPE      VALUE
 ----------------------------------------------------------------------------
+additional_skill_paths         default    ""
 additional_tool_paths          default    ""
 api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"

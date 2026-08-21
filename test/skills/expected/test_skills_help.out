@@ -1,0 +1,61 @@
+USAGE
+
+  maia skill [--scope <scope>] [--type <type>] <command> [<args>...]
+     Manage skills
+  maia skill --scope
+     Show the scope for the current skill definitions
+
+Manage LLM skills.
+
+COMMANDS
+
+  list
+      List all discovered skills, marking allowed and loaded skills.
+
+  show
+      Show allowed skills and their descriptions.
+
+  remember|add <skillname>...
+      Add skill(s) to the loaded context.
+
+  forget <skillname>...
+      Remove skill(s) from the loaded context.
+
+  append|allow [--remember] <skillname>...
+      Append skill(s) to the allowed list. Wildcards supported.
+      If --remember is given, also add to loaded context.
+
+  replace [--remember] <skillname>...
+      Replace allowed skills with specified ones. Wildcards supported.
+      If --remember is given, also replace loaded context.
+
+  clear
+      Clear allowed skills list.
+
+  test <skillname> <scriptname> [args...]
+      Run a skill script directly without involving the LLM.
+
+  refresh
+      Refresh cached skill metadata and prompt files.
+
+  verify
+      Verify consistency of skill definitions and caches.
+
+  delete <skillname|wildcard>...
+      Remove skill(s) from allowed list. Wildcards supported.
+
+OPTIONS
+
+  --scope <scope>
+      Specify the scope to operate on. Valid: session, workspace, home, user, system, extra.
+
+  --type <type>
+      The types are allow (default) and memory.
+
+  -h, --help
+      Show this help message and exit.
+
+NOTE
+
+  --remember only add the skills as arguments, not skills read by read or compose.
+

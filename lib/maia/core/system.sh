@@ -48,8 +48,12 @@ OPTIONS
     Explicitly select one of session, workspace, home, user, system.
 
   --type <t>
-    Which prompt to manage: "system" (default), "tools" or "files".
-    "tool_instr" is also possible but this is overwritten at next maia tool command.
+    Which prompt to manage:
+      - system (default)
+      - tools
+      - files
+      - tools
+      - toolscontext
 
 SCOPES
 
@@ -118,10 +122,14 @@ handle_system_command() {
 		consumed="$consumed $1 $2"
 		shift
 		prompt_type="$1"; shift || true
-		if [[ "$prompt_type" != "system" && "$prompt_type" != "files" &&
-		    "$prompt_type" != "tools" && "$prompt_type" != "tool_instr" ]]; then
-		    die "Unknown type '$prompt_type'. Valid: system, files, tools, tool_instr."
-		fi
+		case "$prompt_type" in
+		    system|files|tools|skills|skillscontext)
+			:
+			;;
+		    *)
+			die "Unknown type '$prompt_type'. Valid: system, files, tools, tool_instr."
+			;;
+		esac
 		;;
 	    --scope)
 		consumed="$consumed $1 $2"

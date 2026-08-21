@@ -37,8 +37,12 @@ OPTIONS
     Explicitly select one of session, workspace, home, user, system.
 
   --type <t>
-    Which prompt to manage: "system" (default), "tools" or "files".
-    "tool_instr" is also possible but this is overwritten at next maia tool command.
+    Which prompt to manage:
+      - system (default)
+      - tools
+      - files
+      - tools
+      - toolscontext
 
 SCOPES
 

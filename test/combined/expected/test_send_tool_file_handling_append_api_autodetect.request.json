@@ -10,7 +10,7 @@
   "messages": [
     {
       "role": "system",
-      "content": "You are a helpful, knowledgeable assistant.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n\n\n- Use the pipe tool to pass the output from one tool to the next.\n- Use the sequence tool to execute tools in sequence.\n"
+      "content": "You are a helpful, knowledgeable assistant.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n\n\n- By default tools are executed in parallel. Use parallel tool calls when operations are independent.\n- Use `basics-pipe` when the output from one tool should be passed to another tool.\n  The output of each tool in the pipeline is provided to the next tool through stdin.\n- Use the sequence tool to execute tools in sequence. Prefer parallel execution when possible, but use `basics-sequence` when operations depend on each other.\n\n\n# Available skills\n- file - How to manipulate files using file and change tools\n\n# Skills\n## file\n\nUse `file-*` tools to modify files and `change-apply` to apply a change proposal.\n\nWhen a change proposal is created:\n\n1. Inspect the proposed change.\n2. Verify that it matches the requested modification.\n   - If it is correct, apply it with `change-apply`.\n   - If it is incorrect, try the `file-*` operation again with _different_ content.\n\nNever apply a change proposal without first verifying that it matches the requested modification.\n\nThis procedure exists to ensure that no unintended changes are made."
     },
     {
       "role": "user",
@@ -26,6 +26,36 @@
       "role": "user",
       "id": "74c77d8f",
       "content": "Hello again, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "id": "907bc655",
+      "content": "Hello with skills avail, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "id": "f299c981",
+      "content": "Hello with skills memory, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "id": "3f1b3f84",
+      "content": "Hello with skills memory and tools, AI!"
     },
     {
       "role": "assistant",
@@ -91,7 +121,7 @@
     {
       "type": "function",
       "function": {
-        "name": "pipe",
+        "name": "basics-pipe",
         "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
         "parameters": {
           "type": "object",
@@ -128,7 +158,7 @@
     {
       "type": "function",
       "function": {
-        "name": "sequence",
+        "name": "basics-sequence",
         "description": "Execute multiple tools in sequence order.",
         "parameters": {
           "type": "object",

@@ -1,0 +1,48 @@
+{
+  "model": "gpt-4.1-mini",
+  "temperature": 0.7,
+  "max_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant.\n\n# Available skills\n- file - How to manipulate files using file and change tools\n\n# Skills\n## file\n\nUse `file-*` tools to modify files and `change-apply` to apply a change proposal.\n\nWhen a change proposal is created:\n\n1. Inspect the proposed change.\n2. Verify that it matches the requested modification.\n   - If it is correct, apply it with `change-apply`.\n   - If it is incorrect, try the `file-*` operation again with _different_ content.\n\nNever apply a change proposal without first verifying that it matches the requested modification.\n\nThis procedure exists to ensure that no unintended changes are made.\n\n# Files\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content."
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello again, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello with skills avail, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Files:\n[x/1.txt]\n```\nx1\n```"
+    },
+    {
+      "role": "user",
+      "content": "Hello with skills memory, AI!"
+    }
+  ]
+}

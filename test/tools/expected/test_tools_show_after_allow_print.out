@@ -2,6 +2,7 @@ Allowed tools:
 --------------
 basics-pipe
 basics-sequence
+basics-print
 Tool definitions:
 -----------------
 [
@@ -81,6 +82,26 @@ Tool definitions:
       },
       "required": [
         "sequence"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "basics-print",
+    "description": "Print content.",
+    "command": "print.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The content to print."
+        }
+      },
+      "required": [
+        "content"
       ],
       "additionalProperties": false
     },

@@ -20,6 +20,7 @@ additional_tool_paths
 prune_mode
 model
 file_handling_mode
+additional_skill_paths
 top_p
 prune_when_skipped
 auto_resolve_workspace

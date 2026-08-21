@@ -1,0 +1,29 @@
+Allowed skills:
+---------------
+file
+
+Memorized skills:
+-----------------
+file
+
+Allowed skill list:
+-------------------
+- file - How to manipulate files using file and change tools
+
+Memorized skill information:
+----------------------------
+## file
+
+Use `file-*` tools to modify files and `change-apply` to apply a change proposal.
+
+When a change proposal is created:
+
+1. Inspect the proposed change.
+2. Verify that it matches the requested modification.
+   - If it is correct, apply it with `change-apply`.
+   - If it is incorrect, try the `file-*` operation again with _different_ content.
+
+Never apply a change proposal without first verifying that it matches the requested modification.
+
+This procedure exists to ensure that no unintended changes are made.
+

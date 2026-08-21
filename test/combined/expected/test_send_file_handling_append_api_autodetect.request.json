@@ -34,6 +34,36 @@
     },
     {
       "role": "user",
+      "id": "907bc655",
+      "content": "Hello with skills avail, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "id": "f299c981",
+      "content": "Hello with skills memory, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "id": "3f1b3f84",
+      "content": "Hello with skills memory and tools, AI!"
+    },
+    {
+      "role": "assistant",
+      "id": "641164b0",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
       "id": "e8621625",
       "content": "Test file handling default"
     },

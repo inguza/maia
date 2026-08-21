@@ -28,6 +28,7 @@ prune_mode
 model
 cost_output_gpt_4_1_mini
 file_handling_mode
+additional_skill_paths
 top_p
 prune_when_skipped
 auto_resolve_workspace

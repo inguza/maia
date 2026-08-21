@@ -44,7 +44,7 @@ while IFS= read -r tool_call; do
 
     # Find full path to executable without relying on PATH for security reasons
     tool_exec="${tool_cmd%% *}"
-    tool_exec_dir="$(tool_exec_dir "${tool_cmd}" "$tool_search_path")"
+    tool_exec_dir="$(command_exec_dir "${tool_cmd}" "$tool_search_path")"
 	
     if [[ -z "$tool_exec_dir" ]]; then
 	rm -rf "$tool_tmp_dir"

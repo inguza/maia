@@ -1,0 +1,75 @@
+[
+  {
+    "name": "context-skill-remember",
+    "description": "Remember a skill instruction.",
+    "command": "maia-skill-remember.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"skills": {
+	  "type": "array",
+	  "items": {
+	    "type": "string",
+            "description": "Name of the skill to remember."
+	  }
+	},
+        "subsession": {
+          "type": "string",
+          "description": "The subsession that should remember the specified skill. If absent current session is used."
+        }
+      },
+      "required": ["skills"]
+    },
+    "strict": true
+  },
+  {
+    "name": "context-skill-forget",
+    "description": "Forget a skill instruction.",
+    "command": "maia-skill-forget.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"skills": {
+	  "type": "array",
+	  "items": {
+	    "type": "string",
+            "description": "Name of the skill to forget."
+	  }
+	},
+        "subsession": {
+          "type": "string",
+          "description": "The subsession that should remember the specified skill. If absent current session is used."
+        }
+      },
+      "required": ["skills"]
+    },
+    "strict": true
+  },
+  {
+    "name": "skill-execute",
+    "description": "Execute a skill script with optional arguments.",
+    "command": "maia-skill-execute.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "skill": {
+          "type": "string",
+          "description": "Name of the skill to execute."
+        },
+        "script": {
+          "type": "string",
+          "description": "Path to the script to execute."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+          "description": "Optional arguments to the script."
+	}
+      },
+      "required": ["skill", "script"]
+    },
+    "strict": true
+  }
+]

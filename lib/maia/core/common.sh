@@ -12,8 +12,14 @@ DEFAULT_FILES_PROMPT_TXT="# Files\n\nWhenever you see a user message starting wi
 DEFAULT_TOOLS_PROMPT_TXT="# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
 DEFAILT_TOOL_INSTR_PROMPT_TXT=""
 DEFAULT_TOOLSET_PROMPT_TXT=""
+DEFAULT_SKILLS_PROMPT_TXT="# Available skills\n\n"
+DEFAULT_SKILLSCONTEXT_PROMPT_TXT="# Skills\n\n"
+DEFAULT_SKILLSET_PROMPT_TXT=""
+DEFAULT_SKILLSETCONTEXT_PROMPT_TXT=""
 # TODO: Get rid of this and instead expand from the default tools prompt
 DEFAULT_TOOLSET_PROMPT_JSON="[]"
+DEFAULT_SKILLSET_PROMPT_GEN=""
+DEFAULT_SKILLSETCONTEXT_PROMPT_GEN=""
 
 # Constants related to tools
 TOOLS_DIRNAME="tools"
@@ -38,6 +44,7 @@ declare -A DEFAULT_CONFIG=(
     [prune_when_applied]=true
     [prune_when_skipped]=true
     [additional_tool_paths]=""
+    [additional_skill_paths]=""
     [auto_add_new_files_on_apply]=true
     [api_type]="AUTODETECT"
     [api_base_url]="https://api.openai.com"
@@ -80,6 +87,8 @@ declare -A SCOPE_DIRS
 declare -a SCOPE_ORDER=(session workspace home user system default)
 declare -a TOOL_SEARCH_ORDER=(install system user home workspace session extra)
 declare -A TOOL_DIRS
+declare -a SKILL_SEARCH_ORDER=(install system user home workspace session extra)
+declare -A SKILL_DIRS
 
 # Initialize the map of all known scopes to their directories.
 # Populates the global associative array SCOPE_DIRS with keys:
@@ -115,6 +124,18 @@ init_tool_search_dirs() {
 	[system]="${SCOPE_DIRS[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
 	[extra]="$(jq -r '.additional_tool_paths' <<<"$_cfg")"
+    )
+}
+
+init_skill_search_dirs() {
+    SKILL_DIRS=(
+	[session]="${SCOPE_DIRS[session]}/skills"
+	[workspace]="${SCOPE_DIRS[workspace]}/skills:${SCOPE_DIRS[workspace]}/.maia/skills"
+	[home]="${SCOPE_DIRS[home]}/.maia/skills"
+	[user]="${SCOPE_DIRS[user]}/skills"
+	[system]="${SCOPE_DIRS[system]}/skills"
+	[install]="${MAIA_SKILLS_LIB_DIR}"
+	[extra]="$(jq -r '.additional_skill_paths' <<<"$_cfg")"
     )
 }
 
@@ -200,8 +221,8 @@ resolve_home_paths() {
 # determine_implicit_scope — sets $implicit_scope to the first scope
 # (in SCOPE_ORDER) whose ${type}.txt exists, or “default” otherwise.
 determine_implicit_scope() {
-    type="$1"
-    ext="txt"
+    local type="$1"
+    local ext="txt"
     if [[ -n "${2:-}" ]] ; then
 	ext="$2"
     fi
@@ -1023,6 +1044,17 @@ expand_snippet_name() {
     return 1
 }
 
+deduplicate_files() {
+    local file
+    for file in $@ ; do
+	if [[ -e "$file" ]] ; then
+	    cat "$file" > "${file}.tmp"
+	    cat "${file}.tmp" | uniq > "$file"
+	    rm -f "${file}.tmp"
+	fi
+    done
+}
+
 # Shared file command handler (used by maia user and maia system)
 handle_text_file_command() {
     local file="$1"
@@ -1066,7 +1098,7 @@ handle_text_file_command() {
 			fi
 		    elif [[ -f "$1" ]]; then
                         cat "$1" >> "$file"
-                    else
+		    else
                         echo "$1" >> "$file"
 		    fi
                     shift
@@ -1122,36 +1154,20 @@ prompt_for_scope() {
     fi
 }
 
-tool_exec_dir() {
+command_exec_dir() {
     local tool_cmd="$1"
     local tool_search_path="$2"
     # Find full path to executable without relying on PATH for security reasons
     local tool_exec="${tool_cmd%% *}"
-    local tool_exec_dir=""
+    local command_exec_dir=""
     IFS=: read -ra dirs <<< "$tool_search_path"
     for d in "${dirs[@]}"; do
 	if [[ -x "$d/$tool_exec" ]]; then
-	    tool_exec_dir="$d"
+	    command_exec_dir="$d"
 	    break
 	fi
     done
-    printf "%s" "$tool_exec_dir"
-}
-
-tool_instr_dir() {
-    local tool_instr="$1"
-    local tool_search_path="$2"
-    # Find full path to executable without relying on PATH for security reasons
-    local tool_instr="${tool_instr%% *}"
-    local tool_instr_dir=""
-    IFS=: read -ra dirs <<< "$tool_search_path"
-    for d in "${dirs[@]}"; do
-	if [[ -e "$d/$tool_instr" ]]; then
-	    tool_instr_dir="$d"
-	    break
-	fi
-    done
-    printf "%s" "$tool_instr_dir"
+    printf "%s" "$command_exec_dir"
 }
 
 # IMPORTANT! init_tool_search_dirs must be called before a call to this
@@ -1161,6 +1177,18 @@ build_tool_search_path() {
     local sep=""
     for scope in "${TOOL_SEARCH_ORDER[@]}"; do
 	paths+="${sep}${TOOL_DIRS[$scope]}"
+	sep=":"
+    done
+    echo "${paths}"
+}
+
+# IMPORTANT! init_skill_search_dirs must be called before a call to this
+build_skill_search_path() {
+    init_skill_search_dirs
+    local paths=()
+    local sep=""
+    for scope in "${SKILL_SEARCH_ORDER[@]}"; do
+	paths+="${sep}${SKILL_DIRS[$scope]}"
 	sep=":"
     done
     echo "${paths}"
@@ -1284,6 +1312,34 @@ curl_extra_headers() {
             fi
         done <<< "$hdrs"
     fi
+}
+
+# Skill execution
+skill_execute() {
+    local scope="$1"
+    local skill="$2"
+    local scriptname="$3"
+    shift 3
+    local status=1
+
+    local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
+    local allowed_glob=$(make_glob_from_file "$skillset_file")
+    if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
+        local skill_search_path=$(build_skill_search_path)
+	export PATH="$skill_search_path:$PATH"
+	local skill_exec_dir="$(command_exec_dir "$skill/$scriptname" "$skill_search_path")"
+	if [[ -z "$skill_exec_dir" ]]; then
+	    error "Unable to spawn skill script '$scriptname'. Script not found in skill '$skill'."
+	    status=2
+	else
+	    cd "$(printf '%q' "$(resolve_workspace_root)")"
+	    echo '' | "$skill_exec_dir/$skill/$scriptname" "${args[@]}" 2>&1
+	fi
+    else
+	error "Unable to spawn skill script '$scriptname' since skill '$skill' is not allowed."
+	status=1
+    fi
+    return $status
 }
 
 ### Lock handling

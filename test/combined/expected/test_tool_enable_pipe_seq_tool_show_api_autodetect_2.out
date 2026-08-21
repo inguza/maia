@@ -1,15 +1,16 @@
-Enabled tools:
+Allowed tools:
 --------------
-pipe
-sequence
+basics-pipe
+basics-sequence
 Tool definitions:
 -----------------
 [
   {
-    "name": "pipe",
+    "name": "basics-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
     "instructions": [
+      "basics.txt",
       "pipe.txt"
     ],
     "parameters": {
@@ -46,10 +47,11 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
-    "name": "sequence",
+    "name": "basics-sequence",
     "description": "Execute multiple tools in sequence order.",
     "command": "sequence.sh",
     "instructions": [
+      "basics.txt",
       "sequence.txt"
     ],
     "parameters": {

@@ -1,12 +1,9 @@
 #
 # Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
 #
-# Manage LLM tool/function calling support:
-#
-#  - Discover .td tool definition files under all scopes in tools/ directory
-#  - Maintain merged allowed tools file per scope as a cache of allowed tools
-#  - Commands to list, show, edit, enable, refresh, verify, delete tool definitions
-#  - Provide functions to read allowed tools and resolve commands for execution
+# Licensed under the GNU General Public License v3.0.
+# See LICENSE-GPLv3.txt for the full license text.
+# Commercial licensing is available separately.
 #
 
 # Load all discovered tool definitions into an associative array keyed by name,
@@ -127,6 +124,22 @@ generate_allowed_toolset_def_file() {
 ' <<< "$all_tool_defs_json" > "$allowed_tools_def_file"
 }
 
+tool_instr_dir() {
+    local tool_instr="$1"
+    local tool_search_path="$2"
+    # Find full path to executable without relying on PATH for security reasons
+    local tool_instr="${tool_instr%% *}"
+    local tool_instr_dir=""
+    IFS=: read -ra dirs <<< "$tool_search_path"
+    for d in "${dirs[@]}"; do
+	if [[ -e "$d/$tool_instr" ]]; then
+	    tool_instr_dir="$d"
+	    break
+	fi
+    done
+    printf "%s" "$tool_instr_dir"
+}
+
 generate_allowed_tools_instr_file() {
     local allowed_tools_list_file="$1"
     local allowed_tools_instr_file="$2"
@@ -241,6 +254,7 @@ handle_tool_command() {
     [[ "$2" =~ ^-h|--help$ ]] && tool_usage
 
     # 1) consume global flags: -h/--help, --scope
+    local scope=""
     local scopearg=""
     while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -249,9 +263,9 @@ handle_tool_command() {
 		return 0
 		;;
 	    --scope)
-		consumed="$consumed $1 $2"
 		shift
-		scope="$1"; shift || true
+		scope="$1"
+		shift || true
 		scopearg=yes
 		if [[ -n "$scope" ]] ; then
 		    if [[ -z "${SCOPE_DIRS[$scope]+x}" ]]; then
@@ -280,6 +294,7 @@ handle_tool_command() {
     fi
 
     local subcmd="${1:-}"
+    shift
     
     # compute filename & path
     filename="${prompt_type}.txt"
@@ -311,16 +326,15 @@ handle_tool_command() {
 		    echo "$msg" > "$filepath"
 		fi
 	    fi
-	    if [[ "$subcmd" == "enable" ]] ; then
+	    if [[ "$subcmd" == "enable" || "$subcmd" == "allow" ]] ; then
 		subcmd="append"
 	    fi
-	    shift
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
 	    ;;
         edit|read|compose|replace|clear|delete)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
-	    handle_text_file_command "$filepath" "$@"
+	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
         refresh)

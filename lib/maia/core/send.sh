@@ -124,7 +124,7 @@ tool_fork()
 
 	# Find full path to executable without relying on PATH for security reasons
 	local tool_exec="${tool_cmd%% *}"
-	local tool_exec_dir="$(tool_exec_dir "${tool_cmd}" "$tool_search_path")"
+	local tool_exec_dir="$(command_exec_dir "${tool_cmd}" "$tool_search_path")"
 	
 	if [[ -z "$tool_exec_dir" ]]; then
 	    error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
@@ -179,12 +179,14 @@ build_messages_json() {
     if [[ "$api_type" != "OPENAI_CHAT_COMPLETIONS" ]] ; then
 	systemrole="user"
     fi
+    local skill_list="$(prompt_for_scope "session" "skillset" "gen")"
+    local skill_memory="$(prompt_for_scope "session" "skillsetcontext" "gen")"
     case "${mode^^}" in
         BEFORE)
             # System prompt (and “Files:” instructions if any)
             local sys="$(prompt_for_scope "session" system)"
+	    local t
 	    if [[ "$tools_enabled" == true ]] ; then
-		local t
 		for t in tools tool_instr ; do
 		    local tool_instruction="$(prompt_for_scope "session" "$t")"
 		    if [[ -n "$tool_instruction" ]] ; then
@@ -192,6 +194,22 @@ build_messages_json() {
 		    fi
 		done
 	    fi
+	    if [[ -n "$skill_list" ]] ; then
+		local slisth="$(prompt_for_scope "session" "skills")"
+		sys+=$'\n\n'"$slisth"$'\n'
+		sys+="$skill_list"
+	    fi
+	    if [[ -n "$skill_memory" ]] ; then
+		local smemh="$(prompt_for_scope "session" "skillscontext")"
+		sys+=$'\n\n'"$smemh"$'\n'
+		sys+="$skill_memory"
+	    fi
+	    for t in  ; do
+		local tool_instruction="$(prompt_for_scope "session" "$t")"
+		if [[ -n "$tool_instruction" ]] ; then
+		    sys+=$'\n\n'"$tool_instruction"$'\n'
+		fi
+	    done
 	    if [[ -n "${ws_name}" ]]; then
 		local file_instruction="$(prompt_for_scope "session" files)"
 		if [[ -n "$file_instruction" ]] ; then
@@ -233,6 +251,16 @@ build_messages_json() {
 			sys+=$'\n\n'"$tool_instruction"$'\n'
 		    fi
 		done
+	    fi
+	    if [[ -n "$skill_list" ]] ; then
+		local slisth="$(prompt_for_scope "session" "skills")"
+		sys+=$'\n\n'"$slisth"$'\n'
+		sys+="$skill_list"
+	    fi
+	    if [[ -n "$skill_memory" ]] ; then
+		local smemh="$(prompt_for_scope "session" "skillscontext")"
+		sys+=$'\n\n'"$smemh"$'\n'
+		sys+="$skill_memory"
 	    fi
             if [[ -n "$sys" ]]; then
                 msgs=$(jq --slurpfile txt <(printf '%s' "$sys" | jq -R -s '.') '. + [{role:"'$systemrole'",content:$txt[0]}]' <<< "$msgs")
