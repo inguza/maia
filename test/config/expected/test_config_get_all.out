@@ -33,7 +33,7 @@
   "top_p": 1,
   "prune_when_skipped": true,
   "auto_resolve_workspace": true,
-  "auto_parse": true,
+  "auto_parse": false,
   "default_filter": "",
   "default_session_extra_send_filesets": "[]",
   "auto_add_new_files_on_apply": true,

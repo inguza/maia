@@ -5,7 +5,7 @@ additional_tool_paths          default    ""
 api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
 auto_add_new_files_on_apply    default    true
-auto_parse                     default    true
+auto_parse                     default    false
 auto_resolve_workspace         default    true
 auto_use_at_create             default    false
 auto_use_at_set                default    false
