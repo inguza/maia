@@ -525,6 +525,7 @@ handle_send_command() {
 
     local allowed_iterations_left=10
     declare -A seen_commands
+    set +e
     while (( allowed_iterations_left > 0 )); do
 
 	local messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type")
@@ -864,5 +865,6 @@ handle_send_command() {
 	    allowed_iterations_left=0
 	fi
     done
+    set -e
     release_lock "$session_lock"
 }
