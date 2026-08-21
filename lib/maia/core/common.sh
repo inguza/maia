@@ -1154,6 +1154,20 @@ prompt_for_scope() {
     fi
 }
 
+all_command_exec() {
+    local pattern="$1"
+    local search_path="$2"
+
+    IFS=: read -ra dirs <<< "$search_path"
+
+    for d in "${dirs[@]}"; do
+        for path in "$d"/$pattern; do
+            [[ -x "$path" ]] || continue
+            printf '%s\n' "$path"
+        done
+    done
+}
+
 command_exec_dir() {
     local tool_cmd="$1"
     local tool_search_path="$2"
@@ -1314,7 +1328,31 @@ curl_extra_headers() {
     fi
 }
 
+make_glob_from_file() {
+    local patternfile="$1" result=''
+    if [[ ! -e "$patternfile" ]] ; then
+	return
+    fi
+    while IFS= read -r pattern; do
+        [[ -z $pattern ]] && continue
+        [[ -n $result ]] && result+='|'
+        result+="$pattern"
+    done < "$patternfile"
+    [[ -n $result ]] && printf '@(%s)' "$result"
+}
+
+make_glob_from_var() {
+    local pattern='' result=''
+    for pattern in "$@" ; do
+	[[ -z $pattern ]] && continue
+        [[ -n $result ]] && result+='|'
+        result+="$pattern"
+    done
+    [[ -n $result ]] && printf '@(%s)' "$result"
+}
+
 # Skill execution
+
 skill_execute() {
     local scope="$1"
     local skill="$2"
@@ -1326,14 +1364,20 @@ skill_execute() {
     local allowed_glob=$(make_glob_from_file "$skillset_file")
     if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
         local skill_search_path=$(build_skill_search_path)
-	export PATH="$skill_search_path:$PATH"
 	local skill_exec_dir="$(command_exec_dir "$skill/$scriptname" "$skill_search_path")"
 	if [[ -z "$skill_exec_dir" ]]; then
 	    error "Unable to spawn skill script '$scriptname'. Script not found in skill '$skill'."
 	    status=2
 	else
-	    cd "$(printf '%q' "$(resolve_workspace_root)")"
-	    echo '' | "$skill_exec_dir/$skill/$scriptname" "${args[@]}" 2>&1
+	    (
+		export PATH="$skill_search_path:$PATH"
+		cd "$(printf '%q' "$(resolve_workspace_root)")"
+		echo '' | "$skill_exec_dir/$skill/$scriptname" "${args[@]}" 2>&1
+	    )
+	    status=$?
+	    if (( status != 0 )); then
+		warning "Skill '$skill/$scriptname' failed (status $status)."
+	    fi
 	fi
     else
 	error "Unable to spawn skill script '$scriptname' since skill '$skill' is not allowed."
@@ -1402,5 +1446,70 @@ acquire_lock() {
     done
 }
 ###
+
+### Event handling
+
+hook_execute() {
+    local hookcmd="$1"
+    local event="$2"
+    local extrapath="$3"
+    shift 3
+    (
+	if [[ -n "$extrapath" ]] ; then
+	    export PATH="$extrapath:$PATH"
+	fi
+	"$hookcmd" "$event" "$@"
+    )
+    local status=$?
+
+    if (( status != 0 )); then
+        warning "Hook '$hookcmd' failed for event '$event' (status $status)."
+    fi
+
+    # Make sure this call do not terminate the caller
+    return 0
+}
+
+trigger_event() {
+    local event="$1"
+    shift
+    local -a data=("$@")
+    # First look up built in hooks
+    for hook in "${MAIA_TOOLS_LIB_DIR}/$event/"*.hook ; do
+	[[ -f "$hook" && -x "$hook" ]] || continue
+	hook_execute "$hook" "$event" "" "${data[@]}"
+    done
+    # Then look up tool hooks among the allowed tools
+    local tool_search_path="$(build_tool_search_path)"
+    local enabled_tools_json="$(prompt_for_scope "session" "toolset" "json")"
+    while IFS=$'\t' read -r tool hook_exec; do
+	local hook_exec_dir="$(command_exec_dir "${hook_exec}" "$tool_search_path")"
+	if [[ -z "$hook_exec_dir" ]]; then
+	    warning "Unable to execute '$hook_exec' for event '$event' (not found in tool search path)."
+	else
+	    hook_execute "$hook_exec_dir/$hook_exec" "$event" "$tool_search_path" "${data[@]}"
+	fi
+    done < <(
+	jq -r --arg event "$event" '
+	  .[]
+	  | select(.hooks[$event] != null)
+	  | [.name, .hooks[$event]]
+	  | @tsv
+	    ' <<<"$enabled_tools_json")
+    # And then skills
+    local skill_search_path="$(build_skill_search_path)"
+    local skillset_file="$(file_for_scope "session" "skillset.txt")"
+    local allowed_glob="$(make_glob_from_file "$skillset_file")"
+    if [[ -n $allowed_glob ]] ; then
+	while IFS= read -r execpath ; do
+	    local skill_path="${execpath%/hooks/$event/*.hook}"
+	    local skill="${skill_path##*/}"
+	    # check that the skill is allowed
+	    if [[ $skill == $allowed_glob ]]; then
+		hook_execute "$execpath" "$event" "$skill_search_path" "${data[@]}"
+	    fi
+	done < <(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
+    fi
+}
 
 init_scope_dirs

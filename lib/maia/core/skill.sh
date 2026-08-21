@@ -50,29 +50,6 @@ get_all_ordered_skill_names() {
     done
 }
 
-make_glob_from_file() {
-    local patternfile="$1" result=''
-    if [[ ! -e "$patternfile" ]] ; then
-	return
-    fi
-    while IFS= read -r pattern; do
-        [[ -z $pattern ]] && continue
-        [[ -n $result ]] && result+='|'
-        result+="$pattern"
-    done < "$patternfile"
-    [[ -n $result ]] && printf '@(%s)' "$result"
-}
-
-make_glob_from_var() {
-    local pattern='' result=''
-    for pattern in "$@" ; do
-	[[ -z $pattern ]] && continue
-        [[ -n $result ]] && result+='|'
-        result+="$pattern"
-    done
-    [[ -n $result ]] && printf '@(%s)' "$result"
-}
-
 list_skills() {
     local scope="$1"
     local skillset_file="$2"

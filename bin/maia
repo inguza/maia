@@ -30,6 +30,7 @@ export MAIA_BIN="$maia_real_path"
 export MAIA_CORE_LIB_DIR="$MAIA_ROOT/lib/maia/core"
 export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
 export MAIA_SKILLS_LIB_DIR="$MAIA_ROOT/lib/maia/skills"
+export MAIA_HOOKS_LIB_DIR="$MAIA_ROOT/lib/maia/hooks"
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
 
