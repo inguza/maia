@@ -112,6 +112,7 @@ tool_fork()
     local id="$2"
     local func_name="$3"
     local func_args="$4"
+    local enabled_tools_json="$5"
     local status=0
 
     local tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
@@ -120,7 +121,6 @@ tool_fork()
 	status=1
     else
 	local tool_search_path=$(build_tool_search_path)
-	export PATH="$tool_search_path:$PATH"
 
 	# Find full path to executable without relying on PATH for security reasons
 	local tool_exec="${tool_cmd%% *}"
@@ -130,7 +130,10 @@ tool_fork()
 	    error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
 	    status=2
 	else
-	    tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
+	    (
+		export PATH="$tool_search_path:$PATH"
+		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
+	    )
 	fi
     fi
     return $status
@@ -525,13 +528,12 @@ handle_send_command() {
 
     local allowed_iterations_left=10
     declare -A seen_commands
-    set +e
     while (( allowed_iterations_left > 0 )); do
 
 	local messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type")
 	if [[ -z "$messages_json" ]]; then
 	    release_lock "$session_lock"
-	    exit 1
+	    die "Internal error. Empty message json."
 	fi
 
 	if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
@@ -775,7 +777,8 @@ handle_send_command() {
 				      "$tool_tmp_dir" \
 				      "$id" \
 				      "$func_name" \
-				      "$func_args" 2>&1)
+				      "$func_args" \
+				      "$enabled_tools_json" 2>&1)
 		    status=$?
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
@@ -865,6 +868,5 @@ handle_send_command() {
 	    allowed_iterations_left=0
 	fi
     done
-    set -e
     release_lock "$session_lock"
 }
