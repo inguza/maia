@@ -145,7 +145,7 @@ run_tool_cmd "pipe-ls-1" "pipe.sh" '{"pipeline":[
 # Pipe ls to grep
 # We do not test with ls -l because that generate a new timestamp each run
 run_tool_cmd "pipe-ls-to-grep-1" "pipe.sh" '{"pipeline":[
-{"name":"gnu-ls","arguments":{"pathspec":".","arguments":""}},
+{"name":"gnu-ls","arguments":{"pathspec":".","arguments":[]}},
 {"name":"gnu-grep","arguments":{"searchpattern":"file"}}
 ]}'
 
@@ -155,6 +155,10 @@ run_tool_cmd "pipe-to-grep-1" "pipe.sh" '{"pipeline":[
 {"name":"gnu-grep","arguments":{"searchpattern":"Test"}}
 ]}'
 run_tool_cmd "pipe-to-grep-2-v" "pipe.sh" '{"pipeline":[
+{"name":"basics-print","arguments":{"content":"Test\n"}},
+{"name":"gnu-grep","arguments":{"searchpattern":"Test","arguments":["-v"]}}
+]}'
+run_tool_cmd "pipe-to-grep-2-v-wrong" "pipe.sh" '{"pipeline":[
 {"name":"basics-print","arguments":{"content":"Test\n"}},
 {"name":"gnu-grep","arguments":{"searchpattern":"Test","arguments":"-v"}}
 ]}'

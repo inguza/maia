@@ -47,7 +47,7 @@
   },
   {
     "name": "skill-execute",
-    "description": "Execute a skill script with optional arguments.",
+    "description": "Execute a skill script with optional arguments. This shall ONLY be used to execute scripts mentioned for a specific skill description.",
     "command": "maia-skill-execute.sh",
     "parameters": {
       "type": "object",

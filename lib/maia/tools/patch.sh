@@ -22,16 +22,19 @@ for arg in "$@"; do
     allowed["$arg"]=1
 done
 
+declare -a arguments=()
+parsearguments
+
 declare -a args
-arguments=${param[arguments]:-}
-for argument in $arguments; do
+for argument in "${arguments[@]}"; do
     if [[ $argument =~ ^-p[0-9]+$  ]] ; then
 	ok=1
     if [[ $argument =~ ^[0-9]*$ ]] ; then
-	ok=1
-    elif [[ -z "${allowed[$argument]+x}" ]]; then
-        echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
-	exit 2
+		ok=1
+	elif [[ -z "${allowed[$argument]+x}" ]]; then
+	    echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
+	    exit 2
+	fi
     fi
     args+=("$argument")
 done

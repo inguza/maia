@@ -23,8 +23,11 @@
 	  "description": "Print before-context lines of leading context after matching lines."
 	},
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I."
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I."
 	}
       },
       "required": ["searchpattern"]

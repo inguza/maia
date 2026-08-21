@@ -20,9 +20,11 @@ for arg in "$@"; do
     allowed["$arg"]=1
 done
 
+delcare -a arguments=()
+parsearguments
+
 declare -a args
-arguments=${param[arguments]:-}
-for argument in $arguments; do
+for argument in "${arguments[@]}"; do
     if [[ -z "${allowed[$argument]+x}" ]]; then
         echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
 	exit 2

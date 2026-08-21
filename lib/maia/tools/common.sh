@@ -7,22 +7,48 @@
 #
 
 parseparam() {
-    # Read the parameters from fd 3
+    local output status
+
+    if ! output=$(
+        jq -r '
+            to_entries[]
+            | [
+                .key,
+                (if (.value | type) == "string"
+                 then .value
+                 else (.value | tojson)
+                 end)
+              ]
+            | @tsv
+        ' <&3
+    ); then
+        status=$?
+        printf '[ERROR] Argument parsing error\n' >&2
+        exit "$status"
+    fi
+
+    # It will loop at least once so we need to check against empty key
     while IFS=$'\t' read -r key value; do
-	param["$key"]="$value"
-    done < <(
-    jq -r '
-        to_entries[]
-        | [
-            .key,
-            (if (.value | type) == "string"
-             then .value
-             else (.value | tojson)
-             end)
-          ]
-        | @tsv
-    ' <&3
-    )
+	[[ -n "$key" ]] || continue
+        param["$key"]="$value"
+    done <<< "$output"
+}
+
+parsearguments() {
+    arguments=()
+
+    if [[ -n ${param[arguments]:-} ]]; then
+        local output
+
+        if output=$(jq -r '.[]' <<< "${param[arguments]}"); then
+            if [[ -n "$output" ]]; then
+                mapfile -t arguments <<< "$output"
+            fi
+        else
+            printf '[ERROR] Argument parsing error\n' >&2
+            exit 1
+        fi
+    fi
 }
 
 validate_path()

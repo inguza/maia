@@ -29,11 +29,6 @@ fi
 validate_path "$script"
 
 declare -a arguments=()
-
-if [[ -n ${param[arguments]:-} ]]; then
-    mapfile -t arguments < <(
-        jq -r '.[]' <<< "${param[arguments]}"
-    )
-fi
+parsearguments
 
 skill_execute "$scope" "$skill" "$script" "${arguments[@]}"

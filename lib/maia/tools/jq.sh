@@ -35,13 +35,9 @@ declare -A param
 parseparam
 
 declare -a arguments=()
-if [[ -n ${param[arguments]:-} ]]; then
-    mapfile -t arguments < <(
-        jq -r '.[]' <<< "${param[arguments]}"
-    )
-fi
+parsearguments
 
-usearguments=()
+declare -a usearguments=()
 
 expand_pattern() {
     local pattern="$1"
@@ -59,8 +55,6 @@ expand_pattern() {
         printf '%s\n' "$pattern"
     fi
 }
-
-
 
 check_arguments() {
     local filter_seen=false

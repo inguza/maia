@@ -1,0 +1,32 @@
+[
+  {
+    "name":"jq",
+    "description": "JSON processor",
+    "command": "jq.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "string",
+          "description": "The jq program/filter to run"
+        },
+	"filepatterns": {
+	  "type": "array",
+          "items": {
+	    "type": "string"
+	  },
+	  "description": "File patterns to use. If absent data is rad from stdin."
+	},
+	"arguments": {
+	  "type": "array",
+          "items": {
+	    "type": "string"
+	  },
+	  "description": "Command line arguments. Allowed are: -s, --slurp, --raw-input, -R, --null-input, -n, -c, --compact-output, -e, -f <file>--stream, --tab, --sort-keys, -S, -r, --raw-output, --arg <name> <value>, --argjson <name> <json>,  --slurpfile <name> <file>, --argfile <name> <file>, --args ..., --jsonargs ...."
+	}
+      },
+      "required": ["url"]
+    },
+    "strict": true
+  }
+]

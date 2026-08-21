@@ -11,8 +11,11 @@
           "description": "The url to browse"
         },
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
 	}
       },
       "required": ["url"]
@@ -31,8 +34,11 @@
           "description": "The search string."
         },
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url."
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url."
 	}
       },
       "required": ["query"]

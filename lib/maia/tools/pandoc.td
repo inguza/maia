@@ -19,8 +19,11 @@
           "description": "Output format."
 	},
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
 	}
       },
       "required": ["path"]
