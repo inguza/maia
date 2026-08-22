@@ -66,10 +66,10 @@ else
 	mv "$xpath" "$xnewpath"
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
 	write_meta "$ws_changes" "$baseid" "$nextindex" "$path"
-        printf '%b' "[ERROR] Permission denied.\n\nFile $path already exists. Some of the changes could be applied.\n\nChanges created:\n$id - for the updated content\n$nextid - for the content to apply manually\n"
+        printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists. Some of the changes could be applied.\n\nChange proposal created:\n$id - for the updated content\n$nextid - for the content to apply manually\n"
     else
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
-	printf '%b' "[ERROR] Permission denied.\n\nFile $path already exists.\n\nChange created:\n$id\n\nThe requested file contents are now represented by this pending change.\n\nThe content of the proposed change is the following:\n"
+	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe requested file contents are now represented by this pending change.\n\nThe content of the proposed change is the following:\n"
 	echo "\`\`\`patch"
 	cat "$pfile"
 	echo "\`\`\`"

@@ -51,7 +51,7 @@ if [[ "$path" != "$wpath" ]] ; then
     if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
 	echo "$contentstr identical to the content in $path. Consider it written."
     else
-	printf '%b' "[ERROR] Permission denied.\n\nFile $path already exists.\n\nChange created:\n$id\n\nThe requested file contents are now represented by this pending change.\n\nThe content of the proposed change is the following:\n"
+	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe requested file contents are now represented by this pending change.\n\nThe content of the proposed change is the following:\n"
 	echo "\`\`\`patch"
 	cat "$pfile"
 	echo "\`\`\`"
