@@ -40,7 +40,7 @@ export MAIA_TOOLS_LIB_DIR="$TOOL_DIR"
 export TERM_LOGLEVEL=NOTICE
 
 capture_change() {
-    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep -A1 "Change created:" | grep "^2"
+    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep -A1 "Change proposal created:" | grep "^2"
 }
 
 run_maia_tool_cmd() {
@@ -245,7 +245,7 @@ run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"id": ["'$C3'"]}'
 run_tool_cmd "curl-1" "curl.sh" '{"url": "https://inguza.org/testharness/maia/will-not-change.html"}'
 
 # Job management
-run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspec":".","arguments":""}}'
+run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspec":".","arguments":[]}}'
 run_tool_cmd "job-list" "job-list.sh" '{}'
 ID=$($MAIA job list)
 run_tool_cmd "job-show" "job-id.sh show" '{"id":"'$ID'"}'

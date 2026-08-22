@@ -4,7 +4,8 @@
   "tool": "util-ls",
   "arguments": {
     "pathspec": ".",
-    "arguments": ""
+    "arguments": []
   },
+  "toolcallid": "<datetime>-<pid>-<starttime>",
   "status": "Completed(0)"
 }

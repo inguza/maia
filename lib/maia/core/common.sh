@@ -1529,7 +1529,6 @@ tool_fork()
     local func_args="$4"
     local enabled_tools_json="$5"
     local status=0
-
     local tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
     if [[ -z "$tool_cmd" ]]; then
 	error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Tool '$func_name' not found."
@@ -1561,7 +1560,7 @@ tool_fork()
 		     pid: $pid,
 		     starttime: $starttime,
 		     tool: $tool,
-		     arguments: $arguments
+		     arguments: $arguments,
 		     toolcallid: $callid
 		    }' > "$tool_tmp_dir/$id.json"
 	    )

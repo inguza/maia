@@ -1,8 +1,8 @@
-[ERROR] Permission denied.
+[NOTICE] Direct file modification was not possible.
 
 File pathx/2.txt already exists.
 
-Change created:
+Change proposal created:
 <dateandtime>-68e33e97-2
 
 The requested file contents are now represented by this pending change.
