@@ -75,13 +75,15 @@ NOTES
   session filesets, and the outbox as the final user message.
 
   <text-or-file> can be any of the following:
-  - Aword
-  - a "quoted text"
-  - the command compose
-  - the command read
-  - the command edit
-  If multiple are provided they are appended as new lines, except for 'edit'
-  which opens the editor inline.
+    - a word
+    - a "quoted text"
+    - +command (compose, read, edit)
+    - =filename (content of a file)
+    - ++word (litteral +word)
+    - ==word (litteral =word)
+    - @snippet
+  If multiple are provided they are appended as new lines (except for edit
+  which opens the editor inline).
 
   It is possible to configure a send_hook that is executed just before checking
   for authentication environment variables.
@@ -658,9 +660,9 @@ handle_send_command() {
 	    local usershaid="$(printf '%s' "$outbox_content" | sha256sum | cut -c1-8)"
 	    # We do this late in case an error have occured
 	    # Append user message with timestamp to history
-	    jq --arg txt "$outbox_content" --arg ts "$timestamp" --arg id "$usershaid" \
-	       '. + [{role:"user",timestamp:$ts,id:$id,content:$txt}]' \
-	       "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+	    exclusive_json_modify "$history_file" \
+				  --arg txt "$outbox_content" --arg ts "$timestamp" --arg id "$usershaid" \
+	       '. + [{role:"user",timestamp:$ts,id:$id,content:$txt}]'
 
 	    # Clear outbox after sending
 	    : > "$outbox_file"
@@ -676,10 +678,11 @@ handle_send_command() {
 
 	# We need error detection here
 	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then
-	    jq --arg txt "$reply" \
-	       --arg ts "$timestamp" \
-	   --arg id "$shaid" \
-	   --argjson tools "${tools_call_json:-[]}" '
+	    exclusive_json_modify "$history_file" \
+				  --arg txt "$reply" \
+				  --arg ts "$timestamp" \
+				  --arg id "$shaid" \
+				  --argjson tools "${tools_call_json:-[]}" '
 	     . + [{
 	            role: "assistant",
 		    timestamp: $ts,
@@ -687,8 +690,7 @@ handle_send_command() {
 		    content: (if $txt == "" then null else $txt end)
 		  }
 		  + (if ($tools | length) > 0 then {tool_calls: $tools} else {} end)
-	     ]' \
-		 "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+	     ]'
 	fi
 	if [[ -n "$reply" ]] ; then
             # Auto-parse feature: if auto_parse is yes or true (case-insensitive)
@@ -746,17 +748,17 @@ handle_send_command() {
 		seen_commands[$toolcallshaid]="$id";
 		if [[ -n "$errormsg" ]] ; then
 		    # Log the problem response message to history
-		    jq --arg id "$shaid" \
-		       --arg tcid "$id" \
-		       --arg output "$errormsg" --arg ts "$timestamp" \
+		    exclusive_json_modify "$history_file"\
+					  --arg id "$shaid" \
+					  --arg tcid "$id" \
+					  --arg output "$errormsg" --arg ts "$timestamp" \
 		       '. + [{
 		          role: "tool",
 			  tool_call_id: $tcid,
 			  timestamp: $ts,
 			  id: $id,	  
 			  content: $output
-			}]' \
-			    "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+			}]'
 		fi
 	    done < <(jq -c '.[]' <<<"$tools_call_json")
 	    # # Wait for tools and process results as they finish
@@ -796,16 +798,16 @@ handle_send_command() {
 		echo "----------------- Tool output $id end --------------------------------------"
 		# Log it to the history
 		# Append function response message to history
-		jq --arg id "$shaid" --arg tcid "$id" --arg prefix "$exitinfo" \
-		   --rawfile output "$tool_tmp_dir/$id.output" --arg ts "$timestamp" \
+		exclusive_json_modify "$history_file" \
+				      --arg id "$shaid" --arg tcid "$id" --arg prefix "$exitinfo" \
+				      --rawfile output "$tool_tmp_dir/$id.output" --arg ts "$timestamp" \
 		   '. + [{
 		          role: "tool",
 			  tool_call_id: $tcid,
 			  timestamp: $ts,
 			  id: $id,
 			  content: ($prefix + $output)
-			  }]' \
-		   "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+			  }]'
 		rm -f "$tool_tmp_dir/$id.output" \
 		   "$tool_tmp_dir/$id.finished"
 		((tool_count--))

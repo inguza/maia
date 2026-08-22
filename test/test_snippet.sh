@@ -43,7 +43,7 @@ run_snippet_cmd "show1_after_append1" show test1
 
 # Test edit subcommand (opens editor on snippet file)
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_snippet_cmd "edit1" +edit test1
+run_snippet_cmd "edit1" edit test1
 run_snippet_cmd "show_after_edit1" show test1
 
 # Test append with inline edit token (should open editor inline)

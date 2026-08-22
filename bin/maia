@@ -146,13 +146,15 @@ NOTES:
   This helps differentiate commands from user input.
 
   <text-or-file> can be:
-    - "Text"      - A text
-    - filename    - A file name
-    - read        - Read from stdin
-    - compose     - Start en editor to fill in the content
-    - snippet     - A named snippet text defined by 'aia snippet'.
-
-  If multiple <text-or-file> is provied they are added together.
+    - a word
+    - a "quoted text"
+    - +command (compose, read, edit)
+    - =filename (content of a file)
+    - ++word (litteral +word)
+    - ==word (litteral =word)
+    - @snippet
+  If multiple are provided they are appended as new lines (except for edit
+  which opens the editor inline).
 
   This example command:
      aia send "This is the error message:" compose " followed by:" compose

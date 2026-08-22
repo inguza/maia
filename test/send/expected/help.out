@@ -61,13 +61,15 @@ NOTES
   session filesets, and the outbox as the final user message.
 
   <text-or-file> can be any of the following:
-  - Aword
-  - a "quoted text"
-  - the command compose
-  - the command read
-  - the command edit
-  If multiple are provided they are appended as new lines, except for 'edit'
-  which opens the editor inline.
+    - a word
+    - a "quoted text"
+    - +command (compose, read, edit)
+    - =filename (content of a file)
+    - ++word (litteral +word)
+    - ==word (litteral =word)
+    - @snippet
+  If multiple are provided they are appended as new lines (except for edit
+  which opens the editor inline).
 
   It is possible to configure a send_hook that is executed just before checking
   for authentication environment variables.

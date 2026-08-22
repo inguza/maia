@@ -1110,11 +1110,11 @@ handle_text_file_command() {
 			;;
 		    =*)
 			# todo strip = from the file
-                        file = "${1#=}"
-			if [[ -f "$file" ]]; then
-                            cat "$file" >> "$file"
+                        local efile="${1#=}"
+			if [[ -f "$efile" ]]; then
+                            cat "$efile" >> "$file"
 			else
-			    die "File '$file' do not exist."
+			    warn "File '$efile' do not exist."
 			fi
 			shift
 			;;
@@ -1406,6 +1406,37 @@ skill_execute() {
     return $status
 }
 
+### General safe json modification
+
+json_modify() {
+    local file="$1"
+    shift
+    # We always keep the actual file present in case something tries to
+    # read it.
+    local tmpfile="${file}.tmp.$$"
+    if jq "$@" "$file" > "$tmpfile"; then
+        mv "$tmpfile" "$file"
+        result=0
+    else
+        rm -f "$tmpfile"
+        result=1
+    fi
+    return $result
+}
+
+exclusive_json_modify() {
+    local file="$1"
+    shift
+    acquire_lock "${file}.lock" ""
+
+    local result
+    json_modify "$file" "$@"
+    result=$?
+
+    release_lock "${file}.lock"
+    return $result
+}
+
 ### Lock handling
 session_lock_file() {
     local session_dir=$(resolve_session_path)
@@ -1418,7 +1449,7 @@ release_lock() {
 
 acquire_lock() {
     local lockfile="$1"
-    local lockmessage="Waiting for lock..."
+    local lockmessage="${2:-Waiting for lock...}"
 
     while :; do
 	local pid=$$

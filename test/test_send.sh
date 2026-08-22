@@ -126,8 +126,8 @@ for api in "${api_types_and_configs[@]}"; do
     # Test 8: send with a custom prompt file appended
     tmp_prompt=$(mktemp)
     echo "Test prompt content" > "$tmp_prompt"
-    run_send_cmd "custom_prompt${suffix}" "$tmp_prompt"
-    run_send_cmd "multi_type_prompt${suffix}" "This is a start" "$tmp_prompt" "Something more"
+    run_send_cmd "custom_prompt${suffix}" "=$tmp_prompt"
+    run_send_cmd "multi_type_prompt${suffix}" "This is a start" ="$tmp_prompt" "Something more"
     rm -f "$tmp_prompt"
 
     # Test unknown option (should error)
@@ -136,7 +136,7 @@ for api in "${api_types_and_configs[@]}"; do
     # Test empty prompt file (should error, but the check is after credentials so they must be provided)
     tmp_empty_prompt=$(mktemp)
     : > "$tmp_empty_prompt"
-    run_send_cmd "empty_prompt_file${suffix}" "$tmp_empty_prompt"
+    run_send_cmd "empty_prompt_file${suffix}" "=$tmp_empty_prompt"
     rm -f "$tmp_empty_prompt"
 
     # Clear canned response override after iteration

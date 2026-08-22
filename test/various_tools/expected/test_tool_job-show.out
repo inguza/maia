@@ -1,5 +1,5 @@
 {
-  "pid": <pid>,
+  "pid": <pid>
   "starttime": "<starttime>",
   "tool": "util-ls",
   "arguments": {

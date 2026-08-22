@@ -62,7 +62,7 @@ tmpfile2=$(mktemp)
 echo "Content of file 1" > "$tmpfile1"
 echo "Content of file 2" > "$tmpfile2"
 
-run_user_cmd "append_several" append "This is a test" $tmpfile1 "and some more content" "" "" "And more" $tmpfile2 "LAst things"
+run_user_cmd "append_several" append "This is a test" ="$tmpfile1" "and some more content" "" "" "And more" ="$tmpfile2" "LAst things"
 rm -f "$tmpfile1" "$tmpfile2"
 run_user_cmd "show_after_several" show
 
@@ -73,7 +73,7 @@ run_user_cmd "show_after_implicit_append_text" show
 # Test behavior when no command but file argument is given (simulate with temp file)
 tmpfile=$(mktemp)
 echo "File content for implicit append" > "$tmpfile"
-run_user_cmd "implicit_append_file" "$tmpfile"
+run_user_cmd "implicit_append_file" append ="$tmpfile"
 run_user_cmd "show_after_implicit_append_file" show
 rm -f "$tmpfile"
 
@@ -95,7 +95,7 @@ run_user_cmd "append_inline_edit_complex" append "some text moretext" +edit "som
 run_user_cmd "show_after_append_inline_edit_complex" show
 
 # Test edit subcommand (opens editor on outbox)
-run_user_cmd "edit_command" +edit
+run_user_cmd "edit_command" edit
 run_user_cmd "show_after_edit_command" show
 
 unset EDITOR

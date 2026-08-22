@@ -189,8 +189,11 @@ history_prune() {
 
     local history_file="$(resolve_history_meta)"
 
+    acquire_lock "${history_file}.lock"
     # Load full history with indexes
     local history_json=$(jq "$jq_add_indexes" "$history_file")
+
+    # We work on a temporary file with indexes present
 
     # For each range, process pruning
     local tmpfile=$(mktemp)
@@ -208,7 +211,7 @@ history_prune() {
             continue
         fi
 	# Make a backup of all potentially updated entries
-	jq '
+	json_modify "$tmpfile" '
 	  . as $history
 	  | ($history
 	      | map(select(.role == "'"$role"'"))
@@ -228,7 +231,7 @@ history_prune() {
 	        .
 	      end
 	    )
-	    ' "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+	    '
 
 	local i=0
         for (( i=0; i < count; i++ )); do
@@ -267,8 +270,7 @@ history_prune() {
 		    new_tool_calls="$orig_tool_calls"
 		elif [[ -n "$orig_tool_calls" ]]; then
 		    # Delete the tool_calls first before we update the message
-		    jq "map(if ${role}_index == $i then del(.tool_calls) else . end)" \
-		       "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+		    json_modify "$tmpfile" "map(if ${role}_index == $i then del(.tool_calls) else . end)"
                 fi
             elif [[ "$mode" == "edit" ]]; then
                 # Edit mode: open editor for content and tool_calls separately if present
@@ -331,14 +333,12 @@ history_prune() {
 	    fi
 	    # Now it is time to update
 	    if [[ "$orig_content" != "$new_content" ]] ; then
-		jq --arg content "$new_content" \
-		   "map(if .role == \"$role\" and .${role}_index == $i then .content = \$content else . end)" \
-		   "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+		json_modify "$tmpfile" --arg content "$new_content" \
+		   "map(if .role == \"$role\" and .${role}_index == $i then .content = \$content else . end)"
 	    fi
 	    if [[ "$orig_tool_calls" != "$new_tool_calls" ]] ; then
-		jq --arg tool_calls "$new_tool_calls" \
-		   "map(if .role == \"$role\" and .${role}_index == $i then .tool_calls = \$tool_calls else . end)" \
-		   "$tmpfile" > "${tmpfile}.new" && mv "${tmpfile}.new" "$tmpfile"
+		json_modify "$tmpfile" --arg tool_calls "$new_tool_calls" \
+		   "map(if .role == \"$role\" and .${role}_index == $i then .tool_calls = \$tool_calls else . end)"
 	    fi
         done
 
@@ -347,6 +347,7 @@ history_prune() {
     # Write final updated history
     jq 'map(del(.index, .user_index, .assistant_index, .tool_index))' "$tmpfile" > "$history_file"
     rm -f "$tmpfile"
+    release_lock "${history_file}.lock"
     info "Pruning done for role '$role' in ranges: ${ranges[*]} with mode '$mode'."
 }
 
@@ -440,7 +441,7 @@ handle_history_command() {
 	    fi
 	    # Remove last n entries
 	    local tmp=$(mktemp)
-	    jq ".[0: -$n]" "$history_file" > "$tmp" && mv "$tmp" "$history_file"
+	    exclusive_json_modify "$history_file" ".[0: -$n]"
 	    info "Popped the last $n entr$([ "$n" -eq 1 ] && echo "y" || echo "ies") from history '$history_name'."
 	    ;;
 
@@ -484,14 +485,14 @@ handle_history_command() {
 	    fi
 	    # Remove first n entries
 	    local tmp=$(mktemp)
-	    jq ".[ $n :]" "$history_file" > "$tmp" && mv "$tmp" "$history_file"
+	    exclusive_json_modify "$history_file" ".[ $n :]"
 	    info "Popped the first $n entr$([ "$n" -eq 1 ] && echo "y" || echo "ies") from history '$history_name'."
 	    ;;
 
         delete)
 	    shift
 	    local slice=$(range_defaults "${1:-}")
-	    jq "del(.[${slice}])" "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+	    exclusive_json_modify "$history_file" "del(.[${slice}])"
 	    info "Entries deleted from history '$history_name'."
 	    ;;
 
@@ -530,7 +531,9 @@ handle_history_command() {
 
 	clear)
 	    shift
+	    acquire_lock "${history_file}.lock"
 	    echo "[]" > "$history_file"  # Clear the entire history file
+	    release_lock "${history_file}.lock"
 	    info "History '$history_name' cleared."
 	    ;;
 
