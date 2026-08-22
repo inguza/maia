@@ -21,6 +21,7 @@
   util-uniq   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-diff   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   write-util-patch   (/home/ola/git/maia/lib/maia/tools/gnu.td)
+  context-history-retrieve   (/home/ola/git/maia/lib/maia/tools/history.td)
   job-start   (/home/ola/git/maia/lib/maia/tools/job.td)
   job-list   (/home/ola/git/maia/lib/maia/tools/job.td)
   job-show   (/home/ola/git/maia/lib/maia/tools/job.td)
