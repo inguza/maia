@@ -78,24 +78,24 @@ run_user_cmd "show_after_implicit_append_file" show
 rm -f "$tmpfile"
 
 # Test append read (read from stdin)
-echo "Message read from stdin" | run_user_cmd "append_read" append read
+echo "Message read from stdin" | run_user_cmd "append_read" append +read
 run_user_cmd "show_after_append_read" show
 
 # Test append compose (interactive editor) - mocked with existing mock_editor.sh
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_user_cmd "append_compose" append compose
+run_user_cmd "append_compose" append +compose
 run_user_cmd "show_after_append_compose" show
 
 # Test append with inline edit token (should open editor inline)
-run_user_cmd "append_inline_edit" append "Start text" edit "More text"
+run_user_cmd "append_inline_edit" append "Start text" +edit "More text"
 run_user_cmd "show_after_append_inline_edit" show
 
 # Test append complex inline edit scenario with multiple text args around edit token
-run_user_cmd "append_inline_edit_complex" append "some text moretext" edit "something"
+run_user_cmd "append_inline_edit_complex" append "some text moretext" +edit "something"
 run_user_cmd "show_after_append_inline_edit_complex" show
 
 # Test edit subcommand (opens editor on outbox)
-run_user_cmd "edit_command" edit
+run_user_cmd "edit_command" +edit
 run_user_cmd "show_after_edit_command" show
 
 unset EDITOR

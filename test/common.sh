@@ -105,7 +105,12 @@ cleanup_mock_curl() {
 }
 
 normalize_output() {
-    sed "s|$XMAIA_HOME|<MAIA_HOME>|g;s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]/<dateandtime>/g;"
+    sed "
+s|$XMAIA_HOME|<MAIA_HOME>|g;
+s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]-[0-9[0-9]*-[0-9][0-9][0-9][0-9][0-9][0-9]*/<datetime>-<pid>-<starttime>/g;
+s/.starttime.: .[0-9][0-9]*./\"starttime\": \"<starttime>\"/;
+s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]/<dateandtime>/g;
+"
 }
 
 normalize_headers() {

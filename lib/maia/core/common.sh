@@ -1073,36 +1073,56 @@ handle_text_file_command() {
             shift || true
             # Loop over args, detect read or compose or edit
             while [[ $# -gt 0 ]]; do
-                if [[ "$1" == "read" ]]; then
-                    shift
-                    cat >> "$file"
-                elif [[ "$1" == "compose" ]]; then
-                    shift
-                    local content
-                    if content=$(read_text_from_editor); then
-                        echo "$content" >> "$file"
-                    else
-                        notice "Compose aborted (empty content)."
-                    fi
-                elif [[ "$1" == "edit" ]]; then
-                    shift
-                    edit_file "$file"
-                else
-		    # Explicit snippet expansion
-		    if [[ "$1" == @* ]]; then
+		case "$1" in
+		    +read)
+			shift
+			cat >> "$file"
+			;;
+		    +compose)
+			shift
+			local content
+			if content=$(read_text_from_editor); then
+			    echo "$content" >> "$file"
+			else
+			    notice "Compose aborted (empty content)."
+			fi
+			;;
+		    +edit)
+			shift
+			edit_file "$file"
+			;;
+                    ++*)
+                        echo "${1#+}" >> "$file"
+                        shift
+                        ;;
+
+                    ==*)
+                        echo "${1#=}" >> "$file"
+                        shift
+                        ;;
+		    @*)
 			local snippet_name="${1#@}"
 			if expanded=$(expand_snippet_name "$snippet_name"); then
 			    echo "$expanded" >> "$file"
 			else
 			    die "Snippet '$snippet_name' not found for explicit @ expansion."
 			fi
-		    elif [[ -f "$1" ]]; then
-                        cat "$1" >> "$file"
-		    else
+			;;
+		    =*)
+			# todo strip = from the file
+                        file = "${1#=}"
+			if [[ -f "$file" ]]; then
+                            cat "$file" >> "$file"
+			else
+			    die "File '$file' do not exist."
+			fi
+			shift
+			;;
+		    *)
                         echo "$1" >> "$file"
-		    fi
-                    shift
-                fi
+			shift
+			;;
+		esac
             done
             ;;
         read)

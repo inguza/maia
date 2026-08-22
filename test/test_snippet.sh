@@ -43,15 +43,15 @@ run_snippet_cmd "show1_after_append1" show test1
 
 # Test edit subcommand (opens editor on snippet file)
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_snippet_cmd "edit1" edit test1
+run_snippet_cmd "edit1" +edit test1
 run_snippet_cmd "show_after_edit1" show test1
 
 # Test append with inline edit token (should open editor inline)
-run_snippet_cmd "append_inline_edit" append test1 "Start snippet text" edit "More snippet text"
+run_snippet_cmd "append_inline_edit" append test1 "Start snippet text" +edit "More snippet text"
 run_snippet_cmd "show_after_append_inline_edit" show test1
 
 # Test append complex inline edit scenario with multiple text args around edit token
-run_snippet_cmd "append_inline_edit_complex" append test1 "some text moretext" edit "something"
+run_snippet_cmd "append_inline_edit_complex" append test1 "some text moretext" +edit "something"
 run_snippet_cmd "show_after_append_inline_edit_complex" show test1
 
 unset EDITOR

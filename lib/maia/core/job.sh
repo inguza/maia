@@ -78,7 +78,7 @@ handle_job_command() {
 	    local toolargs="$2"
 	    shift 2
 	    mkdir -p "${session_path}/jobs"
-	    local id="$(date +%Y%m%d%H%M%S)-$$-$(pid_starttime "$$")"
+	    local id="$(date +%Y%m%dT%H%M%S)-$$-$(pid_starttime "$$")"
 	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
 	    tool_fork "${session_path}/jobs" \
 		      "$id" \

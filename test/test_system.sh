@@ -66,7 +66,7 @@ run_system_cmd "append_scope_user" append --scope home "User scoped prompt line.
 
 # Test append compose with --scope home
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_system_cmd "append_scope_user" append --scope home compose
+run_system_cmd "append_scope_user" append --scope home +compose
 unset EDITOR
 
 # Test show with --scope user
@@ -79,18 +79,18 @@ run_system_cmd "append_type_files" --type files append "Files type prompt conten
 # Test show with --type files
 run_system_cmd "show_type_files_after_append" --type files show
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_system_cmd "append_scope_user_compose" append --scope home compose
+run_system_cmd "append_scope_user_compose" append --scope home +compose
 unset EDITOR
 
 # Test edit command (opens editor on system prompt)
 export EDITOR="$TEST_ROOT/mock_editor.sh"
-run_system_cmd "edit" edit
+run_system_cmd "edit" +edit
 unset EDITOR
 
 run_system_cmd "show_after_edit" show
 
 # Test read command (simulate read from stdin by echo piped in)
-echo "Read from stdin prompt line." | run_system_cmd "read_from_stdin" read
+echo "Read from stdin prompt line." | run_system_cmd "read_from_stdin" +read
 
 # Test tool instructions a little
 run_system_cmd "show_type_tools" --type tools show

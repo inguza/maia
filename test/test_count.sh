@@ -39,13 +39,13 @@ run_count_cmd "quoted_string" '"This is a quoted string."'
 
 export EDITOR="$TEST_ROOT/mock_editor.sh"
 # Test count with the command 'compose' argument
-run_count_cmd "command_compose" compose
+run_count_cmd "command_compose" +compose
 
 # Test count with the command 'read' argument
-echo "Testing" | run_count_cmd "command_read" read
+echo "Testing" | run_count_cmd "command_read" +read
 
 # Test count with the command 'edit' argument
-run_count_cmd "command_edit" edit
+run_count_cmd "command_edit" +edit
 unset EDITOR
 
 # Test count with --model option set to each supported model

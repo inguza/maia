@@ -21,7 +21,7 @@ subsession="${param[subsession]}"
 
 set_subsession "$subsession"
 if [[ -v "param[content]" ]] ; then
-    printf "%b" "${param[content]}" | "$MAIA_BIN" send read 2>&1 | session_filter "$thissession"
+    printf "%b" "${param[content]}" | "$MAIA_BIN" send +read 2>&1 | session_filter "$thissession"
 else
-    "$MAIA_BIN" send read 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" send +read 2>&1 | session_filter "$thissession"
 fi
