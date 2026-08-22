@@ -1547,19 +1547,22 @@ tool_fork()
 	else
 	    (
 		export PATH="$tool_search_path:$PATH"
-		# Start in a process group
+		export TOOL_CALL_ID="$id"
 		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
+		unset TOOL_CALL_ID
 		local jpid=$!
 		local starttime="$(pid_starttime "$jpid")"
 		jq -n \
 		   --argjson pid "$jpid" \
 		   --arg starttime "$starttime" \
 		   --arg tool "$func_name" \
+		   --arg callid "$id" \
 		   --argjson arguments "$func_args" '{
 		     pid: $pid,
 		     starttime: $starttime,
 		     tool: $tool,
 		     arguments: $arguments
+		     toolcallid: $callid
 		    }' > "$tool_tmp_dir/$id.json"
 	    )
 	fi
@@ -1595,7 +1598,7 @@ trigger_event() {
     shift
     local -a data=("$@")
     # First look up built in hooks
-    for hook in "${MAIA_TOOLS_LIB_DIR}/$event/"*.hook ; do
+    for hook in "${MAIA_HOOKS_LIB_DIR}/$event/"*.hook ; do
 	[[ -f "$hook" && -x "$hook" ]] || continue
 	hook_execute "$hook" "$event" "" "${data[@]}"
     done

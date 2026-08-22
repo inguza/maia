@@ -146,17 +146,17 @@ The above has been skipped and the history is pruned."
 
     # 3) Rewrite the history entry's content
     #    We match by timestamp+shaid prefix == idbase
-    jq --arg ts "$ts" \
-       --arg id "$id" \
-       --arg newContent "$instructions" \
-       'map(
-         if (.timestamp == $ts and .id == $id)
-         then .content = $newContent
-         else .
-         end
-      )' \
-       "$hist_file" > "${hist_file}.tmp" \
-	&& mv "${hist_file}.tmp" "$hist_file"
+    exclusive_json_modify \
+	"$hist_file" \
+	--arg ts "$ts" \
+	--arg id "$id" \
+	--arg newContent "$instructions" \
+	'map(
+          if (.timestamp == $ts and .id == $id)
+          then .content = $newContent
+          else .
+          end
+        )'
 }
 
 # get_last_set_change_id
@@ -475,6 +475,7 @@ change_state_for_jsons() {
 
     shopt -s nullglob
 
+    trigger_event "pre-change-state-${new_state}" "$@"
     for jsonf in "$@"; do
 	[[ -f "$jsonf" ]] || die "File not found: $jsonf"
 	# basename + strip extension → e.g. 20250517T191054-81610843-+-pending
@@ -993,11 +994,13 @@ handle_change_command() {
 		fi
 		# Delete base and sub-entry files accordingly, including .txt files
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
+		    trigger_event "pre-change-delete" "$changes_dir/$session/$id-"*.json
 		    rm -f "$changes_dir/$session/$id-"*.* 2>/dev/null
 		    rm -f "$changes_dir/$session/$id.txt" 2>/dev/null
 		    rm -f "$changes_dir/$session/$id"-[0-9]*.txt 2>/dev/null
 		    notice "Deleted base change $id and all its sub-entries"
 		else
+		    trigger_event "pre-change-delete" "$changes_dir/$session/$id-"*.json
 		    rm -f "$changes_dir/$session/$id-"*.* 2>/dev/null
 		    rm -f "$changes_dir/$session/$id".txt 2>/dev/null
 		    notice "Deleted change $id"

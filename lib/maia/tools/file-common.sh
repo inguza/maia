@@ -79,8 +79,12 @@ write_meta() {
     elif [[ -e "$change_dir/${baseid}-${index}-pending.change" ]] ; then
 	type="change"
     fi
-    jq -n --arg type "$type" --arg filename "$fname" \
-       '{type: $type, filename: $filename}' > \
+    local source="none"
+    if [[ -n "${TOOL_CALL_ID}" ]] ; then
+	source="${TOOL_CALL_ID}"
+    fi
+    jq -n --arg type "$type" --arg filename "$fname" --arg source "$source" \
+       '{type: $type, filename: $filename, source: $source}' > \
        "$change_dir/${baseid}-${index}-pending.json"
     if [[ ! -e "$change_dir/${baseid}-+-pending.json" ]] ; then
 	jq -n --arg type "set" --arg filename "$fname" \
