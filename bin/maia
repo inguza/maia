@@ -74,6 +74,7 @@ COMMANDS:
     session          Session management (create, use, list, show)
     send|s           Send prompt to API (with dry-run, response-file options)
     user|u|outbox    User outbox management (show, append, replace, clear, delete)
+    job		     Background job management (start, status, output, list, cancel)
     count            Estimate token count for API payload
     history|h        History operations (show, pop, top, delete, search, clear, export)
     parse            Parse assistant response and produce change suggestions.
@@ -192,6 +193,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/session.sh"
 	handle_session_command "$@"
+	;;
+    job)
+	shift
+	. "$MAIA_CORE_LIB_DIR/job.sh"
+	handle_job_command "$@"
 	;;
     history|h)
 	shift

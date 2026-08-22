@@ -1,0 +1,10 @@
+{
+  "pid": 781517,
+  "starttime": "306988163",
+  "tool": "util-ls",
+  "arguments": {
+    "pathspec": ".",
+    "arguments": ""
+  },
+  "status": "Completed(0)"
+}

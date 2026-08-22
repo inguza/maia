@@ -244,6 +244,17 @@ run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"id": ["'$C3'"]}'
 # Curl
 run_tool_cmd "curl-1" "curl.sh" '{"url": "https://inguza.org/testharness/maia/will-not-change.html"}'
 
+# Job management
+run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspec":".","arguments":""}}'
+run_tool_cmd "job-list" "job-list.sh" '{}'
+ID=$($MAIA job list)
+run_tool_cmd "job-show" "job-id.sh show" '{"id":"'$ID'"}'
+run_tool_cmd "job-status" "job-id.sh status" '{"id":"'$ID'"}'
+run_tool_cmd "job-output" "job-id.sh output" '{"id":"'$ID'"}'
+run_tool_cmd "job-canel" "job-id.sh cancel" '{"id":"'$ID'"}'
+run_tool_cmd "job-delete" "job-id.sh delete" '{"id":"'$ID'"}'
+run_tool_cmd "job-exist" "job-id.sh exist" '{"id":"'$ID'"}'
+
 # Lynx
 # not tested
 

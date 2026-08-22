@@ -330,13 +330,13 @@ handle_session_command() {
 	    fi
 
 	    if [[ -n "$src_session" ]]; then
-		# Copy session directory from src_session to new session directory, excluding logs
+		# Copy session directory from src_session to new session directory, excluding logs and jobs
 		mkdir -p "$path"
 		# Copy all except logs directory
 		shopt -s dotglob nullglob
 		for item in "$src_path"/*; do
 		    base_item="$(basename "$item")"
-		    if [[ "$base_item" != "logs" ]]; then
+		    if [[ "$base_item" != "logs" && $base_item != "jobs" ]]; then
 			if [[ -d "$item" ]]; then
 			    cp -a "$item" "$path/"
 			else

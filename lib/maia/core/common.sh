@@ -1447,6 +1447,75 @@ acquire_lock() {
 }
 ###
 
+### Tool handling
+pid_starttime() {
+    local pid="$1"
+    awk '{print $22}' "/proc/$pid/stat"
+}
+
+tool_cmd() {
+    local tool_tmp_dir="$1"
+    local id="$2"
+    local tool_exec_dir="$3"
+    local tool_cmd="$4"
+    local func_args="$5"
+
+    # Do the actual tool call (log to files?)
+    local args_file="$tool_tmp_dir/$id.args"
+    printf '%s\n' "$func_args" > "$args_file"
+    # Make sure to quite since we execute with bash -c
+    bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
+    status=$?
+    printf '%s\n' "$status" > "$tool_tmp_dir/$id.finished"
+}
+
+tool_fork()
+{
+    # TODO implement alternative logging depending on who calls it.
+    local tool_tmp_dir="$1"
+    local id="$2"
+    local func_name="$3"
+    local func_args="$4"
+    local enabled_tools_json="$5"
+    local status=0
+
+    local tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
+    if [[ -z "$tool_cmd" ]]; then
+	error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Tool '$func_name' not found."
+	status=1
+    else
+	local tool_search_path=$(build_tool_search_path)
+
+	# Find full path to executable without relying on PATH for security reasons
+	local tool_exec="${tool_cmd%% *}"
+	local tool_exec_dir="$(command_exec_dir "${tool_cmd}" "$tool_search_path")"
+	
+	if [[ -z "$tool_exec_dir" ]]; then
+	    error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
+	    status=2
+	else
+	    (
+		export PATH="$tool_search_path:$PATH"
+		# Start in a process group
+		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
+		local jpid=$!
+		local starttime="$(pid_starttime "$jpid")"
+		jq -n \
+		   --argjson pid "$jpid" \
+		   --arg starttime "$starttime" \
+		   --arg tool "$func_name" \
+		   --argjson arguments "$func_args" '{
+		     pid: $pid,
+		     starttime: $starttime,
+		     tool: $tool,
+		     arguments: $arguments
+		    }' > "$tool_tmp_dir/$id.json"
+	    )
+	fi
+    fi
+    return $status
+}
+
 ### Event handling
 
 hook_execute() {
