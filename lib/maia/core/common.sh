@@ -1619,18 +1619,19 @@ trigger_event() {
 	  | @tsv
 	    ' <<<"$enabled_tools_json")
     # And then skills
-    local skill_search_path="$(build_skill_search_path)"
-    local skillset_file="$(file_for_scope "session" "skillset.txt")"
-    local allowed_glob="$(make_glob_from_file "$skillset_file")"
-    if [[ -n $allowed_glob ]] ; then
-	while IFS= read -r execpath ; do
-	    local skill_path="${execpath%/hooks/$event/*.hook}"
-	    local skill="${skill_path##*/}"
-	    # check that the skill is allowed
-	    if [[ $skill == $allowed_glob ]]; then
-		hook_execute "$execpath" "$event" "$skill_search_path" "${data[@]}"
-	    fi
-	done < <(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
+#    local skill_search_path="$(build_skill_search_path)"
+#    local skillset_file="$(file_for_scope "session" "skillset.txt")"
+#    local allowed_glob="$(make_glob_from_file "$skillset_file")"
+#    if [[ -n $allowed_glob ]] ; then
+#	while IFS= read -r execpath ; do
+#	    local skill_path="${execpath%/hooks/$event/*.hook}"
+#	    local skill="${skill_path##*/}"
+#	    # check that the skill is allowed
+#	    if [[ $skill == $allowed_glob ]]; then
+#		hook_execute "$execpath" "$event" "$skill_search_path" "${data[@]}"
+#	    fi
+#	    # TODO!!! This line is not complete
+#	done < <(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
     fi
 }
 
