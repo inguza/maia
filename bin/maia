@@ -57,8 +57,8 @@ version() {
 # Resolve the active history (use "default" if not set)
 usage() {
     cat <<EOF
-Usage: aia <command> [options] [<text-or-file>...]
-       aia [<text-or-file>...]
+Usage: maia <command> [options] [<text-or-file>...]
+       maia [<text-or-file>...]
 
 Manage the message to send to the AI.
 
@@ -66,7 +66,7 @@ COMMANDS:
 
   Configuration / General
     config           Configuration (list, scope, get, set, unset)
-    home             Manage aia home directory (create, delete, show)
+    home             Manage maia home directory (create, delete, show)
     api              AI introspection (models, model, fine-tunes, fine-tune, usage)
     toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
 
@@ -81,9 +81,9 @@ COMMANDS:
     interactive|i    Launch interactive REPL
     chat             Chat mode (interactive or single-send)
     system           System prompt management (show, append, replace, clear)
-    edit             An alias of 'aia user edit'
-    compose	     An alias of 'aia send compose'
-    read	     An alias of 'aia user read'
+    [+]edit          An alias of 'maia user +edit'
+    [+]compose	     An alias of 'maia send +compose'
+    [+]read	     An alias of 'maia user +read'
 
   Workspace
     workspace|w      Workspace management (create, use, show, list, clear, delete)
@@ -116,19 +116,19 @@ EXAMPLES:
 
  Command examples:
 
-  aia send "Hello, AI!"
+  maia send "Hello, AI!"
     Send the message "Hello, AI!" to the AI API.
 
-  aia fileset list
+  maia fileset list
     List all filesets in the current workspace.
 
-  aia change list --pending
+  maia change list --pending
     List all pending changes.
 
-  aia compose
+  maia compose
     Open an editor where instructions are given and then send that to the AI API.
 
-  aia
+  maia
     Show the outbox.
 
  Environment examples:
@@ -140,8 +140,8 @@ EXAMPLES:
 
 NOTES:
 
-  When aia [<text-or-file>] alternative is detected it is treated as
-  'aia user append [<text-or-file>]' except that the <text-or-file> must start
+  When maia [<text-or-file>] alternative is detected it is treated as
+  'maia user append [<text-or-file>]' except that the <text-or-file> must start
   with a capital letter or be a quoted string with at least one space.
   This helps differentiate commands from user input.
 
@@ -157,7 +157,7 @@ NOTES:
   which opens the editor inline).
 
   This example command:
-     aia send "This is the error message:" compose " followed by:" compose
+     maia send "This is the error message:" compose " followed by:" compose
   will send the following to the AI:
      This is the error message:
      <the composed text from the editor>
@@ -284,12 +284,18 @@ case "$COMMAND" in
 	handle_user_command show
 	;;
     edit|read)
+	shift
+	. "$MAIA_CORE_LIB_DIR/user.sh"
+	handle_user_command "+$COMMAND" "$@"
+	;;
+    +edit|+read)
 	. "$MAIA_CORE_LIB_DIR/user.sh"
 	handle_user_command "$@"
 	;;
-    compose)
+    compose|+compose)
+	shift
 	. "$MAIA_CORE_LIB_DIR/send.sh"
-	handle_send_command "$@"
+	handle_send_command "+compose" "$@"
 	;;
     *)
 	. "$MAIA_CORE_LIB_DIR/send.sh"
