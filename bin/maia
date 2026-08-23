@@ -83,7 +83,7 @@ COMMANDS:
     system           System prompt management (show, append, replace, clear)
     [+]edit          An alias of 'maia user +edit'
     [+]compose	     An alias of 'maia send +compose'
-    [+]read	     An alias of 'maia user +read'
+    +read	     An alias of 'maia send +read'
 
   Workspace
     workspace|w      Workspace management (create, use, show, list, clear, delete)
@@ -283,12 +283,7 @@ case "$COMMAND" in
 	. "$MAIA_CORE_LIB_DIR/user.sh"
 	handle_user_command show
 	;;
-    edit|read)
-	shift
-	. "$MAIA_CORE_LIB_DIR/user.sh"
-	handle_user_command "+$COMMAND" "$@"
-	;;
-    +edit|+read)
+    edit|+edit)
 	. "$MAIA_CORE_LIB_DIR/user.sh"
 	handle_user_command "$@"
 	;;
@@ -299,11 +294,6 @@ case "$COMMAND" in
 	;;
     *)
 	. "$MAIA_CORE_LIB_DIR/send.sh"
-	# No recognized command, but args were passed → default to the send command
-	if ! is_first_letter_upper "$COMMAND" && [[ "$COMMAND" != *" "* ]]; then
-	    error "Unrecognized command '$COMMAND'. Use a capitalized command or quote a multi-word message."
-	    usage
-	fi
 	handle_send_command "$@"
 	;;
 esac
