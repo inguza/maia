@@ -84,6 +84,7 @@ COMMANDS:
     [+]edit          An alias of 'maia user +edit'
     [+]compose	     An alias of 'maia send +compose'
     +read	     An alias of 'maia send +read'
+    +run	     An alias of 'maia send +run'
 
   Workspace
     workspace|w      Workspace management (create, use, show, list, clear, delete)

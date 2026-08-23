@@ -63,7 +63,10 @@ NOTES
   <text-or-file> can be any of the following:
     - a word
     - a "quoted text"
-    - +command (compose, read, edit)
+    - +command (compose, read, edit, run)
+      run can be run as +run takes the last change run output or
+      it can be run as +"run <changeid>" and then it takes the output of that
+      specific shell change run.
     - =filename (content of a file)
     - ++word (litteral +word)
     - ==word (litteral =word)

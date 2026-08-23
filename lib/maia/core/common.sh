@@ -1055,6 +1055,16 @@ deduplicate_files() {
     done
 }
 
+match_single_file() {
+    shopt -s nullglob
+    local prefix="$1"
+    local affix="$2"
+    export LC_COLLATE=C
+    local files=( "${prefix}"*"${affix}" )
+    local file=${files[0]}
+    echo $file
+}
+
 # Shared file command handler (used by maia user and maia system)
 handle_text_file_command() {
     local file="$1"
@@ -1086,6 +1096,35 @@ handle_text_file_command() {
 			else
 			    notice "Compose aborted (empty content)."
 			fi
+			;;
+		    +run*)
+			shopt -s extglob
+			local session=$(resolve_session_name)
+			local session_meta=$(resolve_session_meta "$session")
+			local session_ws=$(resolve_session_workspace "$session")
+			local changes_dir="$(resolve_changes_path "$session_ws")"
+			local command id
+			read -r command id <<< "$1"
+			if [[ -z "$id" ]] ; then
+			   local latest="$(ls -t "$changes_dir/$session"/*-"@(finished|failed)".exit_status 2>/dev/null | head -n1)"
+			   if [[ -n "$latest" ]] ; then
+			       id="${latest##*/}"
+			       id="${id%-@(finished|failed).exit_status}"
+			   fi
+			fi
+			if [[ -z "$id" ]] ; then
+			    die "No run identity found."
+			fi
+			local prefix="$changes_dir/$session/$id"
+			local shell_output=$(match_single_file "$prefix" .output)
+			local exit_status=$(match_single_file "$prefix" .exit_status)
+			echo "# Shell execution" >> "$file"
+			echo "" >> "$file"
+			echo '```text' >> "$file"
+			cat "$shell_output" >> "$file"
+			echo '```' >> "$file"
+			echo "Exit status: ""$(cat "$exit_status")" >> "$file"
+			echo "" >> "$file"
 			;;
 		    +edit)
 			shift
@@ -1632,7 +1671,7 @@ trigger_event() {
 #	    fi
 #	    # TODO!!! This line is not complete
 #	done < <(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
-    fi
+#    fi
 }
 
 init_scope_dirs
