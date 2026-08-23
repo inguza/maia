@@ -191,6 +191,10 @@ run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new lin
 ##### GNU
 run_tool_cmd "grep-complicated-1" "grep.sh" '{"searchpattern":"unserialize\\(|eval\\(|create_function\\(|shell_exec\\(|exec\\(|passthru\\(|system\\(|`\\$\\(|preg_replace\\(\\s*[\"].*e.*[\"]","pathspec":"."}'
 
+##### Shell exec
+export ASSISTANT_BASEID="20260717T214714-68e23e97"
+run_tool_cmd "shell-exec-1" "shell-exec.sh" '{"commands":"make\ngcc\n"}'
+
 ##### maia-* tools
 subsession1="sub-session-1"
 run_tool_cmd "maia-subsession-list-empty-1" "maia-subsession-list.sh" '{}'
