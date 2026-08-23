@@ -504,7 +504,7 @@ apply_patch() {
 change_state_for_jsons() {
     local new_state=$1
     shift
-    (( $# >= 1 )) || die "Usage: change_state_for_jsons NEW_STATE FILE.json [...]"
+    (( $# >= 1 )) || die "Usage: maia change <new-state> id [...]"
 
     shopt -s nullglob
 
@@ -896,7 +896,6 @@ handle_change_command() {
 		    local type=$(jq -r '.type'   "$jsonf")
 		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
 		    [[ "$type"   == "shell"  ]] || die "Cannot auto-apply non-shell '$id'"
-		    notice "DEBUG 1 $jsonf -> running"
 		    change_state_for_jsons "running" "$jsonf"
 		    # OBSERVE! Files are changed now to running!!!
 		    jsonf=$(match_single_file "$prefix" ".json")
@@ -916,10 +915,8 @@ handle_change_command() {
 		    fi
 		    echo $exit_status > "${changes_dir}/$session/${id}-running.exit_status"
 		    if [[ $exit_status == 0 ]] ; then
-			notice "DEBUG 2 $jsonf -> finished"
 			change_state_for_jsons "finished" "$jsonf"
 		    else
-			notice "DEBUG 3 $jsonf -> failed"
 			change_state_for_jsons "failed" "$jsonf"
 		    fi
 		    # OBSERVE! Files are changed now to finished or failed!!!
@@ -1012,7 +1009,7 @@ handle_change_command() {
 	    change_process "$@"
 	    ;;
 
-	applied|skipped|pending)
+	applied|skipped|pending|finished|failed|running)
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
 		local xid=$(find_last_set_change_id)

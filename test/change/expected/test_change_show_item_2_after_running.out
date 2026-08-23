@@ -1,0 +1,11 @@
+{
+  "type": "shell",
+  "status": "pending",
+  "filename": ""
+}
+
+Suggested commands below:
+=========================
+sleep 3
+echo Foo
+

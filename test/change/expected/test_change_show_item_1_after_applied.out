@@ -1,0 +1,9 @@
+{
+  "type": "patch",
+  "status": "pending",
+  "filename": "src/file1.txt"
+}
+
+Suggested patch below:
+======================
+Patch content for file1

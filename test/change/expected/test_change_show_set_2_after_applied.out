@@ -1,0 +1,17 @@
+{
+  "type": "set",
+  "status": "pending"
+}
+
+
+Sub-change: <dateandtime>-abcd1235-1
+{
+  "type": "shell",
+  "status": "pending",
+  "filename": ""
+}
+Suggested commands below:
+=========================
+sleep 3
+echo Foo
+

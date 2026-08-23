@@ -1,0 +1,13 @@
+{
+  "type": "shell",
+  "status": "pending",
+  "filename": ""
+}
+
+Command output below:
+=====================
+$ sleep 3
+
+Exit status below:
+==================
+

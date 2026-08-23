@@ -1,0 +1,6 @@
+  ID                             TYPE       STATUS     FILENAME
+default:
+  <dateandtime>-abcd1234       set        pending    
+    <dateandtime>-abcd1234-1   patch      skipped    src/file1.txt
+  <dateandtime>-abcd1235       set        pending    
+    <dateandtime>-abcd1235-1   shell      pending    

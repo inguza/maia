@@ -6,8 +6,19 @@ Manage change suggestions and their application.
 
 COMMANDS
 
-  list|ls [--pending|--applied|--skipped|--all|--all-sessions|--all-states]
+  list|ls [list options ...]
     List change suggestions, grouped by base ID.
+
+    List options are:
+     --pending
+     --applied
+     --skipped
+     --finished
+     --failed
+     --running
+     --all
+     --all-sessions
+     --all-states
 
   show [--raw] [<ID>]
     Display metadata and change suggestions.
@@ -39,7 +50,16 @@ COMMANDS
   skipped [--update-history] [<ID> [<ID>...]]
     Mark a change status as skipped.
 
-  delete [--force] [<ID> [<ID>...]]
+  running [--update-history] [<ID> [<ID>...]]
+    Mark a change status as running.
+
+  finished [--update-history] [<ID> [<ID>...]]
+    Mark a change status as finished.
+
+  failed [--update-history] [<ID> [<ID>...]]
+    Mark a change status as failed.
+
+  delete [<ID> [<ID>...]]
     Delete change artifacts.
 
 OPTIONS COMMON TO APPLY/APPLIED/SKIP:
@@ -63,13 +83,13 @@ OPTIONS
 
 EXAMPLES
 
-    aia change list --pending
+    maia change list --pending
       List all pending changes.
 
-    aia change apply <dateandtime>Z-abcd1234
+    maia change apply <dateandtime>Z-abcd1234
       Apply specified change set.
 
-    aia change edit --assign-path src/ <dateandtime>Z-abcd1234
+    maia change edit --assign-path src/ <dateandtime>Z-abcd1234
       Edit change metadata and reassign path.
 
 NOTES
