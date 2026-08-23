@@ -1,0 +1,79 @@
+USAGE
+
+  aia change <command> [options] [ID…]
+
+Manage change suggestions and their application.
+
+COMMANDS
+
+  list|ls [--pending|--applied|--skipped|--all|--all-sessions|--all-states]
+    List change suggestions, grouped by base ID.
+
+  show [--raw] [<ID>]
+    Display metadata and change suggestions.
+
+  edit [--assign-path <path>] [<ID> [<ID>...]]
+    Edit change metadata, optionally reassign path.
+
+  apply [--dry-run] [--keep-history] [--update-history] [<ID> [<ID>...]]
+    Apply changes (patch files) for a change set.
+
+  adjust [<ID> [<ID>...]]
+    Adjust the body of the change by opening it up in an editor.
+    Can be useful to remove whice-space, comments or similar that made
+    further processing complicated.
+
+  process [<ID> [<ID>...]]
+    Process the body of the change similar to the 'aia parse' would have done.
+
+  convert <ID> [--type snippet|file|shell|diff|manual] [filename]
+    Change the type and/or filename of a change. Assign filename if provided.
+    Automatically generates or removes patch files as needed.
+
+  applied [--update-history] [<ID> [<ID>...]]
+    Mark a change status as applied.
+
+  pending [--update-history] [<ID> [<ID>...]]
+    Mark a change status as pending.
+
+  skipped [--update-history] [<ID> [<ID>...]]
+    Mark a change status as skipped.
+
+  delete [--force] [<ID> [<ID>...]]
+    Delete change artifacts.
+
+OPTIONS COMMON TO APPLY/APPLIED/SKIP:
+
+  --update-history
+    Rewrite history when fully applied/skipped.
+
+  --keep-history
+    Retain history when fully applied/skipped.
+
+  --dry-run
+    (apply) Do not write changes.
+
+  --session <NAME>
+    Work on session NAME
+
+OPTIONS
+
+  -h, --help
+    Show this message.
+
+EXAMPLES
+
+    aia change list --pending
+      List all pending changes.
+
+    aia change apply <dateandtime>Z-abcd1234
+      Apply specified change set.
+
+    aia change edit --assign-path src/ <dateandtime>Z-abcd1234
+      Edit change metadata and reassign path.
+
+NOTES
+
+  Changes represent suggestions for patching files and can be applied or skipped.
+
+  When the ID argument is omitted for these commands, the last 'set' change ID is used by default.
