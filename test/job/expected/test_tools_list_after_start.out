@@ -36,6 +36,7 @@
   net-request-tcp   (/home/ola/git/maia/lib/maia/tools/net-request.td)
   net-request-ssl   (/home/ola/git/maia/lib/maia/tools/net-request.td)
   pandoc   (/home/ola/git/maia/lib/maia/tools/pandoc.td)
+  shell-exec   (/home/ola/git/maia/lib/maia/tools/shell.td)
   context-skill-remember   (/home/ola/git/maia/lib/maia/tools/skill.td)
   context-skill-forget   (/home/ola/git/maia/lib/maia/tools/skill.td)
   skill-execute   (/home/ola/git/maia/lib/maia/tools/skill.td)
