@@ -184,6 +184,7 @@ The above has been skipped and the history is pruned."
 # (determined by presence of '+' in the filename) sorted lexically.
 # Returns empty string if none found.
 find_last_set_change_id() {
+    local session="$1"
     shopt -s nullglob
     local last_id=""
     local files=( "$changes_dir"/$session/*-+-*.json )
@@ -207,7 +208,8 @@ find_last_set_change_id() {
 
 # Pre-check: record if any sub-entry was previously pending
 pre_check() {
-    local base=$1
+    local session="$1"
+    local base="$2"
     local pending=false
 
     # Make sure unmatched globs vanish
@@ -227,8 +229,9 @@ pre_check() {
 
 # Post-check: if any were pending, and now all match $2, update base and prune
 post_check() {
-    local base=$1
-    local status=$2
+    local session="$1"
+    local base="$2"
+    local status="$3"
     local all_match=true
     shopt -s nullglob
     # Verify every sub-entry JSON now has .status != pending
@@ -364,7 +367,7 @@ change_list() {
 change_adjust() {
     local ids=("$@")
     if (( ${#ids[@]} == 0 )); then
-        local last_id=$(find_last_set_change_id)
+        local last_id=$(find_last_set_change_id "$session")
         if [[ -z "$last_id" ]]; then
             die "No change ID found."
         fi
@@ -387,7 +390,7 @@ change_process() {
     local ids=("$@")
     if (( ${#ids[@]} == 0 )); then
         local last_id
-        last_id=$(find_last_set_change_id)
+        last_id=$(find_last_set_change_id "$session")
         if [[ -z "$last_id" ]]; then
             die "No change ID found."
         fi
@@ -418,16 +421,6 @@ change_process() {
     done
 }
 
-
-match_single_file() {
-    shopt -s nullglob
-    local prefix="$1"
-    local affix="$2"
-    export LC_COLLATE=C
-    local files=( "${prefix}"*"${affix}" )
-    local file=${files[0]}
-    echo $file
-}
 
 get_status() {
     local file="$1" fname base status
@@ -747,6 +740,7 @@ handle_change_command() {
     local session_ws=$(resolve_session_workspace "$session")
     validate_workspace_exists "$session_ws"
 
+    # NOT LOCAL!
     changes_dir="$(resolve_changes_path "$session_ws")"
 
     # Global flags
@@ -786,7 +780,7 @@ handle_change_command() {
 	    fi
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
-		local xid=$(find_last_set_change_id)
+		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
@@ -856,7 +850,7 @@ handle_change_command() {
 	    fi
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
-		local xid=$(find_last_set_change_id)
+		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
@@ -924,7 +918,7 @@ handle_change_command() {
 		else
 		    # While change set
 		    notice "$id is a change set. Execute individually instead."
-		    post_check "$id" applied "$session"
+		    post_check "$session" "$id" applied
 		fi    
 	    done
 	    ;;
@@ -933,7 +927,7 @@ handle_change_command() {
 	    # apply [--dry-run] [--keep-history] [--update-history] <ID> [<ID>...]
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
-		local xid=$(find_last_set_change_id)
+		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
@@ -960,7 +954,7 @@ handle_change_command() {
 		    apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
 		else
 		    # --- whole change set ---
-		    pre_check "$id"
+		    pre_check "$session" "$id"
 		    # Collect all pending patches
 		    shopt -s nullglob
 		    export LC_COLLATE=C
@@ -992,7 +986,7 @@ handle_change_command() {
 		    change_state_for_jsons applied $(match_single_file "$changes_dir/$session/${id}-+-pending.json")
 		    # Change the state
 		    notice "Applied all patches for change set $id"
-		    post_check "$id" applied "$session"
+		    post_check "$session" "$id" applied
 		fi
 	    done
 	    ;;
@@ -1012,7 +1006,7 @@ handle_change_command() {
 	applied|skipped|pending|finished|failed|running)
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
-		local xid=$(find_last_set_change_id)
+		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
@@ -1023,7 +1017,7 @@ handle_change_command() {
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    # --- whole change set ---
 		    if [[ "$action" != "pending" ]]; then
-			pre_check "$id"
+			pre_check "$session" "$id"
 		    fi
 		    change_state_for_jsons "$action" "$changes_dir/$session/${id}-"*[0-9]"-"*".json" $(match_single_file "$changes_dir/$session/$id-+-" ".json")
 		else
@@ -1032,7 +1026,7 @@ handle_change_command() {
 		fi
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ && "$action" != "pending" ]]; then
 		    # --- whole change set ---
-		    post_check "$id" "$action"
+		    post_check "$session" "$id" "$action"
 		fi
 	    done ;;
 
@@ -1057,7 +1051,7 @@ handle_change_command() {
 	    fi
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
-		local xid=$(find_last_set_change_id)
+		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
