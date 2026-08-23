@@ -15,8 +15,19 @@ Manage change suggestions and their application.
 
 COMMANDS
 
-  list|ls [--pending|--applied|--skipped|--all|--all-sessions|--all-states]
+  list|ls [list options ...]
     List change suggestions, grouped by base ID.
+
+    List options are:
+     --pending
+     --applied
+     --skipped
+     --finished
+     --failed
+     --running
+     --all
+     --all-sessions
+     --all-states
 
   show [--raw] [<ID>]
     Display metadata and change suggestions.
@@ -48,7 +59,16 @@ COMMANDS
   skipped [--update-history] [<ID> [<ID>...]]
     Mark a change status as skipped.
 
-  delete [--force] [<ID> [<ID>...]]
+  running [--update-history] [<ID> [<ID>...]]
+    Mark a change status as running.
+
+  finished [--update-history] [<ID> [<ID>...]]
+    Mark a change status as finished.
+
+  failed [--update-history] [<ID> [<ID>...]]
+    Mark a change status as failed.
+
+  delete [<ID> [<ID>...]]
     Delete change artifacts.
 
 OPTIONS COMMON TO APPLY/APPLIED/SKIP:
@@ -72,13 +92,13 @@ OPTIONS
 
 EXAMPLES
 
-    aia change list --pending
+    maia change list --pending
       List all pending changes.
 
-    aia change apply 20250513T142512Z-abcd1234
+    maia change apply 20250513T142512Z-abcd1234
       Apply specified change set.
 
-    aia change edit --assign-path src/ 20250513T142512Z-abcd1234
+    maia change edit --assign-path src/ 20250513T142512Z-abcd1234
       Edit change metadata and reassign path.
 
 NOTES
@@ -244,6 +264,18 @@ change_list() {
 		status_filter="skipped"
 		shift
 		;;
+	    --finished)
+		status_filter="finished"
+		shift
+		;;
+	    --failed)
+		status_filter="failed"
+		shift
+		;;
+	    --running)
+		status_filter="running"
+		shift
+		;;
 	    --all)
 		status_filter="*"
 		session_filter="*"
@@ -267,7 +299,7 @@ change_list() {
 
     # Default to showing only pending if no filter specified
     if [[ -z "$status_filter" ]]; then
-        status_filter="pending"
+        status_filter="@(pending|running|failed)"
     fi
 
     # 2) bail if no directory
@@ -289,6 +321,7 @@ change_list() {
 	local scprinted=0
 	# We do not need to check that $scdir is a directory, because this
 	# for look will do that anyway
+	shopt -s extglob
 	for file in "$scdir"/*-${status_filter}.json; do
 	    local fname base status index id type filename
 	    if [[ $scprinted -eq 0 ]] ; then
@@ -660,13 +693,61 @@ handle_change_convert() {
     info "Converted change '$id' to type '$new_type' with filename '$curr_filename'"
 }
 
+showfiles() {
+    local prefix="$1"
+    local patch=$(match_single_file "$prefix" .patch)
+    local text=$(match_single_file "$prefix" .txt)
+    local snippet=$(match_single_file "$prefix" .snippet)
+    local shell=$(match_single_file "$prefix" .shell)
+    if [ -n "$patch" ] ; then
+	echo "Suggested patch below:"
+	echo "======================"
+	cat "$patch"
+    elif [ -n "$shell" ] ; then
+	local shellout=$(match_single_file "$prefix" .output)
+	local shellstat=$(match_single_file "$prefix" .exit_status)
+	if [ -n "$shellout" ] ; then
+	    echo "Command output below:"
+	    echo "====================="
+	    cat "$shellout"
+	    echo
+	    echo "Exit status below:"
+	    echo "=================="
+	    if [ -n "$shellstat" ] ; then
+		cat "$shellstat"
+	    fi
+	    echo
+	else
+	    echo "Suggested commands below:"
+	    echo "========================="
+	    cat "$shell"
+	    echo
+	fi
+    elif [ -n "$text" ] ; then
+	echo "Manual change description below:"
+	echo "================================"
+	cat "$text"
+    elif [ -n "$snippet" ] ; then
+	echo "Suggested code snippet below:"
+	echo "============================="
+	cat "$snippet"
+    fi
+}
+
 handle_change_command() {
     [[ "$1" =~ ^-h|--help$ ]] && change_usage
     [[ "$2" =~ ^-h|--help$ ]] && change_usage
     cmd=$1; shift
 
-    changes_dir="$(resolve_changes_path)"
-    local session="$(resolve_session_name)"
+    # Determine active session and ensure it exists
+    local session=$(resolve_session_name)
+    ensure_session_exists "$session"
+    local session_meta=$(resolve_session_meta "$session")
+
+    local session_ws=$(resolve_session_workspace "$session")
+    validate_workspace_exists "$session_ws"
+
+    changes_dir="$(resolve_changes_path "$session_ws")"
 
     # Global flags
     UPDATE_HISTORY=$(jq -r '.prune_when_applied' <<< "$_cfg")
@@ -725,25 +806,12 @@ handle_change_command() {
 		    fi
 		else
 		    jq . "$file"; echo
-		    local patch=$(match_single_file "$prefix" .patch)
-		    local text=$(match_single_file "$prefix" .txt)
-		    local snippet=$(match_single_file "$prefix" .snippet)
-		    if [ -n "$patch" ] ; then
-			echo "Suggested patch below:"
-			echo "======================"
-			cat "$patch"
-		    elif [ -n "$text" ] ; then
-			echo "Manual change description below:"
-			echo "================================"
-			cat "$text"
-		    elif [ -n "$snippet" ] ; then
-			echo "Suggested code snippet below:"
-			echo "============================="
-			cat "$snippet"
+		    showfiles "$prefix"
+		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
+			echo "Assistant response text below:"
+			echo "=============================="
+			cat "$changes_dir/$session/$id.txt"
 		    fi
-		    echo "Assistant response text below:"
-		    echo "=============================="
-		    cat "$changes_dir/$session/$id.txt"
 		fi
 
 		# Now show all sub-IDs
@@ -757,22 +825,7 @@ handle_change_command() {
 		    jq . "$subjson"
 		    if [[ "$raw" == false ]]; then
 			local subprefix="${changes_dir}/$session/${subbase}"
-			local patch=$(match_single_file "$subprefix" .patch)
-			local text=$(match_single_file "$subprefix" .txt)
-			local snippet=$(match_single_file "$subprefix" .snippet)
-			if [ -n "$patch" ] ; then
-			    echo "Suggested patch below:"
-			    echo "======================"
-			    cat "$patch"
-			elif [ -n "$text" ] ; then
-			    echo "Manual change description below:"
-			    echo "================================"
-			    cat "$text"
-			elif [ -n "$snippet" ] ; then
-			    echo "Suggested code snippet below:"
-			    echo "============================="
-			    cat "$snippet"
-			fi
+			showfiles "$subprefix"
 		    fi
 		done
 	    else
@@ -788,22 +841,7 @@ handle_change_command() {
 		else
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"
 		    jq . "$file"; echo
-		    local patch=$(match_single_file "$prefix" .patch)
-		    local text=$(match_single_file "$prefix" .txt)
-		    local snippet=$(match_single_file "$prefix" .snippet)
-		    if [ -n "$patch" ] ; then
-			echo "Suggested patch below:"
-			echo "======================"
-			cat "$patch"
-		    elif [ -n "$text" ] ; then
-			echo "Manual change description below:"
-			echo "================================"
-			cat "$text"
-		    elif [ -n "$snippet" ] ; then
-			echo "Suggested code snippet below:"
-			echo "============================="
-			cat "$snippet"
-		    fi
+		    showfiles "$prefix"
 		fi
 	    fi
 	    ;;
@@ -845,6 +883,55 @@ handle_change_command() {
 	    done
 	    ;;
 
+	run)
+	    local ws_meta="$(resolve_workspace_meta)"
+	    # Global root
+	    local workspace_root="$(resolve_workspace_root "$ws_name")"
+	    for id in "$@"; do
+		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
+		    local prefix="$changes_dir/$session/$id-"
+		    local jsonf=$(match_single_file "$prefix" ".json") \
+			|| die "Metadata for sub-change $id not found"
+		    local status=$(get_status "$jsonf")                 # => "pending"
+		    local type=$(jq -r '.type'   "$jsonf")
+		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
+		    [[ "$type"   == "shell"  ]] || die "Cannot auto-apply non-shell '$id'"
+		    notice "DEBUG 1 $jsonf -> running"
+		    change_state_for_jsons "running" "$jsonf"
+		    # OBSERVE! Files are changed now to running!!!
+		    jsonf=$(match_single_file "$prefix" ".json")
+		    local shellfile="${changes_dir}/$session/${id}-running.shell"
+		    [[ -e "${shellfile}" ]] || { warn "Skipping change '$id' since it is missing a shell command file."; continue; }
+		    local outputfile="${changes_dir}/$session/${id}-running.output"
+		    cd "$workspace_root"
+		    (
+			export PS1='$ '
+			export PS2='> '
+			bash --noprofile --norc -i < "${shellfile}" > "$outputfile" 2>&1
+		    )
+		    local exit_status=$?
+		    # Remove the tailing $exit from the file
+		    if [[ "$(tail -n 1 "$outputfile")" == '$ exit' ]]; then
+			sed -i '$d' "$outputfile"
+		    fi
+		    echo $exit_status > "${changes_dir}/$session/${id}-running.exit_status"
+		    if [[ $exit_status == 0 ]] ; then
+			notice "DEBUG 2 $jsonf -> finished"
+			change_state_for_jsons "finished" "$jsonf"
+		    else
+			notice "DEBUG 3 $jsonf -> failed"
+			change_state_for_jsons "failed" "$jsonf"
+		    fi
+		    # OBSERVE! Files are changed now to finished or failed!!!
+		    jsonf=$(match_single_file "$prefix" ".json")
+		else
+		    # While change set
+		    notice "$id is a change set. Execute individually instead."
+		    post_check "$id" applied "$session"
+		fi    
+	    done
+	    ;;
+	
 	apply)
 	    # apply [--dry-run] [--keep-history] [--update-history] <ID> [<ID>...]
 	    # Add ID if none specified
@@ -954,11 +1041,9 @@ handle_change_command() {
 
 	delete)
 	    local MATCH=""
-	    local FORCE=false
 	    # Parse options before IDs
 	    while [[ $# -gt 0 && "$1" == --* ]]; do
 		case "$1" in
-		    --force) shift; FORCE=true; ;;
 		    --all) shift; MATCH="*-+-*" ;;
 		    *) break ;;
 		esac
@@ -982,16 +1067,6 @@ handle_change_command() {
 	    for id in "$@"; do
 		# Gather relevant json files
 		local json_files=( "$changes_dir/$session/$id"*".json" )
-		# Check for pending status if not forced
-		if [[ "$FORCE" != true ]]; then
-		    for jf in "${json_files[@]}"; do
-			[[ -f "$jf" ]] || continue
-			if [[ $(get_status "$jf") == "pending" ]]; then
-			    error "Cannot delete $id because it has pending changes. Use --force to override." >&2
-			    continue 2
-			fi
-		    done
-		fi
 		# Delete base and sub-entry files accordingly, including .txt files
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    trigger_event "pre-change-delete" "$changes_dir/$session/$id-"*.json
