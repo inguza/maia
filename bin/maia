@@ -92,6 +92,9 @@ COMMANDS:
     files|file|f     File management (add, forget, remove)
     change|c         Change management (list, show, edit, gen, apply, applied, delete, skip)
 
+  Shell
+    shell            Shell management (in development)
+
 OPTIONS:
 
   -h, --help        Show this help message and exit
@@ -221,6 +224,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/skill.sh"
 	handle_skill_command "$@"
+	;;
+    shell)
+	shift
+	. "$MAIA_CORE_LIB_DIR/shell.sh"
+	handle_shell_command "$@"
 	;;
     files|file|f)
 	shift
