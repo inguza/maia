@@ -29,7 +29,7 @@ $MAIA tools --scope session append "core-*"
 run_job_cmd() {
     local test_id="$1"
     shift
-    run_and_check "test_tools_${test_id}" $MAIA tools "$@"
+    run_and_check "test_job_${test_id}" $MAIA job "$@"
 }
 
 # Test 0: The help

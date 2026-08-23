@@ -1,0 +1,49 @@
+USAGE
+
+  maia job <command> [options]
+
+Manage background jobs.
+
+COMMANDS
+
+  start <toolname> <toolargsjson>
+    Start a new job as a tool call to be run in background.
+
+  list
+    List all jobs.
+
+  show <id>
+    Show job metadata.
+
+  status <id>
+    Show the status of the job:
+      - Missing
+        Job <id> does not exist.
+
+      - Running
+        Still running.
+
+      - Completed(0)
+        Finished with exit code = 0.
+
+      - Failed(exitcode)
+        Finished with exit code != 0.
+
+      - Vanished
+        Pid no longer exist but the finishing information is absent.
+
+  output <id>
+    Show the output produced by the job so far, including stderr.
+
+  cancel <id>
+    Cancel a running job.
+
+  delete [--force] <id>
+    Delete a job and its data. Cannot delete running jobs unless --force is specified.
+    Force will try to cancel the job first. If that fails a warning will be shown.
+
+  exist <id>
+    Returns 0 if the job exists
+    Returns 1 if the job do not exist
+    No output, to be used in scripts
+

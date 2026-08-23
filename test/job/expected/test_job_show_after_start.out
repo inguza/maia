@@ -1,0 +1,10 @@
+{
+  "pid": <pid>
+  "starttime": "<starttime>",
+  "tool": "core-print",
+  "arguments": {
+    "content": "Hello world"
+  },
+  "toolcallid": "<datetime>-<pid>-<starttime>",
+  "status": "Completed(0)"
+}

@@ -1,0 +1,2 @@
+[NOTICE] Job with id '123123' does not exist.
+jq: error: Could not open file <MAIA_HOME>/.maia/sessions/default/jobs/123123.json: No such file or directory
