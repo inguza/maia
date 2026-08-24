@@ -1,4 +1,3 @@
-# Parse the information in the conversation history
 #
 # Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
 #
@@ -60,6 +59,15 @@ NOTES
 
   - It is recommended to first run 'aia parse' without default filenames to identify
     which snippets require filename assignments, then re-run with appropriate defaults.
+
+  Deprecation note!
+  =================
+
+  The output parsing has been replaced with the file-write and file-change functionality.
+  Once that functionality has been more throughly tested with all interface providers then
+  this parse functionality is likely going to be removed.
+
+  Broken parse functionality may be removed before this.
 
 EOF
     exit 0

@@ -6,6 +6,8 @@
 # See LICENSE-GPLv3.txt for the full license text.
 # Commercial licensing is available separately.
 #
+# Deprecated
+#
 use strict;
 use warnings;
 use JSON::PP;

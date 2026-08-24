@@ -77,7 +77,7 @@ COMMANDS:
     job		     Background job management (start, status, output, list, cancel)
     count            Estimate token count for API payload
     history|h        History operations (show, pop, top, delete, search, clear, export)
-    parse            Parse assistant response and produce change suggestions.
+    parse            Parse assistant response and produce change suggestions [DEPRECATED]
     interactive|i    Launch interactive REPL
     chat             Chat mode (interactive or single-send)
     system           System prompt management (show, append, replace, clear)
