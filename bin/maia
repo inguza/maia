@@ -78,8 +78,6 @@ COMMANDS:
     count            Estimate token count for API payload
     history|h        History operations (show, pop, top, delete, search, clear, export)
     parse            Parse assistant response and produce change suggestions [DEPRECATED]
-    interactive|i    Launch interactive REPL
-    chat             Chat mode (interactive or single-send)
     system           System prompt management (show, append, replace, clear)
     [+]edit          An alias of 'maia user +edit'
     [+]compose	     An alias of 'maia send +compose'
@@ -277,16 +275,6 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/count.sh"
 	handle_count_command "$@"
-	;;
-    interactive|i)
-	shift
-	. "$MAIA_CORE_LIB_DIR/interactive.sh"
-	handle_interactive_command "$@"
-	;;
-    chat)
-	shift
-	. "$MAIA_CORE_LIB_DIR/chat.sh"
-	handle_chat_command "$@"
 	;;
     change|c)
 	shift
