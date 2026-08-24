@@ -68,16 +68,12 @@ COMMANDS:
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
     api              AI introspection (models, model, fine-tunes, fine-tune, usage)
-    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
 
-  Session
+  Session and prompt handling
     session          Session management (create, use, list, show)
     send|s           Send prompt to API (with dry-run, response-file options)
     user|u|outbox    User outbox management (show, append, replace, clear, delete)
-    job		     Background job management (start, status, output, list, cancel)
     count            Estimate token count for API payload
-    history|h        History operations (show, pop, top, delete, search, clear, export)
-    parse            Parse assistant response and produce change suggestions [DEPRECATED]
     system           System prompt management (show, append, replace, clear)
     [+]edit          An alias of 'maia user +edit'
     [+]compose	     An alias of 'maia send +compose'
@@ -85,14 +81,21 @@ COMMANDS:
     +run	     An alias of 'maia send +run'
     +shell	     An alias of 'maia send +shell'
 
-  Workspace
-    workspace|w      Workspace management (create, use, show, list, clear, delete)
+  Context handling
+    history|h        History operations (show, pop, top, delete, search, clear, export)
     filesets|fileset Fileset management (list, create, delete, show, clear)
     files|file|f     File management (add, forget, remove)
+    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
+    skill	     Skill management (list, show, remember, append, replace, clear, test, refresh, verify, delete)
+
+  Workspace and change handling
+    workspace|w      Workspace management (create, use, show, list, clear, delete)
+    parse            Parse assistant response and produce change suggestions [DEPRECATED]
     change|c         Change management (list, show, edit, gen, apply, applied, delete, skip)
 
-  Shell
+  Shell and execution handling
     shell            Shell management (in development)
+    job		     Background job management (start, status, output, list, cancel)
 
 OPTIONS:
 
