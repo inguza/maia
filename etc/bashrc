@@ -3,7 +3,7 @@ if [[ -e "$HOME/.bashrc" ]] ; then
    . "$HOME/.bashrc"
 fi
 maias() {
-    export AIA_SESSION="$1"
+    export MAIA_SESSION="$1"
 }
 if [[ -n "$MAIA_PS1" ]] ; then
     export PS1="$MAIA_PS1"
