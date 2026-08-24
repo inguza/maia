@@ -1,7 +1,7 @@
 [
   {
     "name": "subsession-create",
-    "description": "Create a new AI interaction subsession.",
+    "description": "Create a new AI interaction subsession. A subsession inherits tool and skill context but not file context.",
     "command": "maia-subsession-create.sh",
     "parameters": {
       "type": "object",
