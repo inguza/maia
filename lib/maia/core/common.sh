@@ -252,7 +252,7 @@ handle_x_use() {
 	shift
 	use_notice="no"
     fi
-    local x=$1;
+    local x="$1"
     shift
     local name="$1"
     if [[ -z "$name" ]] ; then
