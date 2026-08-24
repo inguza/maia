@@ -35,13 +35,13 @@ setup_changes_dir() {
     mkdir -p "$changes_dir"
 
     # Create two mock change sets
-    echo '{"type":"set","status":"pending"}' > "$changes_dir/20250513T142512-abcd1234-+-pending.json"
-    echo '{"type":"patch","status":"pending","filename":"src/file1.txt"}' > "$changes_dir/20250513T142512-abcd1234-1-pending.json"
+    echo '{"type":"set"}' > "$changes_dir/20250513T142512-abcd1234-+-pending.json"
+    echo '{"type":"patch","filename":"src/file1.txt"}' > "$changes_dir/20250513T142512-abcd1234-1-pending.json"
     echo 'Instruction text for the change set' > "$changes_dir/20250513T142512-abcd1234.txt"
     echo 'Patch content for file1' > "$changes_dir/20250513T142512-abcd1234-1-pending.patch"
 
-    echo '{"type":"set","status":"pending"}' > "$changes_dir/20250513T142512-abcd1235-+-pending.json"
-    echo '{"type":"shell","status":"pending","filename":""}' > "$changes_dir/20250513T142512-abcd1235-1-pending.json"
+    echo '{"type":"set"}' > "$changes_dir/20250513T142512-abcd1235-+-pending.json"
+    echo '{"type":"shell","filename":""}' > "$changes_dir/20250513T142512-abcd1235-1-pending.json"
     echo 'sleep 3' > "$changes_dir/20250513T142512-abcd1235-1-pending.shell"
     echo 'echo Foo' >> "$changes_dir/20250513T142512-abcd1235-1-pending.shell"
 }

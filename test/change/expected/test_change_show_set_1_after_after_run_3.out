@@ -1,6 +1,5 @@
 {
-  "type": "set",
-  "status": "pending"
+  "type": "set"
 }
 
 Assistant response text below:
@@ -10,7 +9,6 @@ Instruction text for the change set
 Sub-change: <dateandtime>-abcd1234-1
 {
   "type": "patch",
-  "status": "pending",
   "filename": "src/file1.txt"
 }
 Suggested patch below:
