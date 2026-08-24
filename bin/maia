@@ -85,6 +85,7 @@ COMMANDS:
     [+]compose	     An alias of 'maia send +compose'
     +read	     An alias of 'maia send +read'
     +run	     An alias of 'maia send +run'
+    +shell	     An alias of 'maia send +shell'
 
   Workspace
     workspace|w      Workspace management (create, use, show, list, clear, delete)
@@ -152,7 +153,19 @@ NOTES:
   <text-or-file> can be:
     - a word
     - a "quoted text"
-    - +command (compose, read, edit)
+    - +command (compose, read, edit, run, shell)
+      compose:
+        Open an editor and create a new text
+      read:
+        Read from stdin.
+      edit:
+        Edit existing text.
+      run:
+        If `+run` then it takes the last shell change run output.
+	If `+"run <changeid>"` then it takes the output of that specific shell change run.
+      shell:
+        If `+shell` then it takes the output of the active (or default) monitored shell.
+	IF `+"shell <shellname>"` then it takes the output of that specific monitored shell.
     - =filename (content of a file)
     - ++word (litteral +word)
     - ==word (litteral =word)

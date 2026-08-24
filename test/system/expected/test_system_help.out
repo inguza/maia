@@ -76,7 +76,7 @@ NOTES
   <text-or-file> can be any of the following:
     - a word
     - a "quoted text"
-    - +command (compose, read, edit, run)
+    - +command (compose, read, edit, run, shell)
     - =filename (content of a file)
     - ++word (litteral +word)
     - ==word (litteral =word)

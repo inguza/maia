@@ -1,0 +1,25 @@
+USAGE
+
+  maia shell [command]
+     Manage shells
+
+COMMANDS
+
+  list
+    List monitored shells.
+
+  create [<name>]
+    Create a named monitored and interactive shell.
+
+  delete [<name>]
+    Delete a named monitored shell.
+
+  remove
+    Alias of delete.
+
+  enter [<name>]
+    Enter a named monitored shell.
+
+  interactive (default)
+     Start an interactive shell with some extra help functionality in place.
+

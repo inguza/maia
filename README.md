@@ -93,9 +93,42 @@ The directory where you want MAIA to reside is called `$MAIA_ROOT` below.
 
 ## Configuration
 
-### Aliases
+### ~/.basrc configuration
 
-The maia executable can be called directly but for easier use copy the content of `$MAIA_ROOT/etc/bashrc` to, for example, your ~/.bashrc file.
+There are two ways to handle maia.
+
+1) Enter a maia shell using `maia shell` or `maia shell enter`
+
+   With this solution a lot of things is done automatically. You essentially just need to add $MAIA_ROOT/bin to the
+   PATH or make an alias for the maia executable.
+   ```shell
+   alias maia='/path/to/maia/bin/maia'
+   ```
+   or
+   ```shell
+   export PATH="$PATH:/path/to/maia/bin"
+   ```
+
+   If you want to manage PS1 with this solution you do the following in your .bashrc file.
+   ```shell
+   unset MAIA_PS1
+   ```
+
+2) Setup the helper functions yourself
+
+   Add the following to your .bashrc file
+   ```shell
+   alias maia='/path/to/maia/bin/maia'
+   # For easy session setting
+   maias() {
+       export AIA_SESSION="$1"
+   }
+   # To see the session in your bash shell
+   # Change 35m to 34m to get blue path
+   export PS1='\[\e]0;\u@\h${MAIA_SESSION:+[$MAIA_SESSION]}: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]${MAIA_SESSION:+\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]]\[\033[00m\]}:\[\033[01;35m\]\w\[\033[00m\]\$ '
+   ```
+
+### Additional ~/.bashrc configuration
 
 It may also be useful to set the prefered editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
 

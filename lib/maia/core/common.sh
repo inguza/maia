@@ -422,6 +422,32 @@ resolve_x_meta() {
 }
 
 #
+# Shell handling
+#
+
+resolve_shell_path() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+	name="$(resolve_shell_name)"
+    fi
+    resolve_x_path "shell" "$name"
+}
+
+# Enhanced resolve_workspace_name() supporting __SESSION_WORKSPACE__ indirection
+resolve_shell_name() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+	name="$MAIA_SHELL"
+    fi
+    if [[ -z "$name" ]]; then
+	name="default"
+    fi
+    echo "$name"
+}
+
+resolve_shell_base() { resolve_x_base "shell" ; }
+
+#
 # Workspace handling
 #
 
@@ -1097,6 +1123,30 @@ handle_text_file_command() {
 			    notice "Compose aborted (empty content)."
 			fi
 			;;
+		    +shell*)
+			read -r command xname <<< "$1"
+			shift
+			local name="$(resolve_shell_name "$xname")"
+			local path="$(resolve_shell_path "$name")"
+			local shell_output="$path/output"
+			local exit_status="$path/exit_status"
+			if [[ ! -e "$shell_output" ]] ; then
+			    die "No shell output for shell '$name'"
+			fi
+			echo '# Shell output' >> "$file"
+			echo '' >> "$file"
+			echo '```text' >> "$file"
+			notice "DEBUG $shell_output"
+			cat "$shell_output" >> "$file"
+			echo "" >> "$file"
+			echo '```' >> "$file"
+			if [[ -e "$exit_status" ]] ; then
+			    echo "Exit status: ""$(cat "$exit_status")" >> "$file"
+			else
+			    echo "The process is still running." >> "$file"
+			fi
+			echo "" >> "$file"
+			;;
 		    +run*)
 			shopt -s extglob
 			local session=$(resolve_session_name)
@@ -1105,6 +1155,7 @@ handle_text_file_command() {
 			local changes_dir="$(resolve_changes_path "$session_ws")"
 			local command id
 			read -r command id <<< "$1"
+			shift
 			if [[ -z "$id" ]] ; then
 			   local latest="$(ls -t "$changes_dir/$session"/*-"@(finished|failed)".exit_status 2>/dev/null | head -n1)"
 			   if [[ -n "$latest" ]] ; then
