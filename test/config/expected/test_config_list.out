@@ -7,7 +7,6 @@ frequency_penalty
 term_loglevel
 stream
 n
-auto_use_at_set
 send_hook
 api_type
 presence_penalty
@@ -15,7 +14,6 @@ api_base_url
 default_session_filesets
 max_input_tokens
 prune_when_applied
-auto_use_at_create
 additional_tool_paths
 prune_mode
 model
@@ -23,7 +21,6 @@ file_handling_mode
 additional_skill_paths
 top_p
 prune_when_skipped
-auto_resolve_workspace
 auto_parse
 default_filter
 default_session_extra_send_filesets

@@ -7,39 +7,26 @@
 #
 
 session_usage() {
-    # TODO: Allow a more flexible placement of --use and other options
     cat <<'EOF'
 USAGE
 
   maia session <command> [options]
-  maia session
 
 Manage sessions, including creation, switching, and metadata.
 
 COMMANDS
 
-  create <name> [--use|--nouse] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]] [<src>]
+  create <name> [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]] [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
   list
     List all sessions (active one marked with *).
 
-  set [<name>] [--use|--nouse] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]]
+  set [<name>] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]]
     Set properties for a session.
 
   edit [<name>]
     Edit the session in an editor.
-
-  use [<name>]
-    Switch active session.
-    When no <name> is given it displays the active session in use.
-
-  select - an alias of use
-
-  unuse
-    No longer use any session.
-
-  unselect - an alias of unuse
 
   show [options] [<name>]
     Show session metadata.
@@ -62,14 +49,6 @@ COMMANDS
 
 OPTIONS
 
-  --use (aliased as --select as well)
-    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
-    so that the workspace is used after creation/set.
-
-  --nouse (aliased as --unselect as well)
-    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
-    so that the workspace is not used after creation/set.
-
   --workspace <name>
     Set workspace <name>. See note below.
 
@@ -87,20 +66,13 @@ OPTIONS
   resolve-options:
 
   --resolve
-     Same as --resolve-workspace --resolve-filesets
-
-  --resolve-workspace
-     Resolve __WORKSPACE_USED__ to the workspace in use. If no workspace is in use, the workspace default
-     to __WORKSPACE_USED__.
+     Same as --resolve-filesets
 
   --resolve-filesets
      Resolve __WORKSPACE_FILESETS__ to the filesets of the workspace in use.
 
   --noresolve
-     Same as --noresolve-workspace --noresolve-filesets
-
-  --noresolve-workspace
-     Do not resolve __WORKSPACE_USED__ to the workspace in use.
+     Same as --noresolve-filesets
 
   --noresolve-filesets
      Do not resolve __WORKSPACE_FILESETS__ to the filesets of the workspace in use.
@@ -112,11 +84,7 @@ NOTES
   When no command is given it defaults to maia session use.
 
   A session is described as defunct if the directory exist, but the session metadata do not.
-  Such sessions may contain history data and an outbox. Such sessions can be deleted and used
-  only. The 'use' command is only to allow the user to extract histry and outbox.
-
-  --workspace supports the special marker "__WORKSPACE_USED__" to
-    represent the current workspace.
+  Such sessions may contain history data and an outbox. Such sessions can be deleted only.
 
   --filesets supports the special marker "__WORKSPACE_FILESETS__" to
     represent all workspace filesets and "__SESSION_NAME__" to represent the name of the
@@ -141,7 +109,6 @@ parse_session_options() {
     PARSED_FILESETS=""
     PARSED_EXTRA_SEND_FILESETS=""
     REMAINING_ARGS=()
-    # Do NOT initialize USE here; will be set before call
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -177,35 +144,17 @@ parse_session_options() {
                 fi
                 shift
 		;;
-	    --use|--select)
-		shift
-		USE="true"
-		;;
-	    --nouse|--unselect)
-		shift
-		USE="false"
-		;;
             --resolve)
-                RESOLVE_WORKSPACE=true
                 RESOLVE_FILESETS=true
 		shift
-                ;;
-            --resolve-workspace)
-                RESOLVE_WORKSPACE=true
-                shift
                 ;;
             --resolve-filesets)
                 RESOLVE_FILESETS=true
                 shift
                 ;;
             --noresolve)
-                RESOLVE_WORKSPACE=false
                 RESOLVE_FILESETS=false
 		shift
-                ;;
-            --noresolve-workspace)
-                RESOLVE_WORKSPACE=false
-                shift
                 ;;
             --noresolve-filesets)
                 RESOLVE_FILESETS=false
@@ -240,9 +189,7 @@ handle_session_command() {
 	    if [[ -d "$path" ]] ; then
 		die "Session '$name' already exists."
 	    fi
-	    local USE="$(jq -r '.auto_use_at_create' <<< "$_cfg")"
             # Parse options first to get workspace, filesets and extra_send_filesets
-	    RESOLVE_WORKSPACE="$(jq -r '.auto_resolve_workspace' <<< "$_cfg")"
 	    RESOLVE_FILESETS=false
             parse_session_options "$@"
 	    # The remaining args after options may contain an optional source session name
@@ -251,13 +198,12 @@ handle_session_command() {
 		src_session="${REMAINING_ARGS[0]}"
 	    fi
 
+	    local ws_source=", from default_workspace configuration"
 	    local workspace="$(jq -r '.default_workspace' <<< "$_cfg")"
-            if [[ "$workspace" == "__WORKSPACE_USED__" && "$RESOLVE_WORKSPACE" == "true" ]]; then
-		local tws_name="$(resolve_workspace_name)"
-		if [[ -n "$tws_name" ]] ; then
-		    workspace="$tws_name"
-		fi
-            fi
+	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
+		ws_source=", resolved from current session"
+		workspace="$(resolve_workspace_name)"
+	    fi
 	    local filesets_json="[]"
 	    local extra_send_filesets_json="[]"
 	    local src_ws
@@ -310,6 +256,7 @@ handle_session_command() {
 	    else
 		# No source session, use options or defaults
 		if [[ -n "$PARSED_WS" ]] ; then
+		    ws_source=", from --workspace"
 		    workspace="$PARSED_WS"
 		fi
 		if [[ -n "$PARSED_FILESETS" ]]; then
@@ -346,23 +293,25 @@ handle_session_command() {
 		done
 		shopt -u dotglob nullglob
 
-		# Update session metadata file with new workspace and filesets
-		# If src_fs is exactly ["src_session"], then
-		if [[ "$src_fs" == "[$(printf '"%s"' "$src_session")]" ]]; then
-		    # Fileset file paths
-		    local old_ws_dir=$(resolve_workspace_path "$src_ws")
-		    local new_ws_dir=$(resolve_workspace_path "$workspace")
-		    local old_fileset_file="$old_ws_dir/${src_session}.fileset"
-		    local new_fileset_file="$new_ws_dir/${name}.fileset"
-		    if [[ -f "$old_fileset_file" ]]; then
-			cp "$old_fileset_file" "$new_fileset_file"
-			info "Copied fileset content from '$old_fileset_file' to '$new_fileset_file'"
-		    else
-			# If no old fileset file, create empty new one
-			: > "$new_fileset_file"
-			info "Created empty fileset '$new_fileset_file'"
+		if [[ -n "$src_ws" ]] ; then
+		    # Update session metadata file with new workspace and filesets
+		    # If src_fs is exactly ["src_session"], then
+		    if [[ "$src_fs" == "[$(printf '"%s"' "$src_session")]" ]]; then
+			# Fileset file paths
+			local old_ws_dir=$(resolve_workspace_path "$src_ws")
+			local new_ws_dir=$(resolve_workspace_path "$workspace")
+			local old_fileset_file="$old_ws_dir/${src_session}.fileset"
+			local new_fileset_file="$new_ws_dir/${name}.fileset"
+			if [[ -f "$old_fileset_file" ]]; then
+			    cp "$old_fileset_file" "$new_fileset_file"
+			    info "Copied fileset content from '$old_fileset_file' to '$new_fileset_file'"
+			else
+			    # If no old fileset file, create empty new one
+			    : > "$new_fileset_file"
+			    info "Created empty fileset '$new_fileset_file'"
+			fi
+			filesets_json="[$(printf '"%s"' "$name")]"
 		    fi
-		    filesets_json="[$(printf '"%s"' "$name")]"
 		fi
 		#
 		update_session "$name" "false" "$workspace" "$filesets_json" "$extra_send_filesets_json"
@@ -371,7 +320,11 @@ handle_session_command() {
 		# Normal bootstrap new empty session
 		mkdir -p "$path"
 		update_session "$name" "true" "$workspace" "$filesets_json" "$extra_send_filesets_json"
-		notice "Created session '$name'"
+		if [[ -n "$workspace" ]] ; then
+		    notice "Created session '$name' with workspace '$workspace'$ws_source."
+		else
+		    notice "Created session '$name' with no workspace$ws_source."
+		fi
 	    fi
 
             if [[ "$RESOLVE_FILESETS" == "true" ]]; then
@@ -407,9 +360,6 @@ handle_session_command() {
                     "$workspace" \
                     "$extra_send_filesets_json"
 	    fi
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use session "$name"
-	    fi
 	    ;;
 
 	edit)
@@ -431,17 +381,6 @@ handle_session_command() {
 	    shift
 	    ensure_session_exists "$(resolve_session_name)"
             handle_x_list session
-            ;;
-
-        use|select)
-	    shift
-            local name="$1"
-            handle_x_use session "$name" # Handles optional name
-            ;;
-
-	unuse|unselect)
-	    shift
-            handle_x_unuse session
             ;;
 
         show)
@@ -469,14 +408,6 @@ handle_session_command() {
 		if [[ -n "$ws" ]]; then
 		    local note=""
 		    local ws_name="$ws"
-                    if [[ "$ws" == "__WORKSPACE_USED__" ]]; then
-			ws_name="$(resolve_workspace_name)"
-			if [[ -z "$ws_name" ]] ; then
-			    note=" (none in use)"
-			else
-			    note=" ($ws_name in use)"
-			fi
-                    fi
 		    local ws_dir=$(resolve_workspace_path "$ws")
 		    if [[ -z "$note" && ! -e "$ws_dir" ]] ; then
 		       note=" ($ws_name missing)"
@@ -567,8 +498,6 @@ handle_session_command() {
 	    local current_fs="$(jq -c '.filesets'  < "$meta")"
 	    local current_extra_fs="$(jq -c '.extra_send_filesets // []' < "$meta")"
 	    # Parse flags
-	    local USE=$(jq -r '.auto_use_at_set' <<< "$_cfg")
-	    RESOLVE_WORKSPACE="$(jq -r '.auto_resolve_workspace' <<< "$_cfg")"
 	    RESOLVE_FILESETS=false
 	    parse_session_options "$@"
 	    # Fallback to current if flags omitted
@@ -578,13 +507,6 @@ handle_session_command() {
             fi
 	    local filesets_json="${PARSED_FILESETS:-$current_fs}"
 	    local extra_send_filesets_json="${PARSED_EXTRA_SEND_FILESETS:-$current_extra_fs}"
-
-            if [[ "$ws" == "__WORKSPACE_USED__" && "$RESOLVE_WORKSPACE" == "true" ]]; then
-		local tws_name="$(resolve_workspace_name)"
-		if [[ -n "$tws_name" ]] ; then
-		    ws="$tws_name"
-		fi
-            fi
 
             if [[ "$RESOLVE_FILESETS" == "true" ]]; then
                 # Expand filesets markers (__WORKSPACE_FILESETS__, __SESSION_NAME__)
@@ -608,9 +530,6 @@ handle_session_command() {
 	    fi
 	    update_session "$name" "false" "$ws" "$filesets_json" "$extra_send_filesets_json"
 	    info "Updated session '$name' workspace='$ws' filesets=$filesets_json extra_send_filesets=$extra_send_filesets_json"
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use --no-use-notice session "$name"
-	    fi
 	    ;;
 	
 	delete)
@@ -618,9 +537,6 @@ handle_session_command() {
             handle_x_delete session "$1" # Handles empty name
             ;;
 
-	"")
-	    handle_session_command use
-	    ;;
         *)
             session_usage
             ;;

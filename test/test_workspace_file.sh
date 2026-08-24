@@ -35,7 +35,9 @@ echo "y1" > y1.txt
 echo "y2" > y2.txt
 echo "y3" > y3.txt
 
-run_workspace_cmd "create_and_use_workspace" create ws --use
+run_workspace_cmd "create_and_use_workspace" create ws
+$MAIA session create testsession --workspace ws
+export MAIA_SESSION=testsession
 
 # Test list files (likely empty initially)
 run_file_cmd "list" list

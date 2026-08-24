@@ -6,9 +6,6 @@ api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
 auto_add_new_files_on_apply    default    true
 auto_parse                     default    false
-auto_resolve_workspace         default    true
-auto_use_at_create             default    false
-auto_use_at_set                default    false
 cost_input_gpt_4_1             default    2
 cost_input_gpt_4_1_mini        default    0.4
 cost_input_gpt_4_1_nano        default    0.1
@@ -18,7 +15,7 @@ cost_output_gpt_4_1_nano       default    0.4
 default_filter                 default    ""
 default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
-default_workspace              default    "__WORKSPACE_USED__"
+default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
 file_handling_mode_mistral_24b default    "APPEND"
 file_handling_mode_qwen2_5_14b default    "APPEND"

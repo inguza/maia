@@ -6,13 +6,10 @@ api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
 auto_add_new_files_on_apply    default    true
 auto_parse                     default    false
-auto_resolve_workspace         default    true
-auto_use_at_create             default    false
-auto_use_at_set                default    false
 default_filter                 default    ""
 default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
-default_workspace              default    "__WORKSPACE_USED__"
+default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
 frequency_penalty              default    0
 http_logging                   default    true

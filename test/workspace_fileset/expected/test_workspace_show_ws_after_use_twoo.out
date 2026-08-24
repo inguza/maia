@@ -1,5 +1,4 @@
 Workspace: foo
 Path:      <MAIA_HOME>
 Filesets:
-  + foo (not used by session)
-  + bar (not used by session)
+  + default (not used by session)

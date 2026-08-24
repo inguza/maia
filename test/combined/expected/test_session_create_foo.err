@@ -1,3 +1,2 @@
 [NOTICE] Bootstrapped session 'foo'
-[NOTICE] Created session 'foo'
-[NOTICE] Now using session 'foo'
+[NOTICE] Created session 'foo' with workspace 'ws', from --workspace.

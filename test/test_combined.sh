@@ -95,10 +95,11 @@ api_types_and_configs=(
     "AWS_BEDROCK_CONVERSE"
 )
 
-run_workspace_cmd "create_and_use_workspace" create ws --use
+run_workspace_cmd "create_and_use_workspace" create ws
 
 # Test 2: create a new session named 'foo'
-run_session_cmd "create_foo" create foo --use
+run_session_cmd "create_foo" create foo --workspace ws
+export MAIA_SESSION=foo
 run_session_cmd "show_after_foo" show foo
 
 cd x
@@ -176,19 +177,20 @@ run_session_cmd "list_after_create" files
 run_session_cmd "content_after_create" content
 
 # Create a new session as a copy of the old
-run_session_cmd "create_bar" create bar foo --use
+run_session_cmd "create_bar" create bar foo
+export MAIA_SESSION=foo
 
-run_session_cmd "show_after_bar" show
+run_session_cmd "show_after_bar" show bar
 run_session_cmd "content_after_bar" content
 
 # Test that __SESSIOM_NAME__ is shown properly as ro and not
 run_fileset_cmd "ro_bar" ro bar
-run_session_cmd "show_after_ro_bar" show
+run_session_cmd "show_after_ro_bar" show bar
 run_fileset_cmd "rw_bar" rw bar
-run_session_cmd "show_after_rw_bar" show
+run_session_cmd "show_after_rw_bar" show bar
 
 # Test 4: use session 'foo'
-run_session_cmd "use_foo" use foo
+export MAIA_SESSION=foo
 run_session_cmd "show_after_use_foo" show
 run_session_cmd "set_resolve" set --resolve
 run_session_cmd "show_after_resolve" show
@@ -279,32 +281,38 @@ run_fileset_cmd "show_4_after_add_x5" show myfileset4
 run_session_cmd "show_after_add_x5" show
 run_session_cmd "content_after_add_x5" content
 #
-run_session_cmd "use_bar" use bar
+export MAIA_SESSION=bar
 run_session_cmd "show_after_use_bar" show
 # Test 5: show current session info
 run_session_cmd "show_current" show
 
 # Test 6: delete session 'foo' (should succeed if not active)
 # Since 'foo' is active, first unuse it
-run_session_cmd "unuse" unuse
+unset MAIA_SESSION
 # Now delete 'foo'
 run_session_cmd "delete_foo" delete foo
 
 # Test session copy with files
 # First with normal session set
-run_session_cmd "create_zoo" create zoo
-run_session_cmd "show_after_zoo" show zoo
+run_session_cmd "create_zoo" create zoo --workspace ws
 export MAIA_SESSION=zoo
+run_session_cmd "show_after_zoo" show zoo
 run_file_cmd "add_file_x1" add x/1.txt
 run_session_cmd "show_after_zoox1" show zoo
 run_session_cmd "create_boonr" create boonr zoo
 run_session_cmd "show_after_boonr" show boonr
 # And then when the orig session is in resolved mode
-unset MAIA_SESSION
-run_session_cmd "use_zoo" use zoo
+export MAIA_SESSION=zoo
 run_session_cmd "set_zoo_resolve" set --resolve
 run_session_cmd "create_boore" create boore zoo
 run_session_cmd "show_after_boore" show boore
+# And then with no session and empty
+unset MAIA_SESSION
+# No workspace set
+run_session_cmd "create_ee" create ee
+run_session_cmd "show_after_ee" show ee
+run_session_cmd "create_dup_ee" create dupee ee
+run_session_cmd "show_after_dup_ee" show dupee
 
 # Cleanup
 cleanup_maia_home

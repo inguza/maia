@@ -112,7 +112,7 @@ handle_fileset_command() {
     local ws_name="$(resolve_workspace_name)"
     local ws_root="$(resolve_workspace_root)"
     if [[ -z "$ws_name" ]] ; then
-	die "No workspace in use. Create a workspace and use it."
+	die "No workspace in use. Create a workspace and set it to be used by the session."
     fi
     if [[ ! -d "$ws_root" ]] ; then
 	die "Workspace $ws_root does not exist."

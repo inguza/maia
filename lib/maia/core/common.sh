@@ -38,8 +38,6 @@ declare -A DEFAULT_CONFIG=(
     [stream]=false
     [http_logging]=true
     [term_loglevel]=NOTICE
-    [auto_use_at_create]=false
-    [auto_use_at_set]=false
     [prune_mode]=reduce
     [prune_when_applied]=true
     [prune_when_skipped]=true
@@ -55,8 +53,7 @@ declare -A DEFAULT_CONFIG=(
     [default_filter]=''
     [default_session_filesets]='["__SESSION_NAME__"]'
     [default_session_extra_send_filesets]='[]'
-    [default_workspace]='__WORKSPACE_USED__'
-    [auto_resolve_workspace]=true
+    [default_workspace]='__SESSION_WORKSPACE__'
     [send_hook]=''
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_4_1]=2
@@ -244,70 +241,6 @@ determine_implicit_scope() {
 # Generic handle functions
 #
 
-# $1 = resource key (“workspace” or “session”)
-# $2 = optional instance name
-handle_x_use() {
-    local use_notice="yes"
-    if [[ "$1" == "--no-use-notice" ]] ; then
-	shift
-	use_notice="no"
-    fi
-    local x="$1"
-    shift
-    local name="$1"
-    if [[ -z "$name" ]] ; then
-	name=$(resolve_x_name_raw "$x")
-	if [[ -n "$name" ]]; then
-	    echo "$name"
-	    return
-	fi
-	if [[ "$x" == "session" ]] ; then
-	    echo "default"
-	fi
-	return
-    fi
-    if [[ "$x" == "session" && -n "$MAIA_SESSION" ]] ; then
-	error "The environment variable MAIA_SESSION is set, cannot use another session. Do 'export MAIA_SESSION=<session> instead."
-	return
-    fi
-    # If they’re already using this, just notice and return
-    local current="$(resolve_x_name_raw "$x")"
-    if [[ "$name" == "$current" ]]; then
-	if [[ "$use_notice" == "yes" ]]; then
-            notice "${x^} '$name' is already in use"
-	fi
-        return
-    fi
-    if [[ "$x" == "workspace" && "$name" == "__SESSION_WORKSPACE__" ]] ; then
-	local session="$(resolve_session_name)"
-	local w=$(read_session_workspace_raw "$session")
-	if [[ "$w" == "__WORKSPACE_USED__" ]] ; then
-	    die "${x^} '$name' gives a circular dependency."
-	fi
-    fi
-    if [[ "$x" == "session" && "$name" == "default" ]] ; then
-	ensure_session_exists "$name"
-    fi
-    local meta="$(resolve_x_meta "$x" "$x" "$name")"
-    local base="$(resolve_x_base "$x")"
-    [[ -d "$base" ]] || die "${x^} '$name' does not exist"
-    [[ -f "$meta" ]] || warn "${x^} '$name' is defunct"
-    echo "$name" > "$base/used"
-    notice "Now using $x '$name'"
-}
-
-# $1 = resource key (“workspace” or “session”)
-handle_x_unuse() {
-    local x=$1; shift
-    if [[ "$x" == "session" && -n "$MAIA_SESSION" ]] ; then
-	error "The environment variable MAIA_SESSION is set, cannot unuse the session. Do 'unset MAIA_SESSION' instead."
-	return
-    fi
-    local base="$(resolve_x_base "$x")"
-    rm -f "$base/used"
-    notice "No longer using any $x."
-}
-
 #
 # Generic “list” handler for named scopes (workspace, session, etc.)
 #
@@ -346,8 +279,6 @@ handle_x_delete() {
     [[ -n "$name" ]] || die "${x^} name required"
     # Don’t delete the active one
     local active
-    active="$(resolve_x_name_raw "$x")"
-    [[ "$name" != "$active" ]] || die "Cannot delete the active $x"
     # Remove the directory
     local dir
     dir="$(resolve_x_path "$x" "$name")"
@@ -387,18 +318,6 @@ resolve_x_base() {
     echo "$(resolve_home_dir)/${1}s"
 }
 
-# Raw reading only. No tag resolving.
-resolve_x_name_raw() {
-    local x="$1"
-    local base="$(resolve_x_base "$x")"
-    local used_file="$base/used"
-    if [[ -f "$used_file" ]]; then
-	cat "$used_file"
-    else
-	echo ""
-    fi
-}
-
 # Full path to a x ($1) directory.
 # If you pass a name ($2), it uses that; otherwise it uses the active x.
 resolve_x_path() {
@@ -433,7 +352,6 @@ resolve_shell_path() {
     resolve_x_path "shell" "$name"
 }
 
-# Enhanced resolve_workspace_name() supporting __SESSION_WORKSPACE__ indirection
 resolve_shell_name() {
     local name="$1"
     if [[ -z "$name" ]]; then
@@ -464,35 +382,21 @@ read_session_workspace_raw() {
 # Enhanced resolve_workspace_name() supporting __SESSION_WORKSPACE__ indirection
 resolve_workspace_name() {
     local ws="$1"
-    if [[ "$ws" == "__SESSION_WORKSPACE__" ]]; then
+    if [[ -z "$ws" ]]; then
         # Indirection to session workspace
         local sess_name="$(resolve_session_name)"
         local ws="$(read_session_workspace_raw "$sess_name")"
-	if [[ "$ws" == "__WORKSPACE_USED__" ]]; then
-            die "Circular dependency detected: workspace 'used' points to session workspace, which points back to workspace 'used'."
-	fi
-    fi
-    if [[ "$ws" == "" || "$ws" == "__WORKSPACE_USED__" ]]; then
-	ws="$(resolve_x_name_raw "workspace")"
     fi
     echo "$ws"
 }
 
 # If you pass a name, it uses that; otherwise it uses the active workspace.
 resolve_workspace_path() {
-    local name="$1"
-    if [[ "$name" == "__WORKSPACE_USED__" ]]; then
-	name="$(resolve_workspace_name)"
-    fi
-    resolve_x_path "workspace" "$name"
+    resolve_x_path "workspace" "$1"
 }
 # Accepts an optional name, else uses the active workspace.
 resolve_workspace_meta() {
-    local name="$1"
-    if [[ "$name" == "__WORKSPACE_USED__" ]]; then
-	name="$(resolve_workspace_name)"
-    fi
-    resolve_x_meta "workspace" "workspace" "$name"
+    resolve_x_meta "workspace" "workspace" "$1"
 }
 resolve_changes_path() { echo "$(resolve_workspace_path "$1")/changes"; }
 resolve_workspace_root() {
@@ -540,9 +444,6 @@ resolve_session_name() {
 	fi
     fi
     if [[ -z "$name" ]] ; then
-	name=$(resolve_x_name_raw "session")
-    fi
-    if [[ -z "$name" ]] ; then
 	echo "default"
     fi
     echo "$name"
@@ -552,22 +453,14 @@ resolve_session_path() { resolve_x_path "session" "$1"; }
 # Accepts an optional name, else uses the active session.
 resolve_session_meta() { resolve_x_meta "session" "session" "$1" ; }
 resolve_history_meta() { resolve_x_meta "session" "history" "$1" ; }
-# Resolve the workspace name from a session's metadata with indirection support for __WORKSPACE_USED__
+# Resolve the workspace name from a session's metadata
 resolve_session_workspace() {
     local sess_name="$1"
     local sess_ws_raw="$(read_session_workspace_raw "$sess_name")"
     if [[ -z "$sess_ws_raw" ]]; then
 	return
     fi
-    if [[ "$sess_ws_raw" == "__WORKSPACE_USED__" ]]; then
-        local ws_raw="$(resolve_x_name_raw "workspace")"
-        if [[ "$ws_raw" == "__SESSION_WORKSPACE__" ]]; then
-            die "Circular dependency detected: session workspace points to workspace 'used' which points back to session workspace."
-        fi
-        echo "$ws_raw"
-    else
-        echo "$sess_ws_raw"
-    fi
+    echo "$sess_ws_raw"
 }
 
 #
@@ -624,9 +517,6 @@ add_file_to_fileset_file() {
 
 validate_workspace_exists() {
     local ws_name="$1"
-    if [[ "$ws_name" == "__WORKSPACE_USED__" ]]; then
-	ws_name="$(resolve_workspace_name)"
-    fi
     local ws_dir="$(resolve_workspace_path "$ws_name")"
     if [[ ! -d "$ws_dir" ]]; then
 	if [[ -n "$ws_name" ]] ; then
@@ -717,9 +607,15 @@ ensure_session_exists() {
 	    validate_workspace_exists "$workspace"
 	else
 	    # Default
-	    workspace="__WORKSPACE_USED__"
+	    workspace="$(jq -r '.default_workspace' <<<"$_cfg")"
+	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
+		local workspace="$(resolve_workspace_name)"
+	    fi
+	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
+		workspace=""
+	    fi
 	fi
-	local filesets_json=$(jq -r '.default_session_filesets' <<<"$_cfg")
+	local filesets_json="$(jq -r '.default_session_filesets' <<<"$_cfg")"
 	update_session "default" "true" "$workspace" "$filesets_json"
     fi
     # For non-default sessions, we now do nothing (no error)

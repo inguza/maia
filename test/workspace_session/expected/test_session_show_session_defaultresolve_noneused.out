@@ -1,6 +1,6 @@
-Session:   newsession-defaultresolve-noneused
-Workspace: __WORKSPACE_USED__ (none in use)
+Session:   newsession
+Workspace: ws
 Filesets:
-  - __SESSION_NAME__ (missing)
+  - __SESSION_NAME__
 Extra:     (none)
-Files in (no workspace root)
+Files in <MAIA_HOME>:

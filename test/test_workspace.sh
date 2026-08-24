@@ -30,47 +30,28 @@ run_workspace_cmd() {
 # Test 1: list workspaces in a fresh home (should be empty or default)
 run_workspace_cmd "list_empty" list
 
-# Test 2: create a new workspace named 'foo' with default auto_use_at_create=false config (should not auto use)
+# Test 2: create a new workspace named 'foo'
 run_workspace_cmd "create_foo_default" create foo
 run_workspace_cmd "list_after_create_foo" list
 run_workspace_cmd "show_after_create_foo" show foo
 
-# Test 3: create a new workspace named 'bar' with explicit --use (force use)
-run_workspace_cmd "create_bar_use" create bar --use
+# Test 3: create a new workspace named 'bar'
+run_workspace_cmd "create_bar_use" create bar
 run_workspace_cmd "list_after_create_bar" list
-run_workspace_cmd "show_after_create_bar" show
+run_workspace_cmd "show_after_create_bar" show bar
 
-# Test 4: create a new workspace named 'baz' with explicit --nouse (force no use)
-run_workspace_cmd "create_baz_nouse" create baz --nouse
+# Test 4: create a new workspace named 'baz'
+run_workspace_cmd "create_baz_nouse" create baz
 run_workspace_cmd "list_after_create_baz" list
 run_workspace_cmd "show_after_create_baz" show baz
-run_workspace_cmd "show_after_create_baz_curr" show
 
 # Test 5: list workspaces again, should show foo, bar, baz
 run_workspace_cmd "list_after_create" list
 
-# Test 6: set workspace 'baz' with default auto_use_at_set=true config (should auto use)
+# Test 6: set workspace 'baz'
 run_workspace_cmd "set_baz_default" set baz
 run_workspace_cmd "list_after_set_baz_default" list
 run_workspace_cmd "show_after_set_baz_default" show baz
-
-# Test 7: set workspace 'baz' with explicit --use (force use)
-run_workspace_cmd "set_baz_use" set baz --use
-run_workspace_cmd "list_after_set_baz_use" list
-run_workspace_cmd "show_after_set_baz_use" show baz
-
-# Test 8: set workspace 'baz' with explicit --nouse (force no use)
-run_workspace_cmd "set_baz_nouse" set baz --nouse
-run_workspace_cmd "list_after_set_baz_nouse" list
-run_workspace_cmd "show_after_set_baz_nouse" show baz
-
-# Test 9: use workspace 'foo'
-run_workspace_cmd "use_foo" use foo
-run_workspace_cmd "list_after_use_foo" list
-run_workspace_cmd "show_after_use_foo" show
-
-# Test 10: show current workspace info
-run_workspace_cmd "show_current" show
 
 # Cleanup
 cleanup_maia_home

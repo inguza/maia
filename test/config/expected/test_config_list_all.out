@@ -13,7 +13,6 @@ term_loglevel
 stream
 n
 file_handling_mode_mistral_24b
-auto_use_at_set
 send_hook
 api_type
 presence_penalty
@@ -21,7 +20,6 @@ api_base_url
 default_session_filesets
 max_input_tokens
 prune_when_applied
-auto_use_at_create
 additional_tool_paths
 cost_output_gpt_4_1_nano
 prune_mode
@@ -31,7 +29,6 @@ file_handling_mode
 additional_skill_paths
 top_p
 prune_when_skipped
-auto_resolve_workspace
 auto_parse
 default_filter
 default_session_extra_send_filesets

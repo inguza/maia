@@ -20,7 +20,10 @@ setup_maia_home
 setup_mock_curl
 
 # Create default workspace after MAIA home creation
-$MAIA workspace create default --use > /dev/null 2>&1
+$MAIA workspace create default > /dev/null 2>&1
+$MAIA session create testsession --workspace default
+export MAIA_SESSION=testsession
+# This is the default but we set it anyway
 $MAIA config --scope session auto_parse false
 
 FIXTURE_DIR="$TEST_ROOT/parse_apply_flow/fixtures"

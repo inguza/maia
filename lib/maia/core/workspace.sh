@@ -21,11 +21,6 @@ COMMANDS
 
   select - an alias of use
 
-  unuse
-    No longer use any session.
-
-  unselect - an alias of unuse
-
   create [<name>] [--use|--nouse] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
@@ -57,14 +52,6 @@ OPTIONS
   -h, --help
     Show this help message for the "workspace" subcommand.
 
-  --use (aliased as --select as well)
-    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
-    so that the workspace is used after creation/set.
-
-  --nouse (aliased as --unselect as well)
-    Override configuration parameter auto_use_at_create or auto_use_at_set respectively
-    so that the workspace is not used after creation/set.
-
   --path <directory>
     Specify the filesystem path for the workspace.
 
@@ -93,9 +80,6 @@ EXAMPLES
     maia workspace create myworkspace --path /path/to/project
       Create a workspace named "myworkspace" with the specified path.
 
-    maia workspace use myworkspace
-      Set "myworkspace" as the current workspace.
-
 NOTES
 
   Workspace manifests maintain metadata about project paths and associated filesets.
@@ -115,7 +99,6 @@ parse_workspace_options() {
     PARSED_PATH=""
     PARSED_FILESETS=""
     REMAINING_ARGS=()
-    # Do NOT initialize USE here; will be set before call
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -137,14 +120,6 @@ parse_workspace_options() {
                 PARSED_FILESETS="[${_jq[*]}]"
                 shift
                 ;;
-	    --use|--unselect)
-		shift
-		USE="true"
-		;;
-	    --nouse|--unselect)
-		shift
-		USE="false"
-		;;
             -*)
                 echo "Error: Unknown option '$1'" >&2
                 workspace_usage
@@ -166,19 +141,8 @@ handle_workspace_command() {
     local data_dir project_dir project_name
 
     case "$cmd" in
-	use|select)
-	    shift
-	    handle_x_use "workspace" "$1" # Handles optional name
-	    ;;
-
-	unuse|unselect)
-	    shift
-	    handle_x_unuse "workspace"
-	    ;;
-
 	create)
 	    shift
-	    local USE=$(jq -r '.auto_use_at_create' <<< "$_cfg")
 	    # 1) Parse flags into PARSED_PATH / PARSED_FILESETS
 	    parse_workspace_options "$@"
 	    # 2) Determine name and path
@@ -204,14 +168,10 @@ handle_workspace_command() {
 		"$path" \
 		"$filesets_json"
 	    notice "Created workspace '$name' for '$path' with filesets: $(jq -r '.[]|@sh'<<<"$filesets_json")"
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use "workspace" "$name"
-	    fi
 	    ;;
 
 	set)
             shift
-	    local USE=$(jq -r '.auto_use_at_set' <<< "$_cfg")
             parse_workspace_options "$@"
             # 1) Determine workspace name (first non-flag) or fallback
             local name="${REMAINING_ARGS[0]:-$(resolve_workspace_name)}"
@@ -244,20 +204,13 @@ handle_workspace_command() {
 		"$new_path" \
 		"$filesets_json"
 	    info "Updated workspace '$name'"
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use --no-use-notice "workspace" "$name"
-	    fi
             ;;
 	
 	edit)
             shift
-	    local USE=$(jq -r '.auto_use_at_set // true' <<< "$_cfg")
             parse_workspace_options "$@"
             local name="${REMAINING_ARGS[0]:-$(resolve_workspace_name)}"
             handle_x_edit "workspace" "workspace" "$name" # Handles optional name
-	    if [[ "$USE" == "true" ]] ; then
-		handle_x_use --no-use-notice "workspace" "$name"
-	    fi
             ;;
 
 	list|ls)
@@ -373,10 +326,6 @@ handle_workspace_command() {
 	    # Now all checks are in place, now you can delete
 	    handle_x_delete "workspace" "$1" # Handles optional name
             ;;
-
-	"")
-	    handle_workspace_command use
-	    ;;
 
 	*)
 	    die "Unknown workspace command: $cmd"

@@ -23,8 +23,8 @@ setup_maia_home
 
 # Create default workspace after MAIA home creation
 echo "Working in $XMAIA_HOME"
-$MAIA workspace create default --use --path "$XMAIA_HOME" > /dev/null 2>&1
-$MAIA session create default > /dev/null 2>&1
+$MAIA workspace create default --path "$XMAIA_HOME" > /dev/null 2>&1
+$MAIA session create default --workspace default > /dev/null 2>&1
 # Allow all tools
 $MAIA tool replace "*" > /dev/null 2>&1
 touch "$XMAIA_HOME/file-to-see.txt"

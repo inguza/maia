@@ -36,41 +36,40 @@ run_workspace_cmd() {
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
 
-# Test 2: create a new session named 'foo' with default auto_use_at_create=false config (should not auto use)
+# Test 2: create a new session named 'foo'
 run_session_cmd "create_foo_default" create foo
 run_session_cmd "list_after_create_foo" list
 run_session_cmd "show_after_create_foo" show
 
-# Test 3: create a new session named 'bar' with explicit --use (force use)
-run_session_cmd "create_bar_use" create bar --use
+# Test 3: create a new session named 'bar'
+run_session_cmd "create_bar_use" create bar
+export MAIA_SESSION=bar
 run_session_cmd "list_after_create_bar" list
 run_session_cmd "show_after_create_bar" show
 
-# Test 4: create a new session named 'baz' with explicit --nouse (force no use)
-run_session_cmd "create_baz_nouse" create baz --nouse
+# Test 4: create a new session named 'baz'
+run_session_cmd "create_baz_nouse" create baz
 run_session_cmd "list_after_create_baz" list
 run_session_cmd "show_after_create_baz" show
 
 # Test 5: list sessions again, should show foo, bar, baz
 run_session_cmd "list_after_create" list
 
-# Test 6: set session 'baz' with default auto_use_at_set=false config (cannot set since there is no workspace)
+# Test 6: set session 'baz' with default
 run_session_cmd "set_baz_default" set baz
 run_session_cmd "list_after_set_baz_default" list
 run_session_cmd "show_after_set_baz_default" show baz
 
-# Test 7: set session 'baz' with explicit --use (force use)
-run_session_cmd "set_baz_use" set baz --use
+# Test 7: set session 'baz'
+run_session_cmd "set_baz_use" set baz
+export MAIA_SESSION=baz
 run_session_cmd "list_after_set_baz_use" list
 run_session_cmd "show_after_set_baz_use" show baz
 
-# Test 8: set session 'baz' with explicit --nouse (force no use)
-run_session_cmd "set_baz_nouse" set baz --nouse
-run_session_cmd "list_after_set_baz_nouse" list
-run_session_cmd "show_after_set_baz_nouse" show baz
+# Test 8 no longer valid
 
 # Test 9: use session 'foo'
-run_session_cmd "use_foo" use foo
+export MAIA_SESSION=foo
 run_session_cmd "list_after_use_foo" list
 run_session_cmd "show_after_use_foo" show
 
@@ -79,38 +78,17 @@ run_session_cmd "show_current" show
 
 # Test 11: delete session 'foo' (should succeed if not active)
 # Since 'foo' is active, first unuse it
-run_session_cmd "unuse" unuse
+unset MAIA_SESSION
 # Now delete 'foo'
 run_session_cmd "delete_foo" delete foo
 run_session_cmd "list_after_delete_foo" list
 
-# Now test to create sessions with and without resolving (use is off by default)
-run_workspace_cmd "create_workspace_no_use" create wsnouse
-run_workspace_cmd "workspace_no_use"
+# Now test to create sessions with and without resolving
+run_workspace_cmd "create_workspace_no_use" create ws
 
 # Now create the session with and without resolving
-run_session_cmd "create_session_defaultresolve_noneused" create newsession-defaultresolve-noneused
-run_session_cmd "show_session_defaultresolve_noneused" show newsession-defaultresolve-noneused
-
-run_session_cmd "create_session_noresolve_noneused" create newsession-noresolve-noneused --noresolve-workspace
-run_session_cmd "show_session_noresolve_noneused" show newsession-noresolve-noneused
-
-run_session_cmd "create_session_resolve_noneused" create newsession-resolve-noneused --resolve-workspace
-run_session_cmd "show_session_resolve_noneused" show newsession-resolve-noneused
-
-# Create and use workspace 'ws' explicitly with --use
-run_workspace_cmd "create_and_use_workspace" create wsuse --use
-run_workspace_cmd "workspace_use"
-
-# Now create the session with and without resolving
-run_session_cmd "create_session_defaultresolve_used" create newsession-defaultresolve-used
-run_session_cmd "show_session_defaultresolve_used" show newsession-defaultresolve-used
-
-run_session_cmd "create_session_noresolve_used" create newsession-noresolve-used --noresolve-workspace
-run_session_cmd "show_session_noresolve_used" show newsession-noresolve-used
-
-run_session_cmd "create_session_resolve_used" create newsession-resolve-used --resolve-workspace
-run_session_cmd "show_session_resolve_used" show newsession-resolve-used
+run_session_cmd "create_session_defaultresolve_noneused" create newsession --workspace ws
+run_session_cmd "show_session_defaultresolve_noneused" show newsession
 
 # Cleanup
 cleanup_maia_home
