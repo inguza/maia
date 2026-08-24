@@ -97,7 +97,6 @@ handle_file_command() {
     # Determine active session and ensure it exists
     local session_name=$(resolve_session_name)
     ensure_session_exists "$session_name"
-    local session_meta=$(resolve_session_meta "$session_name")
 
     # Resolve session workspace and validate it exists
     local session_ws=$(resolve_session_workspace "$session_name")
