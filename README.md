@@ -65,13 +65,14 @@ Ensure you have the following software installed:
 - `perl`
 - `bash`
 
-It can optionally use the following tools:
+It can optionally use the following tools (a --dependson--> b):
 
-- pandoc
-- lynx
-- GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, head, find, ls
-- BSD utilities: file
-- netcat
+- pandoc tool     -> pandoc
+- lynx tools      -> lynx
+- netcat tools    -> netcat
+- monitored shell -> script
+- util tools      -> GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, head, find, ls,
+       		     BSD utilities: file
 
 ## Install the software
 
