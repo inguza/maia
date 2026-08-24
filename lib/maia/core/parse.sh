@@ -1,3 +1,4 @@
+# Parse the information in the conversation history
 #
 # Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
 #
