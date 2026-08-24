@@ -343,6 +343,7 @@ setup_maia_home() {
     else
 	$MAIA config term_loglevel "NOTICE" > /dev/null 2>&1
     fi
+    cd "$XMAIA_HOME"
 }
 
 # Cleanup MAIA_HOME temp directory created by setup_maia_home

@@ -16,7 +16,6 @@ test_start
 common_setup_output_dir
 setup_maia_home
 export MAIA_SESSION=default
-cd $XMAIA_HOME
 
 run_shell_cmd() {
     local test_id="$1"
