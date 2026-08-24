@@ -250,6 +250,8 @@ post_check() {
 }
 
 change_list() {
+    local session="$1"
+    shift
     # 1) parse status flags
     local status_filter=""
     local session_filter="$session"
@@ -769,7 +771,7 @@ handle_change_command() {
     case "$cmd" in
 	list|ls)
 	    # delegate to list handler; remaining args are status flags (--pending, --applied, --skipped, --all)
-	    change_list "$@"
+	    change_list "$session" "$@"
 	    ;;
 
 	show)
