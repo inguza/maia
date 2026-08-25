@@ -19,8 +19,10 @@ maia_prompt_helper() {
     MAIA_PROMPT_SESSION=$(maia --query session)
     MAIA_PROMPT_WORKSPACE=$(maia --query workspace)
 }
-if [[ -z "$PROMPT_COMMAND" ]] ; then
-    PROMPT_COMMAND="maia_prompt_helper"
-else
-    PROMPT_COMMAND+=$'\n'"maia_prompt_helper"
+if [[ "$PROMPT_COMMAND" != *maia_prompt_helper* ]]; then
+    if [[ -z "$PROMPT_COMMAND" ]] ; then
+	PROMPT_COMMAND="maia_prompt_helper > /dev/null 2>&1 || true"
+    else
+	PROMPT_COMMAND+=$'\n'"maia_prompt_helper > /dev/null 2>&1 || true"
+    fi
 fi
