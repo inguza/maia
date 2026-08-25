@@ -31,9 +31,53 @@ export MAIA_CORE_LIB_DIR="$MAIA_ROOT/lib/maia/core"
 export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
 export MAIA_SKILLS_LIB_DIR="$MAIA_ROOT/lib/maia/skills"
 export MAIA_HOOKS_LIB_DIR="$MAIA_ROOT/lib/maia/hooks"
+#
+# Fast handling of session and workspace query
+#
+COMMAND="${1:-}"
+if [[ "$COMMAND" == "--query" ]] ; then
+    . "$MAIA_CORE_LIB_DIR/fast.sh"
+    shift
+    Q="${1:-}"
+    case "$Q" in
+	session)
+	    # Copy code from session.sh "" case
+	    session="$(resolve_session_name)"
+            meta="$(resolve_session_meta)"
+	    if [[ ! -e "$meta" ]] ; then
+                session+="!"
+	    fi
+            echo "$session"
+            ;;
+	workspace)
+	    # Copy code from workspace.sh "" case
+	    workspace="$(resolve_workspace_name)"
+	    if [[ -n "$workspace" ]] ; then
+		meta="$(resolve_workspace_meta)"
+		if [[ ! -e "$meta" ]] ; then
+		    workspace+="!"
+		else
+		    wpath="$(resolve_workspace_root)"
+		    if [[ "$PWD" == "$wpath" || "$PWD" == "$wpath/"* ]]; then
+			:
+		    else
+			workspace+="§"
+		    fi
+		fi
+	    else
+		workspace="-"
+	    fi
+	    echo "${workspace}"
+	    ;;
+	nop)
+	    :
+	    ;;
+    esac
+    exit
+fi
+
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
-
 # Load merged config up to history scope
 _cfg=$(load_merged_config session)
 export TERM_LOGLEVEL=$(echo "$_cfg" | jq -r '.term_loglevel')
@@ -41,8 +85,6 @@ export TERM_LOGLEVEL=$(echo "$_cfg" | jq -r '.term_loglevel')
 # Check for required tools
 require_command curl
 require_command jq
-
-COMMAND="${1:-}"
 
 # If no arguments, show help
 if [[ $# -eq 0 ]]; then

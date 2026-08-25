@@ -1,5 +1,5 @@
 echo 'Foo a'
-[?2004h]0;ola@ammolite[default|default]: <MAIA_HOME>[01;32mola@ammolite[00m[01;36m[[00mdefault[01;36m|[00mdefault[01;36m][00m:[01;35m<MAIA_HOME>[00m$ echo 'Foo a'
+[?2004h]0;ola@ammolite[default!|-|default]: <MAIA_HOME>[01;32mola@ammolite[00m[01;36m[[00mdefault![01;36m|[00m-[01;36m|[00mdefault[01;36m][00m:[01;35m<MAIA_HOME>[00m$ echo 'Foo a'
 [?2004lFoo a
-[?2004h]0;ola@ammolite[default|default]: <MAIA_HOME>[01;32mola@ammolite[00m[01;36m[[00mdefault[01;36m|[00mdefault[01;36m][00m:[01;35m<MAIA_HOME>[00m$ [?2004l
+[?2004h]0;ola@ammolite[default!|-|default]: <MAIA_HOME>[01;32mola@ammolite[00m[01;36m[[00mdefault![01;36m|[00m-[01;36m|[00mdefault[01;36m][00m:[01;35m<MAIA_HOME>[00m$ [?2004l
 exit

@@ -6,6 +6,8 @@
 # Commercial licensing is available separately.
 #
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
+
 # The built-in fallback system prompt
 DEFAULT_SYSTEM_PROMPT_TXT="You are a helpful, knowledgeable assistant.\n"
 DEFAULT_FILES_PROMPT_TXT="# Files\n\nWhenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.\nOnly return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.\n"
@@ -163,57 +165,9 @@ is_first_letter_upper() {
     [[ "$1" =~ ^[A-Z@] ]]
 }
 
-# Resolve data directory
-resolve_home_dir() {
-    local home_paths=( $(resolve_home_paths) )
-    echo "${home_paths[0]}"
-}
+# resolve_home_dir from fast.sh
 
-# Resolves the DATA_PATHS based on maia_data_search_path
-resolve_home_paths() {
-    local data_paths=()
-    # Check ancestor directories (one level at a time) starting from the current working directory
-    local maia_data_search_path=()
-    local dir="$PWD"
-    while [ "$dir" != "/" ]; do
-	# Stop early if we hit $MAIA_HOME or the user's home
-	if [[ "$dir" == "$MAIA_HOME" || "$dir" == "$HOME" ]] ; then
-	    break
-	fi
-	maia_data_search_path+=("$dir")
-	dir=$(dirname "$dir")
-    done
-
-    if [ -n "$MAIA_HOME" ] ; then
-	maia_data_search_path+=("$MAIA_HOME")
-    fi
-    maia_data_search_path+=("$HOME" "/etc")
-
-    # Check for .maia directories in each directory in maia_data_search_path
-    # Check each candidate: use “aia” under /etc, otherwise “.maia”
-    for dir in "${maia_data_search_path[@]}"; do
-	if [[ "$dir" == "/etc" ]]; then
-	    candidate="$dir/maia"
-	else
-	    candidate="$dir/.maia"
-	fi
-
-	if [ -d "$candidate" ]; then
-	    data_paths+=("$candidate")
-	fi
-    done
-
-    # If no valid .maia directory is found, fallback to $MAIA_HOME or ~/.maia
-    if [ ${#data_paths[@]} -eq 0 ]; then
-	if [ -n "$MAIA_HOME" ]; then
-	    data_paths+=("$MAIA_HOME/.maia")
-	else
-	    data_paths+=("$HOME/.maia")
-	fi
-    fi
-
-    echo "${data_paths[@]}"
-}
+# resolve_home_paths from fast.sh
 
 # determine_implicit_scope — sets $implicit_scope to the first scope
 # (in SCOPE_ORDER) whose ${type}.txt exists, or “default” otherwise.
@@ -314,31 +268,11 @@ handle_x_edit() {
 #
 # Generic helper functions
 #
-resolve_x_base() {
-    echo "$(resolve_home_dir)/${1}s"
-}
+# resolve_x_base from fast.sh
 
-# Full path to a x ($1) directory.
-# If you pass a name ($2), it uses that; otherwise it uses the active x.
-resolve_x_path() {
-    local x="$1"
-    local name="$2"
-    if [[ -z "$name" ]]; then
-	name="$(resolve_${x}_name)"
-    fi
-    if [[ -n "$name" ]]; then
-	echo "$(resolve_${x}_base)/$name"
-    fi
-}
+# resolve_x_path from fast.sh
 
-# Full path to the metadata file ($2.json)
-# Accepts an optional name, else uses the active workspace.
-resolve_x_meta() {
-    local path="$(resolve_${1}_path "$3")"
-    if [[ -n "$path" ]] ; then
-	echo "$path/$2.json"
-    fi
-}
+# resolve_x_meta from fast.sh
 
 #
 # Shell handling
@@ -369,43 +303,14 @@ resolve_shell_base() { resolve_x_base "shell" ; }
 # Workspace handling
 #
 
-resolve_workspace_base() { resolve_x_base "workspace" ; }
+# resolve_workspace_base from fast.sh
+# read_session_workspace_raw from fast.sh
+# resolve_workspace_name from fast.sh
+# resolve_workspace_path from fast.sh
+# resolve_workspace_meta from fast.sh
 
-read_session_workspace_raw() {
-    local sess_name="$1"
-    local sess_meta="$(resolve_session_meta "$sess_name")"
-    if [[ -e "$sess_meta" ]] ; then
-	jq -r '.workspace // empty' < "$sess_meta"
-    fi
-}
-
-# Enhanced resolve_workspace_name() supporting __SESSION_WORKSPACE__ indirection
-resolve_workspace_name() {
-    local ws="$1"
-    if [[ -z "$ws" ]]; then
-        # Indirection to session workspace
-        local sess_name="$(resolve_session_name)"
-        local ws="$(read_session_workspace_raw "$sess_name")"
-    fi
-    echo "$ws"
-}
-
-# If you pass a name, it uses that; otherwise it uses the active workspace.
-resolve_workspace_path() {
-    resolve_x_path "workspace" "$1"
-}
-# Accepts an optional name, else uses the active workspace.
-resolve_workspace_meta() {
-    resolve_x_meta "workspace" "workspace" "$1"
-}
 resolve_changes_path() { echo "$(resolve_workspace_path "$1")/changes"; }
-resolve_workspace_root() {
-    local ws_name=$1
-    local ws_meta="$(resolve_workspace_meta "$ws_name")"
-    if [[ -f "$ws_meta" ]] ; then
-	echo "$(jq -r .path < "$ws_meta")"
-    fi
-}
+# resolve_workspace_root from fast.sh
 resolve_workspace_filesets() {
     local ws_name=$1
     local ws_meta="$(resolve_workspace_meta "$ws_name")"
@@ -435,23 +340,12 @@ write_workspace_meta() {
 resolve_logs_dir() {
     echo "$(resolve_session_path)/logs"
 }
-resolve_session_base() { resolve_x_base "session" ; }
-resolve_session_name() {
-    local name="$1"
-    if [[ -z "$name" ]] ; then
-	if [[ -n "$MAIA_SESSION" ]]; then
-	    name="$MAIA_SESSION"
-	fi
-    fi
-    if [[ -z "$name" ]] ; then
-	echo "default"
-    fi
-    echo "$name"
-}
+# resolve_session_base from fast.sh
+# resolve_session_name from fast.sh
 # If you pass a name, it uses that; otherwise it uses the active session.
-resolve_session_path() { resolve_x_path "session" "$1"; }
+# resolve_session_path from fast.sh
 # Accepts an optional name, else uses the active session.
-resolve_session_meta() { resolve_x_meta "session" "session" "$1" ; }
+# resolve_session_meta from fast.sh
 resolve_history_meta() { resolve_x_meta "session" "history" "$1" ; }
 # Resolve the workspace name from a session's metadata
 resolve_session_workspace() {

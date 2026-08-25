@@ -100,8 +100,10 @@ There are two ways to handle maia.
 
 1) Enter a maia shell using `maia shell` or `maia shell enter`
 
-   With this solution a lot of things is done automatically. You essentially just need to add $MAIA_ROOT/bin to the
-   PATH or make an alias for the maia executable.
+   With this solution a lot of things is done automatically. It also has more advanced functionality such as
+   printing the workspace in the prompt as well.
+
+   You essentially just need to add $MAIA_ROOT/bin to the PATH or make an alias for the maia executable.
    ```shell
    alias maia='/path/to/maia/bin/maia'
    ```
@@ -177,6 +179,10 @@ export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 ## [Scope](docs/scope.md)
 
 Hierarchical levels for defining configuration and resources, allowing settings to be inherited and overridden from system to session.
+
+## [Shell](docs/shell.md)
+
+The maia shell is a standard bash shell with extra convenience functionality on top.
 
 ## Workspace
 

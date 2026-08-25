@@ -8,3 +8,8 @@ maias() {
 if [[ -n "$MAIA_PS1" ]] ; then
     export PS1="$MAIA_PS1"
 fi
+maia_prompt_helper() {
+    export MAIA_PROMPT_SESSION=$(maia --query session)
+    export MAIA_PROMPT_WORKSPACE=$(maia --query workspace)
+}
+export PROMPT_COMMAND="maia_prompt_helper"

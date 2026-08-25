@@ -112,7 +112,7 @@ handle_shell_command() {
 	       warn "Double enter of monitored shell '$name'"
 	    fi
 	    (
-		export MAIA_PS1='\[\e]0;\u@\h[$MAIA_SESSION|$MAIA_SHELL]: \w\a\]\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]|\[\033[00m\]$MAIA_SHELL\[\033[01;36m\]]\[\033[00m\]:\[\033[01;35m\]\w\[\033[00m\]\$ '
+		export MAIA_PS1='\[\e]0;\u@\h[$MAIA_PROMPT_SESSION|$MAIA_PROMPT_WORKSPACE|$MAIA_SHELL]: \w\a\]\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;36m\][\[\033[00m\]$MAIA_PROMPT_SESSION\[\033[01;36m\]|\[\033[00m\]$MAIA_PROMPT_WORKSPACE\[\033[01;36m\]|\[\033[00m\]$MAIA_SHELL\[\033[01;36m\]]\[\033[00m\]:\[\033[01;35m\]\w\[\033[00m\]\$ '
 		export PATH="$MAIA_ROOT/bin:$PATH"
 		export MAIA_SHELL="$name"
 		# TODO export functions
@@ -128,7 +128,7 @@ handle_shell_command() {
 	# Leave this for enter later
 	interactive|"")
 	    (
-		export MAIA_PS1='\[\e]0;\u@\h[$MAIA_SESSION]: \w\a\]\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]]\[\033[00m\]:\[\033[01;35m\]\w\[\033[00m\]\$ '
+		export MAIA_PS1='\[\e]0;\u@\h[$MAIA_PROMPT_SESSION|$MAIA_PROMPT_WORKSPACE]: \w\a\]\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;36m\][\[\033[00m\]$MAIA_PROMPT_SESSION\[\033[01;36m\]|\[\033[00m\]$MAIA_PROMPT_WORKSPACE\[\033[01;36m\]]\[\033[00m\]:\[\033[01;35m\]\w\[\033[00m\]\$ '
 		export PATH="$MAIA_ROOT/bin:$PATH"
 		# TODO export functions
 		notice "Entered MAIA shell"
