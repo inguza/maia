@@ -11,6 +11,7 @@ session_usage() {
 USAGE
 
   maia session <command> [options]
+  maia session
 
 Manage sessions, including creation, switching, and metadata.
 
@@ -537,6 +538,14 @@ handle_session_command() {
             handle_x_delete session "$1" # Handles empty name
             ;;
 
+	"")
+	    local session="$(resolve_session_name)"
+	    local meta="$(resolve_session_meta)"
+	    if [[ ! -e "$meta" ]] ; then
+		session+="!"
+	    fi
+	    echo "$session"
+	    ;;
         *)
             session_usage
             ;;

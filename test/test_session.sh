@@ -30,6 +30,8 @@ run_session_cmd() {
 # Test 0: The help
 run_session_cmd "help" --help
 
+run_session_cmd "query_empty"
+
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
 
@@ -49,6 +51,7 @@ run_session_cmd "list_after_create_bar" list
 run_session_cmd "show_after_create_bar" show
 run_session_cmd "exist_after_create_bar_use" exist
 run_session_cmd "exist_after_create_bar_bar" exist bar
+run_session_cmd "query_bar"
 
 # Test 4: create a new session named 'baz'
 run_session_cmd "create_baz_nouse" create baz

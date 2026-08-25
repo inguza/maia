@@ -1,6 +1,7 @@
 USAGE
 
   maia session <command> [options]
+  maia session
 
 Manage sessions, including creation, switching, and metadata.
 
