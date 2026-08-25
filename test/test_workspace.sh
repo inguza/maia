@@ -27,8 +27,11 @@ run_workspace_cmd() {
     run_and_check "test_workspace_${test_id}" $MAIA workspace "$@"
 }
 
+run_workspace_cmd "help" --help
+
 # Test 1: list workspaces in a fresh home (should be empty or default)
 run_workspace_cmd "list_empty" list
+run_workspace_cmd "query_empty"
 
 # Test 2: create a new workspace named 'foo'
 run_workspace_cmd "create_foo_default" create foo

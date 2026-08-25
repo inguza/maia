@@ -1,0 +1,73 @@
+USAGE
+
+  maia workspace <command> [options]
+
+Manage workspace manifests and their filesets.
+
+COMMANDS
+
+  create [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+    Create a new workspace manifest. 
+    If <name> is omitted, the default is:
+      • "default" if <workspace_path>/.maia matches MAIA_HOME
+      • basename("<workspace_path>") otherwise.
+
+  set [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+    Change the workspace properties.
+
+  list|ls
+    List all available workspaces.
+
+  show [options] [<name>]
+    Display the manifest of the specified (or current) workspace.
+    Options are:
+      --raw|--json  Output in json format.
+
+  edit [<name>]
+    Open the workspace meta data file in $EDITOR.
+
+  clear [--fileset] [--system] [<name>]
+    Reset the manifest (keep "name" and "path").
+
+  delete [--force] <name>
+    Delete the specified workspace (cannot delete the current one).
+
+OPTIONS
+
+  -h, --help
+    Show this help message for the "workspace" subcommand.
+
+  --path <directory>
+    Specify the filesystem path for the workspace.
+
+  --filesets <json-array> (create and set)
+    Specify the list of filesets in the workspace as a JSON array of strings.
+    Example: '["default", "tests", "docs"]'
+
+  --default-session-filesets <json-array> (create and set)
+    Set the default session filesets as a JSON array of strings.
+    Supports the special marker "__WORKSPACE_FILESETS__" to represent all
+    current workspace filesets.
+    Example: '["__WORKSPACE_FILESETS__", "extra_fileset"]'
+    If omitted during workspace creation, defaults to ["__WORKSPACE_FILESETS__"].
+
+  --fileset (only with clear)
+    Remove all filesets and recreate default fileset.
+
+  --system (only with clear)
+    Delete system.txt in the workspace folder.
+
+EXAMPLES
+
+    maia workspace list
+      List all available workspaces.
+
+    maia workspace create myworkspace --path /path/to/project
+      Create a workspace named "myworkspace" with the specified path.
+
+NOTES
+
+  Workspace manifests maintain metadata about project paths and associated filesets.
+
+  If <name> is omitted, the default is the current workspace (except for create).  
+

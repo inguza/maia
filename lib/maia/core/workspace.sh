@@ -16,18 +16,13 @@ Manage workspace manifests and their filesets.
 
 COMMANDS
 
-  use [<name>]
-    Set or show the current workspace name.
-
-  select - an alias of use
-
-  create [<name>] [--use|--nouse] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+  create [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
       • "default" if <workspace_path>/.maia matches MAIA_HOME
       • basename("<workspace_path>") otherwise.
 
-  set [<name>] [--use|--nouse] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+  set [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
     Change the workspace properties.
 
   list|ls
@@ -38,7 +33,7 @@ COMMANDS
     Options are:
       --raw|--json  Output in json format.
 
-  edit [<name>] [--use|--nouse]
+  edit [<name>]
     Open the workspace meta data file in $EDITOR.
 
   clear [--fileset] [--system] [<name>]
@@ -326,6 +321,26 @@ handle_workspace_command() {
 	    # Now all checks are in place, now you can delete
 	    handle_x_delete "workspace" "$1" # Handles optional name
             ;;
+
+	"")
+	    local workspace="$(resolve_workspace_name)"
+	    if [[ -n "$workspace" ]] ; then
+		local meta="$(resolve_workspace_meta)"
+		if [[ ! -e "$meta" ]] ; then
+		    workspace+="!"
+		else
+		    local wpath="$(resolve_workspace_root)"
+		    if [[ "$PWD" == "$wpath" || "$PWD" == "$wpath/"* ]]; then
+			:
+		    else
+			workspace+="§"
+		    fi
+		fi
+	    else
+		workspace="-"
+	    fi
+	    echo "${workspace}"
+	    ;;	    
 
 	*)
 	    die "Unknown workspace command: $cmd"

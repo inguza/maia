@@ -46,6 +46,8 @@ run_session_cmd "create_bar_use" create bar
 export MAIA_SESSION=bar
 run_session_cmd "list_after_create_bar" list
 run_session_cmd "show_after_create_bar" show
+run_session_cmd "query_bar"
+run_workspace_cmd "query_bar"
 
 # Test 4: create a new session named 'baz'
 run_session_cmd "create_baz_nouse" create baz
