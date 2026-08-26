@@ -6,12 +6,21 @@
 # Commercial licensing is available separately.
 #
 
+###################################################################################
+# Load the general bashrc
+###################################################################################
 if [[ -e "$HOME/.bashrc" ]] ; then
    . "$HOME/.bashrc"
 fi
+
+###################################################################################
+# specific maia functionality
+###################################################################################
+# Alias to set the session in a way that save keystrokes
 maias() {
     export MAIA_SESSION="$1"
 }
+# Prompt visibility
 if [[ -n "$MAIA_PS1" ]] ; then
     PS1="$MAIA_PS1"
 fi
@@ -26,3 +35,5 @@ if [[ "$PROMPT_COMMAND" != *maia_prompt_helper* ]]; then
 	PROMPT_COMMAND+=$'\n'"maia_prompt_helper > /dev/null 2>&1 || true"
     fi
 fi
+# Bash completions
+. "${MAIA_ROOT}/etc/bash.completions"

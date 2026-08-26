@@ -131,6 +131,9 @@ There are two ways to handle maia.
    export PS1='\[\e]0;\u@\h${MAIA_SESSION:+[$MAIA_SESSION]}: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]${MAIA_SESSION:+\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]]\[\033[00m\]}:\[\033[01;35m\]\w\[\033[00m\]\$ '
    ```
 
+   For bash completions, copy the `etc/bash.completions` file to `/etc/bash_completion.d/maia` (may be a different path
+   depending on your Linux distribution) or source it in your `~/.bashrc` file.
+
 ### Additional ~/.bashrc configuration
 
 It may also be useful to set the prefered editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
