@@ -19,7 +19,7 @@ Each `.td` file should be a valid JSON object with the following fields:
 
 ```json
 {
-  "name": "file.read",
+  "name": "file-read",
   "description": "Read the contents of a file",
   "command": "file-read.sh",
   "parameters": {
