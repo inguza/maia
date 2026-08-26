@@ -236,7 +236,20 @@ Optional external capabilities that can be made available to the AI to perform a
    maias sessionname1
    ```
 
-3. **Manage files**
+3. **Allow tools and skills**
+   Allow tools (this is a small set, there are more tools available):
+
+   ```bash
+   maia tool --scope session replace "core-*" "file-*" "context-*" "util-*" "change-apply"
+   ```
+   
+   Allow skills and make sure they are in context.
+
+   ```bash
+   maia skill --scope session --remember replace "file"
+   ```
+
+4. **Manage files**
    Add relevant files to provide context for the AI.
 
    ```bash
@@ -244,7 +257,7 @@ Optional external capabilities that can be made available to the AI to perform a
    maia file forget pathtofile1
    ```
 
-4. **Compose messages**
+5. **Compose messages**
 
    Send a message from command line:
    ```bash
@@ -254,17 +267,6 @@ Optional external capabilities that can be made available to the AI to perform a
    Send a message using an editor to compose it:
    ```bash
    maia compose
-   ```
-
-   By default maia parses the response and procuce change suggestions.
-
-5. **Parse AI responses into changes**
-   Review and apply changes to your files.
-
-   ```bash
-   maia change list
-   maia change show
-   maia change apply
    ```
 
 6. **Check history**
