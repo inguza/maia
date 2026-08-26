@@ -1,7 +1,7 @@
 # Introduction
 
 MAIA is a lightweight, command-line AI assistant designed to run on most Linux systems. It provides a
-structured environment for working with AI models through sessions, workspaces, context management and tools.
+structured environment for working with AI models through sessions, workspaces, context and tools.
 
 It is built around the Unix environment rather than requiring a separate application ecosystem.
 
