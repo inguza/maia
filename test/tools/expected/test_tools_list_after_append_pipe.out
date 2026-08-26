@@ -39,7 +39,7 @@
   shell-exec   (/home/ola/git/maia/lib/maia/tools/shell.td)
   context-skill-remember   (/home/ola/git/maia/lib/maia/tools/skill.td)
   context-skill-forget   (/home/ola/git/maia/lib/maia/tools/skill.td)
-  skill-execute   (/home/ola/git/maia/lib/maia/tools/skill.td)
+  skill-exec   (/home/ola/git/maia/lib/maia/tools/skill.td)
   subsession-create   (/home/ola/git/maia/lib/maia/tools/subsession.td)
   subsession-show   (/home/ola/git/maia/lib/maia/tools/subsession.td)
   subsession-delete   (/home/ola/git/maia/lib/maia/tools/subsession.td)
