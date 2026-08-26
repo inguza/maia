@@ -23,31 +23,42 @@ _maia()
     # top-level commands (collated from bin/maia and lib/maia/core)
     local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill snippet session job history workspace shell edit compose run"
 
-    # common flags
-    local global_flags="--help --version"
+    # flags: top-level vs per-subcommand
+    local top_level_flags="--version -h --help"
+    local subcmd_help_flags="-h --help"
 
     # helper: complete filenames (also supports =filename tokens)
     _complete_filename_token() {
         # if current word starts with '=' then complete after the = and prepend = to matches
         if [[ "$cur" == =* ]]; then
-            local prefix="=${cur#=}"
-            # compgen will complete paths, but we need to re-add '=' prefix
+            local raw="${cur#=}"
+            local search="$raw"
+            local restore_tilde=false
+            # Expand leading ~ for lookup convenience, but restore in suggestions
+            if [[ "$search" == ~* ]]; then
+                search="${HOME}${search#\~}"
+                restore_tilde=true
+            fi
+            compopt -o filenames
             local IFS=$'\n'
-            local matches=( $(compgen -f -- "${cur#=}") )
+            local matches=( $(compgen -f -- "$search") )
             COMPREPLY=( )
             for m in "${matches[@]}"; do
-                # if directory, append / to indicate that
+                # Present directories with trailing slash
                 if [[ -d "$m" ]]; then
-                    COMPREPLY+=("=${m%/}/")
-                else
-                    COMPREPLY+=("=$m")
+                    m="${m%/}/"
                 fi
+                if $restore_tilde; then
+                    # Replace $HOME/ prefix with ~/
+                    m="~${m#"$HOME"/}"
+                fi
+                COMPREPLY+=("=${m}")
             done
-            return
+            return 0
         else
             compopt -o filenames
             COMPREPLY=( $(compgen -f -- "$cur") )
-            return
+            return 0
         fi
     }
 
@@ -58,15 +69,77 @@ _maia()
     local scopes="session workspace home user system default"
     local prompt_types="system files tools skills skillset skillsetcontext"
 
+    # Helper: complete @snippet names by scanning common snippet directories
+    _maia_complete_snippets() {
+        local IFS=$'\n'
+        local snippets=()
+        # search candidate dirs: current and ancestors .maia/snippets, $MAIA_HOME/.maia/snippets, $HOME/.maia/snippets, /etc/maia/snippets
+        local dir="$PWD"
+        while [[ "$dir" != "/" && -n "$dir" ]]; do
+            if [[ -d "$dir/.maia/snippets" ]]; then
+                for f in "$dir/.maia/snippets"/*.txt; do
+                    [[ -f "$f" ]] || continue
+                    snippets+=("@$(basename "$f" .txt)")
+                done
+            fi
+            dir=$(dirname "$dir")
+        done
+        if [[ -n "$MAIA_HOME" && -d "$MAIA_HOME/.maia/snippets" ]]; then
+            for f in "$MAIA_HOME/.maia/snippets"/*.txt; do [[ -f "$f" ]] || continue; snippets+=("@$(basename "$f" .txt)"); done
+        fi
+        if [[ -d "$HOME/.maia/snippets" ]]; then
+            for f in "$HOME/.maia/snippets"/*.txt; do [[ -f "$f" ]] || continue; snippets+=("@$(basename "$f" .txt)"); done
+        fi
+        if [[ -d "/etc/maia/snippets" ]]; then
+            for f in "/etc/maia/snippets"/*.txt; do [[ -f "$f" ]] || continue; snippets+=("@$(basename "$f" .txt)"); done
+        fi
+        # Remove duplicates
+        if (( ${#snippets[@]} )); then
+            COMPREPLY=( $(compgen -W "${snippets[*]}" -- "$cur") )
+        fi
+    }
+
+    # Helper: unified completion for <text-or-file> style arguments
+    # Supports: +commands, =filename (with = prefix), @snippet, or plain filenames
+    _maia_complete_text_or_file() {
+        # +commands
+        if [[ "$cur" == +* ]]; then
+            COMPREPLY=( $(compgen -W "$plus_commands" -- "$cur") )
+            return 0
+        fi
+        # @snippet
+        if [[ "$cur" == @* ]]; then
+            _maia_complete_snippets
+            return 0
+        fi
+        # == and ++ literal handling – offer the literal as completion
+        if [[ "$cur" == ==* || "$cur" == ++* ]]; then
+            COMPREPLY=("$cur")
+            return 0
+        fi
+        # =filename
+        if [[ "$cur" == =* || "$prev" == "=" ]]; then
+            _complete_filename_token
+            return 0
+        fi
+        # Fallback: filename completion (both files and directories)
+        _complete_filename_token
+        return 0
+    }
+
     # If first argument is empty, complete top-level commands
     if [[ ${COMP_CWORD} -le 1 ]]; then
-        COMPREPLY=( $(compgen -W "$cmds $global_flags" -- "$cur") )
+        COMPREPLY=( $(compgen -W "$cmds $top_level_flags" -- "$cur") )
         return 0
     fi
 
-    # Handle file-token completion and equals-prefix tokens globally
+    # Global quick handlers: if token starts with = or @ handle immediately
     if [[ "$cur" == =* ]]; then
         _complete_filename_token
+        return 0
+    fi
+    if [[ "$cur" == @* ]]; then
+        _maia_complete_snippets
         return 0
     fi
 
@@ -75,7 +148,7 @@ _maia()
         config)
             local subcmds="list get set unset"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             # After --scope expect scope name
@@ -87,7 +160,7 @@ _maia()
         api)
             local subcmds="models model fine-tunes fine-tune usage"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             ;;
@@ -96,7 +169,7 @@ _maia()
             local subcmds="show edit append replace clear delete"
             # If only command provided, offer subcommands
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             # If previous token is append/replace and current starts with +, offer +commands
@@ -112,30 +185,24 @@ _maia()
                     return 0
                 fi
                 if [[ "$cur" == @* ]]; then
-                    # suggest snippet names from snippets directory if available
-                    if [[ -d "${TEST_ROOT:-.}" ]]; then
-                        :
-                    fi
-                fi
-                # If token starts with = use filename completion
-                if [[ "$cur" == =* || "$prev" == "=" ]]; then
-                    _complete_filename_token
+                    _maia_complete_snippets
                     return 0
                 fi
-                # Otherwise offer general suggestions and allow filenames
-                COMPREPLY=( $(compgen -W "$global_flags +compose +read +edit +run" -- "$cur") )
-                if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
-                    _complete_filename_token
-                fi
+                # Delegate to unified text-or-file completion (handles =, +, @, filenames)
+                _maia_complete_text_or_file
                 return 0
             fi
-            # If previous token is a flag like --help, no suggestions
             ;;
         send|s|compose|+compose)
             # send has many flags; suggest common flags and file tokens
-            local send_flags="--dry-run --response-file --model --temperature --file-handling-mode --continue -h --help"
+            local send_flags="--dry-run --response-file --model --temperature --file-handling-mode --continue $subcmd_help_flags"
             if [[ "$prev" == "--response-file" || "$cur" == =* ]]; then
                 _complete_filename_token
+                return 0
+            fi
+            # If we're completing positional arguments (text-or-file), use unified completion
+            if (( COMP_CWORD >= 2 )); then
+                _maia_complete_text_or_file
                 return 0
             fi
             COMPREPLY=( $(compgen -W "$send_flags" -- "$cur") )
@@ -144,7 +211,7 @@ _maia()
         session)
             local subcmds="create list set edit show content files delete exist"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             if [[ "$prev" == "--workspace" ]]; then
@@ -156,47 +223,74 @@ _maia()
         workspace|ws|w)
             local subcmds="create set list show edit clear delete"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
+            # Complete --path directories when flag used
             if [[ "$prev" == "--path" ]]; then
                 compopt -o filenames
                 COMPREPLY=( $(compgen -d -- "$cur") )
                 return 0
             fi
+            # Special handling for `maia workspace create <name> [--path <path>] [<src>]`
+            if [[ "${COMP_WORDS[2]}" == "create" ]]; then
+                local ws_create_flags="--path --filesets --default-session-filesets $subcmd_help_flags"
+                if [[ "$cur" == --* ]]; then
+                    COMPREPLY=( $(compgen -W "$ws_create_flags" -- "$cur") )
+                    return 0
+                fi
+                if [[ "$prev" == "--path" ]]; then
+                    compopt -o filenames
+                    COMPREPLY=( $(compgen -d -- "$cur") )
+                    return 0
+                fi
+                # If completing the optional <src> parameter (position > 2 and not starting with --), offer filenames.
+                if (( COMP_CWORD > 3 )); then
+                    _complete_filename_token
+                    return 0
+                fi
+            fi
             ;;
         fileset|filesets)
             local subcmds="list create use show clear delete readonly readwrite"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
+                return 0
+            fi
+            # If creating a fileset, complete optional src
+            if [[ "${COMP_WORDS[2]}" == "create" && $COMP_CWORD -gt 3 ]]; then
+                _complete_filename_token
                 return 0
             fi
             ;;
         file|files|f)
             local subcmds="list content remember add forget delete remove"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags --all --filesets" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --all --filesets" -- "$cur") )
                 return 0
             fi
             if [[ "$prev" == "--filesets" ]]; then
                 # complete fileset names from workspace .fileset files
-                local ws_dir
-                # naive: complete filesystem names
                 COMPREPLY=( $(compgen -f -- "$cur") )
+                return 0
+            fi
+            # If completing arguments to 'add' or 'remember', allow text-or-file completions
+            if [[ "$prev" == "add" || "$prev" == "remember" || "${COMP_WORDS[2]}" == "add" ]]; then
+                _maia_complete_text_or_file
                 return 0
             fi
             ;;
         change|c)
             local subcmds="list show edit apply adjust process convert applied skipped pending finished failed running delete"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             ;;
         tool|tools|toolset)
             local subcmds="list show append replace edit clear refresh verify"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags --scope" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope" -- "$cur") )
                 return 0
             fi
             if [[ "$prev" == "--scope" ]]; then
@@ -207,47 +301,55 @@ _maia()
         skill|skills)
             local subcmds="list show append replace edit clear refresh verify remember add forget test"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags --scope --type" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope --type" -- "$cur") )
                 return 0
             fi
             if [[ "$prev" == "--type" ]]; then
                 COMPREPLY=( $(compgen -W "allow memory context" -- "$cur") )
                 return 0
             fi
+            # For skill names and append/allow/replace actions complete as text-or-file
+            if [[ "$prev" == "append" || "$prev" == "allow" || "$prev" == "replace" || "$prev" == "remember" || "$prev" == "add" ]]; then
+                _maia_complete_text_or_file
+                return 0
+            fi
             ;;
         snippet|snippets)
             local subcmds="list show append add replace edit delete"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags --scope" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope" -- "$cur") )
                 return 0
             fi
             if [[ "$prev" == "--scope" ]]; then
                 COMPREPLY=( $(compgen -W "$scopes" -- "$cur") )
                 return 0
             fi
+            # Append/add/replace should accept text-or-file
+            if [[ "$prev" == "append" || "$prev" == "add" || "$prev" == "replace" ]]; then
+                _maia_complete_text_or_file
+                return 0
+            fi
             ;;
         history|h)
             local subcmds="show pop top delete prune search clear"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags --raw --json -a -u -t" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --raw --json -a -u -t" -- "$cur") )
                 return 0
             fi
             ;;
         job)
             local subcmds="start list show status output cancel delete exist"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
             ;;
         shell)
             local subcmds="list create delete remove clear enter interactive"
             if [[ $COMP_CWORD -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$subcmds $global_flags" -- "$cur") )
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags" -- "$cur") )
                 return 0
             fi
-            ;;
-        api)
             ;;
         count)
             # count uses --model and similar flags
@@ -259,7 +361,7 @@ _maia()
             ;;
         *)
             # Fallback: complete top-level commands
-            COMPREPLY=( $(compgen -W "$cmds $global_flags" -- "$cur") )
+            COMPREPLY=( $(compgen -W "$cmds $top_level_flags" -- "$cur") )
             # Also if token looks like a file or begins with '/', complete filenames
             if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
                 _complete_filename_token
