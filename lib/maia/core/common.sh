@@ -115,9 +115,10 @@ init_scope_dirs() {
 # Initialize the map of all known tool paths
 # Only call when needed since the jq lookup is a little slow
 init_tool_search_dirs() {
+    local wsroot="$(resolve_workspace_root)"
     TOOL_DIRS=(
 	[session]="${SCOPE_DIRS[session]}/tools"
-	[workspace]="${SCOPE_DIRS[workspace]}/tools"
+	[workspace]="${SCOPE_DIRS[workspace]}/tools:$wsroot/.maia/tools"
 	[home]="${SCOPE_DIRS[home]}/.maia/tools"
 	[user]="${SCOPE_DIRS[user]}/tools"
 	[system]="${SCOPE_DIRS[system]}/tools"
@@ -127,10 +128,11 @@ init_tool_search_dirs() {
 }
 
 init_skill_search_dirs() {
+    local wsroot="$(resolve_workspace_root)"
     SKILL_DIRS=(
 	[session]="${SCOPE_DIRS[session]}/skills"
-	[workspace]="${SCOPE_DIRS[workspace]}/skills:${SCOPE_DIRS[workspace]}/.maia/skills"
-	[home]="${SCOPE_DIRS[home]}/.maia/skills"
+	[workspace]="${SCOPE_DIRS[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
+	[home]="${SCOPE_DIRS[home]}/skills"
 	[user]="${SCOPE_DIRS[user]}/skills"
 	[system]="${SCOPE_DIRS[system]}/skills"
 	[install]="${MAIA_SKILLS_LIB_DIR}"
