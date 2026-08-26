@@ -128,7 +128,7 @@
   {
     "name": "job-delete",
     "description": "Delete a background job and its data. A running job cannot be deleted unless force is true.",
-    "command": "job-id.sh delete",
+    "command": "job-delete.sh",
     "parameters": {
       "type": "object",
       "properties": {
@@ -139,9 +139,13 @@
         "subsession": {
           "type": "string",
           "description": "The subsession name that should remember the specified files. If absent current session is used."
-        }	
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force deletion (optional)."
+        }
       },
-      "required": ["id", "force"],
+      "required": ["id"],
       "additionalProperties": false
     },
     "strict": true
