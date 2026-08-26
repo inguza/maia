@@ -9,7 +9,7 @@ change_usage() {
     cat <<'EOF'
 USAGE
 
-  aia change <command> [options] [ID…]
+  maia change <command> [options] [ID…]
 
 Manage change suggestions and their application.
 
@@ -44,7 +44,7 @@ COMMANDS
     further processing complicated.
 
   process [<ID> [<ID>...]]
-    Process the body of the change similar to the 'aia parse' would have done.
+    Process the body of the change similar to the 'maia parse' would have done.
 
   convert <ID> [--type snippet|file|shell|diff|manual] [filename]
     Change the type and/or filename of a change. Assign filename if provided.

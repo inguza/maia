@@ -34,7 +34,7 @@ resolve_home_paths() {
     maia_data_search_path+=("$HOME" "/etc")
 
     # Check for .maia directories in each directory in maia_data_search_path
-    # Check each candidate: use “aia” under /etc, otherwise “.maia”
+    # Check each candidate: use “maia” under /etc, otherwise “.maia”
     for dir in "${maia_data_search_path[@]}"; do
 	if [[ "$dir" == "/etc" ]]; then
 	    candidate="$dir/maia"

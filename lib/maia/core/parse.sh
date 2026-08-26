@@ -10,7 +10,7 @@ parse_usage() {
     cat <<'EOF'
 USAGE
 
-  aia parse [<range>] [--force] [<default-filename> ...]
+  maia parse [<range>] [--force] [<default-filename> ...]
 
 Extract the latest assistant reply(s) from the current session’s history,
 write them into change files under the workspace’s changes/ directory, and
@@ -43,7 +43,7 @@ OPTIONS
 
     Example:
 
-      aia parse last --force src/foo.c src/bar.c
+      maia parse last --force src/foo.c src/bar.c
 
     This command parses the last assistant reply, forcing re-parse, and assigns
     'src/foo.c' to the first snippet without a filename, 'src/bar.c' to the second,
@@ -57,7 +57,7 @@ NOTES
   - If more snippet blocks require filenames than the number of default filenames
     provided, the remaining snippets will be treated as unnamed snippets.
 
-  - It is recommended to first run 'aia parse' without default filenames to identify
+  - It is recommended to first run 'maia parse' without default filenames to identify
     which snippets require filename assignments, then re-run with appropriate defaults.
 
   Deprecation note!

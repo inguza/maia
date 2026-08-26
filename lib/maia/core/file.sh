@@ -10,7 +10,7 @@ file_usage() {
     cat <<'EOF'
 USAGE
 
-  aia file [options] <command>
+  maia file [options] <command>
 
 Manage files in your workspace's filesets.
 
@@ -51,25 +51,25 @@ OPTIONS
 
 EXAMPLES
 
-    aia file list
+    maia file list
       List files in the active session's workspace filesets.
 
-    aia file remember src/*.js README.md
+    maia file remember src/*.js README.md
       Add specified files to the session's workspace filesets.
 
-    aia file remember src/send.sh:send_usage src/count.sh:count_usage
+    maia file remember src/send.sh:send_usage src/count.sh:count_usage
       Add specified files with function filter to workspace active filesets.
 
-    aia file forget *.tmp
+    maia file forget *.tmp
       Forget entries matching local files *.tmp from workspace active filesets.
 
-    aia file forget "*.tmp"
+    maia file forget "*.tmp"
       Forget entries matching *.tmp from session's workspace filesets.
 
-   aia file forget "*:*_usage"
+   maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
 
-   aia file remove old_data.csv
+   maia file remove old_data.csv
       Remove specified file in the filesystem and delete from workspace active filesets.
 
 NOTES
@@ -236,7 +236,7 @@ handle_file_command() {
 
         add|remember)
             shift
-            [[ $# -ge 1 ]] || die "Usage: aia file add [--filesets …] <paths…>"
+            [[ $# -ge 1 ]] || die "Usage: maia file add [--filesets …] <paths…>"
             local workspace_root=$(resolve_workspace_root "$session_ws")
             for path in "$@"; do
                 local file_part filter_part
@@ -293,13 +293,13 @@ handle_file_command() {
 
         delete|forget)
             shift
-            [[ $# -ge 1 ]] || die "Usage: aia file forget [--filesets …] <patterns…>"
+            [[ $# -ge 1 ]] || die "Usage: maia file forget [--filesets …] <patterns…>"
             forget_entries "$@"
             ;;
 
         remove)
             shift
-            [[ $# -ge 1 ]] || die "Usage: aia file remove [--filesets …] <patterns…>"
+            [[ $# -ge 1 ]] || die "Usage: maia file remove [--filesets …] <patterns…>"
             local workspace_root=$(resolve_workspace_root "$session_ws")
 
             local -a filtered_patterns=()

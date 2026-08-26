@@ -1,6 +1,6 @@
 USAGE
 
-  aia file [options] <command>
+  maia file [options] <command>
 
 Manage files in your workspace's filesets.
 
@@ -41,25 +41,25 @@ OPTIONS
 
 EXAMPLES
 
-    aia file list
+    maia file list
       List files in the active session's workspace filesets.
 
-    aia file remember src/*.js README.md
+    maia file remember src/*.js README.md
       Add specified files to the session's workspace filesets.
 
-    aia file remember src/send.sh:send_usage src/count.sh:count_usage
+    maia file remember src/send.sh:send_usage src/count.sh:count_usage
       Add specified files with function filter to workspace active filesets.
 
-    aia file forget *.tmp
+    maia file forget *.tmp
       Forget entries matching local files *.tmp from workspace active filesets.
 
-    aia file forget "*.tmp"
+    maia file forget "*.tmp"
       Forget entries matching *.tmp from session's workspace filesets.
 
-   aia file forget "*:*_usage"
+   maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
 
-   aia file remove old_data.csv
+   maia file remove old_data.csv
       Remove specified file in the filesystem and delete from workspace active filesets.
 
 NOTES
