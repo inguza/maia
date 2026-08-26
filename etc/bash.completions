@@ -21,7 +21,7 @@ _maia()
     fi
 
     # top-level commands (collated from bin/maia and lib/maia/core)
-    local cmds="config home api session send user outbox system snippet snip count change parse files file fileset filesets tool skill snippet session job history workspace shell edit compose run"
+    local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill snippet session job history workspace shell edit compose run"
 
     # common flags
     local global_flags="--help --version"
