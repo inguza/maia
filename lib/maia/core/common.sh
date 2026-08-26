@@ -1262,8 +1262,9 @@ skill_execute() {
     shift 3
     local status=1
 
-    local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
-    local allowed_glob=$(make_glob_from_file "$skillset_file")
+    local -a skillset
+    mapfile -t skillset < <(prompt_for_scope "$scope" "skillset")
+    local allowed_glob=$(make_glob_from_var "${skillset[@]}")
     if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
         local skill_search_path=$(build_skill_search_path)
 	local skill_exec_dir="$(command_exec_dir "$skill/$scriptname" "$skill_search_path")"
@@ -1274,11 +1275,12 @@ skill_execute() {
 	    (
 		export PATH="$skill_search_path:$PATH"
 		cd "$(printf '%q' "$(resolve_workspace_root)")"
+		notice "Running '$skill_exec_dir/$skill/$scriptname' with arguments " "${args[@]}"
 		echo '' | "$skill_exec_dir/$skill/$scriptname" "${args[@]}" 2>&1
 	    )
 	    status=$?
 	    if (( status != 0 )); then
-		warning "Skill '$skill/$scriptname' failed (status $status)."
+		warn "Skill '$skill/$scriptname' failed (status $status)."
 	    fi
 	fi
     else

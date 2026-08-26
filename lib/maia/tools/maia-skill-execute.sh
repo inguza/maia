@@ -23,7 +23,9 @@ scope="session"
 if [[ -z "$skill" || -z "$script" ]]; then
     die "Missing skill or script parameter"
 fi
-if [[ "$skill" !~ ^[0-9a-zA-Z_]+$ ]] ; then
+if [[ "$skill" =~ ^[0-9a-zA-Z_]+$ ]] ; then
+    :
+else
     die "Invalid characters in skill '$skill'."
 fi
 validate_path "$script"
