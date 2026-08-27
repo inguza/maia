@@ -19,17 +19,18 @@ resolve_home_paths() {
     # Check ancestor directories (one level at a time) starting from the current working directory
     local maia_data_search_path=()
     local dir="$PWD"
+    local maia_home="${MAIA_HOME:-}"
     while [ "$dir" != "/" ]; do
-	# Stop early if we hit $MAIA_HOME or the user's home
-	if [[ "$dir" == "$MAIA_HOME" || "$dir" == "$HOME" ]] ; then
+	# Stop early if we hit $maia_home or the user's home
+	if [[ "$dir" == "$maia_home" || "$dir" == "$HOME" ]] ; then
 	    break
 	fi
 	maia_data_search_path+=("$dir")
 	dir=$(dirname "$dir")
     done
 
-    if [ -n "$MAIA_HOME" ] ; then
-	maia_data_search_path+=("$MAIA_HOME")
+    if [ -n "$maia_home" ] ; then
+	maia_data_search_path+=("$maia_home")
     fi
     maia_data_search_path+=("$HOME" "/etc")
 
@@ -47,10 +48,10 @@ resolve_home_paths() {
 	fi
     done
 
-    # If no valid .maia directory is found, fallback to $MAIA_HOME or ~/.maia
+    # If no valid .maia directory is found, fallback to $maia_home or ~/.maia
     if [ ${#data_paths[@]} -eq 0 ]; then
-	if [ -n "$MAIA_HOME" ]; then
-	    data_paths+=("$MAIA_HOME/.maia")
+	if [ -n "$maia_home" ]; then
+	    data_paths+=("$maia_home/.maia")
 	else
 	    data_paths+=("$HOME/.maia")
 	fi
