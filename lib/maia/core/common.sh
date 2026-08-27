@@ -1275,8 +1275,7 @@ skill_execute() {
 	    (
 		export PATH="$skill_search_path:$PATH"
 		cd "$(printf '%q' "$(resolve_workspace_root)")"
-		notice "Running '$skill_exec_dir/$skill/$scriptname' with arguments " "${args[@]}"
-		echo '' | "$skill_exec_dir/$skill/$scriptname" "${args[@]}" 2>&1
+		echo '' | "$skill_exec_dir/$skill/$scriptname" "$@" 2>&1
 	    )
 	    status=$?
 	    if (( status != 0 )); then
