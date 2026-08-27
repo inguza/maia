@@ -58,6 +58,13 @@ declare -A DEFAULT_CONFIG=(
     [default_workspace]='__SESSION_WORKSPACE__'
     [send_hook]=''
     # Default cost configuration (flat keys with cost_ prefix)
+    [cost_input_gpt_5_4]=2.5
+    [cost_output_gpt_5_4]=15
+    [cost_input_gpt_5_4_mini]=0.75
+    [cost_output_gpt_5_4_mini]=4.5
+    [cost_input_gpt_5_4_nano]=0.2
+    [cost_output_gpt_5_4_nano]=1.25
+    #
     [cost_input_gpt_4_1]=2
     [cost_output_gpt_4_1]=8
     [cost_input_gpt_4_1_mini]=0.4
