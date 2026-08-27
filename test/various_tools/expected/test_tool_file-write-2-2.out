@@ -5,8 +5,6 @@ File pathx/2.txt already exists.
 Change proposal created:
 <dateandtime>-68e33e97-2
 
-The requested file contents are now represented by this pending change.
-
 The content of the proposed change is the following:
 ```patch
 --- a/pathx/2.txt
