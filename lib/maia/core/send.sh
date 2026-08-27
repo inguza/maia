@@ -482,8 +482,9 @@ handle_send_command() {
     local allowed_iterations_left=10
     declare -A seen_commands=()
     declare -A seen_commands_this
+    local iteration=0
     while (( allowed_iterations_left > 0 )); do
-
+	((iteration++))
 	local messages_json
 	if ! messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type") ; then
 	    # Here we silently fail because this will only happen at die
@@ -571,12 +572,14 @@ handle_send_command() {
 		   }' > "$tmp_payload"
 	    fi
 	fi
+	# Take the timestamp just before the request, and then remember it until next request
+	timestamp=$(date +"%Y%m%dT%H%M%S")
 	if [[ "$http_logging" == "true" ]]; then
             local log_dir=$(resolve_logs_dir)
             mkdir -p "$log_dir"
-	    echo "$url" > "$log_dir/${timestamp}-request.log"
-            cat "$tmp_payload" >> "$log_dir/${timestamp}-request.json"
-            info "Request logged to $log_dir/${timestamp}-request.json"
+	    echo "$url" > "$log_dir/${timestamp}-${iteration}-request.log"
+            cat "$tmp_payload" >> "$log_dir/${timestamp}-${iteration}-request.json"
+            info "Request logged to $log_dir/${timestamp}-${iteration}-request.json"
 	fi
 
 	local reply="" response="" errormsg=""
@@ -623,9 +626,9 @@ handle_send_command() {
 			    "$url")
 
             if [[ "$http_logging" == "true" ]]; then
-		echo "${curl_headers[@]}" > "$log_dir/${timestamp}-request.log"
-		echo "$response" > "$log_dir/${timestamp}-response.json"
-		info "Response logged to $log_dir/${timestamp}-response.json"
+		echo "${curl_headers[@]}" > "$log_dir/${timestamp}-${iteration}-response.log"
+		echo "$response" > "$log_dir/${timestamp}-${iteration}-response.json"
+		info "Response logged to $log_dir/${timestamp}-${iteration}-response.json"
             fi
 
 	    # Extract reply or error from response
