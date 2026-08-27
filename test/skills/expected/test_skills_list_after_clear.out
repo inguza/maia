@@ -1,2 +1,4 @@
   file /home/ola/git/maia/lib/maia/skills/file/SKILL.md
   subsession /home/ola/git/maia/lib/maia/skills/subsession/SKILL.md
+  skill-a <MAIA_HOME>/.maia/skills/skill-a/SKILL.md
+  skill-b <MAIA_HOME>/.maia/skills/skill-b/SKILL.md

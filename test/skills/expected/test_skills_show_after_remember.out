@@ -7,10 +7,16 @@ skill-a
 
 Memorized skills:
 -----------------
+skill-a
 
 Allowed skill list:
 -------------------
 - file - How to manipulate files using file and change tools
+- skill-a - Skill A description
 
 Memorized skill information:
 ----------------------------
+## skill-a
+
+Skill A details here.
+
