@@ -148,8 +148,8 @@ prune_history() {
     # 1) Load the original <idbase>.txt
     local instructions_file="$changes_dir/$session/${idbase}.txt"
     if [[ ! -f "$instructions_file" ]]; then
-        notice "Instruction file $instructions_file missing; skipping pruning"
-        return
+	# We do not log since this is the normal case for file-* tools
+	return
     fi
     local instructions=$(< "$instructions_file")
 
