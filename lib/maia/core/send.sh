@@ -181,12 +181,6 @@ build_messages_json() {
                     .[0] + (.[1] | map(if type=="object" then del(.timestamp, .id) else . end))
                 ' <(echo "$msgs") "$history_file")
             fi
-            # One combined “Files:” user message
-            if [[ -n "$combined" ]]; then
-		# Avoid argument list too long by using slurpfile
-		msgs=$(jq --slurpfile content <(printf '%s\n%s' "Files:" "$combined" | jq -R -s '.') \
-		      '. + [{role:"user",content:$content[0]}]' <<< "$msgs")
-            fi
             # Outbox as final user message
             local out=""
             if [[ -e "$outbox_file" ]]; then
@@ -195,6 +189,22 @@ build_messages_json() {
 	    if [[ -n "$out" ]] ; then
 		msgs=$(jq --slurpfile txt <(printf '%s' "$out" | jq -R -s '.') '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
 	    fi
+            # One combined “Files:” user message, inserted before the last user message
+            if [[ -n "$combined" ]]; then
+		# Avoid argument list too long by using slurpfile
+		msgs=$(jq --slurpfile content \
+			  <(printf '%s\n%s' "Files:" "$combined" | jq -R -s '.') '
+			  . as $m
+			  | ([$m | to_entries[] | select(.value.role == "user")] | last) as $last
+			  | if $last then
+			        $m[:$last.key]
+			        + [{role:"user",content:$content[0]}]
+			        + $m[$last.key:]
+			    else
+			        $m
+			    end
+		' <<< "$msgs")
+            fi
             ;;
         APPEND)
             # System prompt only, no files instructions here
@@ -233,6 +243,13 @@ build_messages_json() {
                 out=$(<"$outbox_file")
             fi
 
+	    # Add the user message
+	    if [[ -n "$out" ]]; then
+		msgs=$(jq --slurpfile txt \
+			  <(printf '%s' "$out" | jq -R -s '.') \
+			  '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
+	    fi
+
             # Prepare files instructions and fenced content if any
             local files_section=""
             if [[ -n "${ws_name}" ]]; then
@@ -240,10 +257,19 @@ build_messages_json() {
 		files_section=$'\n\n'"$files_prompt"$'\n\nFiles:\n\n'"$combined"
             fi
 
-            # Combine outbox and files section
-            local combined_outbox="${out}${files_section}"
-
-            msgs=$(jq --slurpfile txt <(printf '%s' "$combined_outbox" | jq -R -s '.') '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
+	    # Then append the files section to the end of the last user message
+	    msgs=$(jq --slurpfile files \
+		      <(printf '%s' "$files_section" | jq -R -s '.') '
+		      . as $m
+		      | ([$m | to_entries[] |
+		          select(.value.role == "user")] | last) as $last
+		      | if $last then
+		          $m[$last.key].content += $files[0]
+		          | $m
+		      else
+			  $m
+		      end
+	    ' <<< "$msgs")
             ;;
         *)
 	    die "Unknown file handling mode '$mode'"
