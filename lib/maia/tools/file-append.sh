@@ -43,4 +43,12 @@ else
 fi
 
 echo "$contentstr appended to $path."
+
+# Prune arguments in history for this tool-invoked append.
+history_file="$(resolve_history_meta)"
+exclusive_json_modify \
+    "$history_file" \
+    --arg source "$TOOL_CALL_ID" \
+    -f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
+
 $MAIA_BIN file add "$path" > /dev/null 2>&1 || true

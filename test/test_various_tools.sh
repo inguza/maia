@@ -30,6 +30,7 @@ $MAIA tool replace "*" > /dev/null 2>&1
 touch "$XMAIA_HOME/file-to-see.txt"
 #
 TOOL_DIR="$(realpath "$TEST_ROOT/../lib/maia/tools")"
+HOOKS_DIR="$(realpath "$TEST_ROOT/../lib/maia/hooks")"
 TMP_ARGS_FILE=$(mktemp)
 # Environment setup for tool running
 export AIA_ROOT="$(realpath "$TEST_ROOT/..")"
@@ -37,6 +38,7 @@ export MAIA_SESSION=default
 export MAIA_BIN="$MAIA"
 export MAIA_CORE_LIB_DIR="$(realpath "$TEST_ROOT/../lib/maia/core")"
 export MAIA_TOOLS_LIB_DIR="$TOOL_DIR"
+export MAIA_HOOKS_LIB_DIR="$HOOKS_DIR"
 export TERM_LOGLEVEL=NOTICE
 
 capture_change() {
