@@ -2,7 +2,7 @@
   {
     "name":"util-grep",
     "description": "Search files using regular expression.",
-    "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I",
+    "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -81,7 +81,7 @@
   {
     "name":"util-ls",
     "description": "List files",
-    "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1",
+    "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -101,7 +101,7 @@
   {
     "name":"util-sort",
     "description": "List files",
-    "command": "allowed-tool.sh sort -n -s -v --show-nonprinting",
+    "command": "allowed-tool.sh sort -n -s -v --show-nonprinting --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -121,7 +121,7 @@
   {
     "name":"util-head",
     "description": "Output the first part of files",
-    "command": "head-tail.sh head",
+    "command": "head-tail.sh head --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -141,7 +141,7 @@
   {
     "name":"util-tail",
     "description": "Output the last part of files",
-    "command": "head-tail.sh tail",
+    "command": "head-tail.sh tail --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -161,7 +161,7 @@
   {
     "name":"util-wc",
     "description": "Count newline, word and bytes for files",
-    "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words",
+    "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -181,7 +181,7 @@
   {
     "name":"util-sed",
     "description": "Stream editor - write forbidden",
-    "command": "sed.sh --posix -s -E -r --regexp-extended",
+    "command": "sed.sh --posix -s -E -r --regexp-extended --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -205,7 +205,7 @@
   {
     "name":"write-util-sed",
     "description": "Stream editor - write allowed",
-    "command": "sed.sh --posix -s -i -E -r --regexp-extended",
+    "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
     "parameters": {
       "type": "object",
       "properties": {
@@ -249,7 +249,7 @@
   {
     "name":"util-diff",
     "description": "Compare two files",
-    "command": "allowed-tool.sh diff -c -d -D -i -u",
+    "command": "allowed-tool.sh diff -c -d -D -i -u --",
     "parameters": {
       "type": "object",
       "properties": {
