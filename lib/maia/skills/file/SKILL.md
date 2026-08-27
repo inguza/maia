@@ -2,14 +2,12 @@
 description: How to manipulate files using file and change tools
 ---
 
-Use `file-*` tools to modify files and `change-apply` to apply a change proposal.
-
-When a change proposal is created the assistant is expected to:
+When a change proposal is created:
 
 1. Inspect the proposed change.
 2. Verify that it matches the requested modification.
-   - If it is correct, apply it with `change-apply`.
-   - If it is incorrect, try the `file-*` operation again with _different_ content.
+   - If it is correct, apply it with `change-apply`
+   - If it is incorrect, use `change-skip` and retry the `file-*` operation with better content.
 
 Never apply a change proposal without first verifying that it matches the requested modification.
 The assistant is authorized to verify and apply change proposals with `change-apply`.
