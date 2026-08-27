@@ -40,7 +40,7 @@ parsearguments() {
     if [[ -n ${param[arguments]:-} ]]; then
         local output
 
-        if output=$(jq -r '.[]' <<< "${param[arguments]}"); then
+        if output=$(jq -r '.[]' <<< "${param[arguments]}" 2> /dev/null ) ; then
             if [[ -n "$output" ]]; then
                 mapfile -t arguments <<< "$output"
             fi
