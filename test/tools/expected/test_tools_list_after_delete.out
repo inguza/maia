@@ -13,6 +13,7 @@
   util-find   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-ls   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-sort   (/home/ola/git/maia/lib/maia/tools/gnu.td)
+  util-cat   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-head   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-tail   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-wc   (/home/ola/git/maia/lib/maia/tools/gnu.td)

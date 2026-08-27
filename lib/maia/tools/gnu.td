@@ -27,7 +27,7 @@
 	  "items": {
 	    "type": "string"
 	  },
-	  "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I."
+	  "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I --."
 	}
       },
       "required": ["searchpattern"]
@@ -91,7 +91,7 @@
         },
 	"arguments": {
 	  "type": "string",
-	  "description": "Space separated list of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1"
+	  "description": "Space separated list of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
 	}
       },
       "required": ["pathspec"]
@@ -111,7 +111,27 @@
         },
 	"arguments": {
           "type": "string",
-          "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting."
+          "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
+	}
+      },
+      "required": []
+    },
+    "strict": true
+  },
+  {
+    "name":"util-cat",
+    "description": "Print the content of one or more concatenated files",
+    "command": "allowed-tool.sh cat --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to print the content of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+	"arguments": {
+          "type": "string",
+          "description": "Space separated list of sort command line arguments. Allowed are: --."
 	}
       },
       "required": []
@@ -171,7 +191,7 @@
         },
 	"arguments": {
           "type": "string",
-          "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words."
+          "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
 	}
       },
       "required": []
@@ -195,7 +215,7 @@
         },
 	"arguments": {
           "type": "string",
-          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended."
+          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
 	}
       },
       "required": []
@@ -219,7 +239,7 @@
         },
 	"arguments": {
           "type": "string",
-          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended."
+          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
 	}
       },
       "required": []
@@ -259,7 +279,7 @@
         },
 	"arguments": {
           "type": "string",
-          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u."
+          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u --."
 	}
       },
       "required": ["pathspec"]
