@@ -3,6 +3,7 @@
     "name":"file-write",
     "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
     "command": "file-write.sh",
+    "instructions": [ "file.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -23,6 +24,7 @@
     "name":"file-append",
     "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
     "command": "file-append.sh",
+    "instructions": [ "file.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -43,6 +45,7 @@
     "name":"file-change",
     "description": "Update an existing file. Always creates a change proposal.",
     "command": "file-change.sh",
+    "instructions": [ "file.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -127,6 +130,7 @@
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "maia-change-apply.sh",
+    "instructions": [ "change-apply.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
@@ -135,6 +139,44 @@
           "items": {
 	    "type": "string",
 	    "description": "Change identities to apply in order."
+	  }
+	}
+      },
+      "required": ["id"]
+    },
+    "strict": true
+  },
+  {
+    "name": "change-skip",
+    "description": "Skip (reject) one or more change proposals.",
+    "command": "maia-change-skip.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"id": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+	    "description": "Change identities to skip in order."
+	  }
+	}
+      },
+      "required": ["id"]
+    },
+    "strict": true
+  },
+  {
+    "name": "change-revert",
+    "description": "Revert one or more changes.",
+    "command": "maia-change-revert.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"id": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+	    "description": "Change identities to revert in order."
 	  }
 	}
       },

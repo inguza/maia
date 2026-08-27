@@ -88,6 +88,12 @@ run_change_cmd "list_applied_1" "list" "--applied"
 
 run_history_cmd "after_apply_1"
 
+# Test a revert too and apply again
+run_change_cmd "show_r1" "show"
+run_change_cmd "revert_1" "revert"
+run_change_cmd "list_pending_r1" "list" "--pending"
+run_change_cmd "reapply_1" "apply"
+
 # Step 2: Add file 2
 encode_response_to_json "$FIXTURE_DIR/2-filenameknown.txt" "$FIXTURE_DIR/response_2.json"
 export MOCK_CURL_RESPONSE_FILE="$FIXTURE_DIR/response_2.json"

@@ -461,21 +461,38 @@ add_file_to_session_filesets() {
 }
 
 apply_patch() {
+    local revert=false
+    if [[ "$1" == "-R" ]] ; then
+	revert=true
+	shift
+    fi
     local workspace_root="$1"; shift
     pushd "$workspace_root" >/dev/null  || die "Cannot cd to workspace root"
     for pf in "$@"; do
-	pid=$(basename -- "$pf" -pending.patch)
-	patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
+	if [[ "$revert" == false ]] ; then
+	    pid=$(basename -- "$pf" -pending.patch)
+	    patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
+	else
+	    pid=$(basename -- "$pf" -applied.patch)
+	    patch -R --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
+	fi
     done
     [[ "$DRY_RUN" == true ]] && {
 	popd >/dev/null
 	return
     }
     for pf in "$@"; do
-	pid=$(basename -- "$pf" -pending.patch)
-	local jsonf="$changes_dir/$session/${pid}-pending.json"
-	patch -p1 < "$pf" || die "Apply failed on $pid"
-	notice "Applied change '$pid'"
+	if [[ "$revert" == false ]] ; then
+	    pid=$(basename -- "$pf" -pending.patch)
+	    local jsonf="$changes_dir/$session/${pid}-pending.json"
+	    patch -p1 < "$pf" || die "Apply failed on $pid"
+	    notice "Applied change '$pid'"
+	else
+	    pid=$(basename -- "$pf" -applied.patch)
+	    local jsonf="$changes_dir/$session/${pid}-applied.json"
+	    patch -R -p1 < "$pf" || die "Revert failed on $pid"
+	    notice "Revert change '$pid'"
+	fi
 	# 6) Rename its artifacts
 	if [[ "$AUTO_ADD" == true ]]; then
 	    # Check if it is a new file
@@ -487,7 +504,11 @@ apply_patch() {
 		fi
             fi
         fi
-	change_state_for_jsons applied "$jsonf"
+	if [[ "$revert" == false ]] ; then
+	    change_state_for_jsons applied "$jsonf"
+	else
+	    change_state_for_jsons pending "$jsonf"
+	fi
     done
     popd >/dev/null
 }
@@ -925,14 +946,15 @@ handle_change_command() {
 	    done
 	    ;;
 	
-	apply)
-	    # apply [--dry-run] [--keep-history] [--update-history] <ID> [<ID>...]
+	apply|revert)
+	    # apply|revert [--dry-run] [--keep-history] [--update-history] <ID> [<ID>...]
 	    # Add ID if none specified
 	    if (( $# < 1 )); then
 		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
+
 	    # Determine project root
 	    local ws_meta="$(resolve_workspace_meta)"
 	    # Global root
@@ -951,9 +973,15 @@ handle_change_command() {
 			|| die "Metadata for sub-change $id not found"
 		    status=$(get_status "$jsonf")                 # => "pending"
 		    type=$(jq -r '.type'   "$jsonf")
-		    [[ "$status" == "pending" ]] || { notice "Sub-change '$id' already $status"; continue; }
-		    [[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
-		    apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
+		    if [[ "$cmd" == "apply" ]] ; then
+			[[ "$status" == "pending" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
+			[[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
+			apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
+		    elif [[ "$cmd" == "revert" ]] ; then
+			[[ "$status" == "applied" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
+			[[ "$type"   == "patch"  ]] || die "Cannot auto-revert non-patch '$id'"
+			apply_patch -R "$workspace_root" "${changes_dir}/$session/${id}-applied.patch"
+		    fi
 		else
 		    # --- whole change set ---
 		    pre_check "$session" "$id"
@@ -970,25 +998,46 @@ handle_change_command() {
 		    for jf in "${subs[@]}"; do
 			status=$(get_status "$jf")
 			type=$(jq -r '.type' "$jf")
-			if [[ "$status" == "pending" && "$type" != "patch" ]]; then
-			    local subid=$(basename -- "$jf" .json)
-			    subid=${subid%-pending}
-			    error "Cannot auto-apply: $subid is of type $type."
-			    bad=true
+			if [[ "$type" != "patch" ]] ; then
+			    if [[ "$status" == "pending" && "$cmd" == "apply" ]]; then
+				local subid=$(basename -- "$jf" .json)
+				subid=${subid%-pending}
+				error "Cannot auto-apply: $subid is of type $type."
+				bad=true
+			    fi
+			    if [[ "$status" == "applied" && "$cmd" == "revert" ]]; then
+				local subid=$(basename -- "$jf" .json)
+				subid=${subid%-applied}
+				error "Cannot auto-revert: $subid is of type $type."
+				bad=true
+			    fi
 			fi
 		    done
 		    $bad && continue
 		    # 3) Collect only the pending patch files
-		    patches=( "$changes_dir/$session/${id}-"*[0-9]"-pending.patch" )
-		    if (( ${#patches[@]} == 0 )); then
-			notice "No pending patches for $id"
-			continue
+		    if [[ "$cmd" == "apply" ]] ; then
+			patches=( "$changes_dir/$session/${id}-"*[0-9]"-pending.patch" )
+			if (( ${#patches[@]} == 0 )); then
+			    notice "No pending patches for $id"
+			    continue
+			fi
+			apply_patch "$workspace_root" "${patches[@]}"
+			change_state_for_jsons applied $(match_single_file "$changes_dir/$session/${id}-+-pending.json")
+			# Change the state
+			notice "Applied all patches for change set $id"
+			post_check "$session" "$id" applied
+		    elif [[ "$cmd" == "revert" ]] ; then
+			patches=( "$changes_dir/$session/${id}-"*[0-9]"-applied.patch" )
+			if (( ${#patches[@]} == 0 )); then
+			    notice "No applied patches for $id"
+			    continue
+			fi
+			apply_patch -R "$workspace_root" "${patches[@]}"
+			change_state_for_jsons pending $(match_single_file "$changes_dir/$session/${id}-+-applied.json")
+			# Change the state
+			notice "Reverted all patches for change set $id"
+			# No post check, because this is a revert: post_check "$session" "$id" pending
 		    fi
-		    apply_patch "$workspace_root" "${patches[@]}"
-		    change_state_for_jsons applied $(match_single_file "$changes_dir/$session/${id}-+-pending.json")
-		    # Change the state
-		    notice "Applied all patches for change set $id"
-		    post_check "$session" "$id" applied
 		fi
 	    done
 	    ;;

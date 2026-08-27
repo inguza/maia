@@ -232,6 +232,9 @@ C2=$(capture_change "file-write-2-2")
 run_tool_cmd "maia-change-apply-1" "maia-change-apply.sh" '{"id": ["'$C1'"]}'
 run_tool_cmd "maia-change-apply-2" "maia-change-apply.sh" '{"id": ["'$C1'","'$C2'"]}'
 run_tool_cmd "maia-change-apply-3" "maia-change-apply.sh" '{"id": []}'
+# Revert
+run_tool_cmd "maia-change-revert-2" "maia-change-revert.sh" '{"id": ["'$C1'","'$C2'"]}'
+run_tool_cmd "maia-change-reapply-2" "maia-change-apply.sh" '{"id": ["'$C1'","'$C2'"]}'
 # Not existing
 run_tool_cmd "maia-change-apply-err" "maia-change-apply.sh" '{"id": ["20260817T214714-68e33e97-3"]}'
 # Out of path
@@ -246,6 +249,8 @@ run_tool_cmd "file-append-1-3" "file-append.sh" '{"path": "x/1.txt","content":"A
 run_tool_cmd "file-change-1-3" "file-change.sh" '{"path": "x/1.txt","changes":[{"old":"Second write content 1\n","new":"Rewritten content 1\n"}]}'
 C3=$(capture_change "file-change-1-3")
 run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"id": ["'$C3'"]}'
+# Skip
+run_tool_cmd "maia-change-skip-2" "maia-change-skip.sh" '{"id": ["'$C1'","'$C2'"]}'
 
 # Curl
 run_tool_cmd "curl-1" "curl.sh" '{"url": "https://inguza.org/testharness/maia/will-not-change.html"}'

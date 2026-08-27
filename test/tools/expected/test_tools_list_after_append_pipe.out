@@ -9,6 +9,8 @@
   context-file-remember   (/home/ola/git/maia/lib/maia/tools/file.td)
   context-file-forget   (/home/ola/git/maia/lib/maia/tools/file.td)
   change-apply   (/home/ola/git/maia/lib/maia/tools/file.td)
+  change-skip   (/home/ola/git/maia/lib/maia/tools/file.td)
+  change-revert   (/home/ola/git/maia/lib/maia/tools/file.td)
   util-grep   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-find   (/home/ola/git/maia/lib/maia/tools/gnu.td)
   util-ls   (/home/ola/git/maia/lib/maia/tools/gnu.td)

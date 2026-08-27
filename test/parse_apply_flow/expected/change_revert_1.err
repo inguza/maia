@@ -1,0 +1,4 @@
+[NOTICE] Revert change '<dateandtime>-21766010-1'
+[WARN] File testfile1.sh does not exist in workspace default.
+[NOTICE] Added new file 'testfile1.sh' to active session filesets.
+[NOTICE] Reverted all patches for change set <dateandtime>-21766010
