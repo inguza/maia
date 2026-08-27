@@ -52,11 +52,11 @@ else
     # Applied cleanly but no change anyway
     if [[ ! -e "$xpath" && ! -e "$pfile" ]] ; then
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
-        printf '%b' "[ERROR] Changed content identical to the content in $path. No upate made.\n\nFile $path already exists.\n\nChange created for reference:\n$id\n"
+        printf '%b' "[NOTICE] Changed content identical to the content in $path. No upate made.\n\nFile $path already exists.\n\nChange created for reference:\n$id\n"
     elif [[ -e "$xpath" && ! -e "$pfile" ]] ; then
 	rm -f "$wpath"
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
-        printf '%b' "[ERROR] Permission denied.\n\nFile $path already exists and there were problems applying the change.\n\nChange created for manual resolution:\n$id\n"
+        printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists and there were problems applying the change.\n\nChange created for manual resolution:\n$id\n"
     elif [[ -e "$xpath" && -e "$pfile" ]] ; then
 	nextindex="$(find_index "$ws_changes" "$baseid")"
 	nextid="${baseid}-${nextindex}"
