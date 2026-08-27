@@ -1253,9 +1253,44 @@ make_glob_from_var() {
     [[ -n $result ]] && printf '@(%s)' "$result"
 }
 
+# Limitation, do not handle arguments with a newline
+expand_glob_files() {
+    local patterns=("$@")
+    local expanded=()
+    local matches=()
+    local pat
+    shopt -s nullglob
+    for pat in "${patterns[@]}"; do
+        if [[ "$pat" == *[\*\?\[]* ]]; then
+            matches=( $pat )
+            if (( ${#matches[@]} > 0 )); then
+                expanded+=( "${matches[@]}" )
+            else
+                expanded+=( "$pat" )
+            fi
+        else
+            expanded+=( "$pat" )
+        fi
+    done
+    shopt -u nullglob
+
+    # Return expanded list on stdout
+    printf '%s\n' "${expanded[@]}"
+}
+
 # Skill execution
 
 skill_execute() {
+    local scope="$1"
+    local skill="$2"
+    local script="$3"
+    shift 3
+    local -a args=()
+    mapfile -t args < <(expand_glob_files "$@")
+    skill_execute_no_glob_expansion "$scope" "$skill" "$script" "${args[@]}"
+}
+
+skill_execute_no_glob_expansion() {
     local scope="$1"
     local skill="$2"
     local scriptname="$3"
