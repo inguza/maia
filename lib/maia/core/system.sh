@@ -125,11 +125,11 @@ handle_system_command() {
 		shift
 		prompt_type="$1"; shift || true
 		case "$prompt_type" in
-		    system|files|tools|skills|skillscontext)
+		    system|files|tools|skills|skillscontext|tool_instr)
 			:
 			;;
 		    *)
-			die "Unknown type '$prompt_type'. Valid: system, files, tools, tool_instr."
+			die "Unknown type '$prompt_type'. Valid: system, files, tools, skills, skillscontext, tool_instr."
 			;;
 		esac
 		;;
