@@ -30,7 +30,7 @@ COMMANDS
   files [<name>]
     Show a list of files in this session.
 
-  delete <name>
+  delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
   exist [<name>]

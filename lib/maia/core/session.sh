@@ -40,7 +40,7 @@ COMMANDS
   files [<name>]
     Show a list of files in this session.
 
-  delete <name>
+  delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
   exist [<name>]
@@ -535,7 +535,10 @@ handle_session_command() {
 	
 	delete)
 	    shift
-            handle_x_delete session "$1" # Handles empty name
+	    local session
+	    for session in "$@" ; do
+		handle_x_delete session "$session" # Handles empty name
+	    done
             ;;
 
 	"")
