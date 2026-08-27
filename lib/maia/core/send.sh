@@ -480,7 +480,8 @@ handle_send_command() {
     local outbox_content=$(<"$outbox_file")
 
     local allowed_iterations_left=10
-    declare -A seen_commands
+    declare -A seen_commands=()
+    declare -A seen_commands_this
     while (( allowed_iterations_left > 0 )); do
 
 	local messages_json
@@ -707,6 +708,7 @@ handle_send_command() {
 	    local tool_count=0
 	    # Allow tools to be run in parallel
 	    local duplicate="no"
+	    seen_commands_this=()
 	    while IFS= read -r tool_call; do
 		local func_name="" func_args=""
 		local id=$(jq -r '.id' <<<"$tool_call")
@@ -745,7 +747,7 @@ handle_send_command() {
 			errormsg="$fork_output"
 		    fi
 		fi
-		seen_commands[$toolcallshaid]="$id";
+		seen_commands_this[$toolcallshaid]="$id";
 		if [[ -n "$errormsg" ]] ; then
 		    # Log the problem response message to history
 		    exclusive_json_modify "$history_file"\
@@ -761,6 +763,11 @@ handle_send_command() {
 			}]'
 		fi
 	    done < <(jq -c '.[]' <<<"$tools_call_json")
+	    # Now reset the seen commands and copy the ones from this round
+	    seen_commands=()
+	    for key in "${!seen_commands_this[@]}"; do
+		seen_commands["$key"]="${seen_commands_this["$key"]}"
+	    done
 	    # # Wait for tools and process results as they finish
 	    while (( tool_count > 0 )); do
 		wait -n
