@@ -58,14 +58,14 @@
         },
         "script": {
           "type": "string",
-          "description": "Path to the script to execute."
+          "description": "Path to the script executable."
         },
 	"arguments": {
 	  "type": "array",
 	  "items": {
 	    "type": "string"
 	  },
-          "description": "Optional arguments to the script."
+          "description": "Arguments to the script. Each argument should be a separate string."
 	}
       },
       "required": ["skill", "script"]
