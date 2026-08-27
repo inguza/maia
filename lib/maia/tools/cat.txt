@@ -1,0 +1,1 @@
+- Use `cat` primarily when piping file content to another tool.

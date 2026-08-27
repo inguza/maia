@@ -78,6 +78,7 @@
     "name":"context-file-remember",
     "description": "Remember/add a file to the known context",
     "command": "maia-file-remember.sh",
+    "instructions": [ "context-file-remember.txt" ],
     "parameters": {
       "type": "object",
       "properties": {

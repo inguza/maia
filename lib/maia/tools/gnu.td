@@ -122,6 +122,7 @@
     "name":"util-cat",
     "description": "Print the content of one or more concatenated files",
     "command": "allowed-tool.sh cat --",
+    "instructions": [ "cat.txt" ],
     "parameters": {
       "type": "object",
       "properties": {
