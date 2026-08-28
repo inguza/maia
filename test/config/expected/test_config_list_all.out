@@ -1,5 +1,6 @@
 cost_output_gpt_4_1
 http_logging
+cost_input_gpt_5_4_mini
 splice_allowed_files
 cost_input_gpt_4_1_mini
 cost_input_gpt_4_1
@@ -13,13 +14,18 @@ term_loglevel
 stream
 n
 file_handling_mode_mistral_24b
+cost_input_gpt_5_4
+cost_output_gpt_5_4
 send_hook
+cost_output_gpt_5_4_mini
 api_type
 presence_penalty
 api_base_url
 default_session_filesets
+cost_output_gpt_5_4_nano
 max_input_tokens
 prune_when_applied
+cost_input_gpt_5_4_nano
 additional_tool_paths
 cost_output_gpt_4_1_nano
 prune_mode

@@ -3,9 +3,15 @@ CONFIG NAME                    SCOPE      VALUE
 cost_input_gpt_4_1             default    2
 cost_input_gpt_4_1_mini        default    0.4
 cost_input_gpt_4_1_nano        default    0.1
+cost_input_gpt_5_4             default    2.5
+cost_input_gpt_5_4_mini        default    0.75
+cost_input_gpt_5_4_nano        default    0.2
 cost_output_gpt_4_1            default    8
 cost_output_gpt_4_1_mini       default    1.6
 cost_output_gpt_4_1_nano       default    0.4
+cost_output_gpt_5_4            default    15
+cost_output_gpt_5_4_mini       default    4.5
+cost_output_gpt_5_4_nano       default    1.25
 
 ENVIRONMENT NAME               VALUE
 ----------------------------------------------------------------------------
