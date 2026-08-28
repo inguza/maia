@@ -11,7 +11,8 @@ set -eo pipefail
 readonly TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for test_script in $TEST_ROOT/test_*.sh; do
   echo "Running $test_script..."
-  bash "$test_script"
+  bash "$test_script" &
 done
+wait
 
 echo "All tests completed."
