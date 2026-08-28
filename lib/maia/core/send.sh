@@ -249,14 +249,12 @@ build_messages_json() {
 			  <(printf '%s' "$out" | jq -R -s '.') \
 			  '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
 	    fi
-
             # Prepare files instructions and fenced content if any
             local files_section=""
             if [[ -n "${ws_name}" ]]; then
                 local files_prompt=$(prompt_for_scope "session" files)
 		files_section=$'\n\n'"$files_prompt"$'\n\nFiles:\n\n'"$combined"
             fi
-
 	    # Then append the files section to the end of the last user message
 	    msgs=$(jq --slurpfile files \
 		      <(printf '%s' "$files_section" | jq -R -s '.') '
@@ -264,10 +262,9 @@ build_messages_json() {
 		      | ([$m | to_entries[] |
 		          select(.value.role == "user")] | last) as $last
 		      | if $last then
-		          $m[$last.key].content += $files[0]
-		          | $m
+		          .[$last.key].content += $files[0]
 		      else
-			  $m
+			  .
 		      end
 	    ' <<< "$msgs")
             ;;
@@ -505,7 +502,8 @@ handle_send_command() {
 
     local outbox_content=$(<"$outbox_file")
 
-    local allowed_iterations_left=10
+    local allowed_iterations=$(jq -r '.tool_iteration_limit' <<<"$_cfg")
+    local allowed_iterations_left=$allowed_iterations
     declare -A seen_commands=()
     declare -A seen_commands_this
     local iteration=0
