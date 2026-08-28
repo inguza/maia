@@ -90,6 +90,25 @@ sub change_file {
 	# Find the old text and substitute
 	my $pos = index($content, $old);
 	if ($pos < 0) {
+	    # The LLM may include a trailing newline in the 'old' text even when the
+	    # actual file does not end with a newline. In that case we can try a safe
+	    # fallback: if 'old' ends with a newline, strip the final newline from
+	    # both 'old' and 'new' and check whether that variant matches exactly at
+	    # the end of the file. Only accept this EOF-only match to avoid accidental
+	    # mid-file replacements.
+	    if ($old =~ /\n\z/) {
+		my $old_no_nl = $old;
+		$old_no_nl =~ s/\n\z//;
+		my $new_no_nl = $new;
+		$new_no_nl =~ s/\n\z//;
+		my $rpos = rindex($content, $old_no_nl);
+		if ($rpos >= 0 && $rpos + length($old_no_nl) == length($content)) {
+		    # Found match at EOF without trailing newline. Replace that region.
+		    substr($content, $rpos, length($old_no_nl)) = $new_no_nl;
+		    next;
+		}
+	    }
+
 	    $error = "Change $i: old text not found. Skipping.\n";
 	    # Provide diagnostics
 	    open TF, ">>$txtfile";
