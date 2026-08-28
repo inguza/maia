@@ -41,6 +41,7 @@ stream                         default    false
 tab_width                      default    8
 temperature                    default    0.7
 term_loglevel                  home       "NOTICE"
+tool_iteration_limit           default    20
 top_p                          default    1
 
 ENVIRONMENT NAME               VALUE

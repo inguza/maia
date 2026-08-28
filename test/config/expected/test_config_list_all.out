@@ -11,6 +11,7 @@ cost_input_gpt_4_1_nano
 default_workspace
 frequency_penalty
 term_loglevel
+tool_iteration_limit
 stream
 n
 file_handling_mode_mistral_24b

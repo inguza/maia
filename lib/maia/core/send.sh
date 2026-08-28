@@ -768,7 +768,7 @@ handle_send_command() {
 		    status=$?
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
-			notice "Tool spawn $tool_count for $id [$toolcallshaid] (allowed iterations left $allowed_iterations_left): $func_name($func_args)"
+			notice "Tool spawn $tool_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
 		    else
 			echo "$fork_output" >&2
 			errormsg="$fork_output"

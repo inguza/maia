@@ -12,6 +12,7 @@
   "default_workspace": "__SESSION_WORKSPACE__",
   "frequency_penalty": 0,
   "term_loglevel": "NOTICE",
+  "tool_iteration_limit": 20,
   "stream": false,
   "n": 1,
   "file_handling_mode_mistral_24b": "APPEND",

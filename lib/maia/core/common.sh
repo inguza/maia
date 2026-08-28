@@ -40,6 +40,7 @@ declare -A DEFAULT_CONFIG=(
     [stream]=false
     [http_logging]=true
     [term_loglevel]=NOTICE
+    [tool_iteration_limit]=20
     [prune_mode]=reduce
     [prune_when_applied]=true
     [prune_when_skipped]=true

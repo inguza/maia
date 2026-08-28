@@ -5,6 +5,7 @@ tab_width
 default_workspace
 frequency_penalty
 term_loglevel
+tool_iteration_limit
 stream
 n
 send_hook

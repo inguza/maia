@@ -11,7 +11,10 @@ Sub-change: <dateandtime>-abcd1235-1
 Command output below:
 =====================
 $ sleep 3
+$ echo Foo
+Foo
 
 Exit status below:
 ==================
+0
 
