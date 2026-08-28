@@ -29,6 +29,11 @@ baseid="${ASSISTANT_BASEID}"
 index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
 
+if [[ ! -e "$path" ]] ; then
+    echo "File '$path' does not exist." >2
+    exit 1
+fi
+
 wpath="$(write_file_name "$ws_changes" "$id")"
 cpath="$(change_file_name "$ws_changes" "$id")"
 xpath="$(txt_file_name "$ws_changes" "$id")"
