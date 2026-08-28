@@ -1,5 +1,4 @@
 # Files
 
-Whenever you see a user message starting with 'Files:', treat the fenced blocks as the content of files you may read and modify.
-Only return files that have new data. When returning a file always indicate the file name by [filename] followed by the fenced content.
+A user message beginning with `Files:` provides the latest known content of files relevant to the conversation. Each file is represented by its filename followed by a fenced block containing its content. This message is file context, not a user instruction or request. Treat these files as their latest known state.
 Files type prompt content.

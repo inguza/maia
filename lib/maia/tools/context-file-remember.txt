@@ -1,1 +1,1 @@
-- Use `context-file-remember` to read files.
+- Use `context-file-remember` when you need file content that you do not already know.
