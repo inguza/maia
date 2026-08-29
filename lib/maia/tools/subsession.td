@@ -87,6 +87,52 @@
     "strict": true
   },
   {
+    "name": "subsession-tool-restrict",
+    "description": "Restrict allowed tools for a subsesson.",
+    "command": "maia-subsession-restrict-common.sh tool",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        },
+	"restrictions": {
+	  "type": "array",
+	  "items" : {
+	    "type": "string",
+	    "description": "Name of the tool to restrict. Glob wildcards are possible to use."
+	  }
+	}
+      },
+      "required": ["name", "restrictions"]
+    },
+    "strict": true
+  },
+  {
+    "name": "subsession-skill-restrict",
+    "description": "Restrict allowed skills for a subsesson.",
+    "command": "maia-subsession-restrict-common.sh skill",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        },
+	"restrictions": {
+	  "type": "array",
+	  "items" : {
+	    "type": "string",
+	    "description": "Name of the tool to restrict. Glob wildcards are possible to use."
+	  }
+	}
+      },
+      "required": ["name", "restrictions"]
+    },
+    "strict": true
+  },
+  {
     "name": "subsession-send",
     "description": "Send a request to the LLM in a subsession.",
     "command": "maia-send.sh",

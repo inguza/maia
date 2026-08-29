@@ -49,4 +49,6 @@
 * subsession-list   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-tool-list   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-skill-list   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-tool-restrict   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-skill-restrict   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-send   (/home/ola/git/maia/lib/maia/tools/subsession.td)
