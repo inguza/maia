@@ -469,7 +469,13 @@ handle_skill_command() {
             refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
 	view|"")
-	    prompt_for_scope "$scope" "$prompt_type"
+	    # Expand allowed wildcards to explicit allowed skills
+	    if [[ "$1" == "--expand" ]]; then
+                mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
+                expand_skill_wildcards "${allowed_patterns[@]}" | uniq
+	    else
+		prompt_for_scope "$scope" "$prompt_type"
+	    fi
 	    ;;
         show)
 	    echo "Allowed skills:"

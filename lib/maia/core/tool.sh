@@ -247,6 +247,21 @@ verify_tools_def_file() {
     return $err
 }
 
+expand_tool_wildcards() {
+    local patterns=("$@")
+    local all_tools=()
+    init_tool_search_dirs
+    mapfile -t all_tools < <(jq -r '.[].name' < <(load_all_tool_defs))
+
+    local glob_pattern=$(make_glob_from_var "${patterns[@]}")
+
+    for tool in "${all_tools[@]}"; do
+        if [[ -n $glob_pattern && $tool == $glob_pattern ]]; then
+	    echo "$tool"
+        fi
+    done
+}
+
 # Handle the maia tool command line
 handle_tool_command() {
     # help
@@ -306,23 +321,8 @@ handle_tool_command() {
             ;;
         restrict)
             # Expand current allowed wildcards to explicit tool names
-            init_tool_search_dirs
-            local all_tools=()
-            mapfile -t all_tools < <(jq -r '.[].name' < <(load_all_tool_defs))
-
-            local expanded_tools=()
-            local allowed_pattern
-            # Read wildcards from allowed list
-            mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
-            for allowed_pattern in "${allowed_patterns[@]}"; do
-                # Convert wildcard to regex
-                local regex_pattern="^${allowed_pattern//\*/.*}$"
-                for tool in "${all_tools[@]}"; do
-                    if [[ "$tool" =~ $regex_pattern ]]; then
-                        expanded_tools+=("$tool")
-                    fi
-                done
-            done
+            mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | uniq)
+	    mapfile -t expanded_tools < <(expand_tool_wildcards "${allowed_patterns[@]}")
             # Deduplicate
             mapfile -t expanded_tools < <(printf '%s\n' "${expanded_tools[@]}" | sort -u)
 
@@ -347,7 +347,12 @@ handle_tool_command() {
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
 	view|"")
-	    prompt_for_scope "$scope" "$prompt_type"
+	    if [[ "$1" == "--expand" ]] ; then
+		mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
+		expand_tool_wildcards "${allowed_patterns[@]}" | uniq
+	    else
+		prompt_for_scope "$scope" "$prompt_type"
+	    fi
 	    ;;
 	show)
 	    echo "Allowed tools:"
