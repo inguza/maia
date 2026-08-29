@@ -1,5 +1,6 @@
 ----------------- Tool output 1 start ------------------------------------
-[NOTICE] Created session 'review-xcommon'
+[NOTICE] Bootstrapped session 'review-xcommon'
+[NOTICE] Created session 'review-xcommon' with workspace 'default', resolved from current session.
 ----------------- Tool output 1 end --------------------------------------
 ----------------- Tool output 2 start ------------------------------------
 [WARN] File 'x/x.info.yml' not found, skipping
