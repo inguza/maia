@@ -58,6 +58,12 @@ declare -A DEFAULT_CONFIG=(
     [default_session_extra_send_filesets]='[]'
     [default_workspace]='__SESSION_WORKSPACE__'
     [send_hook]=''
+    [default_subsession_tool_allow]="*"
+    [default_subsession_tool_restrict]="subsession-*"
+    [default_subsession_skill_allow]="*"
+    [default_subsession_skill_restrict]=""
+    [default_subsession_skill_remember]="*"
+    [default_subsession_skill_forget]=""
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_5_4]=2.5
     [cost_output_gpt_5_4]=15

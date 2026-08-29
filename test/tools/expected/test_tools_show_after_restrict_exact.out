@@ -1,0 +1,1245 @@
+Allowed tools:
+--------------
+change-apply
+change-revert
+change-skip
+context-file-forget
+context-file-remember
+context-history-retrieve
+context-skill-forget
+context-skill-remember
+core-print
+core-sequence
+file-append
+file-change
+file-write
+job-cancel
+job-delete
+job-exist
+job-list
+job-output
+job-show
+job-start
+job-status
+jq
+net-request-ssl
+net-request-tcp
+pandoc
+shell-exec
+skill-exec
+util-cat
+util-diff
+util-file
+util-find
+util-grep
+util-head
+util-ls
+util-sed
+util-sort
+util-tail
+util-uniq
+util-wc
+web-browser-curl
+web-browser-lynx
+web-search-lynx
+write-util-patch
+write-util-sed
+Tool definitions:
+-----------------
+[
+  {
+    "name": "core-sequence",
+    "description": "Execute multiple tools in sequence order.",
+    "command": "sequence.sh",
+    "instructions": [
+      "basics.txt",
+      "sequence.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the function/tool to use."
+              },
+              "arguments": {
+                "type": "object",
+                "description": "Arguments for the function/tool use."
+              }
+            },
+            "required": [
+              "name",
+              "arguments"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "sequence"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "core-print",
+    "description": "Print content.",
+    "command": "print.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The content to print."
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "util-file",
+    "description": "Determine file type.",
+    "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
+        }
+      },
+      "required": [
+        "pathspec"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/bsd.td"
+  },
+  {
+    "name": "web-browser-curl",
+    "description": "Tool for transferring data from or to a server.",
+    "command": "curl.sh -i -D -G --get --raw -s -S -X POST",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": ""
+        },
+        "header": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "header/@file"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "POST data. @file reads data from a file."
+          }
+        },
+        "data-raw": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "POST data."
+          }
+        },
+        "data-binary": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "POST data as is."
+          }
+        },
+        "json": {
+          "type": "string",
+          "description": "Sends the specified JSON data in a POST request to the HTTP server."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of file command line arguments. Allowed are: -i -D -G --get --raw -s -Sx -X POST."
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/curl.td"
+  },
+  {
+    "name": "file-write",
+    "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
+    "command": "file-write.sh",
+    "instructions": [
+      "file.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File to write to."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content to write to the file. If absent data is read from stdin."
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "file-append",
+    "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
+    "command": "file-append.sh",
+    "instructions": [
+      "file.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File to append to."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content to write to the file. If absent data is read from stdin."
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "file-change",
+    "description": "Update an existing file. Always creates a change proposal.",
+    "command": "file-change.sh",
+    "instructions": [
+      "file.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File to update."
+        },
+        "changes": {
+          "type": "array",
+          "description": "Changes to apply. Each change must match exactly one contiguous region of the current file.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "old": {
+                "type": "string",
+                "description": "Exact contiguous text to replace."
+              },
+              "new": {
+                "type": "string",
+                "description": "Text that replaces the removed text."
+              }
+            },
+            "required": [
+              "old",
+              "new"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "path",
+        "changes"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "context-file-remember",
+    "description": "Remember/add a file to the known context",
+    "command": "maia-file-remember.sh",
+    "instructions": [
+      "context-file-remember.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filepattern": {
+          "type": "string",
+          "description": "File(s) to add to the currently known context. Shell file pattern matching can be used."
+        },
+        "linestart": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+        },
+        "lineend": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "filepattern"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "context-file-forget",
+    "description": "Forget file content from the known context.",
+    "command": "maia-file-forget.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filepattern": {
+          "type": "string",
+          "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should forget the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "filepattern"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "change-apply",
+    "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
+    "command": "maia-change-apply.sh",
+    "instructions": [
+      "change-apply.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Change identities to apply in order."
+          }
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "change-skip",
+    "description": "Skip (reject) one or more change proposals.",
+    "command": "maia-change-skip.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Change identities to skip in order."
+          }
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "change-revert",
+    "description": "Revert one or more changes.",
+    "command": "maia-change-revert.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Change identities to revert in order."
+          }
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+  },
+  {
+    "name": "util-grep",
+    "description": "Search files using regular expression.",
+    "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "searchpattern": {
+          "type": "string",
+          "description": "Regular expression to search for."
+        },
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to search in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "after-context": {
+          "type": "string",
+          "description": "Print before-context lines of trailing context after matching lines."
+        },
+        "before-context": {
+          "type": "string",
+          "description": "Print before-context lines of leading context after matching lines."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I --."
+        }
+      },
+      "required": [
+        "searchpattern"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-find",
+    "description": "Search files - but not files starting with a .",
+    "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to search for. Multiple files can be separated by space. Only paths relative to the current directory allowed."
+        },
+        "mindepth": {
+          "type": "string",
+          "description": "Do not apply any tests or actions at levels less than levels (a non-negative integer). 1 means process all files except the starting-points."
+        },
+        "maxdepth": {
+          "type": "string",
+          "description": "Descend at most levels (a non-negative integer) levels of directories below the starting-points. 0 means only apply the tests and actions to the starting-points themselves."
+        },
+        "name": {
+          "type": "string",
+          "description": "File name matches shell pattern pattern."
+        },
+        "type": {
+          "type": "string",
+          "description": "File is of type: d - directory, f - regular file."
+        },
+        "path": {
+          "type": "string",
+          "description": "Path name matches shell pattern pattern."
+        },
+        "ipath": {
+          "type": "string",
+          "description": "Path name matches shell pattern pattern, case insensitive."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of find command line arguments. Allowed are: -d -depth -executable -nogroup -nouser -readable -ls."
+        }
+      },
+      "required": [
+        "pathspec"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-ls",
+    "description": "List files",
+    "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to list. Multiple files can be separated by space. Only paths relative to the current directory allowed."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
+        }
+      },
+      "required": [
+        "pathspec"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-sort",
+    "description": "List files",
+    "command": "allowed-tool.sh sort -n -s -v --show-nonprinting --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to sort. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-cat",
+    "description": "Print the content of one or more concatenated files",
+    "command": "allowed-tool.sh cat --",
+    "instructions": [
+      "cat.txt"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to print the content of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of sort command line arguments. Allowed are: --."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-head",
+    "description": "Output the first part of files",
+    "command": "head-tail.sh head --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to print the head for. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "lines": {
+          "type": "string",
+          "description": "Print the first <lines> lines instead of the first 10."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-tail",
+    "description": "Output the last part of files",
+    "command": "head-tail.sh tail --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to print the tail of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "lines": {
+          "type": "string",
+          "description": "Print the last <lines> lines instead of the last 10."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-wc",
+    "description": "Count newline, word and bytes for files",
+    "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to count in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-sed",
+    "description": "Stream editor - write forbidden",
+    "command": "sed.sh --posix -s -E -r --regexp-extended --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "Sed script to be executed."
+        },
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "write-util-sed",
+    "description": "Stream editor - write allowed",
+    "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "Sed script to be executed."
+        },
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-uniq",
+    "description": "Count newline, word and bytes for files",
+    "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Specific file to operate on. Only paths relative to the current directory allowed. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u."
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "util-diff",
+    "description": "Compare two files",
+    "command": "allowed-tool.sh diff -c -d -D -i -u --",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pathspec": {
+          "type": "string",
+          "description": "Pattern of files and directories to compare. Only paths relative to the current directory allowed. Multiple files can be separated by space."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u --."
+        }
+      },
+      "required": [
+        "pathspec"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "write-util-patch",
+    "description": "Count newline, word and bytes for files",
+    "command": "patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Read the patch from path. Same as patch option -i. Only paths relative to the current directory allowed. If absent data is read from stdin."
+        },
+        "arguments": {
+          "type": "string",
+          "description": "Space separated list of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z"
+        }
+      },
+      "required": []
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+  },
+  {
+    "name": "context-history-retrieve",
+    "description": "Retrieve the original content of conversation history entries.",
+    "command": "history-retrieve.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Identity of a conversation history entry whose original content should be retrieved."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession from which to retrieve the conversation history entries."
+        }
+      },
+      "required": [
+        "ids"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/history.td"
+  },
+  {
+    "name": "job-start",
+    "description": "Start a background job. A job id will be the output..",
+    "command": "job-start.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the function/tool to use."
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Arguments for the function/tool use."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "name",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-list",
+    "description": "List all background jobs. Returns their job ids.",
+    "command": "job-list.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-show",
+    "description": "Show the metadata and current status of a background job.",
+    "command": "job-id.sh show",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-status",
+    "description": "Show the current status of a background job: Running, Completed(0), Failed(exitcode), Killed(cause), or Missing.",
+    "command": "job-id.sh status",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-output",
+    "description": "Show the output produced by a background job so far, including stderr. Output is available while the job is running and after it finishes.",
+    "command": "job-id.sh output",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-cancel",
+    "description": "Cancel a running background job.",
+    "command": "job-id.sh cancel",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-delete",
+    "description": "Delete a background job and its data. A running job cannot be deleted unless force is true.",
+    "command": "job-delete.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force deletion (optional)."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "job-exist",
+    "description": "Check whether a background job exists. Returns no output and exits successfully if the job exists, or exits with status 1 if it does not exist.",
+    "command": "job-id.sh exist",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Job id."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name that should remember the specified files. If absent current session is used."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+  },
+  {
+    "name": "jq",
+    "description": "Run jq",
+    "command": "jq.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Run jq. arguments contains jq command-line arguments: [options] filter [files...]. The first non-option argument is the jq filter; following arguments are input files. File path wildcards may be used. Allowed options are: -s, --slurp, --raw-input, -R, --null-input, -n, -c, --compact-output, -e, -f <file>--stream, --tab, --sort-keys, -S, -r, --raw-output, --arg <name> <value>, --argjson <name> <json>,  --slurpfile <name> <file>, --argfile <name> <file>, --args ..., --jsonargs ...."
+        }
+      },
+      "required": [
+        "arguments"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/jq.td"
+  },
+  {
+    "name": "web-browser-lynx",
+    "description": "Retrieve and browse a web page using Lynx. Returns the page content as text.",
+    "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The url to browse"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
+  },
+  {
+    "name": "web-search-lynx",
+    "description": "Search the web using Lynx and return the search results as text.",
+    "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The search string."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url."
+        }
+      },
+      "required": [
+        "query"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
+  },
+  {
+    "name": "net-request-tcp",
+    "description": "Establish a tcp connection to a host and port to send data to it.",
+    "command": "net-request-tcp.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "IP address or host name to connect to"
+        },
+        "port": {
+          "type": "string",
+          "description": "Port number or port name to connect to"
+        },
+        "data": {
+          "type": "string",
+          "description": "Data to transmit on the TCP connection. If absent data is read from stdin."
+        },
+        "timeout": {
+          "type": "string",
+          "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+        }
+      },
+      "required": [
+        "host",
+        "port"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+  },
+  {
+    "name": "net-request-ssl",
+    "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
+    "command": "net-request-ssl.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "IP address or host name to connect to"
+        },
+        "port": {
+          "type": "string",
+          "description": "Port number or port name to connect to"
+        },
+        "data": {
+          "type": "string",
+          "description": "Data to transmit on the SSL connection. If absent data is read from stdin."
+        },
+        "timeout": {
+          "type": "string",
+          "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+        }
+      },
+      "required": [
+        "host",
+        "port"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+  },
+  {
+    "name": "pandoc",
+    "description": "General markup converter",
+    "command": "pandoc.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from stdin."
+        },
+        "input-format": {
+          "type": "string",
+          "description": "Input format."
+        },
+        "output-format": {
+          "type": "string",
+          "description": "Output format."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/pandoc.td"
+  },
+  {
+    "name": "shell-exec",
+    "description": "Execute commands. An execution proposal will be created.",
+    "command": "shell-exec.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "string",
+          "description": "Shell commands to execute, provided as a single shell script."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession name for which to record the execution proposal. If absent current session is used."
+        }
+      },
+      "required": [
+        "commands"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/shell.td"
+  },
+  {
+    "name": "context-skill-remember",
+    "description": "Remember a skill instruction.",
+    "command": "maia-skill-remember.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to remember."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession that should remember the specified skill. If absent current session is used."
+        }
+      },
+      "required": [
+        "skills"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+  },
+  {
+    "name": "context-skill-forget",
+    "description": "Forget a skill instruction.",
+    "command": "maia-skill-forget.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to forget."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "The subsession that should remember the specified skill. If absent current session is used."
+        }
+      },
+      "required": [
+        "skills"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+  },
+  {
+    "name": "skill-exec",
+    "description": "Execute a skill script with optional arguments. This shall ONLY be used to execute scripts mentioned for a specific skill description.",
+    "command": "maia-skill-execute.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "skill": {
+          "type": "string",
+          "description": "Name of the skill to execute."
+        },
+        "script": {
+          "type": "string",
+          "description": "Path to the script executable."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Arguments to the script. Each argument should be a separate string."
+        }
+      },
+      "required": [
+        "skill",
+        "script"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+  }
+]

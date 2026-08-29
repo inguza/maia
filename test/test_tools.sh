@@ -27,6 +27,13 @@ run_tools_cmd() {
     run_and_check "test_tools_${test_id}" $MAIA tools "$@"
 }
 
+# Helper to run a skill command and check output
+run_skills_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_skills_${test_id}" $MAIA skill "$@"
+}
+
 # Test 0: The help
 run_tools_cmd "help" --help
 
@@ -79,6 +86,85 @@ run_tools_cmd "refresh_after_delete" refresh
 run_tools_cmd "verify_after_delete" verify
 
 # edit not tested
+
+# Test tool restrict
+run_tools_cmd "restrict_empty" restrict "*"
+run_tools_cmd "list_after_restrict_empty" list
+run_tools_cmd "show_after_restrict_empty" show
+run_tools_cmd "view_after_restrict_empty" view
+
+run_tools_cmd "allow-core-print-1" allow "core-print"
+run_tools_cmd "restrict_core-print-1" restrict "d*"
+run_tools_cmd "list_after_restrict_core-print-1" list
+run_tools_cmd "view_after_restrict_core-print-1" view
+run_tools_cmd "restrict_core-print-2" restrict "a*" "c*" "b*"
+run_tools_cmd "list_after_restrict_core-print-2" list
+run_tools_cmd "view_after_restrict_core-print-2" view
+
+run_tools_cmd "allow-core-print-2" allow "core-print" "file*"
+run_tools_cmd "restrict_file-write" restrict "file-write"
+run_tools_cmd "list_after_restrict_file-write" list
+run_tools_cmd "view_after_restrict_file-write" view
+
+run_tools_cmd "allow_all_allow" allow "*"
+run_tools_cmd "list_after_allow_all_allow" list
+run_tools_cmd "show_after_allow_all_allow" show
+
+run_tools_cmd "restrict_subsession" restrict "subsession-*"
+run_tools_cmd "list_after_restrict_subsession" list
+run_tools_cmd "show_after_restrict_subsession" show
+run_tools_cmd "view_after_restrict_subsession" view
+
+run_tools_cmd "restrict_exact" restrict "core-pipe"
+run_tools_cmd "list_after_restrict_exact" list
+run_tools_cmd "show_after_restrict_exact" show
+run_tools_cmd "view_after_restrict_exact" view
+
+# Test skill restrict
+run_skills_cmd "restrict_empty" restrict "*"
+run_skills_cmd "list_after_restrict_empty" list
+run_skills_cmd "show_after_restrict_empty" show
+run_skills_cmd "view_after_restrict_empty" view
+
+run_skills_cmd "allow_all_1" allow "*"
+run_skills_cmd "restrict_all" restrict "*"
+run_skills_cmd "list_after_restrict_all" list
+run_skills_cmd "show_after_restrict_all" show
+run_skills_cmd "view_after_restrict_all" view
+
+run_skills_cmd "allow_all" allow "*"
+run_skills_cmd "list_after_allow_all_allow" list
+run_skills_cmd "show_after_allow_all_allow" show
+run_skills_cmd "view_after_allow_all_allow" view
+
+run_skills_cmd "allow_all_2" allow "*"
+run_skills_cmd "restrict_subsession" restrict "subsession"
+run_skills_cmd "list_after_restrict_subsession" list
+run_skills_cmd "show_after_restrict_subsession" show
+run_skills_cmd "view_after_restrict_subsession" view
+
+run_skills_cmd "allow_all_3" allow "*"
+run_skills_cmd "restrict_multi_patterns" restrict "foo*" "subs*" "bar*"
+run_skills_cmd "list_after_restrict_multi_patterns" list
+run_skills_cmd "show_after_restrict_multi_patterns" show
+run_skills_cmd "view_after_restrict_multi_patterns" view
+
+run_skills_cmd "allow_all_4" allow "*"
+run_skills_cmd "restrict_prefix" restrict "sub*"
+run_skills_cmd "list_after_restrict_prefix" list
+run_skills_cmd "show_after_restrict_prefix" show
+run_skills_cmd "view_after_restrict_prefix" view
+
+run_skills_cmd "allow_all_5" allow "*"
+run_skills_cmd "restrict_suffix" restrict "*ession"
+run_skills_cmd "list_after_restrict_suffix" list
+run_skills_cmd "show_after_restrict_suffix" show
+run_skills_cmd "view_after_restrict_suffix" view
+
+run_skills_cmd "allow_all_6" allow "*"
+run_skills_cmd "restrict_exact" restrict "file"
+run_skills_cmd "list_after_restrict_exact" list
+run_skills_cmd "show_after_restrict_exact" show
 
 # Cleanup
 cleanup_maia_home

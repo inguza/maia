@@ -304,6 +304,48 @@ handle_tool_command() {
         list)
 	    list_tools "$scope" "$filepath"
             ;;
+        restrict)
+            # Expand current allowed wildcards to explicit tool names
+            init_tool_search_dirs
+            local all_tools=()
+            mapfile -t all_tools < <(jq -r '.[].name' < <(load_all_tool_defs))
+
+            local expanded_tools=()
+            local allowed_pattern
+            # Read wildcards from allowed list
+            mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
+            for allowed_pattern in "${allowed_patterns[@]}"; do
+                # Convert wildcard to regex
+                local regex_pattern="^${allowed_pattern//\*/.*}$"
+                for tool in "${all_tools[@]}"; do
+                    if [[ "$tool" =~ $regex_pattern ]]; then
+                        expanded_tools+=("$tool")
+                    fi
+                done
+            done
+            # Deduplicate
+            mapfile -t expanded_tools < <(printf '%s\n' "${expanded_tools[@]}" | sort -u)
+
+            # Remove tools matching restrict patterns
+            local filtered_tools=()
+            for tool in "${expanded_tools[@]}"; do
+                local skip=false
+                for pattern in "$@"; do
+                    local regex_pattern="^${pattern//\*/.*}$"
+                    if [[ "$tool" =~ $regex_pattern ]]; then
+                        skip=true
+                        break
+                    fi
+                done
+                if ! $skip; then
+                    filtered_tools+=("$tool")
+                fi
+            done
+
+            # Update allowed tools file with filtered explicit list
+            printf '%s\n' "${filtered_tools[@]}" > "$filepath"
+            refresh_allowed_toolset_files "$scope" "$filepath"
+            ;;
 	view|"")
 	    prompt_for_scope "$scope" "$prompt_type"
 	    ;;

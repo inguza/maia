@@ -205,7 +205,7 @@ verify_skillset_files() {
 }
 
 # Expand wildcards
-expand_wildcards() {
+expand_skill_wildcards() {
     # To implement using make_glob and 
     local skillsdata="$(get_all_ordered_skill_names "name")"
     local glob="$(make_glob_from_var "$@")"
@@ -425,6 +425,49 @@ handle_skill_command() {
         list)
 	    list_skills "$scope" "$skillset_file" "$skillset_context_file"
             ;;
+        restrict)
+            # Restrict skills from the allowed list
+            if [[ ! -s "$skillset_file" ]]; then
+                # Nothing to restrict if file does not exist, or if it is empty
+                return 0
+            fi
+            # Read current allowed skills
+	    mapfile -t current_skills_globs < "$skillset_file"
+	    mapfile -t current_skills < <(expand_skill_wildcards "${current_skills_globs[@]}")
+
+            # Expand wildcards for given patterns
+            local matched_skills=()
+            for pattern in "$@"; do
+                # Convert wildcard to regex
+                local regex_pattern="^${pattern//\*/.*}$"
+                for skill in "${current_skills[@]}"; do
+                    if [[ $skill =~ $regex_pattern ]]; then
+                        matched_skills+=("$skill")
+                    fi
+                done
+            done
+            # Remove matched skills from current skills
+            local new_skills=()
+            for skill in "${current_skills[@]}"; do
+                local skip=false
+                for ms in "${matched_skills[@]}"; do
+                    if [[ "$skill" == "$ms" ]]; then
+                        skip=true
+                        break
+                    fi
+                done
+                if ! $skip; then
+                    new_skills+=("$skill")
+                fi
+            done
+            # Update the allowed skills file
+            printf '%s\n' "${new_skills[@]}" > "$skillset_file"
+            # Also clear skillset context if restrict is used
+            rm -f "$skillset_context_file"
+            refresh_allowed_skillset_file "$scope" "$skillset_file"
+            expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+            refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
+            ;;
 	view|"")
 	    prompt_for_scope "$scope" "$prompt_type"
 	    ;;
@@ -493,7 +536,7 @@ handle_skill_command() {
             if [[ ! -f "$skillset_context_file" ]]; then
                 return 0
             fi
-            local expanded=$(expand_wildcards "$@")
+            local expanded=$(expand_skill_wildcards "$@")
             # Remove from loaded context
             local tmpfile=$(mktemp)
             grep -vxF -f <(printf '%s\n' "${expanded[@]}") "$skillset_context_file" > "$tmpfile"
