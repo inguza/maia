@@ -24,7 +24,7 @@
       "properties": {
         "show": {
           "type": "string",
-          "description": "Name of the subsession to delete."
+          "description": "Name of the subsession."
         }
       },
       "required": ["name"]
@@ -40,7 +40,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the subsession to delete."
+          "description": "Name of the subsession."
         }
       },
       "required": ["name"]
@@ -52,6 +52,38 @@
     "description": "List AI interaction subsessions.",
     "command": "maia-subsession-list.sh",
     "parameters": null,
+    "strict": true
+  },
+  {
+    "name": "subsession-tool-list",
+    "description": "List allowed tools for a subsesson.",
+    "command": "maia-subsession-list-common.sh tool",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        }
+      },
+      "required": ["name"]
+    },
+    "strict": true
+  },
+  {
+    "name": "subsession-skill-list",
+    "description": "List allowed skills for a subsesson.",
+    "command": "maia-subsession-list-common.sh skill",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        }
+      },
+      "required": ["name"]
+    },
     "strict": true
   },
   {

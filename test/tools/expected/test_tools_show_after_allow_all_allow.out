@@ -1271,7 +1271,7 @@ Tool definitions:
       "properties": {
         "show": {
           "type": "string",
-          "description": "Name of the subsession to delete."
+          "description": "Name of the subsession."
         }
       },
       "required": [
@@ -1290,7 +1290,7 @@ Tool definitions:
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the subsession to delete."
+          "description": "Name of the subsession."
         }
       },
       "required": [
@@ -1305,6 +1305,44 @@ Tool definitions:
     "description": "List AI interaction subsessions.",
     "command": "maia-subsession-list.sh",
     "parameters": null,
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-tool-list",
+    "description": "List allowed tools for a subsesson.",
+    "command": "maia-subsession-list-common.sh tool",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-list",
+    "description": "List allowed skills for a subsesson.",
+    "command": "maia-subsession-list-common.sh skill",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
