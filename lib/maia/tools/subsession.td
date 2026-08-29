@@ -124,11 +124,57 @@
 	  "type": "array",
 	  "items" : {
 	    "type": "string",
-	    "description": "Name of the tool to restrict. Glob wildcards are possible to use."
+	    "description": "Name of the skill to restrict. Glob wildcards are possible to use."
 	  }
 	}
       },
       "required": ["name", "restrictions"]
+    },
+    "strict": true
+  },
+  {
+    "name": "subsession-tool-allow",
+    "description": "Allowed tools for a subsesson.",
+    "command": "maia-subsession-allow-common.sh tool",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        },
+	"allow": {
+	  "type": "array",
+	  "items" : {
+	    "type": "string",
+	    "description": "Name of the tool to allow. Glob wildcards are possible to use."
+	  }
+	}
+      },
+      "required": ["name", "allow"]
+    },
+    "strict": true
+  },
+  {
+    "name": "subsession-skill-allow",
+    "description": "Allow skills for a subsesson.",
+    "command": "maia-subsession-allow-common.sh skill",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the subsession."
+        },
+	"allow": {
+	  "type": "array",
+	  "items" : {
+	    "type": "string",
+	    "description": "Name of the skill to allow. Glob wildcards are possible to use."
+	  }
+	}
+      },
+      "required": ["name", "allow"]
     },
     "strict": true
   },
