@@ -1,3 +1,8 @@
+#
+
+All tests are supposed to be executed with an user that do not have any
+configuration in home scope or in the workspace scope for maia itself.
+
 ## Run all tests
 
 test/run_all.sh
