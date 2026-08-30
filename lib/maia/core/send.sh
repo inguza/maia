@@ -30,6 +30,11 @@ OPTIONS
   --dry-run
     Don’t call the API; record the outbox in history and print “Dry-run response.”
 
+  --output-mode <mode>
+    Controls the output emitted while processing the request. Available modes are:
+    - full   - tool calls and arguments, tool output, intermediate LLM response and final LLM response (default)
+    - final  - only final LLM response
+
   --response-file <file>
     Read the assistant’s response from FILE instead of calling the API.
 
@@ -322,6 +327,7 @@ handle_send_command() {
     local http_logging=$(jq -r '.http_logging' <<<"$_cfg")
     local send_hook=$(jq -r '.send_hook' <<<"$_cfg")
     local file_handling_mode_raw
+    local output_mode="full"
 
     local dry_run=false
     local response_file=""
@@ -334,6 +340,10 @@ handle_send_command() {
                 ;;
 	    --continue)
 		continue=true
+		;;
+	    --output-mode)
+		shift
+		output_mode="$1"
 		;;
             --response-file)
                 shift
@@ -360,6 +370,16 @@ handle_send_command() {
         esac
         shift
     done
+
+    case "$output_mode" in
+	full|final)
+	    # ok
+	    :
+	    ;;
+	*)
+	    die "Unknown output mode '$output_mode'"
+	    ;;
+    esac
 
     if [[ -n "$temperature" ]]; then
 	# Validate temperature is numeric and between 0 and 1
@@ -702,13 +722,20 @@ handle_send_command() {
 	fi
 
 	if [[ -n "$reply" ]] ; then
-	    echo "$reply"
+	    if [[ -n "$tools_call_json" ]] ; then
+		if [[ "$output_mode" == "full" ]] ; then
+		    echo "$reply"
+		fi
+	    else
+		# No need to check against output mode since the final LLM reply is in all modes so far
+		echo "$reply"
+	    fi
 	fi
 
 	# Append assistant reply to history. This depends on whether we have function call or message or both
 	local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
 
-	# We need error detection here
+	# Log the assistant response
 	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then
 	    exclusive_json_modify "$history_file" \
 				  --arg txt "$reply" \
@@ -765,7 +792,9 @@ handle_send_command() {
 		else
 		    export ASSISTANT_BASEID="$timestamp-$shaid"
 		    tool_start_count=$((tool_start_count + 1))
-		    notice "Tool spawn $tool_start_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
+		    if [[ "$output_mode" == "full" ]] ; then
+			notice "Tool spawn $tool_start_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
+		    fi
 		    fork_output=$(tool_fork \
 				      "$tool_tmp_dir" \
 				      "$id" \
@@ -776,7 +805,9 @@ handle_send_command() {
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
 		    else
-			echo "$fork_output" >&2
+			if [[ "$output_mode" == "full" ]] ; then
+			    echo "$fork_output" >&2
+			fi
 			errormsg="$fork_output"
 		    fi
 		fi
@@ -832,12 +863,14 @@ handle_send_command() {
 "
 		fi
 
-		echo "----------------- Tool output $id start ------------------------------------"
-		if [[ -n "$exitinfo" ]] ; then
-		    echo "$exitinfo"
+		if [[ "$output_mode" == "full" ]] ; then
+		    echo "----------------- Tool output $id start ------------------------------------"
+		    if [[ -n "$exitinfo" ]] ; then
+			echo "$exitinfo"
+		    fi
+		    cat "$tool_tmp_dir/$id.output"
+		    echo "----------------- Tool output $id end --------------------------------------"
 		fi
-		cat "$tool_tmp_dir/$id.output"
-		echo "----------------- Tool output $id end --------------------------------------"
 		# Log it to the history
 		# Append function response message to history
 		exclusive_json_modify "$history_file" \

@@ -16,6 +16,11 @@ OPTIONS
   --dry-run
     Don’t call the API; record the outbox in history and print “Dry-run response.”
 
+  --output-mode <mode>
+    Controls the output emitted while processing the request. Available modes are:
+    - full   - tool calls and arguments, tool output, intermediate LLM response and final LLM response (default)
+    - final  - only final LLM response
+
   --response-file <file>
     Read the assistant’s response from FILE instead of calling the API.
 
