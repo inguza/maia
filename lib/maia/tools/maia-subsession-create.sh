@@ -23,7 +23,11 @@ actualsession="$(resolve_subsession_name "${param[name]}")"
 
 # Create blank subsession (do not copy from parent)
 "$MAIA_BIN" session create "$actualsession" 2>&1 | session_filter "$thissession"
+status=$?
 
+if [[ $status != 0 ]] ; then
+    exit $status
+fi
 export MAIA_SESSION="$actualsession"
 
 # Read config parameters for default subsession setup
