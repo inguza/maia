@@ -1478,28 +1478,28 @@ tool_fork()
 	    error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
 	    status=2
 	else
+	    # Call the tool in the background. It is important to redirect stdin, stdout and stderr to null so it
+	    # is really forked off. Without that bash may wait for it to complete.
 	    (
 		export PATH="$tool_search_path:$PATH"
 		export TOOL_CALL_ID="$id"
-		# Call the tool in the background. It is important to redirect stdin, stdout and stderr to null so it
-		# is really forked off. Without that bash may wait for it to complete.
-		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" </dev/null >/dev/null 2>&1 &
-		local jpid=$!
-		unset TOOL_CALL_ID
-		local starttime="$(pid_starttime "$jpid")"
-		jq -n \
-		   --argjson pid "$jpid" \
-		   --arg starttime "$starttime" \
-		   --arg tool "$func_name" \
-		   --arg callid "$id" \
-		   --argjson arguments "$func_args" '{
-		     pid: $pid,
+		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args"
+	    )  </dev/null >/dev/null 2>&1 &
+	    local jpid=$!
+	    unset TOOL_CALL_ID
+	    local starttime="$(pid_starttime "$jpid")"
+	    jq -n \
+	       --argjson pid "$jpid" \
+	       --arg starttime "$starttime" \
+	       --arg tool "$func_name" \
+	       --arg callid "$id" \
+	       --argjson arguments "$func_args" '{
+	             pid: $pid,
 		     starttime: $starttime,
 		     tool: $tool,
 		     arguments: $arguments,
 		     toolcallid: $callid
 		    }' > "$tool_tmp_dir/$id.json"
-	    )
 	fi
     fi
     return $status

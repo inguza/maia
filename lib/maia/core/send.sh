@@ -795,21 +795,23 @@ handle_send_command() {
 		    if [[ "$output_mode" == "full" ]] ; then
 			notice "Tool spawn $tool_start_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
 		    fi
-		    fork_output=$(tool_fork \
-				      "$tool_tmp_dir" \
-				      "$id" \
-				      "$func_name" \
-				      "$func_args" \
-				      "$enabled_tools_json" 2>&1)
+		    tool_fork \
+			"$tool_tmp_dir" \
+			"$id" \
+			"$func_name" \
+			"$func_args" \
+			"$enabled_tools_json" > "$tool_tmp_dir/$id.start" 2>&1
 		    status=$?
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
 		    else
+			local fork_output=$(<"$tool_tmp_dir/$id.start")
 			if [[ "$output_mode" == "full" ]] ; then
 			    echo "$fork_output" >&2
 			fi
 			errormsg="$fork_output"
 		    fi
+		    rm -f "$tool_tmp_dir/$id.start"
 		fi
 		if [[ -n "$tool_loop_prevent_glob" && $func_name == $tool_loop_prevent_glob ]] ; then
 		    seen_commands_this[$toolcallshaid]="$id";
@@ -837,7 +839,6 @@ handle_send_command() {
 	    # # Wait for tools and process results as they finish
 	    while (( tool_count > 0 )); do
 		wait -n
-
 		# Find one completed tool. wait -n returns when one child has finished,
 		# and tool_call_managed creates the .finished file before exiting.
 		finished=""
