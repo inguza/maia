@@ -35,9 +35,6 @@ fi
 
 actualsession="$(resolve_subsession_name "$subsession")"
 
-# Determine tool or skill command based on script name
-export MAIA_SESSION="$actualsession"
-
 allow=()
 if [[ -n ${param[allow]:-} ]]; then
     if output=$(jq -r '.[]' <<< "${param[allow]}" 2> /dev/null ) ; then
@@ -51,10 +48,13 @@ if [[ -n ${param[allow]:-} ]]; then
 fi
 
 parent_allowed=()
-mapfile -t parent_allowed < <($MAIA_BIN tool view --expand)
+mapfile -t parent_allowed < <($MAIA_BIN "$1" view --expand)
+
+# Determine tool or skill command based on script name
+export MAIA_SESSION="$actualsession"
 
 # Filter requested tools to those allowed in parent
-local glob_pattern=$(make_glob_from_var "${allow[@]}")
+glob_pattern=$(make_glob_from_var "${allow[@]}")
 allowed=()
 for p in "${parent_allowed[@]}" ; do
     if [[ -n $glob_pattern && $p == $glob_pattern ]]; then
