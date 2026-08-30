@@ -64,6 +64,7 @@ declare -A DEFAULT_CONFIG=(
     [default_subsession_skill_restrict]=""
     [default_subsession_skill_remember]="*"
     [default_subsession_skill_forget]=""
+    [tool_loop_prevent]="file-write file-change"
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_5_4]=2.5
     [cost_output_gpt_5_4]=15

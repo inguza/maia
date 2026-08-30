@@ -1,5 +1,7 @@
 http_logging
 splice_allowed_files
+default_subsession_tool_restrict
+tool_loop_prevent
 max_output_tokens
 tab_width
 default_workspace
@@ -7,7 +9,9 @@ frequency_penalty
 term_loglevel
 tool_iteration_limit
 stream
+default_subsession_skill_restrict
 n
+default_subsession_tool_allow
 send_hook
 api_type
 presence_penalty
@@ -17,13 +21,16 @@ max_input_tokens
 prune_when_applied
 additional_tool_paths
 prune_mode
+default_subsession_skill_remember
 model
 file_handling_mode
+default_subsession_skill_allow
 additional_skill_paths
 top_p
 prune_when_skipped
 auto_parse
 default_filter
 default_session_extra_send_filesets
+default_subsession_skill_forget
 auto_add_new_files_on_apply
 temperature

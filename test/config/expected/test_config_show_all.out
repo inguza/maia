@@ -21,6 +21,12 @@ cost_output_gpt_5_4_nano       default    1.25
 default_filter                 default    ""
 default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
+default_subsession_skill_allow default    "*"
+default_subsession_skill_forget default    ""
+default_subsession_skill_remember default    "*"
+default_subsession_skill_restrict default    ""
+default_subsession_tool_allow  default    "*"
+default_subsession_tool_restrict default    "subsession-*"
 default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
 file_handling_mode_mistral_24b default    "APPEND"
@@ -42,6 +48,7 @@ tab_width                      default    8
 temperature                    default    0.7
 term_loglevel                  home       "NOTICE"
 tool_iteration_limit           default    20
+tool_loop_prevent              default    "file-write file-change"
 top_p                          default    1
 
 ENVIRONMENT NAME               VALUE

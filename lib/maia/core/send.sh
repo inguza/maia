@@ -313,6 +313,9 @@ handle_send_command() {
     local top_p=$(jq -r '.top_p' <<<"$_cfg")
     local frequency_penalty=$(jq -r '.frequency_penalty' <<<"$_cfg")
     local presence_penalty=$(jq -r '.presence_penalty' <<<"$_cfg")
+    local tool_loop_prevent
+    read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg")"
+    local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
     local n=$(jq -r '.n' <<<"$_cfg")
     local stream=$(jq -r '.stream' <<<"$_cfg")
     local api_type=$(jq -r '.api_type' <<<"$_cfg")
@@ -775,7 +778,9 @@ handle_send_command() {
 			errormsg="$fork_output"
 		    fi
 		fi
-		seen_commands_this[$toolcallshaid]="$id";
+		if [[ -n "$tool_loop_prevent_glob" && $func_name == $tool_loop_prevent_glob ]] ; then
+		    seen_commands_this[$toolcallshaid]="$id";
+		fi
 		if [[ -n "$errormsg" ]] ; then
 		    # Log the problem response message to history
 		    exclusive_json_modify "$history_file"\
