@@ -1481,8 +1481,8 @@ tool_fork()
 		export PATH="$tool_search_path:$PATH"
 		export TOOL_CALL_ID="$id"
 		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
-		unset TOOL_CALL_ID
 		local jpid=$!
+		unset TOOL_CALL_ID
 		local starttime="$(pid_starttime "$jpid")"
 		jq -n \
 		   --argjson pid "$jpid" \
