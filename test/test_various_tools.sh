@@ -25,8 +25,9 @@ setup_maia_home
 echo "Working in $XMAIA_HOME"
 $MAIA workspace create default --path "$XMAIA_HOME" > /dev/null 2>&1
 $MAIA session create default --workspace default > /dev/null 2>&1
-# Allow all tools
+# Allow all tools and skills
 $MAIA tool replace "*" > /dev/null 2>&1
+$MAIA skill replace "file" "subsession"
 touch "$XMAIA_HOME/file-to-see.txt"
 #
 TOOL_DIR="$(realpath "$TEST_ROOT/../lib/maia/tools")"
@@ -198,11 +199,34 @@ export ASSISTANT_BASEID="20260717T214714-68e23e97"
 run_tool_cmd "shell-exec-1" "shell-exec.sh" '{"commands":"make\ngcc\n"}'
 
 ##### maia-* tools
+$MAIA tool replace "core-* file-* util-*" > /dev/null 2>&1
+$MAIA skill replace "file"
 subsession1="sub-session-1"
 run_tool_cmd "maia-subsession-list-empty-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-create-ss1-1" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-list-ac1-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-show-ss1-1_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+
+# restrictions
+run_tool_cmd "maia-subsession-tool-list-ss1-1" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-1" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+
+run_tool_cmd "maia-subsession-tool-restrict-ss1-1" "maia-subsession-restrict-common.sh tool"  '{"name":"'$subsession1'", "restrictions": ["util-*"]}'
+run_tool_cmd "maia-subsession-skill-restrict-ss1-1" "maia-subsession-restrict-common.sh skill"  '{"name":"'$subsession1'", "restrictions": ["file"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-2" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-2" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+
+run_tool_cmd "maia-subsession-tool-allow-ss1-1" "maia-subsession-allow-common.sh tool"  '{"name":"'$subsession1'", "allow": ["util-sed"]}'
+run_tool_cmd "maia-subsession-skill-allow-ss1-1" "maia-subsession-allow-common.sh skill"  '{"name":"'$subsession1'", "allow": ["file"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-3" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-3" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+
+run_tool_cmd "maia-subsession-tool-allow-ss1-2" "maia-subsession-allow-common.sh tool"  '{"name":"'$subsession1'", "allow": ["subsession-create"]}'
+run_tool_cmd "maia-subsession-tool-allow-ss1-2" "maia-subsession-allow-common.sh tool"  '{"name":"'$subsession1'", "allow": ["subsession"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-4" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-4" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+
+#
 run_tool_cmd "maia-subsession-delete-ss1-1" "maia-subsession-delete.sh" '{"name":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-list-ad1-1" "maia-subsession-list.sh" '{}'
 run_tool_cmd "maia-subsession-show-ss1-1_adelete" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
