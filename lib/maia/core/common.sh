@@ -1437,6 +1437,7 @@ pid_starttime() {
     awk '{print $22}' "/proc/$pid/stat"
 }
 
+# Tool command, will not produce any output on its own
 tool_cmd() {
     local tool_tmp_dir="$1"
     local id="$2"
@@ -1480,7 +1481,9 @@ tool_fork()
 	    (
 		export PATH="$tool_search_path:$PATH"
 		export TOOL_CALL_ID="$id"
-		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" &
+		# Call the tool in the background. It is important to redirect stdin, stdout and stderr to null so it
+		# is really forked off. Without that bash may wait for it to complete.
+		tool_cmd "$tool_tmp_dir" "$id" "$tool_exec_dir" "$tool_cmd" "$func_args" </dev/null >/dev/null 2>&1 &
 		local jpid=$!
 		unset TOOL_CALL_ID
 		local starttime="$(pid_starttime "$jpid")"
