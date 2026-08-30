@@ -321,7 +321,7 @@ handle_tool_command() {
             ;;
         restrict)
             # Expand current allowed wildcards to explicit tool names
-            mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | uniq)
+            mapfile -t allowed_patterns < "$filepath"
 	    mapfile -t expanded_tools < <(expand_tool_wildcards "${allowed_patterns[@]}")
             # Deduplicate
             mapfile -t expanded_tools < <(printf '%s\n' "${expanded_tools[@]}" | sort -u)
@@ -348,7 +348,7 @@ handle_tool_command() {
             ;;
 	view|"")
 	    if [[ "$1" == "--expand" ]] ; then
-		mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
+		mapfile -t allowed_patterns < <(prompt_for_scope "$scope" "$prompt_type")
 		expand_tool_wildcards "${allowed_patterns[@]}" | uniq
 	    else
 		prompt_for_scope "$scope" "$prompt_type"

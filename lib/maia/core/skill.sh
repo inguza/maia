@@ -405,9 +405,6 @@ handle_skill_command() {
                 shift
 		remember=("$@")
             fi
-            if [[ $# -lt 1 ]]; then
-                die "Usage: maia skill replace [--remember] <skillname|wildcard>..."
-            fi
 	    if [[ "$subcmd" != "replace" ]] ; then
 		mkdir -p "${SCOPE_DIRS[$scope]}"
 		copy_over "$implicit_scope" "prompt_type" "$filepath"
@@ -471,7 +468,7 @@ handle_skill_command() {
 	view|"")
 	    # Expand allowed wildcards to explicit allowed skills
 	    if [[ "$1" == "--expand" ]]; then
-                mapfile -t allowed_patterns < <(grep -vE '^\s*$' "$filepath" | sort -u)
+                mapfile -t allowed_patterns < <(prompt_for_scope "$scope" "$prompt_type")
                 expand_skill_wildcards "${allowed_patterns[@]}" | uniq
 	    else
 		prompt_for_scope "$scope" "$prompt_type"
