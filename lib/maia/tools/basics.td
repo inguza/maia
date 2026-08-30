@@ -92,7 +92,7 @@
 	  "description": "The duration to sleep. Defaults to seconds if no suffix is specified. The suffixes s, m, h and d specify seconds, minutes, hours and days respectively. Example: 5.5s sleeps for 5.5 seconds."
         }
       },
-      "required": [ "time" ],
+      "required": [ "duration" ],
       "additionalProperties": false
     },
     "strict": true
