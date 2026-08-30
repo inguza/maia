@@ -16,7 +16,7 @@
   "term_loglevel": "NOTICE",
   "tool_iteration_limit": 20,
   "stream": false,
-  "default_subsession_skill_restrict": "",
+  "default_subsession_skill_restrict": "subsession",
   "n": 1,
   "file_handling_mode_mistral_24b": "APPEND",
   "cost_input_gpt_5_4": 2.5,
