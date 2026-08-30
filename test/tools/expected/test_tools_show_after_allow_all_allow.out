@@ -110,6 +110,26 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
+    "name": "core-sleep",
+    "description": "Sleep for the specified duration.",
+    "command": "sleep.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "string",
+          "description": "The duration to sleep. Defaults to seconds if no suffix is specified. The suffixes s, m, h and d specify seconds, minutes, hours and days respectively. Example: 5.5s sleeps for 5.5 seconds."
+        }
+      },
+      "required": [
+        "time"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+  },
+  {
     "name": "util-file",
     "description": "Determine file type.",
     "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",

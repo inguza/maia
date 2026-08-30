@@ -11,6 +11,7 @@ context-skill-remember
 core-pipe
 core-print
 core-sequence
+core-sleep
 file-append
 file-change
 file-write
@@ -144,6 +145,26 @@ Tool definitions:
       },
       "required": [
         "content"
+      ],
+      "additionalProperties": false
+    },
+    "strict": true,
+    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "core-sleep",
+    "description": "Sleep for the specified duration.",
+    "command": "sleep.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "string",
+          "description": "The duration to sleep. Defaults to seconds if no suffix is specified. The suffixes s, m, h and d specify seconds, minutes, hours and days respectively. Example: 5.5s sleeps for 5.5 seconds."
+        }
+      },
+      "required": [
+        "time"
       ],
       "additionalProperties": false
     },

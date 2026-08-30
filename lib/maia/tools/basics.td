@@ -79,5 +79,22 @@
       "additionalProperties": false
     },
     "strict": true
+  },
+  {
+    "name": "core-sleep",
+    "description": "Sleep for the specified duration.",
+    "command": "sleep.sh",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "duration": {
+	  "type": "string",
+	  "description": "The duration to sleep. Defaults to seconds if no suffix is specified. The suffixes s, m, h and d specify seconds, minutes, hours and days respectively. Example: 5.5s sleeps for 5.5 seconds."
+        }
+      },
+      "required": [ "time" ],
+      "additionalProperties": false
+    },
+    "strict": true
   }
 ]

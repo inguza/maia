@@ -8,6 +8,7 @@ context-skill-forget
 context-skill-remember
 core-print
 core-sequence
+core-sleep
 file-append
 file-change
 file-write

@@ -320,6 +320,16 @@ handle_tool_command() {
 	    list_tools "$scope" "$filepath"
             ;;
         restrict)
+	    # In case there is no file in this scope, copy it over
+	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    if [[ ! -f "$filepath" ]]; then
+		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
+		if [[ -z "$msg" ]] ; then
+		    touch "$filepath"
+		else
+		    echo "$msg" > "$filepath"
+		fi
+	    fi
             # Expand current allowed wildcards to explicit tool names
             mapfile -t allowed_patterns < "$filepath"
 	    mapfile -t expanded_tools < <(expand_tool_wildcards "${allowed_patterns[@]}")
