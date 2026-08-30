@@ -1,13 +1,17 @@
 ----------------- Tool output 1 start ------------------------------------
 [NOTICE] Bootstrapped session 'review-xcommon'
 [NOTICE] Created session 'review-xcommon' with workspace 'default', resolved from current session.
+
 ----------------- Tool output 1 end --------------------------------------
 ----------------- Tool output 2 start ------------------------------------
 [WARN] File 'x/x.info.yml' not found, skipping
+
 ----------------- Tool output 2 end --------------------------------------
 ----------------- Tool output 3 start ------------------------------------
 [WARN] File 'xcommon/tests/src/Functional/TestBase.php' not found, skipping
+
 ----------------- Tool output 3 end --------------------------------------
 ----------------- Tool output 4 start ------------------------------------
 [ERROR] OPENAI_API_KEY environment variable is not set.
+
 ----------------- Tool output 4 end --------------------------------------

@@ -28,7 +28,6 @@ status=$?
 if [[ $status != 0 ]] ; then
     exit $status
 fi
-export MAIA_SESSION="$actualsession"
 
 # Read config parameters for default subsession setup
 _cfg=$(load_merged_config session)
@@ -40,11 +39,31 @@ apply_config_param() {
     local maia_cmd2="$3"
     local value=$(jq -r --arg key "$param_name" '.[$key] // ""' <<< "$_cfg")
     read -ra patterns <<< "$value"
+    if [[ "$maia_cmd2" == allow || "$maia_cmd2" == remember ]] ; then
+	parent_allowed=()
+	mapfile -t parent_allowed < <($MAIA_BIN "$2" view --expand)
+	glob_pattern=$(make_glob_from_var "${patterns[@]}")
+	patterns=()
+	for p in "${parent_allowed[@]}" ; do
+	    if [[ -n $glob_pattern && $p == $glob_pattern ]]; then
+		patterns+=("$p")
+	    fi
+	done
+    fi
+
     if (( ${#patterns[@]} > 0 )); then
+	export MAIA_SESSION="$actualsession"
         "$MAIA_BIN" "$maia_cmd1" "$maia_cmd2" --scope "session" "${patterns[@]}"
+	export MAIA_SESSION="$thissession"
     fi
 }
 
+# Make sure to reset, just in case there is defaults from session create
+export MAIA_SESSION="$actualsession"
+"$MAIA_BIN" tool --scope session clear
+"$MAIA_BIN" skill --scope session clear
+"$MAIA_BIN" skill --scope session forget "*"
+export MAIA_SESSION="$thissession"
 apply_config_param default_subsession_tool_allow tool allow
 apply_config_param default_subsession_tool_restrict tool restrict
 apply_config_param default_subsession_skill_allow skill allow
