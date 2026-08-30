@@ -52,3 +52,6 @@ exclusive_json_modify \
     -f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
 
 $MAIA_BIN file add "$path" > /dev/null 2>&1 || true
+
+prune_tool_call_arguments
+exit 0
