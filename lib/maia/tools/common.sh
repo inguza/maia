@@ -67,3 +67,13 @@ validate_path()
 	exit 2
     fi
 }
+
+prune_tool_call_arguments() {
+    local history_file="$(resolve_history_meta)"
+    if [[ -s "$history_file" ]] ; then
+	exclusive_json_modify \
+	    "$history_file" \
+	    --arg source "$TOOL_CALL_ID" \
+	    -f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
+    fi
+}

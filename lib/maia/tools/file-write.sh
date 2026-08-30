@@ -59,11 +59,7 @@ if [[ "$path" != "$wpath" ]] ; then
 else
     echo "$contentstr written to $path."
     # If this was a direct write from a tool call, prune arguments in history
-    history_file="$(resolve_history_meta)"
-    exclusive_json_modify \
-	"$history_file" \
-	--arg source "$TOOL_CALL_ID" \
-	-f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
+    prune_tool_call_arguments
 fi
 $MAIA_BIN file add "$path" > /dev/null 2>&1
 # Exit with 0 since otherwise you get an error when there is no match
