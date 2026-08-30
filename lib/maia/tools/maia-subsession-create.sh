@@ -12,6 +12,7 @@ set -eo pipefail
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/session-common.sh"
+
 declare -A param
 parseparam
 
@@ -19,6 +20,8 @@ thissession="$(resolve_session_name)"
 actualsession="$(resolve_subsession_name "${param[name]}")"
 # We do not want to unset here, because we want to have workspace copied from the current session
 # unset MAIA_SESSION
+
+echo "DEBUG: $actualsession"
 
 # Create blank subsession (do not copy from parent)
 "$MAIA_BIN" session create "$actualsession" 2>&1 | session_filter "$thissession"
