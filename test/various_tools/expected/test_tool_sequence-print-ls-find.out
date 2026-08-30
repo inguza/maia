@@ -1,12 +1,40 @@
------------------ Tool output 1 start ------------------------------------
+# Sequence call 1: core-print
+
+Arguments:
+{
+  "content": "Test"
+}
+
+Output:
+```text
 Test
------------------ Tool output 1 end --------------------------------------
------------------ Tool output 2 start ------------------------------------
+```
+
+# Sequence call 2: util-ls
+
+Arguments:
+{
+  "pathspec": ".",
+  "arguments": ""
+}
+
+Output:
+```text
 file-to-see.txt
 
------------------ Tool output 2 end --------------------------------------
------------------ Tool output 3 start ------------------------------------
+```
+
+# Sequence call 3: util-find
+
+Arguments:
+{
+  "pathspec": "."
+}
+
+Output:
+```text
 .
 ./file-to-see.txt
 
------------------ Tool output 3 end --------------------------------------
+```
+

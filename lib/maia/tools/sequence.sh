@@ -50,18 +50,25 @@ while IFS= read -r tool_call; do
 	rm -rf "$tool_tmp_dir"
 	die "Executable '$tool_exec' for tool '$func_name' not found in tool search path."
     else
-	# TODO Call it
 	args_file="$tool_tmp_dir/$i.args"
 	printf '%s\n' "$func_args" > "$args_file"
-	notice "Tool call $i in sequence: $func_name($func_args)"
-	echo "----------------- Tool output $i start ------------------------------------"
+	echo "# Sequence call $i: $func_name"
+	echo
+	echo "Arguments:"
+	echo "$func_args"
+	echo
+	echo "Output:"
+	echo "\`\`\`text"
 	bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" 2>&1
 	echo
-	echo "----------------- Tool output $i end --------------------------------------"
+	echo "\`\`\`"
+	echo
     fi
     ((i++))
 done < <(jq -c '.[]' <<< "$sequence")
 
 rm -rf "${tool_tmp_dir}"
+# We can remove the calls, because the calls are recorded in the output
+prune_tool_call_arguments
 
 exit 0

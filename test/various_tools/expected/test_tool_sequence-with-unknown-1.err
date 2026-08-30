@@ -1,4 +1,1 @@
-[NOTICE] Tool call 1 in sequence: core-print({
-  "content": "Test"
-})
 [ERROR] Executable 'unknown' does not have a defined tool command.
