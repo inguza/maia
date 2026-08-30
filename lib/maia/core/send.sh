@@ -737,6 +737,7 @@ handle_send_command() {
 	if [[ -n "$tools_call_json" ]] ; then
 	    local tool_tmp_dir="$(mktemp -d)"
 	    local tool_count=0
+	    local tool_start_count=0
 	    # Allow tools to be run in parallel
 	    local duplicate="no"
 	    seen_commands_this=()
@@ -763,6 +764,8 @@ handle_send_command() {
 		    duplicate="yes"
 		else
 		    export ASSISTANT_BASEID="$timestamp-$shaid"
+		    tool_start_count=$((tool_start_count + 1))
+		    notice "Tool spawn $tool_start_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
 		    fork_output=$(tool_fork \
 				      "$tool_tmp_dir" \
 				      "$id" \
@@ -772,7 +775,6 @@ handle_send_command() {
 		    status=$?
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
-			notice "Tool spawn $tool_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
 		    else
 			echo "$fork_output" >&2
 			errormsg="$fork_output"
