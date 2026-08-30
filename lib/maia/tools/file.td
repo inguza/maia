@@ -85,9 +85,12 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "filepattern": {
-          "type": "string",
-          "description": "File(s) to add to the currently known context. Shell file pattern matching can be used."
+        "filepatterns": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+            "description": "File(s) to add to the currently known context. Shell file pattern matching can be used."
+	  }
         },
         "linestart": {
           "type": "string",
@@ -113,9 +116,12 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "filepattern": {
-          "type": "string",
-          "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+        "filepatterns": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+            "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+	  }
         },
         "subsession": {
           "type": "string",

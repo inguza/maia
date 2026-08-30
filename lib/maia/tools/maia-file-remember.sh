@@ -18,20 +18,21 @@ parseparam
 startline="${param[startline]:-}"
 stopline="${param[stopline]:-}"
 
-filepattern="$(printf '%b' "${param[filepattern]}")"
-mapfile -t files < <(compgen -G "$filepattern")
-
 filedefs=()
-for file in "${files[@]}"; do
-    if [[ -d "$file" ]] ; then
-	warn "$file is a directory, skipping."
-    fi
-    if [[ -n "$startline" || -n "$stopline" ]] ; then
-	filedefs+=("$file:$startline-$stopline")
-    else
-	filedefs+=("$file")
-    fi
-done
+while IFS= read -r filepattern; do
+    mapfile -t files < <(compgen -G "$filepattern")
+    for file in "${files[@]}"; do
+	if [[ -d "$file" ]] ; then
+	    warn "$file is a directory, skipping."
+	    continue
+	fi
+	if [[ -n "$startline" || -n "$stopline" ]] ; then
+	    filedefs+=("$file:$startline-$stopline")
+	else
+	    filedefs+=("$file")
+	fi
+    done
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[filepatterns]}")")
 
 thissession="$(resolve_session_name)"
 subsession="${param[subsession]:-}"
@@ -39,4 +40,5 @@ subsession="${param[subsession]:-}"
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
 fi
+echo "$MAIA_BIN" file remember "${filedefs[@]}" 2>&1 | session_filter "$thissession"
 "$MAIA_BIN" file remember "${filedefs[@]}" 2>&1 | session_filter "$thissession"

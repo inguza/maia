@@ -15,11 +15,15 @@ set -eo pipefail
 declare -A param
 parseparam
 
-filepattern="$(printf '%b' "${param[filepattern]}")"
+filedefs=()
+while IFS= read -r filepattern; do
+    filedefs+=("$filepattern")
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[filepatterns]}")")
+
 thissession="$(resolve_session_name)"
 subsession="${param[subsession]:-}"
 # TODO check subsession name for unknown characters
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
 fi
-"$MAIA_BIN" file forget "$filepattern" 2>&1 | session_filter "$thissession"
+"$MAIA_BIN" file forget "${filedefs[@]}" 2>&1 | session_filter "$thissession"
