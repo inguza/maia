@@ -43,7 +43,7 @@
   },
   {
     "name":"file-change",
-    "description": "Update an existing file. Always creates a change proposal.",
+    "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
     "command": "file-change.sh",
     "instructions": [ "file.txt" ],
     "parameters": {
@@ -55,20 +55,20 @@
         },
 	"changes": {
 	  "type": "array",
-	  "description": "Changes to apply. Each change must match exactly one contiguous region of the current file.",
+	  "description": "A list of exact text replacements. Each change replaces one exact, contiguous region of the current file.",
 	  "items": {
 	    "type": "object",
 	    "properties": {
-	      "old": {
+	      "existing": {
 	        "type": "string",
-		"description": "Exact contiguous text to replace."
+		"description": "The exact text currently present in the file. Matching is literal; whitespace and every other character matter. The text must occur exactly once in the current file."
 	      },
-	      "new": {
+	      "replacement": {
 	        "type": "string",
-		"description": "Text that replaces the removed text."
+		"description": "The exact text to insert in place of `existing`. All other file content remains unchanged."
 	      }
 	    },
-	    "required": ["old", "new"],
+	    "required": ["existing", "replacement"],
 	    "additionalProperties": false
 	  }
 	}

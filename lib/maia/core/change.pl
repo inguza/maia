@@ -74,18 +74,26 @@ sub change_file {
 	    $error = "Change $i is not a change. Aborting.\n";
 	    last;
 	}
-	for my $key (qw(old new)) {
+	# A little bit of backwards compatibility for the usage of the old names
+	# to be removed eventually.
+	my $keyexisting = "existing";
+	my $keyreplacement = "replacement";
+	if (exists $item->{'old'}) {
+	    $keyexisting = "old";
+	    $keyreplacement = "new";
+	}
+	for my $key ("$keyexisting", "$keyreplacement") {
 	    if (!exists $item->{$key}) {
 		$error = "Change $i is missing '$key'. Aborting.\n";
 		last;
 	    }
 	}
-        my $old = $item->{'old'};
+        my $old = $item->{"$keyexisting"};
 	if ($old eq "") {
 	    $error = "Change $i has an empty string to remove. Aborting.\n";
 	    last;
 	}
-        my $new = $item->{'new'};
+        my $new = $item->{"$keyreplacement"};
 
 	# Find the old text and substitute
 	my $pos = index($content, $old);
@@ -97,9 +105,9 @@ sub change_file {
 	    # the end of the file. Only accept this EOF-only match to avoid accidental
 	    # mid-file replacements.
 	    if ($old =~ /\n\z/) {
-		my $old_no_nl = $old;
+		my $old_no_nl = "$old";
 		$old_no_nl =~ s/\n\z//;
-		my $new_no_nl = $new;
+		my $new_no_nl = "$new";
 		$new_no_nl =~ s/\n\z//;
 		my $rpos = rindex($content, $old_no_nl);
 		if ($rpos >= 0 && $rpos + length($old_no_nl) == length($content)) {
@@ -113,11 +121,11 @@ sub change_file {
 	    # Provide diagnostics
 	    open TF, ">>$txtfile";
 	    print TF "Change $i. Could not find the exact old text. Please replace the following text manually:\n";
-	    print TF "---- Old text to replace ----\n";
+	    print TF "---- Existing text to replace ----\n";
 	    print TF "$old\n";
 	    print TF "---- End ----\n";
 	    print TF "\n";
-	    print TF "---- New replacement text ----\n";
+	    print TF "---- Replacement text ----\n";
 	    print TF "$new\n";
 	    print TF "---- End ----\n";
 	    close(TF);
