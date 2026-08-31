@@ -538,9 +538,9 @@ change_state_for_jsons() {
 	local id="${id_with_index%-+}"
 	if [ "$old_state" = "$new_state" ] ; then
 	    if [ "$id_with_index" = "$id" ] ; then
-		warn "Sub-change $id already has state $new_state"
+		notice "Sub-change $id already has state $new_state"
 	    else
-		warn "Change $id already has state $new_state"
+		notice "Change $id already has state $new_state"
 	    fi
 	    continue
 	fi
