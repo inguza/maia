@@ -14,6 +14,12 @@ declare -A param
 parseparam
 
 while IFS= read -r id; do
-    # TODO check that id does not contain any unknown characters
+    if [[ -z "$id" ]]; then
+	continue
+    fi
+    if [[ ! "$id" =~ ^[0-9]{8}T[0-9]{6}-[a-f0-9]+-[0-9]+$ ]]; then
+        warn "Invalid change ID format: '$id', skipping."
+        continue
+    fi
     "$MAIA_BIN" change apply "$id"
 done < <(jq -r '.[]' <<< "$(printf '%b' "${param[id]}")")

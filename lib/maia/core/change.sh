@@ -907,8 +907,11 @@ handle_change_command() {
 	    for id in "$@"; do
 		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    local prefix="$changes_dir/$session/$id-"
-		    local jsonf=$(match_single_file "$prefix" ".json") \
-			|| die "Metadata for sub-change $id not found"
+		    local jsonf=$(match_single_file "$prefix" ".json")
+		    if [[ ! -e "$jsonf" ]] ; then
+			warn "Metadata for sub-change $id not found, skipping."
+			continue
+		    fi
 		    local status=$(get_status "$jsonf")                 # => "pending"
 		    local type=$(jq -r '.type'   "$jsonf")
 		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
@@ -969,8 +972,11 @@ handle_change_command() {
 		    # --- single sub-entry ---
 		    # Find its JSON metadata
 		    prefix="$changes_dir/$session/$id-"
-		    jsonf=$(match_single_file "$prefix" ".json") \
-			|| die "Metadata for sub-change $id not found"
+		    jsonf=$(match_single_file "$prefix" ".json")
+		    if [[ ! -e "$jsonf" ]] ; then
+			warn "Metadata for sub-change $id not found, skipping."
+			continue
+		    fi
 		    status=$(get_status "$jsonf")                 # => "pending"
 		    type=$(jq -r '.type'   "$jsonf")
 		    if [[ "$cmd" == "apply" ]] ; then
