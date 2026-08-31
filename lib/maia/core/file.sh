@@ -222,7 +222,6 @@ handle_file_command() {
 
         add|remember)
             shift
-            [[ $# -ge 1 ]] || die "Usage: maia file add [--filesets …] <paths…>"
             local workspace_root=$(resolve_workspace_root "$session_ws")
             for path in "$@"; do
                 local file_part filter_part

@@ -15,10 +15,16 @@ set -eo pipefail
 declare -A param
 parseparam
 
+fileparam="files"
+if [[ -v param[filepatterns] ]] ; then
+    # Backwards compatibility
+    fileparam="filepatterns"
+fi
+
 filedefs=()
 while IFS= read -r filepattern; do
     filedefs+=("$filepattern")
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[filepatterns]}")")
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$fileparam]}")")
 
 thissession="$(resolve_session_name)"
 subsession="${param[subsession]:-}"

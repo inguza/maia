@@ -85,11 +85,11 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "filepatterns": {
+        "files": {
 	  "type": "array",
           "items": {
 	    "type": "string",
-            "description": "File(s) to add to the currently known context. Shell file pattern matching can be used."
+            "description": "File(s) to add to the currently known context. Glob file pattern matching can be used."
 	  }
         },
         "linestart": {

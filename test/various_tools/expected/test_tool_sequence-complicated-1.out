@@ -16,13 +16,15 @@ Output:
 
 Arguments:
 {
-  "filepattern": "x/x.info.yml",
+  "files": [
+    "x/x.info.yml"
+  ],
   "subsession": "review-xcommon"
 }
 
 Output:
 ```text
-[WARN] File 'x/x.info.yml' not found, skipping
+[WARN] File 'x/x.info.yml' not found, skipping.
 
 ```
 
@@ -30,13 +32,15 @@ Output:
 
 Arguments:
 {
-  "filepattern": "xcommon/tests/src/Functional/TestBase.php",
+  "files": [
+    "xcommon/tests/src/Functional/TestBase.php"
+  ],
   "subsession": "review-xcommon"
 }
 
 Output:
 ```text
-[WARN] File 'xcommon/tests/src/Functional/TestBase.php' not found, skipping
+[WARN] File 'xcommon/tests/src/Functional/TestBase.php' not found, skipping.
 
 ```
 
