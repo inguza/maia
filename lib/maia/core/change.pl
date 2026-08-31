@@ -89,11 +89,15 @@ sub change_file {
 	    }
 	}
         my $old = $item->{"$keyexisting"};
-	if ($old eq "") {
+	if ("$old" eq "") {
 	    $error = "Change $i has an empty string to remove. Aborting.\n";
 	    last;
 	}
         my $new = $item->{"$keyreplacement"};
+	if (!defined $new) {
+	    $error = "Change $i has undefined replacement text. Aborting.\n";
+	    last;
+	}
 
 	# Find the old text and substitute
 	my $pos = index($content, $old);
