@@ -271,11 +271,6 @@ handle_file_command() {
 			info "Read only fileset $fs, skipping update."
 			continue
 		    fi
-                    # Check for duplicate entry before adding
-		    if grep -Fxq "$rel_path" "$fs"; then
-			warn "Duplicate entry '$rel_path' in fileset '${fs##*/}'. Skipping."
-			continue
-		    fi
 
 		    add_file_to_fileset_file "$rel_path" "$fs"
                 done
