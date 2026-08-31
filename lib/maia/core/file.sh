@@ -22,21 +22,12 @@ COMMANDS
   content
     Show the content of the files.
 
-  remember <paths...>
+  remember|add <path>[:filter] [...]
     Remember to include one or more files (relative to CWD) into the selected filesets.
 
-  add ...
-    Alias of remember.
-
-  forget <patterns...>
+  forget|delete <pattern> [...]
     Forget entries matching the given filename or glob from the selected
     filesets.
-
-  delete ...
-    Alias of forget.
-
-  remove <patterns...>
-    Remove matching files from the filesystem and then forget entries related to these files.
 
 OPTIONS
 
@@ -69,9 +60,6 @@ EXAMPLES
    maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
 
-   maia file remove old_data.csv
-      Remove specified file in the filesystem and delete from workspace active filesets.
-
 NOTES
 
   Paths are relative to the workspace root. Files outside the workspace is allowed
@@ -87,6 +75,51 @@ EOF
 
 realpath_or_readlink() {
     realpath -q "$1" || readlink -f "$1"
+}
+
+# Helper function to remove entries from filesets that exactly match given patterns
+forget_entries() {
+    local patterns=("$@")
+    # For warning handling
+    declare -A matched_patterns=()
+    for fs in "${FILESET_FILES[@]}"; do
+	if [[ ! -w "$fs" ]]; then
+	    continue
+	fi
+        local tmp=$(mktemp)
+        while IFS= read -r line; do
+            local keep=true
+            for pat in "${patterns[@]}"; do
+                if [[ "$line" == $pat ]]; then
+                    keep=false
+		    matched_patterns["$pat"]=true
+                    break
+                fi
+            done
+            $keep && echo "$line" >> "$tmp"
+        done < "$fs"
+        mv "$tmp" "$fs"
+        info "  Updated $(basename "$fs")"
+    done
+
+    # For warning handling
+    local -a unmatched=()
+    local pat
+    for pat in "${patterns[@]}"; do
+        if [[ ! -v matched_patterns["$pat"] ]]; then
+            unmatched+=("$pat")
+        fi
+    done
+
+    if [[ ${#unmatched[@]} -gt 0 ]]; then
+        # Join unmatched patterns with ' and '
+        local msg="${unmatched[0]}"
+        local i
+        for ((i=1; i<${#unmatched[@]}; i++)); do
+            msg+=" and ${unmatched[i]}"
+        done
+        warn "$msg were not removed because they were not in the list in the first place."
+    fi
 }
 
 handle_file_command() {
@@ -158,75 +191,6 @@ handle_file_command() {
         FILESET_FILES+=( "$ws_dir/${fs}.fileset" )
     done
     [[ ${#FILESET_FILES[@]} -gt 0 ]] || die "No filesets found to operate on."
-
-    # Helper function to remove entries from filesets that exactly match given patterns
-    forget_entries() {
-        local patterns=("$@")
-	# For warning handling
-	declare -A matched_patterns=()
-        for fs in "${FILESET_FILES[@]}"; do
-	    if [[ ! -w "$fs" ]]; then
-		continue
-	    fi
-            local tmp=$(mktemp)
-            while IFS= read -r line; do
-                local keep=true
-                for pat in "${patterns[@]}"; do
-                    if [[ "$line" == $pat ]]; then
-                        keep=false
-			matched_patterns["$pat"]=true
-                        break
-                    fi
-                done
-                $keep && echo "$line" >> "$tmp"
-            done < "$fs"
-            mv "$tmp" "$fs"
-            info "  Updated $(basename "$fs")"
-        done
-
-	# For warning handling
-        local -a unmatched=()
-	local pat
-        for pat in "${patterns[@]}"; do
-            if [[ ! -v matched_patterns["$pat"] ]]; then
-                unmatched+=("$pat")
-            fi
-        done
-
-	if [[ ${#unmatched[@]} -gt 0 ]]; then
-            # Join unmatched patterns with ' and '
-            local msg="${unmatched[0]}"
-            local i
-            for ((i=1; i<${#unmatched[@]}; i++)); do
-                msg+=" and ${unmatched[i]}"
-            done
-            warn "$msg were not removed because they were not in the list in the first place."
-        fi
-    }
-
-    # Helper function to remove all entries related to given filenames (including filtered entries)
-    forget_entries_for_files() {
-        local -a files_to_forget=("$@")
-        for fs in "${FILESET_FILES[@]}"; do
-	    if [[ ! -w "$fs" ]]; then
-		continue
-	    fi
-            local tmp=$(mktemp)
-            while IFS= read -r line; do
-                local keep=true
-                for f in "${files_to_forget[@]}"; do
-                    # Remove entries that start with the file name followed by end of line, colon or pipe
-                    if [[ "$line" == "$f" || "$line" == "$f:"* || "$line" == "$f|"* ]]; then
-                        keep=false
-                        break
-                    fi
-                done
-                $keep && echo "$line" >> "$tmp"
-            done < "$fs"
-            mv "$tmp" "$fs"
-            info "  Updated $(basename "$fs")"
-        done
-    }
 
     local cmd="$1"
 
@@ -319,75 +283,9 @@ handle_file_command() {
             done
             ;;
 
-        delete|forget)
+        delete|forget|remove|rm)
             shift
-            [[ $# -ge 1 ]] || die "Usage: maia file forget [--filesets …] <patterns…>"
             forget_entries "$@"
-            ;;
-
-        remove)
-            shift
-            [[ $# -ge 1 ]] || die "Usage: maia file remove [--filesets …] <patterns…>"
-            local workspace_root=$(resolve_workspace_root "$session_ws")
-
-            local -a filtered_patterns=()
-            local -a skipped_patterns=()
-            local -a files_to_remove=()
-
-            # Separate patterns with filters (skip + warn) and patterns without filters (process)
-            for pat in "$@"; do
-                if [[ "$pat" == *'|'* || "$pat" == *':'* ]]; then
-                    warn "Pattern '$pat' contains filter suffix; skipping removal (only file removal supported)"
-                    skipped_patterns+=( "$pat" )
-                else
-                    filtered_patterns+=( "$pat" )
-                fi
-            done
-
-            # Expand globs and collect files to remove
-            for pat in "${filtered_patterns[@]}"; do
-                shopt -s nullglob
-                local -a matches=("$workspace_root"/$pat)
-                shopt -u nullglob
-                if [[ ${#matches[@]} -eq 0 ]]; then
-                    warn "No files matched pattern '$pat'"
-                    continue
-                fi
-                for f in "${matches[@]}"; do
-                    if [[ -f "$f" || -d "$f" ]]; then
-                        files_to_remove+=( "$f" )
-                    fi
-                done
-            done
-
-            # Remove files from filesystem
-            if [[ ${#files_to_remove[@]} -eq 0 ]]; then
-                info "No files to remove."
-                return 0
-            fi
-
-            for f in "${files_to_remove[@]}"; do
-		if [[ ! -e "$f" ]] ; then
-		    warn "Cannot remove non-existing file '$f'"
-		else
-		    if rm -f "$f" ; then
-			info "Removed file '$f'"
-		    else
-			local rc=$?
-			warn "Failed to remove file '$f' (rm exit with code $rc)"
-		    fi
-		fi
-            done
-
-            # Compute relative paths of removed files to workspace_root for forgetting entries
-            local -a relative_files=()
-            for f in "${files_to_remove[@]}"; do
-                local rel=$(realpath -q --relative-to "$workspace_root" "$f")
-                relative_files+=( "$rel" )
-            done
-
-            # Forget all fileset entries related to removed files (including filtered entries)
-            forget_entries_for_files "${relative_files[@]}"
             ;;
 
         "")

@@ -12,21 +12,12 @@ COMMANDS
   content
     Show the content of the files.
 
-  remember <paths...>
+  remember|add <path>[:filter] [...]
     Remember to include one or more files (relative to CWD) into the selected filesets.
 
-  add ...
-    Alias of remember.
-
-  forget <patterns...>
+  forget|delete <pattern> [...]
     Forget entries matching the given filename or glob from the selected
     filesets.
-
-  delete ...
-    Alias of forget.
-
-  remove <patterns...>
-    Remove matching files from the filesystem and then forget entries related to these files.
 
 OPTIONS
 
@@ -58,9 +49,6 @@ EXAMPLES
 
    maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
-
-   maia file remove old_data.csv
-      Remove specified file in the filesystem and delete from workspace active filesets.
 
 NOTES
 
