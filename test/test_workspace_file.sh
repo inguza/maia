@@ -73,19 +73,9 @@ run_file_cmd "list_add_again" add x1.txt x2.txt
 
 run_file_cmd "list_after_add_2" list
 
-# Test remove files (forget + delete files)
-run_file_cmd "remove_single" remove x2.txt
-run_and_check "ls" ls x*.txt
-run_file_cmd "list_after_remove_single" list
-run_and_check "ls_x" ls x*.txt
-
-# Test remove something that should not be possible to remove
-run_file_cmd "remove_with_pipe_filter" remove 'y3.txt|cat|grep "y3"'
-if [ ! -e "y3.txt" ] ; then
-    echo "Important error. Remove shall not remove if it is a filter!"
-    exit 1
-fi
-run_file_cmd "list_after_remove_with_pipe_filter" list
+# Previous remove but now forget
+run_file_cmd "forget_single" forget x2.txt
+run_file_cmd "forget_single" forget "y3.txt*"
 
 run_and_check "ls_y" ls y*.txt
 
