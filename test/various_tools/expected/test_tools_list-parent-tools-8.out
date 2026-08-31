@@ -1,6 +1,7 @@
 * core-pipe   (/home/ola/git/maia/lib/maia/tools/basics.td)
 * core-sequence   (/home/ola/git/maia/lib/maia/tools/basics.td)
 * core-print   (/home/ola/git/maia/lib/maia/tools/basics.td)
+* core-sleep   (/home/ola/git/maia/lib/maia/tools/basics.td)
   util-file   (/home/ola/git/maia/lib/maia/tools/bsd.td)
   web-browser-curl   (/home/ola/git/maia/lib/maia/tools/curl.td)
 * file-write   (/home/ola/git/maia/lib/maia/tools/file.td)

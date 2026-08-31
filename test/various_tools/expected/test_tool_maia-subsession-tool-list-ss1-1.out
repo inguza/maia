@@ -1,6 +1,7 @@
 core-pipe
 core-sequence
 core-print
+core-sleep
 util-file
 file-write
 file-append
