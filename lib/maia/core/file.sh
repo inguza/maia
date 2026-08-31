@@ -162,6 +162,8 @@ handle_file_command() {
     # Helper function to remove entries from filesets that exactly match given patterns
     forget_entries() {
         local patterns=("$@")
+	# For warning handling
+	declare -A matched_patterns=()
         for fs in "${FILESET_FILES[@]}"; do
 	    if [[ ! -w "$fs" ]]; then
 		continue
@@ -172,6 +174,7 @@ handle_file_command() {
                 for pat in "${patterns[@]}"; do
                     if [[ "$line" == $pat ]]; then
                         keep=false
+			matched_patterns["$pat"]=true
                         break
                     fi
                 done
@@ -180,6 +183,25 @@ handle_file_command() {
             mv "$tmp" "$fs"
             info "  Updated $(basename "$fs")"
         done
+
+	# For warning handling
+        local -a unmatched=()
+	local pat
+        for pat in "${patterns[@]}"; do
+            if [[ ! -v matched_patterns["$pat"] ]]; then
+                unmatched+=("$pat")
+            fi
+        done
+
+	if [[ ${#unmatched[@]} -gt 0 ]]; then
+            # Join unmatched patterns with ' and '
+            local msg="${unmatched[0]}"
+            local i
+            for ((i=1; i<${#unmatched[@]}; i++)); do
+                msg+=" and ${unmatched[i]}"
+            done
+            warn "$msg were not removed because they were not in the list in the first place."
+        fi
     }
 
     # Helper function to remove all entries related to given filenames (including filtered entries)
@@ -259,8 +281,8 @@ handle_file_command() {
                     abs=$(realpath_or_readlink "$PWD/$actual_file")
                 fi
 
-                if [[ ! -e "$abs" ]]; then
-                    warn "File '$actual_file' not found, skipping"
+                if [[ ! -f "$abs" ]]; then
+                    warn "File '$file_part' not found, skipping"
                     continue
                 fi
 
@@ -286,7 +308,13 @@ handle_file_command() {
 			info "Read only fileset $fs, skipping update."
 			continue
 		    fi
-                    add_file_to_fileset_file "$rel_path" "$fs"
+                    # Check for duplicate entry before adding
+		    if grep -Fxq "$rel_path" "$fs"; then
+			warn "Duplicate entry '$rel_path' in fileset '${fs##*/}'. Skipping."
+			continue
+		    fi
+
+		    add_file_to_fileset_file "$rel_path" "$fs"
                 done
             done
             ;;
