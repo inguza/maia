@@ -1422,7 +1422,7 @@ acquire_lock() {
         fi
 
 	if [[ -n "$lockmessage" ]] ; then
-	   info "$lockmessage"
+	   notice "$lockmessage"
 	fi
 	lockmessage=""
 	# Try again
