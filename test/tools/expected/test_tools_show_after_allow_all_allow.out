@@ -338,7 +338,7 @@ Tool definitions:
         }
       },
       "required": [
-        "filepattern"
+        "files"
       ]
     },
     "strict": true,
@@ -364,7 +364,7 @@ Tool definitions:
         }
       },
       "required": [
-        "filepattern"
+        "filepatterns"
       ]
     },
     "strict": true,

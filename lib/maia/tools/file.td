@@ -105,7 +105,7 @@
           "description": "The subsession name that should remember the specified files. If absent current session is used."
         }
       },
-      "required": ["filepattern"]
+      "required": ["files"]
     },
     "strict": true
   },
@@ -128,7 +128,7 @@
           "description": "The subsession name that should forget the specified files. If absent current session is used."
         }
       },
-      "required": ["filepattern"]
+      "required": ["filepatterns"]
     },
     "strict": true
   },

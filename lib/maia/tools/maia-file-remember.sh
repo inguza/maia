@@ -21,6 +21,10 @@ if [[ -v param[filepatterns] ]] ; then
     fileparam="filepatterns"
 fi
 
+if [[ ! -v param[$fileparam] ]] ; then
+    die "Missing parameter $fileparam."
+fi
+
 startline="${param[startline]:-}"
 stopline="${param[stopline]:-}"
 
