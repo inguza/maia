@@ -16,7 +16,7 @@
       	},
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to start the job. If absent current session is used."
         }	
       },
       "required": [ "name", "arguments" ],
@@ -33,7 +33,7 @@
       "properties": {
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to list jobs. If absent current session is used."
         }	
       },
       "required": [],
@@ -54,7 +54,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to show a job. If absent current session is used."
         }	
       },
       "required": ["id"],
@@ -75,7 +75,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to show the status of the job. If absent current session is used."
         }	
       },
       "required": ["id"],
@@ -96,7 +96,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to show the output. If absent current session is used."
         }	
       },
       "required": ["id"],
@@ -117,7 +117,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to cancel a job. If absent current session is used."
         }	
       },
       "required": ["id"],
@@ -138,7 +138,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to delete a job. If absent current session is used."
         },
         "force": {
           "type": "boolean",
@@ -163,7 +163,7 @@
         },
         "subsession": {
           "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "The subsession name for which to check the existance of a job. If absent current session is used."
         }	
       },
       "required": ["id"],
