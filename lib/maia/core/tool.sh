@@ -364,6 +364,49 @@ handle_tool_command() {
 		prompt_for_scope "$scope" "$prompt_type"
 	    fi
 	    ;;
+	run)
+	    if [[ $# -lt 1 ]]; then
+		die "Usage: maia tool run <toolname> [jsonargs]"
+	    fi
+	    local func_name="$1"
+	    local func_args="$2"
+	    shift 2
+	    local tool_tmp_dir="$(mktemp -d)"
+	    local id=manual
+	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+	    tool_fork \
+		"$tool_tmp_dir" \
+		"$id" \
+		"$func_name" \
+		"$func_args" \
+		"$enabled_tools_json" \
+		" run" > "$tool_tmp_dir/$id.start" 2>&1
+	    local status=$?
+	    local errormsg=$(<"$tool_tmp_dir/$id.start")
+	    if [[ -n "$errormsg" ]] ; then
+		echo "$errormsg" >&2
+	    else
+		wait -n
+		local finished="$tool_tmp_dir/manual.finished"
+		if [[ -z "$finished" ]]; then
+		    die "Tool call malfunction."
+		fi
+		status="$(<"$tool_tmp_dir/$id.finished")"
+		local exitinfo=""
+		if (( status != 0 )); then
+		    exitinfo="Tool exited with code $status.
+
+"
+		fi
+		echo "----------------- Tool output $id start ------------------------------------"
+		if [[ -n "$exitinfo" ]] ; then
+		    echo "$exitinfo"
+		fi
+		cat "$tool_tmp_dir/$id.output"
+		echo "----------------- Tool output $id end --------------------------------------"
+	    fi
+	    rm -Rf "$tool_tmp_dir"
+	    ;;
 	show)
 	    echo "Allowed tools:"
 	    echo "--------------"
@@ -435,6 +478,10 @@ COMMANDS
   replace [<toolname> ...]
       Replace tool definition (same as clear and append)
       Wildcards are allowed in toolname.
+
+  run <toolname> [argumentsjsonstring]
+      Run a tool directly. The result is not recorded in the conversation history.
+      Note that the tool is run detached from stdin and stdout just as when run normally.
 
   clear
       Clear all tool definitions in the current scope.

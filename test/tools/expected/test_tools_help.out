@@ -26,6 +26,10 @@ COMMANDS
       Replace tool definition (same as clear and append)
       Wildcards are allowed in toolname.
 
+  run <toolname> [argumentsjsonstring]
+      Run a tool directly. The result is not recorded in the conversation history.
+      Note that the tool is run detached from stdin and stdout just as when run normally.
+
   clear
       Clear all tool definitions in the current scope.
 

@@ -7,12 +7,15 @@
 # Commercial licensing is available separately.
 #
 
-set -euo pipefail
+set -eo pipefail
 
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
 
-printf '%b' "${param[content]}"
+if [[ -v "param[content]" ]] ; then
+    printf '%b' "${param[content]}"
+else
+    cat -
+fi
 exit 0
-

@@ -800,7 +800,8 @@ handle_send_command() {
 			"$id" \
 			"$func_name" \
 			"$func_args" \
-			"$enabled_tools_json" > "$tool_tmp_dir/$id.start" 2>&1
+			"$enabled_tools_json" \
+			" (allowed iterations left $allowed_iterations_left)" > "$tool_tmp_dir/$id.start" 2>&1
 		    status=$?
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))

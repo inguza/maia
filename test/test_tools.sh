@@ -64,6 +64,9 @@ run_tools_cmd "scope_after_allow_print" --scope
 run_tools_cmd "refresh_after_allow_print" refresh
 run_tools_cmd "verify_after_allow_print" verify
 
+run_tools_cmd "run1" run core-print '{"content":"Test\n"}'
+run_tools_cmd "run-err" run core-print-notexisting '{"content":"Test\n"}'
+
 run_tools_cmd "replace" replace "net-request*"
 run_tools_cmd "list_after_replace_mul" list
 run_tools_cmd "show_after_replace_mul" show

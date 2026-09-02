@@ -20,10 +20,10 @@ set_subsession() {
     if [[ ! "$session" =~ ^[a-zA-Z0-9._,:=+-]+$ ]]; then
 	die "Invalid session name $session: Only letters, digits, . _ - , : = + are allowed." >&2
     fi
-    local subsession="$(resolve_subsession_name "$1")"
+    local subsession="$(resolve_subsession_name "$session")"
     local path="$(resolve_session_path "${subsession}")"
     if [[ ! -d "$path" ]] ; then
-	die "Invalid session name $session: Session does not exist." >&2
+	die "Invalid subsession name '$session': Session does not exist." >&2
     fi
     export MAIA_SESSION="${subsession}"
 }

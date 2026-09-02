@@ -72,10 +72,10 @@
       "properties": {
         "content": {
 	  "type": "string",
-	  "description": "The content to print."
+	  "description": "The content to print. If absent, stdin is printed."
         }
       },
-      "required": [ "content" ],
+      "required": [],
       "additionalProperties": false
     },
     "strict": true

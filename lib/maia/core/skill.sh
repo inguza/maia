@@ -253,8 +253,8 @@ COMMANDS
   clear
       Clear allowed skills list.
 
-  test <skillname> <scriptname> [args...]
-      Run a skill script directly without involving the LLM.
+  run <skillname> <scriptname> [args...]
+      Run a skill script directly. The result is not recorded in the conversation history.
 
   refresh
       Refresh cached skill metadata and prompt files.
@@ -508,9 +508,9 @@ handle_skill_command() {
 	    deduplicate_files "$skillset_context_file"
 	    refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
-        test)
+        run)
             if [[ $# -lt 2 ]]; then
-                die "Usage: maia skill test <skillname> <scriptname> [args...]"
+                die "Usage: maia skill run <skillname> <scriptname> [args...]"
             fi
             skill_execute "$scope" "$@"
             ;;

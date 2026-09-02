@@ -32,7 +32,6 @@ done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$fileparam]}")")
 
 thissession="$(resolve_session_name)"
 subsession="${param[subsession]:-}"
-# TODO check subsession name for unknown characters
 if [[ -n "$subsession" ]] ; then
     set_subsession "$subsession"
 fi

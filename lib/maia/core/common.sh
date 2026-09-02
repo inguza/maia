@@ -1462,10 +1462,11 @@ tool_fork()
     local func_name="$3"
     local func_args="$4"
     local enabled_tools_json="$5"
+    local extraprint="$6"
     local status=0
     local tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
     if [[ -z "$tool_cmd" ]]; then
-	error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Tool '$func_name' not found."
+	error "Unable to spawn tool for $id$extraprint: $func_name($func_args). Tool '$func_name' not found."
 	status=1
     else
 	local tool_search_path=$(build_tool_search_path)
@@ -1475,7 +1476,7 @@ tool_fork()
 	local tool_exec_dir="$(command_exec_dir "${tool_cmd}" "$tool_search_path")"
 	
 	if [[ -z "$tool_exec_dir" ]]; then
-	    error "Unable to spawn tool for $id (allowed iterations left $allowed_iterations_left): $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
+	    error "Unable to spawn tool for $id$extraprint: $func_name($func_args). Executable '$tool_exec' for tool '$func_name' not found in tool search path."
 	    status=2
 	else
 	    # Call the tool in the background. It is important to redirect stdin, stdout and stderr to null so it
