@@ -32,8 +32,8 @@ COMMANDS
   clear
       Clear allowed skills list.
 
-  test <skillname> <scriptname> [args...]
-      Run a skill script directly without involving the LLM.
+  run <skillname> <scriptname> [args...]
+      Run a skill script directly. The result is not recorded in the conversation history.
 
   refresh
       Refresh cached skill metadata and prompt files.

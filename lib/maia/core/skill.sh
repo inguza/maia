@@ -17,7 +17,7 @@ read_skill_description() {
     awk '
     BEGIN {desc="" ; inheader=0}
     /^---/ {if (inheader==0) {inheader=1; next} else {inheader=0; exit}}
-    inheader && /^description:[ \t]*(.*)/ {desc=substr($0, index($0,$2))}
+    inheader && /^description:[ \t]*(.*)[ \t]*\.?[ \t]*/ {desc=substr($0, index($0,$2))}
     END {print desc}
     ' "$skill_md"
 }
@@ -107,9 +107,11 @@ generate_skillset_context_gen() {
 	: > "$skillset_context_gen_file"
 	while IFS=' ' read -r skill skillfile; do
             if [[ -n $memory_glob && $skill == $memory_glob ]]; then
+		desc=$(read_skill_description "$skillfile")
 		content=$(sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$skillfile")
 		{
-		    printf "## %s\n" "$skill"
+		    echo
+		    printf "## %s\n" "$skill - $desc"
                     echo "$content"
                     echo
 		} >> "$skillset_context_gen_file"

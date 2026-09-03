@@ -129,7 +129,7 @@ run_skills_cmd "scope_after_delete" --scope
 mkdir -p "$XMAIA_HOME/.maia/skills/skill-test"
 echo -e "#!/bin/bash\necho Skill test script executed" > "$XMAIA_HOME/.maia/skills/skill-test/test.sh"
 chmod +x "$XMAIA_HOME/.maia/skills/skill-test/test.sh"
-run_skills_cmd "test_execute" test skill-test test.sh
+run_skills_cmd "test_execute" run skill-test test.sh
 # It will not be allowed since the skill-test is not allowed
 
 # TODO allow the tool and do it again
