@@ -1,14 +1,14 @@
 [
   {
     "name":"pandoc",
-    "description": "General markup converter",
+    "description": "Convert documents between markup formats using pandoc.",
     "command": "pandoc.sh",
     "parameters": {
       "type": "object",
       "properties": {
         "path": {
           "type": "string",
-          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          "description": "Path to the input file. If omitted, content is read from stdin."
         },
 	"input-format": {
           "type": "string",
@@ -23,10 +23,11 @@
 	  "items": {
 	    "type": "string"
 	  },
-	  "description": "List of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
+	  "description": "Optional pandoc command line arguments. Allowed are: --quiet, --list-input-formats, --list-output-formats."
 	}
       },
-      "required": ["path"]
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   }

@@ -1,0 +1,1 @@
+- Subsessions are independent AI interactions that you can communicate with and delegate work to.

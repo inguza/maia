@@ -2,7 +2,7 @@
 
 Arguments:
 {
-  "name": "review-xcommon"
+  "subsession": "review-xcommon"
 }
 
 Output:
@@ -28,7 +28,7 @@ Output:
 
 ```
 
-# Sequence call 3: context-file-remember
+# Sequence call 3: subsession-file-remember
 
 Arguments:
 {

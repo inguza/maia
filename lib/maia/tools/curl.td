@@ -50,7 +50,8 @@
 	  "description": "List of file command line arguments. Allowed are: -i -D -G --get --raw -s -Sx -X POST."
 	}
       },
-      "required": ["url"]
+      "required": ["url"],
+      "additionalProperties": false
     },
     "strict": true
   }

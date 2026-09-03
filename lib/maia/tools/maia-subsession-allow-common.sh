@@ -18,7 +18,14 @@ set -eo pipefail
 declare -A param
 parseparam
 
-subsession="${param[name]}"
+# "name" is the legacy parameter, "subsession" takes precedence
+paramkey="name"
+if [[ -v param["subsession"] ]] ; then
+    paramkey="subsession"
+fi
+validate_subsession "${param[$paramkey]}"
+
+subsession="${param[$paramkey]}"
 
 if [[ -z "$subsession" ]]; then
     die "Missing required parameter 'name' or 'subsession'"

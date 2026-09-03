@@ -1,7 +1,7 @@
 [
   {
     "name":"shell-exec",
-    "description": "Execute commands. An execution proposal will be created.",
+    "description": "Execute bash shell commands. An execution proposal will be created. This tool cannot be used with the core-pipe tool.",
     "command": "shell-exec.sh",
     "parameters": {
       "type": "object",
@@ -9,13 +9,10 @@
         "commands": {
           "type": "string",
           "description": "Shell commands to execute, provided as a single shell script."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to record the execution proposal. If absent current session is used."
         }
       },
-      "required": ["commands"]
+      "required": ["commands"],
+      "additionalProperties": false
     },
     "strict": true
   }

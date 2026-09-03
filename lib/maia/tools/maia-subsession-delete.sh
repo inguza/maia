@@ -16,7 +16,14 @@ set -eo pipefail
 declare -A param
 parseparam
 
+# "name" is the legacy parameter, "subsession" takes precedence
+paramkey="name"
+if [[ -v param[subsession] ]] ; then
+    paramkey="subsession"
+fi
+validate_subsession "${param[$paramkey]}"
+
 thissession="$(resolve_session_name)"
-actualsession="$(resolve_subsession_name "${param[name]}")"
+actualsession="$(resolve_subsession_name "${param[$paramkey]}")"
 unset MAIA_SESSION
 "$MAIA_BIN" session delete "$actualsession" 2>&1 | session_filter "$thissession"

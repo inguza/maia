@@ -14,12 +14,20 @@ resolve_subsession_name() {
     echo "${thissession}%${session}"
 }
 
-# Set session, primarily from tools point of view
-set_subsession() {
+validate_subsession() {
     local session="$1"
+    if [[ -z "$session" ]] ; then
+	die "Invalid subsession name '$session'. Must not be empty."
+    fi
     if [[ ! "$session" =~ ^[a-zA-Z0-9._,:=+-]+$ ]]; then
 	die "Invalid session name $session: Only letters, digits, . _ - , : = + are allowed." >&2
     fi
+}
+
+# Set session, primarily from tools point of view
+set_subsession() {
+    local session="$1"
+    validate_subsession "$session"
     local subsession="$(resolve_subsession_name "$session")"
     local path="$(resolve_session_path "${subsession}")"
     if [[ ! -d "$path" ]] ; then

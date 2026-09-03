@@ -16,8 +16,15 @@ set -eo pipefail
 declare -A param
 parseparam
 
+# "name" is the legacy parameter, "subsession" takes precedence
+paramkey="name"
+if [[ -v param["subsession"] ]] ; then
+    paramkey="subsession"
+fi
+validate_subsession "${param[$paramkey]}"
+
 thissession="$(resolve_session_name)"
-actualsession="$(resolve_subsession_name "${param[name]}")"
+actualsession="$(resolve_subsession_name "${param[$paramkey]}")"
 # We do not want to unset here, because we want to have workspace copied from the current session
 # unset MAIA_SESSION
 

@@ -17,19 +17,13 @@ declare -A param
 parseparam
 
 if [[ ! -v "param[ids]" ]]; then
-    die "Missing ids parameter"
+    die "Missing 'ids' parameter"
 fi
 
 declare -a ids=()
 mapfile -t ids < <(
     jq -r '.[]' <<< "${param[ids]}"
 )
-
-subsession="${param[subsession]:-}"
-# TODO check subsession name for unknown characters
-if [[ -n "$subsession" ]] ; then
-    set_subsession "$subsession"
-fi
 
 history_file="$(resolve_history_meta)"
 jq \

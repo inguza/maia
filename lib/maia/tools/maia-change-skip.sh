@@ -13,7 +13,13 @@ set -euo pipefail
 declare -A param
 parseparam
 
+# id is the legacy, ids has precedence
+idskey="id"
+if [[ -v param[ids] ]] ; then
+    idskey="ids"
+fi
+
 while IFS= read -r id; do
     # TODO check that id does not contain any unknown characters
     "$MAIA_BIN" change skipped "$id"
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[id]}")")
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$idskey]}")")

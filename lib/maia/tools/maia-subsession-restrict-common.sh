@@ -18,21 +18,14 @@ set -eo pipefail
 declare -A param
 parseparam
 
-subsession="${param[name]}"
-
-if [[ -z "$subsession" ]]; then
-    die "Missing required parameter 'name' or 'subsession'"
+# "name" is the legacy parameter, "subsession" takes precedence
+paramkey="name"
+if [[ -v param["subsession"] ]] ; then
+    paramkey="subsession"
 fi
+validate_subsession "${param[$paramkey]}"
 
-# Validate subsession name
-if ! [[ "$subsession" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-    die "Invalid subsession name '$subsession'. Allowed characters are letters, numbers, underscore and hyphen."
-fi
-
-if [[ -z "$subsession" ]] ; then
-    die "Invalid subsession name '$subsession'. Must not be empty."
-fi
-
+subsession="${param[$paramkey]}"
 actualsession="$(resolve_subsession_name "$subsession")"
 
 # Determine tool or skill command based on script name

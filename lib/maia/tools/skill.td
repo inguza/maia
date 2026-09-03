@@ -1,7 +1,7 @@
 [
   {
     "name": "context-skill-remember",
-    "description": "Remember a skill instruction.",
+    "description": "Remember a skill instruction in the current context.",
     "command": "maia-skill-remember.sh",
     "parameters": {
       "type": "object",
@@ -12,19 +12,16 @@
 	    "type": "string",
             "description": "Name of the skill to remember."
 	  }
-	},
-        "subsession": {
-          "type": "string",
-          "description": "The subsession that should remember the specified skill. If absent current session is used."
-        }
+	}
       },
-      "required": ["skills"]
+      "required": ["skills"],
+      "additionalProperties": false
     },
     "strict": true
   },
   {
     "name": "context-skill-forget",
-    "description": "Forget a skill instruction.",
+    "description": "Forget a skill instruction from the current context.",
     "command": "maia-skill-forget.sh",
     "parameters": {
       "type": "object",
@@ -35,19 +32,16 @@
 	    "type": "string",
             "description": "Name of the skill to forget."
 	  }
-	},
-        "subsession": {
-          "type": "string",
-          "description": "The subsession that should remember the specified skill. If absent current session is used."
-        }
+	}
       },
-      "required": ["skills"]
+      "required": ["skills"],
+      "additionalProperties": false
     },
     "strict": true
   },
   {
     "name": "skill-exec",
-    "description": "Execute a skill script with optional arguments. This shall ONLY be used to execute scripts mentioned for a specific skill description.",
+    "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
     "command": "maia-skill-execute.sh",
     "parameters": {
       "type": "object",
@@ -58,7 +52,7 @@
         },
         "script": {
           "type": "string",
-          "description": "Path to the script executable."
+          "description": "Path to the script executable specified by the skill."
         },
 	"arguments": {
 	  "type": "array",
@@ -68,7 +62,8 @@
           "description": "Arguments to the script. Each argument should be a separate string."
 	}
       },
-      "required": ["skill", "script"]
+      "required": ["skill", "script"],
+      "additionalProperties": false
     },
     "strict": true
   }

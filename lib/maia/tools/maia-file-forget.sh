@@ -12,13 +12,14 @@ set -eo pipefail
 . "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/session-common.sh"
+
 declare -A param
 parseparam
 
-fileparam="files"
-if [[ -v param[filepatterns] ]] ; then
-    # Backwards compatibility
-    fileparam="filepatterns"
+# "filepatterns" is the legacy name, files have precedence
+fileparam="filepatterns"
+if [[ -v param[files] ]] ; then
+    fileparam="files"
 fi
 
 if [[ ! -v param[$fileparam] ]] ; then
@@ -30,9 +31,14 @@ while IFS= read -r filepattern; do
     filedefs+=("$filepattern")
 done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$fileparam]}")")
 
-thissession="$(resolve_session_name)"
+# Start code for subsession-file-forget
 subsession="${param[subsession]:-}"
 if [[ -n "$subsession" ]] ; then
+    validate_subsession "$subsession"
+    thissession="$(resolve_session_name)"
     set_subsession "$subsession"
+    "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1 | session_filter "$thissession"
+# End code for subsession-file-forget
+else
+    "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1
 fi
-"$MAIA_BIN" file forget "${filedefs[@]}" 2>&1 | session_filter "$thissession"

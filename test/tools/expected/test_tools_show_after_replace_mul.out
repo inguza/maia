@@ -31,7 +31,8 @@ Tool definitions:
       "required": [
         "host",
         "port"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
@@ -63,7 +64,8 @@ Tool definitions:
       "required": [
         "host",
         "port"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"

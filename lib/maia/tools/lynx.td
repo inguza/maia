@@ -18,7 +18,8 @@
 	  "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
 	}
       },
-      "required": ["url"]
+      "required": ["url"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -41,7 +42,8 @@
 	  "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url."
 	}
       },
-      "required": ["query"]
+      "required": ["query"],
+      "additionalProperties": false
     },
     "strict": true
   }

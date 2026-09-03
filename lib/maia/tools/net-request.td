@@ -23,7 +23,8 @@
 	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
 	}
       },
-      "required": ["host","port"]
+      "required": ["host","port"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -51,7 +52,8 @@
 	  "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
 	}
       },
-      "required": ["host", "port"]
+      "required": ["host", "port"],
+      "additionalProperties": false
     },
     "strict": true
   }

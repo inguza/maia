@@ -13,9 +13,4 @@ set -eo pipefail
 declare -A param
 parseparam
 
-subsession="${param[subsession]:-}"
-# TODO check subsession name for unknown characters
-if [[ -n "$subsession" ]] ; then
-    set_subsession "$subsession"
-fi
 "$MAIA_BIN" job $1 "${param[id]}"

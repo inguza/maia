@@ -9,14 +9,15 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "File to write to."
+          "description": "Path of the file to write."
         },
 	"content": {
 	  "type": "string",
-	  "description": "The full content to write to the file. If absent data is read from stdin."
+	  "description": "The full content to write to the file. If omitted, content is read from stdin."
 	}
       },
-      "required": ["path"]
+      "required": ["path"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -30,14 +31,15 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "File to append to."
+          "description": "Path of the file to append to."
         },
 	"content": {
 	  "type": "string",
-	  "description": "The content to write to the file. If absent data is read from stdin."
+	  "description": "The content to append to the file. If omitted, content is read from stdin."
 	}
       },
-      "required": ["path"]
+      "required": ["path"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -73,13 +75,14 @@
 	  }
 	}
       },
-      "required": ["path", "changes"]
+      "required": ["path", "changes"],
+      "additionalProperties": false
     },
     "strict": true
   },
   {
     "name":"context-file-remember",
-    "description": "Remember/add a file to the known context",
+    "description": "Add a files to the known context",
     "command": "maia-file-remember.sh",
     "instructions": [ "context-file-remember.txt" ],
     "parameters": {
@@ -89,23 +92,20 @@
 	  "type": "array",
           "items": {
 	    "type": "string",
-            "description": "File(s) to add to the currently known context. Glob file pattern matching can be used."
+            "description": "File(s) to add to the currently known context. Glob pattern matching can be used to match files."
 	  }
         },
         "linestart": {
           "type": "string",
-          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+          "description": "First line to remember when only part of the file is needed."
         },
         "lineend": {
           "type": "string",
-          "description": "If the whole file is not needed, specify from what line to start remembering the file."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "Last line to remember when only part of the file is needed."
         }
       },
-      "required": ["files"]
+      "required": ["files"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -116,19 +116,16 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "filepatterns": {
+        "files": {
 	  "type": "array",
           "items": {
 	    "type": "string",
-            "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+            "description": "File(s) to remove from the known context. Glob pattern matching can be used to match files."
 	  }
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name that should forget the specified files. If absent current session is used."
         }
       },
-      "required": ["filepatterns"]
+      "required": ["files"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -140,15 +137,16 @@
     "parameters": {
       "type": "object",
       "properties": {
-	"id": {
+	"ids": {
 	  "type": "array",
           "items": {
 	    "type": "string",
-	    "description": "Change identities to apply in order."
+	    "description": "Change proposal ID(s) to apply in order."
 	  }
 	}
       },
-      "required": ["id"]
+      "required": ["ids"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -159,15 +157,16 @@
     "parameters": {
       "type": "object",
       "properties": {
-	"id": {
+	"ids": {
 	  "type": "array",
           "items": {
 	    "type": "string",
-	    "description": "Change identities to skip in order."
+	    "description": "Change proposal ID(s) to skip in order."
 	  }
 	}
       },
-      "required": ["id"]
+      "required": ["ids"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -178,15 +177,16 @@
     "parameters": {
       "type": "object",
       "properties": {
-	"id": {
+	"ids": {
 	  "type": "array",
           "items": {
 	    "type": "string",
-	    "description": "Change identities to revert in order."
+	    "description": "Change proposal ID(s) to revert in order."
 	  }
 	}
       },
-      "required": ["id"]
+      "required": ["ids"],
+      "additionalProperties": false
     },
     "strict": true
   }

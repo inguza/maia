@@ -145,7 +145,8 @@ Tool definitions:
       },
       "required": [
         "pathspec"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/bsd.td"
@@ -203,7 +204,8 @@ Tool definitions:
       },
       "required": [
         "url"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/curl.td"
@@ -220,16 +222,17 @@ Tool definitions:
       "properties": {
         "path": {
           "type": "string",
-          "description": "File to write to."
+          "description": "Path of the file to write."
         },
         "content": {
           "type": "string",
-          "description": "The full content to write to the file. If absent data is read from stdin."
+          "description": "The full content to write to the file. If omitted, content is read from stdin."
         }
       },
       "required": [
         "path"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -246,16 +249,17 @@ Tool definitions:
       "properties": {
         "path": {
           "type": "string",
-          "description": "File to append to."
+          "description": "Path of the file to append to."
         },
         "content": {
           "type": "string",
-          "description": "The content to write to the file. If absent data is read from stdin."
+          "description": "The content to append to the file. If omitted, content is read from stdin."
         }
       },
       "required": [
         "path"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -300,14 +304,15 @@ Tool definitions:
       "required": [
         "path",
         "changes"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
     "name": "context-file-remember",
-    "description": "Remember/add a file to the known context",
+    "description": "Add a files to the known context",
     "command": "maia-file-remember.sh",
     "instructions": [
       "context-file-remember.txt"
@@ -319,25 +324,22 @@ Tool definitions:
           "type": "array",
           "items": {
             "type": "string",
-            "description": "File(s) to add to the currently known context. Glob file pattern matching can be used."
+            "description": "File(s) to add to the currently known context. Glob pattern matching can be used to match files."
           }
         },
         "linestart": {
           "type": "string",
-          "description": "If the whole file is not needed, specify from what line to start remembering the file."
+          "description": "First line to remember when only part of the file is needed."
         },
         "lineend": {
           "type": "string",
-          "description": "If the whole file is not needed, specify from what line to start remembering the file."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name that should remember the specified files. If absent current session is used."
+          "description": "Last line to remember when only part of the file is needed."
         }
       },
       "required": [
         "files"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -349,21 +351,18 @@ Tool definitions:
     "parameters": {
       "type": "object",
       "properties": {
-        "filepatterns": {
+        "files": {
           "type": "array",
           "items": {
             "type": "string",
-            "description": "File(s) to remove from the currently known context. Shell file pattern matching can be used."
+            "description": "File(s) to remove from the known context. Glob pattern matching can be used to match files."
           }
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name that should forget the specified files. If absent current session is used."
         }
       },
       "required": [
-        "filepatterns"
-      ]
+        "files"
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -378,17 +377,18 @@ Tool definitions:
     "parameters": {
       "type": "object",
       "properties": {
-        "id": {
+        "ids": {
           "type": "array",
           "items": {
             "type": "string",
-            "description": "Change identities to apply in order."
+            "description": "Change proposal ID(s) to apply in order."
           }
         }
       },
       "required": [
-        "id"
-      ]
+        "ids"
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -400,17 +400,18 @@ Tool definitions:
     "parameters": {
       "type": "object",
       "properties": {
-        "id": {
+        "ids": {
           "type": "array",
           "items": {
             "type": "string",
-            "description": "Change identities to skip in order."
+            "description": "Change proposal ID(s) to skip in order."
           }
         }
       },
       "required": [
-        "id"
-      ]
+        "ids"
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -422,17 +423,18 @@ Tool definitions:
     "parameters": {
       "type": "object",
       "properties": {
-        "id": {
+        "ids": {
           "type": "array",
           "items": {
             "type": "string",
-            "description": "Change identities to revert in order."
+            "description": "Change proposal ID(s) to revert in order."
           }
         }
       },
       "required": [
-        "id"
-      ]
+        "ids"
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
@@ -470,7 +472,8 @@ Tool definitions:
       },
       "required": [
         "searchpattern"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -517,7 +520,8 @@ Tool definitions:
       },
       "required": [
         "pathspec"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -540,7 +544,8 @@ Tool definitions:
       },
       "required": [
         "pathspec"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -561,7 +566,8 @@ Tool definitions:
           "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -585,7 +591,8 @@ Tool definitions:
           "description": "Space separated list of sort command line arguments. Allowed are: --."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -606,7 +613,8 @@ Tool definitions:
           "description": "Print the first <lines> lines instead of the first 10."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -627,7 +635,8 @@ Tool definitions:
           "description": "Print the last <lines> lines instead of the last 10."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -648,7 +657,8 @@ Tool definitions:
           "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -673,7 +683,8 @@ Tool definitions:
           "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -698,7 +709,8 @@ Tool definitions:
           "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -719,7 +731,8 @@ Tool definitions:
           "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u."
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -742,7 +755,8 @@ Tool definitions:
       },
       "required": [
         "pathspec"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -763,7 +777,8 @@ Tool definitions:
           "description": "Space separated list of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z"
         }
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -781,15 +796,12 @@ Tool definitions:
             "type": "string",
             "description": "Identity of a conversation history entry whose original content should be retrieved."
           }
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession from which to retrieve the conversation history entries."
         }
       },
       "required": [
         "ids"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/history.td"
@@ -808,17 +820,12 @@ Tool definitions:
         "arguments": {
           "type": "object",
           "description": "Arguments for the function/tool use."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to start the job. If absent current session is used."
         }
       },
       "required": [
         "name",
         "arguments"
-      ],
-      "additionalProperties": false
+      ]
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
@@ -827,17 +834,7 @@ Tool definitions:
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to list jobs. If absent current session is used."
-        }
-      },
-      "required": [],
-      "additionalProperties": false
-    },
+    "parameters": null,
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
@@ -851,10 +848,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show a job. If absent current session is used."
         }
       },
       "required": [
@@ -875,10 +868,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show the status of the job. If absent current session is used."
         }
       },
       "required": [
@@ -899,10 +888,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show the output. If absent current session is used."
         }
       },
       "required": [
@@ -923,10 +908,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to cancel a job. If absent current session is used."
         }
       },
       "required": [
@@ -947,10 +928,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to delete a job. If absent current session is used."
         },
         "force": {
           "type": "boolean",
@@ -975,10 +952,6 @@ Tool definitions:
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to check the existance of a job. If absent current session is used."
         }
       },
       "required": [
@@ -1006,7 +979,8 @@ Tool definitions:
       },
       "required": [
         "arguments"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/jq.td"
@@ -1032,7 +1006,8 @@ Tool definitions:
       },
       "required": [
         "url"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
@@ -1058,7 +1033,8 @@ Tool definitions:
       },
       "required": [
         "query"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
@@ -1090,7 +1066,8 @@ Tool definitions:
       "required": [
         "host",
         "port"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
@@ -1122,21 +1099,22 @@ Tool definitions:
       "required": [
         "host",
         "port"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
   },
   {
     "name": "pandoc",
-    "description": "General markup converter",
+    "description": "Convert documents between markup formats using pandoc.",
     "command": "pandoc.sh",
     "parameters": {
       "type": "object",
       "properties": {
         "path": {
           "type": "string",
-          "description": "Input file. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          "description": "Path to the input file. If omitted, content is read from stdin."
         },
         "input-format": {
           "type": "string",
@@ -1151,19 +1129,18 @@ Tool definitions:
           "items": {
             "type": "string"
           },
-          "description": "List of pandoc command line arguments. Allowed are: --quiet --list-input-formats --list-output-formats."
+          "description": "Optional pandoc command line arguments. Allowed are: --quiet, --list-input-formats, --list-output-formats."
         }
       },
-      "required": [
-        "path"
-      ]
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/pandoc.td"
   },
   {
     "name": "shell-exec",
-    "description": "Execute commands. An execution proposal will be created.",
+    "description": "Execute bash shell commands. An execution proposal will be created. This tool cannot be used with the core-pipe tool.",
     "command": "shell-exec.sh",
     "parameters": {
       "type": "object",
@@ -1171,22 +1148,19 @@ Tool definitions:
         "commands": {
           "type": "string",
           "description": "Shell commands to execute, provided as a single shell script."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to record the execution proposal. If absent current session is used."
         }
       },
       "required": [
         "commands"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/shell.td"
   },
   {
     "name": "context-skill-remember",
-    "description": "Remember a skill instruction.",
+    "description": "Remember a skill instruction in the current context.",
     "command": "maia-skill-remember.sh",
     "parameters": {
       "type": "object",
@@ -1197,22 +1171,19 @@ Tool definitions:
             "type": "string",
             "description": "Name of the skill to remember."
           }
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession that should remember the specified skill. If absent current session is used."
         }
       },
       "required": [
         "skills"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
   },
   {
     "name": "context-skill-forget",
-    "description": "Forget a skill instruction.",
+    "description": "Forget a skill instruction from the current context.",
     "command": "maia-skill-forget.sh",
     "parameters": {
       "type": "object",
@@ -1223,22 +1194,19 @@ Tool definitions:
             "type": "string",
             "description": "Name of the skill to forget."
           }
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession that should remember the specified skill. If absent current session is used."
         }
       },
       "required": [
         "skills"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
   },
   {
     "name": "skill-exec",
-    "description": "Execute a skill script with optional arguments. This shall ONLY be used to execute scripts mentioned for a specific skill description.",
+    "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
     "command": "maia-skill-execute.sh",
     "parameters": {
       "type": "object",
@@ -1249,7 +1217,7 @@ Tool definitions:
         },
         "script": {
           "type": "string",
-          "description": "Path to the script executable."
+          "description": "Path to the script executable specified by the skill."
         },
         "arguments": {
           "type": "array",
@@ -1262,7 +1230,8 @@ Tool definitions:
       "required": [
         "skill",
         "script"
-      ]
+      ],
+      "additionalProperties": false
     },
     "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"

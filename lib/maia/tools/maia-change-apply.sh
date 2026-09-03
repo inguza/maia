@@ -14,6 +14,12 @@ set -eo pipefail
 declare -A param
 parseparam
 
+# id is the legacy, ids has precedence
+idskey="id"
+if [[ -v param[ids] ]] ; then
+    idskey="ids"
+fi
+
 while IFS= read -r id; do
     if [[ -z "$id" ]]; then
 	continue
@@ -23,4 +29,4 @@ while IFS= read -r id; do
         continue
     fi
     "$MAIA_BIN" change apply "$id"
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[id]}")")
+done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$idskey]}")")

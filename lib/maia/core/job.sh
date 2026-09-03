@@ -84,7 +84,9 @@ handle_job_command() {
 		      "$id" \
 		      "$tool" \
 		      "$toolargs" \
-		      "$enabled_tools_json"
+		      "$enabled_tools_json" \
+		      " in background"
+	    notice "Job '$id' started."
 	    ;;
 
 	list|ls)
@@ -100,7 +102,7 @@ handle_job_command() {
 	    id="$1"
 	    shift
 	    if [[ ! -e "${session_path}/jobs/${id}.json" ]] ; then
-		notice "Job with id '$id' does not exist."
+		die "Job with id '$id' does not exist."
 	    fi
 	    status="$(handle_job_command status "$id")"
 	    jq \
@@ -196,10 +198,11 @@ handle_job_command() {
 	    fi
 	    if [[ -e "${session_path}/jobs/${id}.finished" ]] ; then
 		remove=true
-	    fi
-	    handle_job_command cancel "$id"
-	    if [[ -e "${session_path}/jobs/${id}.finished" ]] ; then
-		remove=true
+	    else
+		handle_job_command cancel "$id"
+		if [[ -e "${session_path}/jobs/${id}.finished" ]] ; then
+		    remove=true
+		fi
 	    fi
 	    if [[ "$remove" == true ]] ; then
 		rm -f "${session_path}/jobs/${id}."*

@@ -54,4 +54,8 @@
 * subsession-skill-restrict   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-tool-allow   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-skill-allow   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-skill-remember   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-skill-forget   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-file-remember   (/home/ola/git/maia/lib/maia/tools/subsession.td)
+* subsession-file-forget   (/home/ola/git/maia/lib/maia/tools/subsession.td)
 * subsession-send   (/home/ola/git/maia/lib/maia/tools/subsession.td)

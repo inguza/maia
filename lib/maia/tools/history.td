@@ -12,13 +12,10 @@
 	    "type": "string",
             "description": "Identity of a conversation history entry whose original content should be retrieved."
 	  }
-	},
-        "subsession": {
-          "type": "string",
-          "description": "The subsession from which to retrieve the conversation history entries."
-        }
+	}
       },
-      "required": ["ids"]
+      "required": ["ids"],
+      "additionalProperties": false
     },
     "strict": true
   }

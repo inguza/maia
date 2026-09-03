@@ -30,7 +30,8 @@
 	  "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I --."
 	}
       },
-      "required": ["searchpattern"]
+      "required": ["searchpattern"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -74,7 +75,8 @@
           "description": "Space separated list of find command line arguments. Allowed are: -d -depth -executable -nogroup -nouser -readable -ls."
 	}
       },
-      "required": ["pathspec"]
+      "required": ["pathspec"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -94,7 +96,8 @@
 	  "description": "Space separated list of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
 	}
       },
-      "required": ["pathspec"]
+      "required": ["pathspec"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -114,7 +117,8 @@
           "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -135,7 +139,8 @@
           "description": "Space separated list of sort command line arguments. Allowed are: --."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -155,7 +160,8 @@
           "description": "Print the first <lines> lines instead of the first 10."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -175,7 +181,8 @@
           "description": "Print the last <lines> lines instead of the last 10."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -195,7 +202,8 @@
           "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -219,7 +227,8 @@
           "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -243,7 +252,8 @@
           "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -263,7 +273,8 @@
           "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u."
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -283,7 +294,8 @@
           "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u --."
 	}
       },
-      "required": ["pathspec"]
+      "required": ["pathspec"],
+      "additionalProperties": false
     },
     "strict": true
   },
@@ -303,7 +315,8 @@
           "description": "Space separated list of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z"
 	}
       },
-      "required": []
+      "required": [],
+      "additionalProperties": false
     },
     "strict": true
   }

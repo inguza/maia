@@ -200,7 +200,7 @@ run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
 {"name":"unknown","arguments":{"content":"searchpattern"}}
 ]}'
 
-run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"subsession-create","arguments":{"name":"review-xcommon"}},{"name":"context-file-remember","arguments":{"files":["x/x.info.yml"],"subsession":"review-xcommon"}},{"name":"context-file-remember","arguments":{"files":["xcommon/tests/src/Functional/TestBase.php"],"subsession":"review-xcommon"}},{"name":"subsession-send","arguments":{"subsession":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run context-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
+run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"subsession-create","arguments":{"subsession":"review-xcommon"}},{"name":"context-file-remember","arguments":{"files":["x/x.info.yml"],"subsession":"review-xcommon"}},{"name":"subsession-file-remember","arguments":{"files":["xcommon/tests/src/Functional/TestBase.php"],"subsession":"review-xcommon"}},{"name":"subsession-send","arguments":{"subsession":"review-xcommon","content":"Sub-session name: review-xcommon\n\nScope:\n- You are to perform an AI-only static code review of the module xcommon.\n- If you are uncertain whether a code path is exploitable at runtime (e.g., a route’s access depends on configuration), mark the item with \"note: needs confirm\" but still include full evidence and an explanation in 1–2 lines why confirmation is needed.\n- If the fault depends on external configuration, still include it but mark severity conservatively.\n- Do not run grep or automated pattern matching tools. Read the loaded files and use your reasoning.\n- If you find zero faults, return exactly: \"No faults found.\" and include the list of files you examined.\n\nOutput format (exact expected Markdown)\nFor each fault produce:\n\n- module: xcommon\n- file: relative/path/to/file.php\n- lines: <start>-<end>\n- issue_type: <RCE|XSS|SQLi|CSRF|Syntax|Schema|DataLoss|Logic|Other>\n- severity: <Critical|High|Medium|Low>\n- concise_description: One-line description (no more than 120 chars)\n- evidence:\n  <show exact code lines with line numbers, e.g. \"123:    $x = $_GET['p'];\"> \n- reproduction_steps: (optional, 1–3 short steps)\n- note: (optional, single sentence if needs_confirm)\n\nOnly list faults. No other text or commentary. End output.\n\nToken & subsession constraints:\n- Keep the total memory within 100k tokens. If needed, request to the coordinator to split the module further.\n- After producing the report, run context-file-forget for all files loaded in this sub-session and exit.\n\nProceed to review now."}}]}'
 
 ##### Print
 run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new line\n"}'
@@ -221,49 +221,49 @@ run_skills_cmd "list-parent-skills-1" list
 run_skills_cmd "view-parent-skills-1" view
 subsession1="sub-session-1"
 run_tool_cmd "maia-subsession-list-empty-1" "maia-subsession-list.sh" '{}'
-run_tool_cmd "maia-subsession-create-ss1-1" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-create-ss1-1" "maia-subsession-create.sh" '{"subsession":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-list-ac1-1" "maia-subsession-list.sh" '{}'
-run_tool_cmd "maia-subsession-show-ss1-1_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-show-ss1-1_acreate" "maia-subsession-show.sh" '{"subsession":"'$subsession1'"}'
 
 # restrictions
-run_tool_cmd "maia-subsession-tool-list-ss1-1" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-skill-list-ss1-1" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-tool-list-ss1-1" "maia-subsession-list-common.sh tool" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-1" "maia-subsession-list-common.sh skill" '{"subsession":"'$subsession1'"}'
 
-run_tool_cmd "maia-subsession-tool-restrict-ss1-1" "maia-subsession-restrict-common.sh tool"  '{"name":"'$subsession1'", "restrictions": ["util-*"]}'
-run_tool_cmd "maia-subsession-skill-restrict-ss1-1" "maia-subsession-restrict-common.sh skill"  '{"name":"'$subsession1'", "restrictions": ["file"]}'
-run_tool_cmd "maia-subsession-tool-list-ss1-2" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-skill-list-ss1-2" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-tool-restrict-ss1-1" "maia-subsession-restrict-common.sh tool"  '{"subsession":"'$subsession1'", "restrictions": ["util-*"]}'
+run_tool_cmd "maia-subsession-skill-restrict-ss1-1" "maia-subsession-restrict-common.sh skill"  '{"subsession":"'$subsession1'", "restrictions": ["file"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-2" "maia-subsession-list-common.sh tool" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-2" "maia-subsession-list-common.sh skill" '{"subsession":"'$subsession1'"}'
 run_tools_cmd "list-parent-tools-2" list
 run_tools_cmd "view-parent-tools-2" view
 run_skills_cmd "list-parent-skills-2" list
 run_skills_cmd "view-parent-skills-2" view
 
-run_tool_cmd "maia-subsession-tool-allow-ss1-1" "maia-subsession-allow-common.sh tool"  '{"name":"'$subsession1'", "allow": ["util-cat"]}'
-run_tool_cmd "maia-subsession-skill-allow-ss1-1" "maia-subsession-allow-common.sh skill"  '{"name":"'$subsession1'", "allow": ["file"]}'
-run_tool_cmd "maia-subsession-tool-list-ss1-3" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-skill-list-ss1-3" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-tool-allow-ss1-1" "maia-subsession-allow-common.sh tool"  '{"subsession":"'$subsession1'", "allow": ["util-cat"]}'
+run_tool_cmd "maia-subsession-skill-allow-ss1-1" "maia-subsession-allow-common.sh skill"  '{"subsession":"'$subsession1'", "allow": ["file"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-3" "maia-subsession-list-common.sh tool" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-3" "maia-subsession-list-common.sh skill" '{"subsession":"'$subsession1'"}'
 run_tools_cmd "list-parent-tools-3" list
 run_tools_cmd "view-parent-tools-3" view
 run_skills_cmd "list-parent-skills-3" list
 run_skills_cmd "view-parent-skills-3" view
 
-run_tool_cmd "maia-subsession-tool-allow-ss1-2" "maia-subsession-allow-common.sh tool"  '{"name":"'$subsession1'", "allow": ["subsession-create"]}'
-run_tool_cmd "maia-subsession-skill-allow-ss1-2" "maia-subsession-allow-common.sh skill"  '{"name":"'$subsession1'", "allow": ["subsession"]}'
-run_tool_cmd "maia-subsession-tool-list-ss1-4" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-skill-list-ss1-4" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-tool-allow-ss1-2" "maia-subsession-allow-common.sh tool"  '{"subsession":"'$subsession1'", "allow": ["subsession-create"]}'
+run_tool_cmd "maia-subsession-skill-allow-ss1-2" "maia-subsession-allow-common.sh skill"  '{"subsession":"'$subsession1'", "allow": ["subsession"]}'
+run_tool_cmd "maia-subsession-tool-list-ss1-4" "maia-subsession-list-common.sh tool" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-4" "maia-subsession-list-common.sh skill" '{"subsession":"'$subsession1'"}'
 run_tools_cmd "list-parent-tools-4" list
 run_tools_cmd "view-parent-tools-4" view
 run_skills_cmd "list-parent-skills-4" list
 run_skills_cmd "view-parent-skills-4" view
 
 #
-run_tool_cmd "maia-subsession-delete-ss1-1" "maia-subsession-delete.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-delete-ss1-1" "maia-subsession-delete.sh" '{"subsession":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-list-ad1-1" "maia-subsession-list.sh" '{}'
-run_tool_cmd "maia-subsession-show-ss1-1_adelete" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-show-ss1-1_adelete" "maia-subsession-show.sh" '{"subsession":"'$subsession1'"}'
 
-run_tool_cmd "maia-subsession-create-ss1-2" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-create-ss1-2" "maia-subsession-create.sh" '{"subsession":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-list-ac2-1" "maia-subsession-list.sh" '{}'
-run_tool_cmd "maia-subsession-show-ss1-2_acreate" "maia-subsession-show.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-show-ss1-2_acreate" "maia-subsession-show.sh" '{"subsession":"'$subsession1'"}'
 run_tools_cmd "list-parent-tools-6" list
 run_tools_cmd "view-parent-tools-6" view
 run_skills_cmd "list-parent-skills-6" list
@@ -284,15 +284,15 @@ run_tools_cmd "list-parent-tools-7" list
 run_tools_cmd "view-parent-tools-7" view
 run_skills_cmd "list-parent-skills-7" list
 run_skills_cmd "view-parent-skills-7" view
-run_tool_cmd "maia-subsession-create-ss1-3" "maia-subsession-create.sh" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-tool-list-ss1-5" "maia-subsession-list-common.sh tool" '{"name":"'$subsession1'"}'
-run_tool_cmd "maia-subsession-skill-list-ss1-5" "maia-subsession-list-common.sh skill" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-create-ss1-3" "maia-subsession-create.sh" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-tool-list-ss1-5" "maia-subsession-list-common.sh tool" '{"subsession":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-skill-list-ss1-5" "maia-subsession-list-common.sh skill" '{"subsession":"'$subsession1'"}'
 run_tools_cmd "list-parent-tools-8" list
 run_tools_cmd "view-parent-tools-8" view
 run_skills_cmd "list-parent-skills-8" list
 run_skills_cmd "view-parent-skills-8" view
 
-run_tool_cmd "maia-subsession-delete-ss1-3" "maia-subsession-delete.sh" '{"name":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-delete-ss1-3" "maia-subsession-delete.sh" '{"subsession":"'$subsession1'"}'
 export MAIA_SESSION=default
 
 # maia-send not tested
@@ -308,14 +308,14 @@ C1=$(capture_change "file-write-1-2")
 #export ASSISTANT_BASEID="20260817T214714-68e33e98"
 run_tool_cmd "file-write-2-2" "file-write.sh" '{"path": "pathx/2.txt","content": "First write content 2\nSecond write\n"}'
 C2=$(capture_change "file-write-2-2")
-run_tool_cmd "maia-change-apply-1" "maia-change-apply.sh" '{"id": ["'$C1'"]}'
-run_tool_cmd "maia-change-apply-2" "maia-change-apply.sh" '{"id": ["'$C1'","'$C2'"]}'
-run_tool_cmd "maia-change-apply-3" "maia-change-apply.sh" '{"id": []}'
+run_tool_cmd "maia-change-apply-1" "maia-change-apply.sh" '{"ids": ["'$C1'"]}'
+run_tool_cmd "maia-change-apply-2" "maia-change-apply.sh" '{"ids": ["'$C1'","'$C2'"]}'
+run_tool_cmd "maia-change-apply-3" "maia-change-apply.sh" '{"ids": []}'
 # Revert
-run_tool_cmd "maia-change-revert-2" "maia-change-revert.sh" '{"id": ["'$C1'","'$C2'"]}'
-run_tool_cmd "maia-change-reapply-2" "maia-change-apply.sh" '{"id": ["'$C1'","'$C2'"]}'
+run_tool_cmd "maia-change-revert-2" "maia-change-revert.sh" '{"ids": ["'$C1'","'$C2'"]}'
+run_tool_cmd "maia-change-reapply-2" "maia-change-apply.sh" '{"ids": ["'$C1'","'$C2'"]}'
 # Not existing
-run_tool_cmd "maia-change-apply-err" "maia-change-apply.sh" '{"id": ["20260817T214714-68e33e97-3"]}'
+run_tool_cmd "maia-change-apply-err" "maia-change-apply.sh" '{"ids": ["20260817T214714-68e33e97-3"]}'
 # Out of path
 run_tool_cmd "file-write-3-1" "file-write.sh" '{"path": "../x/1.txt","content":"First write content 1"}'
 run_tool_cmd "file-write-4-1" "file-write.sh" '{"path": "/../x/1.txt","content":"First write content 1"}'
@@ -327,15 +327,16 @@ run_tool_cmd "file-append-1-3" "file-append.sh" '{"path": "x/1.txt","content":"A
 #export ASSISTANT_BASEID="20260817T214714-68e33e99"
 run_tool_cmd "file-change-1-3" "file-change.sh" '{"path": "x/1.txt","changes":[{"old":"Second write content 1\n","new":"Rewritten content 1\n"}]}'
 C3=$(capture_change "file-change-1-3")
-run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"id": ["'$C3'"]}'
+run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"ids": ["'$C3'"]}'
 # Skip
-run_tool_cmd "maia-change-skip-2" "maia-change-skip.sh" '{"id": ["'$C1'","'$C2'"]}'
+run_tool_cmd "maia-change-skip-2" "maia-change-skip.sh" '{"ids": ["'$C1'","'$C2'"]}'
 
 # Curl
 run_tool_cmd "curl-1" "curl.sh" '{"url": "https://inguza.org/testharness/maia/will-not-change.html"}'
 
 # Job management
 run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspec":".","arguments":[]}}'
+sleep 0.1
 run_tool_cmd "job-list" "job-list.sh" '{}'
 ID=$($MAIA job list)
 run_tool_cmd "job-show" "job-id.sh show" '{"id":"'$ID'"}'

@@ -15,7 +15,8 @@
 	  "description": "Space separated list of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
 	}
       },
-      "required": ["pathspec"]
+      "required": ["pathspec"],
+      "additionalProperties": false
     },
     "strict": true
   }

@@ -13,11 +13,6 @@ set -eo pipefail
 declare -A param
 parseparam
 
-subsession="${param[subsession]:-}"
-if [[ -n "$subsession" ]] ; then
-    set_subsession "$subsession"
-fi
-
 id="${param[id]:-}"
 force="${param[force]:-}"
 

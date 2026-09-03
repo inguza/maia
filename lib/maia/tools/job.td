@@ -13,14 +13,9 @@
       	"arguments": {
           "type": "object",
 	  "description": "Arguments for the function/tool use."
-      	},
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to start the job. If absent current session is used."
-        }	
+	}
       },
-      "required": [ "name", "arguments" ],
-      "additionalProperties": false
+      "required": [ "name", "arguments" ]
     },
     "strict": true
   },
@@ -28,17 +23,7 @@
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to list jobs. If absent current session is used."
-        }	
-      },
-      "required": [],
-      "additionalProperties": false
-    },
+    "parameters": null,
     "strict": true
   },
   {
@@ -51,11 +36,7 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show a job. If absent current session is used."
-        }	
+        }
       },
       "required": ["id"],
       "additionalProperties": false
@@ -72,11 +53,7 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show the status of the job. If absent current session is used."
-        }	
+        }
       },
       "required": ["id"],
       "additionalProperties": false
@@ -93,11 +70,7 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to show the output. If absent current session is used."
-        }	
+        }
       },
       "required": ["id"],
       "additionalProperties": false
@@ -114,11 +87,7 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to cancel a job. If absent current session is used."
-        }	
+        }
       },
       "required": ["id"],
       "additionalProperties": false
@@ -135,10 +104,6 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to delete a job. If absent current session is used."
         },
         "force": {
           "type": "boolean",
@@ -160,11 +125,7 @@
         "id": {
           "type": "string",
           "description": "Job id."
-        },
-        "subsession": {
-          "type": "string",
-          "description": "The subsession name for which to check the existance of a job. If absent current session is used."
-        }	
+        }
       },
       "required": ["id"],
       "additionalProperties": false
