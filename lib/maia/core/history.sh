@@ -242,12 +242,13 @@ history_prune() {
             # Backup original if not already backed up
             # Get actual role_index of the entry
             local role_index=$(jq -r ".[$i].${role}_index" <<<"$entries")
+	    local global_index=$(jq -r ".[$i].index" <<<"$entries")
 
-            local orig_content=$(jq -r "map(select(.${role}_index == $role_index)) | .[0].content" "$tmpfile")
+	    local orig_content=$(jq -r "map(select(.index == $global_index)) | .[0].content" "$tmpfile")
 	    if [[ "$orig_content" == "null" ]] ; then
 		orig_content=""
 	    fi
-            local orig_tool_calls=$(jq -r "map(select(.${role}_index == $role_index)) | .[0].tool_calls" "$tmpfile")
+            local orig_tool_calls=$(jq -r "map(select(.index == $global_index)) | .[0].tool_calls" "$tmpfile")
 	    if [[ "$orig_tool_calls" == "null" ]] ; then
 		orig_tool_calls=""
 	    fi
@@ -272,7 +273,7 @@ history_prune() {
 		    new_tool_calls="$orig_tool_calls"
 		elif [[ -n "$orig_tool_calls" ]]; then
 		    # Delete the tool_calls first before we update the message
-		    json_modify "$tmpfile" "map(if ${role}_index == $role_index then del(.tool_calls) else . end)"
+		    json_modify "$tmpfile" "map(if .index == $global_index then del(.tool_calls) else . end)"
                 fi
             elif [[ "$mode" == "edit" ]]; then
                 # Edit mode: open editor for content and tool_calls separately if present
@@ -336,11 +337,11 @@ history_prune() {
 	    # Now it is time to update
 	    if [[ "$orig_content" != "$new_content" ]] ; then
 		json_modify "$tmpfile" --arg content "$new_content" \
-		   "map(if .role == \"$role\" and .${role}_index == $role_index then .content = \$content else . end)"
+		   "map(if .index == $global_index then .content = \$content else . end)"
 	    fi
 	    if [[ "$orig_tool_calls" != "$new_tool_calls" ]] ; then
 		json_modify "$tmpfile" --arg tool_calls "$new_tool_calls" \
-		   "map(if .role == \"$role\" and .${role}_index == $role_index then .tool_calls = \$tool_calls else . end)"
+		   "map(if .index == $global_index then .tool_calls = \$tool_calls else . end)"
 	    fi
         done
 
