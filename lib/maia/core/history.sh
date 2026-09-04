@@ -257,7 +257,9 @@ history_prune() {
 
             if [[ "$mode" == "cut" ]]; then
                 # Cut mode replaces content and/or tool_calls accordingly
-                if [[ -n "$orig_content" ]]; then
+		local trimmed_content=$(echo "$orig_content" | \
+		    sed '/^\s*$/d;/^<<Original text reference: .*>>$/d;/^<<Pruned tool_calls>>$/d;')
+                if [[ -n "$trimmed_content" ]]; then
                     # Replace content with prune placeholder including prune_id
 		    new_content="<<Pruned>>\n"
                 fi
