@@ -498,6 +498,7 @@ handle_history_command() {
 
 	prune)
 	    shift
+	    die "The prune functionality is not working and has been disabled. Will be fixed shortly."
 	    history_prune "$@"
 	    ;;
 
