@@ -1,8 +1,6 @@
 [13] assistant#6 <dateandtime>-18f6548e
 ----------------------------------------
 Here is some sample text with a fenced file:
-```
-file.txt
-This is the file content
-```
+<<BLOCK #0: pruned>>
+<<Original text reference: <dateandtime>-<extraref>>>
 

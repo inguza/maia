@@ -2,7 +2,7 @@
 ----------------------------------------
 Here is some sample text with a fenced file:
 <<BLOCK #0: pruned>>
-<<Original text reference: <dateandtime>-b45961cc>>
+<<Original text reference: <dateandtime>-<extraref>>>
 
 [2] user#1 <dateandtime>-b630face
 ----------------------------------------
@@ -28,7 +28,7 @@ Some sample text
 ----------------------------------------
 Here is some sample text with a fenced file:
 <<BLOCK #3: pruned>>
-<<Original text reference: <dateandtime>-18f6548e>>
+<<Original text reference: <dateandtime>-<extraref>>>
 
 [8] user#4 <dateandtime>-b630face
 ----------------------------------------
