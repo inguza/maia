@@ -62,7 +62,6 @@ Then we also have direct tests of the internal tools to extend the coverage:
 ## Areas lacking coverage
 
 - api
-- chat
-- interactive
+- send with tool call response
 
 Chat and interative would require to write some wrapper which is a little tricky.
