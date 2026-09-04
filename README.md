@@ -240,7 +240,7 @@ Optional external capabilities that can be made available to the AI to perform a
    Allow tools (this is a small set, there are more tools available):
 
    ```bash
-   maia tool --scope session replace "core-*" "file-*" "context-*" "util-*" "change-apply"
+   maia tool --scope session replace "core-*" "file-*" "context-*" "change-*"
    ```
    
    Allow skills and make sure they are in context.
