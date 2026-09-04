@@ -1,40 +1,12 @@
-# Sequence call 1: core-print
-
-Arguments:
-{
-  "content": "Test"
-}
-
-Output:
-```text
+======== [1] core-print({"content":"Test"}) ========
 Test
-```
-
-# Sequence call 2: util-ls
-
-Arguments:
-{
-  "pathspec": ".",
-  "arguments": ""
-}
-
-Output:
-```text
+-> 0
+======== [2] util-ls({"pathspec":".","arguments":""}) ========
 file-to-see.txt
 
-```
-
-# Sequence call 3: util-find
-
-Arguments:
-{
-  "pathspec": "."
-}
-
-Output:
-```text
+-> 0
+======== [3] util-find({"pathspec":"."}) ========
 .
 ./file-to-see.txt
 
-```
-
+-> 0

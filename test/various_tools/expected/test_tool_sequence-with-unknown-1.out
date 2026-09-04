@@ -1,12 +1,3 @@
-# Sequence call 1: core-print
-
-Arguments:
-{
-  "content": "Test"
-}
-
-Output:
-```text
+======== [1] core-print({"content":"Test"}) ========
 Test
-```
-
+-> 0

@@ -1506,6 +1506,22 @@ tool_fork()
     return $status
 }
 
+### 120-10*2-25-10=65
+shorten_args() {
+    local args="$1"
+    local len=${#args}
+    if (( len >= 64 )); then
+        echo "${args:0:61}..."
+    else
+        echo "$args"
+    fi
+}
+
+shorten_callid() {
+    local callid="$1"
+    echo "${callid:0:9}..."
+}
+
 ### Event handling
 
 hook_execute() {

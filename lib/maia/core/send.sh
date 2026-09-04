@@ -531,6 +531,7 @@ handle_send_command() {
     declare -A seen_commands=()
     declare -A seen_commands_this
     local iteration=0
+    local separator=false
     while (( allowed_iterations_left > 0 )); do
 	((iteration++))
 	local messages_json
@@ -724,10 +725,18 @@ handle_send_command() {
 	if [[ -n "$reply" ]] ; then
 	    if [[ -n "$tools_call_json" ]] ; then
 		if [[ "$output_mode" == "full" ]] ; then
+		    if [[ "$separator" == true ]] ; then
+			echo "--------------------------------------------------------------------------------"
+			separator=false
+		    fi
 		    echo "$reply"
 		fi
 	    else
 		# No need to check against output mode since the final LLM reply is in all modes so far
+		if [[ "$separator" == true ]] ; then
+		    echo "--------------------------------------------------------------------------------"
+		    separator=false
+		fi
 		echo "$reply"
 	    fi
 	fi
@@ -793,7 +802,9 @@ handle_send_command() {
 		    export ASSISTANT_BASEID="$timestamp-$shaid"
 		    tool_start_count=$((tool_start_count + 1))
 		    if [[ "$output_mode" == "full" ]] ; then
-			notice "Tool spawn $tool_start_count for $id [$toolcallshaid $iteration/$allowed_iterations]: $func_name($func_args)"
+			local idshort="$(shorten_callid "${id}")"
+			local shortargs=$(shorten_args "$func_args")
+			notice "Spawn $tool_start_count [$iteration of $allowed_iterations] $idshort: $func_name($shortargs)"
 		    fi
 		    tool_fork \
 			"$tool_tmp_dir" \
@@ -866,12 +877,20 @@ handle_send_command() {
 		fi
 
 		if [[ "$output_mode" == "full" ]] ; then
-		    echo "----------------- Tool output $id start ------------------------------------"
-		    if [[ -n "$exitinfo" ]] ; then
-			echo "$exitinfo"
+		    local idshort="$(shorten_callid "${id}")"
+		    local tooljson="$tool_tmp_dir/$id.json"
+		    local toolname=""
+		    local arguments=""
+		    if [[ -f "$tooljson" ]]; then
+			toolname=$(jq -r '.tool // ""' < "$tooljson")
+			arguments=$(jq -c '.arguments' < "$tooljson")
 		    fi
+		    local shortargs=$(shorten_args "$arguments")
+		    local short
+		    echo "######## $idshort $toolname($shortargs) -> $status ########"
 		    cat "$tool_tmp_dir/$id.output"
-		    echo "----------------- Tool output $id end --------------------------------------"
+		    # Make sure we print a separator to show that the tool end and the response is shown
+		    separator=true
 		fi
 		# Log it to the history
 		# Append function response message to history

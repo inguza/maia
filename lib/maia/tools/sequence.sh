@@ -34,7 +34,7 @@ while IFS= read -r tool_call; do
     func_name="${func_name#functions.}"
     func_args=""
     if [[ -n "$func_name" ]] ; then
-	func_args=$(jq -r '.arguments' <<<"$tool_call")
+	func_args=$(jq -c '.arguments' <<<"$tool_call")
     fi
     tool_cmd=$(jq -r --arg name "$func_name" '.[] | select(.name == $name) | .command' <<<"$enabled_tools_json")
     if [[ -z "$tool_cmd" ]] ; then
@@ -50,19 +50,14 @@ while IFS= read -r tool_call; do
 	rm -rf "$tool_tmp_dir"
 	die "Executable '$tool_exec' for tool '$func_name' not found in tool search path."
     else
+	shortargs=$(shorten_args "$func_args")
 	args_file="$tool_tmp_dir/$i.args"
 	printf '%s\n' "$func_args" > "$args_file"
-	echo "# Sequence call $i: $func_name"
-	echo
-	echo "Arguments:"
-	echo "$func_args"
-	echo
-	echo "Output:"
-	echo "\`\`\`text"
+	echo "======== [$i] $func_name($shortargs) ========"
 	bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" 2>&1
+	status=$?
 	echo
-	echo "\`\`\`"
-	echo
+	echo "-> $status"
     fi
     ((i++))
 done < <(jq -c '.[]' <<< "$sequence")
