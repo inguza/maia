@@ -944,7 +944,6 @@ handle_text_file_command() {
 			echo '# Shell output' >> "$file"
 			echo '' >> "$file"
 			echo '```text' >> "$file"
-			notice "DEBUG $shell_output"
 			cat "$shell_output" >> "$file"
 			echo "" >> "$file"
 			echo '```' >> "$file"
@@ -1508,52 +1507,182 @@ tool_fork()
 }
 
 # MCP
+mcp_request_stdio() {
+    local name="$1"
+    local mcpname="$2"
+    local endpoint="$3"
+    local commandline="${endpoint#*:}"
+    local command
+    read -r -a command <<< "$commandline"
+    coproc "${command[@]}"
+    local mcp_pid=$COPROC_PID
+    local mcp_send=${COPROC[1]}
+    local mcp_recv=${COPROC[0]}
+    local mcp_pid=$COPROC_PID
+
+    if ! [[ "$mcp_pid" =~ ^[0-9]+$ && "$mcp_send" =~ ^[0-9]+$ && "$mcp_recv" =~ ^[0-9]+$ ]]; then
+	die "Failed to start MCP server."
+    fi
+    # Send initialize
+    printf '%s\n' \
+	   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"maia","version":"1.0"}}}' \
+	   >&${mcp_send}
+    # Read initialize response
+    if ! IFS= read -r response <&${mcp_recv} ; then
+        die "'$mcpname' MCP server returned an empty initialization response."
+    fi
+
+    # Tell server initialization is complete
+    printf '%s\n' \
+	   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+	   >&${mcp_send}
+
+    # Ask for tools
+    IFS= read -r request
+    printf '%s\n' "$request" >&${mcp_send}
+    if ! IFS= read -r response <&${mcp_recv}; then
+	die "'$mcpname' MCP server closed the connection without responding"
+    fi
+
+    if [[ -z "$response" ]]; then
+	die "'$mcpname' MCP server for '$name' returned an empty response"
+    fi
+
+    printf '%s\n' "$response"
+
+    kill "$mcp_pid" 2>/dev/null
+}
+
+mcp_request_http() {
+    local name="$1"
+    local mcpname="$2"
+    local url="$3"
+
+    local headers=$(mktemp) || die "Failed to create temporary file."
+    trap 'rm -f "$headers"' EXIT
+
+    # Send initialize
+    local uppername="${mcpname^^}"
+    local token_var="${uppername}_TOKEN"
+    local token="${!token_var}"
+    local response
+    response=$(
+        curl -sS -L \
+             -D "$headers" \
+             -X POST "$url" \
+             -H 'Content-Type: application/json' \
+             -H 'Accept: application/json, text/event-stream' \
+	     -H "Authorization: Bearer $token" \
+             --data \
+             '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"maia","version":"1.0"}}}'
+            ) || die "MCP initialization error."
+    if [[ -z "$response" ]]; then
+	rm -f "${headers}"
+        die "'$mcpname' MCP server returned an empty initialization response."
+    fi
+    local http_status=$(
+	sed -n 's/^HTTP\/[^ ]* \([0-9][0-9][0-9]\).*/\1/p' "$headers" |
+            tail -n 1
+	  )
+    if [[ "$http_status" != 2* ]]; then
+	rm -f "$headers"
+	die "'$mcpname' MCP server returned HTTP status $http_status: $response"
+    fi
+    #cat $headers >&2
+    local session_id=$(
+        sed -n 's/^[Mm][Cc][Pp]-[Ss][Ee][Ss][Ss][Ii][Oo][Nn]-[Ii][Dd]:[[:space:]]*//p' "$headers" | \
+            head -n 1 | \
+            tr -d '\r'
+          )
+    rm -f "${headers}"
+    if [[ -z "$session_id" ]]; then
+        die "'$mcpname' MCP server did not return a session ID."
+    fi
+
+    # Tell server initialization is complete
+    curl -sS -L \
+         -X POST "$url" \
+         -H 'Content-Type: application/json' \
+         -H 'Accept: application/json, text/event-stream' \
+	 -H "Authorization: Bearer $token" \
+         -H "Mcp-Session-Id: $session_id" \
+         --data \
+         '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+         >/dev/null ||
+        die "MCP initialization notification failed."
+
+    # Ask for tools / execute the actual request
+    IFS= read -r request
+
+    response=$(
+        curl -sS -L \
+	     -D "$headers" \
+             -X POST "$url" \
+             -H 'Content-Type: application/json' \
+             -H 'Accept: application/json, text/event-stream' \
+	     -H "Authorization: Bearer $token" \
+             -H "Mcp-Session-Id: $session_id" \
+             --data "$request"
+            ) || die "'$mcpname' MCP request failed for '$name'."
+
+    if [[ -z "$response" ]]; then
+	rm -f "${headers}"
+        die "'$mcpname' MCP server returned an empty response."
+    fi
+
+    local content_type=$(
+	sed -n 's/^[Cc]ontent-[Tt]ype:[[:space:]]*//p' "$headers" |
+	    tail -n 1 |
+	    tr -d '\r'
+	  )
+    rm -f "${headers}"
+
+    case "${content_type%%;*}" in
+	application/json)
+            # response is already JSON
+	    printf '%s\n' "$response"
+        ;;
+	text/event-stream)
+            # parse SSE
+	    printf '%s\n' "$response" |
+		awk '
+		   /^data:/ {
+		     sub(/^data:[[:space:]]*/, "")
+		     data = data $0
+		     next
+		   }
+		   /^$/ {
+		     if (data != "") {
+		       print data
+		       data = ""
+		     }
+		   }
+		   END {
+		     if (data != "") {
+		       print data
+		     }
+		   }
+		 '
+            ;;
+	*)
+            die "Unsupported MCP response from '$mcpname' for '$name' Content-Type: $content_type"
+            ;;
+    esac
+}
 
 mcp_request() {
-    local endpoint="$1"
+    local name="$1"
+    local mcpname="$2"
+    local endpoint="$3"
     local eptype="${endpoint%%:*}"
     case "$eptype" in
 	stdio)
-	    local commandline="${endpoint#*:}"
-	    local command
-	    read -r -a command <<< "$commandline"
-	    coproc "${command[@]}"
-	    local mcp_pid=$COPROC_PID
-	    local mcp_send=${COPROC[1]}
-	    local mcp_recv=${COPROC[0]}
-	    local mcp_pid=$COPROC_PID
-
-	    if ! [[ "$mcp_pid" =~ ^[0-9]+$ && "$mcp_send" =~ ^[0-9]+$ && "$mcp_recv" =~ ^[0-9]+$ ]]; then
-		die "Failed to start MCP server."
-	    fi
-	    # Send initialize
-	    printf '%s\n' \
-		   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"maia","version":"1.0"}}}' \
-		   >&${mcp_send}
-	    # Read initialize response
-	    if ! IFS= read -r response <&${mcp_recv} ; then
-		die "MCP initialization error."
-	    fi
-
-	    # Tell server initialization is complete
-	    printf '%s\n' \
-		   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
-		   >&${mcp_send}
-
-	    # Ask for tools
-	    IFS= read -r request
-	    printf '%s\n' "$request" >&${mcp_send}
-	    if ! IFS= read -r response <&${mcp_recv}; then
-		die "MCP server closed the connection without responding"
-	    fi
-
-	    if [[ -z "$response" ]]; then
-		die "MCP server returned an empty response"
-	    fi
-
-	    printf '%s\n' "$response"
-
-	    kill "$mcp_pid" 2>/dev/null
+	    # Inherits stdin and stdout
+	    mcp_request_stdio "$name" "$mcpname" "$endpoint"
+	    ;;
+	https)
+	    # Inherits stdin and stdout
+	    mcp_request_http "$name" "$mcpname" "$endpoint"	    
 	    ;;
 	*)
 	    :

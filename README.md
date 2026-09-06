@@ -175,6 +175,57 @@ needed environment variables. Set it using send_hook configuration option.
 export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 ```
 
+### MCP
+
+Configure the MCP servers.
+
+The MCP server syntax is:
+```text
+<name>=<endpoint>
+```
+
+Where `<name>` is a name you choose and `<endpoint>` is an MCP endpoint.
+
+Two types of endpoints are supported:
+- stdio - syntax 'stdio:command with optional arguments'
+- https - syntax 'https://host/path'
+
+Example:
+
+```text
+maia config mcp_servers '["name1=stdio:mcpcommand","name2=https://api.githubcopilot.com/mcp/"]'
+```
+
+#### stdio
+
+The `stdio` endpoint type starts the specified command as an MCP server and communicates with it through standard input and output.
+
+Examples:
+
+```text
+name1=stdio:mcpcommand
+name1=stdio:mcpcommand --database /path/to/database
+```
+
+#### https
+
+The `https` endpoint type communicates with a remote MCP server using HTTPS and the MCP Streamable HTTP transport.
+
+Example:
+```text
+name2=https://api.githubcopilot.com/mcp/
+```
+
+For authentication, MAIA looks for an environment variable named `<NAME>_TOKEN`, where `<NAME>` is the uppercase MCP server name.
+
+Example:
+
+```text
+export NAME2_TOKEN='<tokenhere>'
+```
+
+The token is sent as `Authorization: Bearer <token>`.
+
 ---
 
 # Key Concepts

@@ -11,7 +11,7 @@ Tool definitions:
       "type": "object",
       "properties": {}
     },
-    "command": "mcp.sh test1 stdio:test.sh -xxx",
+    "command": "mcp.sh test1 test stdio:test.sh -xxx",
     "source": "<MAIA_HOME>/.maia/sessions/default/tools/mcp-test.td"
   },
   {
@@ -21,7 +21,7 @@ Tool definitions:
       "type": "object",
       "properties": {}
     },
-    "command": "mcp.sh test2 stdio:test.sh -xxx",
+    "command": "mcp.sh test2 test stdio:test.sh -xxx",
     "source": "<MAIA_HOME>/.maia/sessions/default/tools/mcp-test.td"
   },
   {
@@ -31,7 +31,7 @@ Tool definitions:
       "type": "object",
       "properties": {}
     },
-    "command": "mcp.sh test3 stdio:test.sh -xxx",
+    "command": "mcp.sh test3 test stdio:test.sh -xxx",
     "source": "<MAIA_HOME>/.maia/sessions/default/tools/mcp-test.td"
   }
 ]

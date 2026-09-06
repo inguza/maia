@@ -368,17 +368,17 @@ handle_tool_command() {
 		local toolfile="${tooldir}/mcp-$name.td"
 		printf '%s\n' \
 		       '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-		    | mcp_request "$endpoint" > "${toolfile}.tmp"
+		    | mcp_request "discover" "$name" "$endpoint" > "${toolfile}.tmp"
 		# Time to parse the output
 		# Make sure .mcp_name = .name is before .name is changed
 		jq --arg prefix "$name" --arg endpoint "$endpoint" '
 		  .result.tools |
 		  map(
-		    .command = ("mcp.sh " + .name + " " + $endpoint) |
+		    .command = ("mcp.sh " + .name + " " + $prefix + " " + $endpoint) |
 		    .name = ($prefix + "-" + .name)
 		  )
 		  ' < "${toolfile}.tmp" > "$toolfile"
-		rm -f "${toolfile}.tmp"
+		#rm -f "${toolfile}.tmp"
 		notice "Written $toolfile"
 	    done < <(jq -r '.[]' <<< "$servers")
 	    ;;
@@ -517,6 +517,9 @@ COMMANDS
 
   verify
       Verify allowed tools are current with discovered .td files.
+
+  discover
+      Discover additional tools and generate tool definition file(s).
 
   delete
       Delete the tool definitions from this scope.
