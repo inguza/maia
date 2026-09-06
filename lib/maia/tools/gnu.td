@@ -3,7 +3,7 @@
     "name":"util-grep",
     "description": "Search files using regular expression.",
     "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "searchpattern": {
@@ -32,14 +32,13 @@
       },
       "required": ["searchpattern"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-find",
     "description": "Search files - but not files starting with a .",
     "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -77,14 +76,13 @@
       },
       "required": ["pathspec"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-ls",
     "description": "List files",
     "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -98,14 +96,13 @@
       },
       "required": ["pathspec"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-sort",
     "description": "List files",
     "command": "allowed-tool.sh sort -n -s -v --show-nonprinting --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -119,15 +116,14 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-cat",
     "description": "Print the content of one or more concatenated files",
     "command": "allowed-tool.sh cat --",
     "instructions": [ "cat.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -141,14 +137,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-head",
     "description": "Output the first part of files",
     "command": "head-tail.sh head --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -162,14 +157,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-tail",
     "description": "Output the last part of files",
     "command": "head-tail.sh tail --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -183,14 +177,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-wc",
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -204,14 +197,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-sed",
     "description": "Stream editor - write forbidden",
     "command": "sed.sh --posix -s -E -r --regexp-extended --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "script": {
@@ -229,14 +221,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"write-util-sed",
     "description": "Stream editor - write allowed",
     "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "script": {
@@ -254,14 +245,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-uniq",
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -275,14 +265,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"util-diff",
     "description": "Compare two files",
     "command": "allowed-tool.sh diff -c -d -D -i -u --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -296,14 +285,13 @@
       },
       "required": ["pathspec"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"write-util-patch",
     "description": "Count newline, word and bytes for files",
     "command": "patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -317,7 +305,6 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

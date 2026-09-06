@@ -16,6 +16,7 @@ send_hook
 api_type
 presence_penalty
 api_base_url
+mcp_servers
 default_session_filesets
 max_input_tokens
 prune_when_applied

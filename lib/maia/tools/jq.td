@@ -3,7 +3,7 @@
     "name":"jq",
     "description": "Run jq",
     "command": "jq.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"arguments": {
@@ -16,7 +16,6 @@
       },
       "required": ["arguments"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

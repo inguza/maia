@@ -3,7 +3,7 @@
     "name":"util-file",
     "description": "Determine file type.",
     "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -17,7 +17,6 @@
       },
       "required": ["pathspec"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

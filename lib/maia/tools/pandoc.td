@@ -3,7 +3,7 @@
     "name":"pandoc",
     "description": "Convert documents between markup formats using pandoc.",
     "command": "pandoc.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -28,7 +28,6 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

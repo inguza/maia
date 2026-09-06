@@ -64,6 +64,7 @@ declare -A DEFAULT_CONFIG=(
     [default_subsession_skill_restrict]="subsession"
     [default_subsession_skill_remember]="*"
     [default_subsession_skill_forget]=""
+    [mcp_servers]='[]'
     [tool_loop_prevent]="file-write file-change"
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_5_4]=2.5
@@ -133,8 +134,8 @@ init_tool_search_dirs() {
     local wsroot="$(resolve_workspace_root)"
     TOOL_DIRS=(
 	[session]="${SCOPE_DIRS[session]}/tools"
-	[workspace]="${SCOPE_DIRS[workspace]}/tools:$wsroot/.maia/tools"
-	[home]="${SCOPE_DIRS[home]}/.maia/tools"
+	[workspace]="$wsroot/.maia/tools:${SCOPE_DIRS[workspace]}/tools"
+	[home]="${SCOPE_DIRS[home]}/tools"
 	[user]="${SCOPE_DIRS[user]}/tools"
 	[system]="${SCOPE_DIRS[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
@@ -1504,6 +1505,61 @@ tool_fork()
 	fi
     fi
     return $status
+}
+
+# MCP
+
+mcp_request() {
+    local endpoint="$1"
+    local eptype="${endpoint%%:*}"
+    case "$eptype" in
+	stdio)
+	    local commandline="${endpoint#*:}"
+	    local command
+	    read -r -a command <<< "$commandline"
+	    coproc "${command[@]}"
+	    local mcp_pid=$COPROC_PID
+	    local mcp_send=${COPROC[1]}
+	    local mcp_recv=${COPROC[0]}
+	    local mcp_pid=$COPROC_PID
+
+	    if ! [[ "$mcp_pid" =~ ^[0-9]+$ && "$mcp_send" =~ ^[0-9]+$ && "$mcp_recv" =~ ^[0-9]+$ ]]; then
+		die "Failed to start MCP server."
+	    fi
+	    # Send initialize
+	    printf '%s\n' \
+		   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"maia","version":"1.0"}}}' \
+		   >&${mcp_send}
+	    # Read initialize response
+	    if ! IFS= read -r response <&${mcp_recv} ; then
+		die "MCP initialization error."
+	    fi
+
+	    # Tell server initialization is complete
+	    printf '%s\n' \
+		   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+		   >&${mcp_send}
+
+	    # Ask for tools
+	    IFS= read -r request
+	    printf '%s\n' "$request" >&${mcp_send}
+	    if ! IFS= read -r response <&${mcp_recv}; then
+		die "MCP server closed the connection without responding"
+	    fi
+
+	    if [[ -z "$response" ]]; then
+		die "MCP server returned an empty response"
+	    fi
+
+	    printf '%s\n' "$response"
+
+	    kill "$mcp_pid" 2>/dev/null
+	    ;;
+	*)
+	    :
+	    die "Endpoint type '$eptype' not implemented."
+	    ;;
+    esac
 }
 
 ### 120-10*2-25-10=65

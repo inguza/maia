@@ -3,7 +3,7 @@
     "name":"shell-exec",
     "description": "Execute bash shell commands. An execution proposal will be created. This tool cannot be used with the core-pipe tool.",
     "command": "shell-exec.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "commands": {
@@ -13,7 +13,6 @@
       },
       "required": ["commands"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

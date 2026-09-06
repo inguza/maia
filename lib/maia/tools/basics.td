@@ -4,7 +4,7 @@
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
     "command": "pipe.sh",
     "instructions": [ "basics.txt", "pipe.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pipeline": {
@@ -18,25 +18,25 @@
               },
               "arguments": {
                 "type": "object",
-	        "description": "Arguments for the function/tool use."
+	        "description": "Arguments for the function/tool use.",
+		"additionalProperties": true
               }
             },
-            "required": [ "name", "arguments" ],
-            "additionalProperties": false
-          }
+            "required": [ "name", "arguments" ]
+          },
+	  "additionalProperties": false
         }
       },
       "required": [ "pipeline" ],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "core-sequence",
     "description": "Execute multiple tools in sequence order.",
     "command": "sequence.sh",
     "instructions": [ "basics.txt", "sequence.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "sequence": {
@@ -50,7 +50,8 @@
               },
               "arguments": {
                 "type": "object",
-	        "description": "Arguments for the function/tool use."
+	        "description": "Arguments for the function/tool use.",
+		"additionalProperties": true
               }
             },
             "required": [ "name", "arguments" ],
@@ -60,14 +61,13 @@
       },
       "required": [ "sequence" ],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "core-print",
     "description": "Print content.",
     "command": "print.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "content": {
@@ -77,14 +77,13 @@
       },
       "required": [],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "core-sleep",
     "description": "Sleep for the specified duration.",
     "command": "sleep.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "duration": {
@@ -94,7 +93,6 @@
       },
       "required": [ "duration" ],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

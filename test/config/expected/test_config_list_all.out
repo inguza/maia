@@ -26,6 +26,7 @@ cost_output_gpt_5_4_mini
 api_type
 presence_penalty
 api_base_url
+mcp_servers
 default_session_filesets
 cost_output_gpt_5_4_nano
 max_input_tokens

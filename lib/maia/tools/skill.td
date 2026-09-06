@@ -3,7 +3,7 @@
     "name": "context-skill-remember",
     "description": "Remember a skill instruction in the current context.",
     "command": "maia-skill-remember.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"skills": {
@@ -16,14 +16,13 @@
       },
       "required": ["skills"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "context-skill-forget",
     "description": "Forget a skill instruction from the current context.",
     "command": "maia-skill-forget.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"skills": {
@@ -36,14 +35,13 @@
       },
       "required": ["skills"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "skill-exec",
     "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
     "command": "maia-skill-execute.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skill": {
@@ -64,7 +62,6 @@
       },
       "required": ["skill", "script"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

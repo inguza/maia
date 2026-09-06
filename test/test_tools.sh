@@ -90,6 +90,34 @@ run_tools_cmd "verify_after_delete" verify
 
 # edit not tested
 
+# MCP tests
+$MAIA config --scope session "mcp_servers" '["test=stdio:test.sh -xxx"]'
+export PATH=$PATH:$TEST_ROOT/mcp
+run_tools_cmd "mcp_discover1" discover
+run_tools_cmd "mcp_list1" list
+if [ ! -e "$XMAIA_HOME/.maia/tools/mcp-test.td" ] ; then
+    echo "Test error. exit. $XMAIA_HOME/.maia/tools/mcp-test.td"
+    exit
+fi
+rm -f "$XMAIA_HOME/.maia/tools/mcp-test.td"
+run_tools_cmd "mcp_discover2" --scope session discover
+run_tools_cmd "mcp_list2" list
+run_tools_cmd "mcp_allow" allow "test-*"
+run_tools_cmd "mcp_list3" list
+run_tools_cmd "mcp_allow" delete "test-*"
+run_tools_cmd "mcp_allow" --scope session allow "test-*"
+run_tools_cmd "mcp_list4" list
+run_tools_cmd "mcp_show" show
+run_tools_cmd "mcp_test1-ok" run "test-test1" '{}'
+run_tools_cmd "mcp_test2-err1" run "test-test2" '{}'
+run_tools_cmd "mcp_test3-err2" run "test-test3" '{}'
+run_tools_cmd "delete" delete
+if [ ! -e "$XMAIA_HOME/.maia/sessions/default/tools/mcp-test.td" ] ; then
+    echo "Test error. exit. $XMAIA_HOME/.maia/sessions/default/tools/mcp-test.td"
+    exit
+fi
+rm -f "$XMAIA_HOME/.maia/sessions/default/tools/mcp-test.td"
+
 # Test tool restrict
 run_tools_cmd "restrict_empty" restrict "*"
 run_tools_cmd "list_after_restrict_empty" list

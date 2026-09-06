@@ -12,7 +12,7 @@ Tool definitions:
       "basics.txt",
       "pipe.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pipeline": {
@@ -26,15 +26,16 @@ Tool definitions:
               },
               "arguments": {
                 "type": "object",
-                "description": "Arguments for the function/tool use."
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
               }
             },
             "required": [
               "name",
               "arguments"
-            ],
-            "additionalProperties": false
-          }
+            ]
+          },
+          "additionalProperties": false
         }
       },
       "required": [
@@ -42,7 +43,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   }
 ]

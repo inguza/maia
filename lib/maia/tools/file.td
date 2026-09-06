@@ -4,7 +4,7 @@
     "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
     "command": "file-write.sh",
     "instructions": [ "file.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -18,15 +18,14 @@
       },
       "required": ["path"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"file-append",
     "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
     "command": "file-append.sh",
     "instructions": [ "file.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -40,15 +39,14 @@
       },
       "required": ["path"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"file-change",
     "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
     "command": "file-change.sh",
     "instructions": [ "file.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -77,15 +75,14 @@
       },
       "required": ["path", "changes"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"context-file-remember",
     "description": "Add a files to the known context",
     "command": "maia-file-remember.sh",
     "instructions": [ "context-file-remember.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -106,14 +103,13 @@
       },
       "required": ["files"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "context-file-forget",
     "description": "Forget file content from the known context.",
     "command": "maia-file-forget.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -126,15 +122,14 @@
       },
       "required": ["files"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "maia-change-apply.sh",
     "instructions": [ "change-apply.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"ids": {
@@ -147,14 +142,13 @@
       },
       "required": ["ids"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "change-skip",
     "description": "Skip (reject) one or more change proposals.",
     "command": "maia-change-skip.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"ids": {
@@ -167,14 +161,13 @@
       },
       "required": ["ids"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "change-revert",
     "description": "Revert one or more changes.",
     "command": "maia-change-revert.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"ids": {
@@ -187,7 +180,6 @@
       },
       "required": ["ids"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

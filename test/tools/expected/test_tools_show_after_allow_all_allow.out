@@ -15,7 +15,7 @@ Tool definitions:
       "basics.txt",
       "pipe.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pipeline": {
@@ -29,15 +29,16 @@ Tool definitions:
               },
               "arguments": {
                 "type": "object",
-                "description": "Arguments for the function/tool use."
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
               }
             },
             "required": [
               "name",
               "arguments"
-            ],
-            "additionalProperties": false
-          }
+            ]
+          },
+          "additionalProperties": false
         }
       },
       "required": [
@@ -45,7 +46,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
@@ -56,7 +56,7 @@ Tool definitions:
       "basics.txt",
       "sequence.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "sequence": {
@@ -70,7 +70,8 @@ Tool definitions:
               },
               "arguments": {
                 "type": "object",
-                "description": "Arguments for the function/tool use."
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
               }
             },
             "required": [
@@ -86,14 +87,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
     "name": "core-print",
     "description": "Print content.",
     "command": "print.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "content": {
@@ -104,14 +104,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
     "name": "core-sleep",
     "description": "Sleep for the specified duration.",
     "command": "sleep.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "duration": {
@@ -124,14 +123,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
   },
   {
     "name": "util-file",
     "description": "Determine file type.",
     "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -148,14 +146,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/bsd.td"
   },
   {
     "name": "web-browser-curl",
     "description": "Tool for transferring data from or to a server.",
     "command": "curl.sh -i -D -G --get --raw -s -S -X POST",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "url": {
@@ -207,7 +204,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/curl.td"
   },
   {
@@ -217,7 +213,7 @@ Tool definitions:
     "instructions": [
       "file.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -234,7 +230,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
@@ -244,7 +239,7 @@ Tool definitions:
     "instructions": [
       "file.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -261,7 +256,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
@@ -271,7 +265,7 @@ Tool definitions:
     "instructions": [
       "file.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -307,7 +301,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
@@ -317,7 +310,7 @@ Tool definitions:
     "instructions": [
       "context-file-remember.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -341,14 +334,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
     "name": "context-file-forget",
     "description": "Forget file content from the known context.",
     "command": "maia-file-forget.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -364,7 +356,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
@@ -374,7 +365,7 @@ Tool definitions:
     "instructions": [
       "change-apply.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "ids": {
@@ -390,14 +381,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
     "name": "change-skip",
     "description": "Skip (reject) one or more change proposals.",
     "command": "maia-change-skip.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "ids": {
@@ -413,14 +403,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
     "name": "change-revert",
     "description": "Revert one or more changes.",
     "command": "maia-change-revert.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "ids": {
@@ -436,14 +425,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
     "name": "util-grep",
     "description": "Search files using regular expression.",
     "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "searchpattern": {
@@ -475,14 +463,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-find",
     "description": "Search files - but not files starting with a .",
     "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -523,14 +510,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-ls",
     "description": "List files",
     "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -547,14 +533,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-sort",
     "description": "List files",
     "command": "allowed-tool.sh sort -n -s -v --show-nonprinting --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -569,7 +554,6 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
@@ -579,7 +563,7 @@ Tool definitions:
     "instructions": [
       "cat.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -594,14 +578,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-head",
     "description": "Output the first part of files",
     "command": "head-tail.sh head --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -616,14 +599,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-tail",
     "description": "Output the last part of files",
     "command": "head-tail.sh tail --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -638,14 +620,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-wc",
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -660,14 +641,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-sed",
     "description": "Stream editor - write forbidden",
     "command": "sed.sh --posix -s -E -r --regexp-extended --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "script": {
@@ -686,14 +666,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "write-util-sed",
     "description": "Stream editor - write allowed",
     "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "script": {
@@ -712,14 +691,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-uniq",
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -734,14 +712,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-diff",
     "description": "Compare two files",
     "command": "allowed-tool.sh diff -c -d -D -i -u --",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "pathspec": {
@@ -758,14 +735,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "write-util-patch",
     "description": "Count newline, word and bytes for files",
     "command": "patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -780,14 +756,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
     "name": "context-history-retrieve",
     "description": "Retrieve the original content of conversation history entries.",
     "command": "history-retrieve.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "ids": {
@@ -803,14 +778,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/history.td"
   },
   {
     "name": "job-start",
     "description": "Start a background job. A job id will be the output..",
     "command": "job-start.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "name": {
@@ -827,22 +801,20 @@ Tool definitions:
         "arguments"
       ]
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
-    "parameters": null,
-    "strict": true,
+    "inputSchema": null,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-show",
     "description": "Show the metadata and current status of a background job.",
     "command": "job-id.sh show",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -855,14 +827,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-status",
     "description": "Show the current status of a background job: Running, Completed(0), Failed(exitcode), Killed(cause), or Missing.",
     "command": "job-id.sh status",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -875,14 +846,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-output",
     "description": "Show the output produced by a background job so far, including stderr. Output is available while the job is running and after it finishes.",
     "command": "job-id.sh output",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -895,14 +865,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-cancel",
     "description": "Cancel a running background job.",
     "command": "job-id.sh cancel",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -915,14 +884,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-delete",
     "description": "Delete a background job and its data. A running job cannot be deleted unless force is true.",
     "command": "job-delete.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -939,14 +907,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "job-exist",
     "description": "Check whether a background job exists. Returns no output and exits successfully if the job exists, or exits with status 1 if it does not exist.",
     "command": "job-id.sh exist",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -959,14 +926,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/job.td"
   },
   {
     "name": "jq",
     "description": "Run jq",
     "command": "jq.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "arguments": {
@@ -982,14 +948,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/jq.td"
   },
   {
     "name": "web-browser-lynx",
     "description": "Retrieve and browse a web page using Lynx. Returns the page content as text.",
     "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "url": {
@@ -1009,14 +974,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
   },
   {
     "name": "web-search-lynx",
     "description": "Search the web using Lynx and return the search results as text.",
     "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "query": {
@@ -1036,14 +1000,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
   },
   {
     "name": "net-request-tcp",
     "description": "Establish a tcp connection to a host and port to send data to it.",
     "command": "net-request-tcp.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "host": {
@@ -1069,14 +1032,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
   },
   {
     "name": "net-request-ssl",
     "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
     "command": "net-request-ssl.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "host": {
@@ -1102,14 +1064,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
   },
   {
     "name": "pandoc",
     "description": "Convert documents between markup formats using pandoc.",
     "command": "pandoc.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "path": {
@@ -1135,14 +1096,13 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/pandoc.td"
   },
   {
     "name": "shell-exec",
     "description": "Execute bash shell commands. An execution proposal will be created. This tool cannot be used with the core-pipe tool.",
     "command": "shell-exec.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "commands": {
@@ -1155,14 +1115,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/shell.td"
   },
   {
     "name": "context-skill-remember",
     "description": "Remember a skill instruction in the current context.",
     "command": "maia-skill-remember.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skills": {
@@ -1178,14 +1137,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
   },
   {
     "name": "context-skill-forget",
     "description": "Forget a skill instruction from the current context.",
     "command": "maia-skill-forget.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skills": {
@@ -1201,14 +1159,13 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
   },
   {
     "name": "skill-exec",
     "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
     "command": "maia-skill-execute.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skill": {
@@ -1233,7 +1190,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
   },
   {
@@ -1243,7 +1199,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1256,7 +1212,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1266,7 +1221,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1279,7 +1234,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1289,7 +1243,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1302,7 +1256,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1312,8 +1265,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": null,
-    "strict": true,
+    "inputSchema": null,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1323,7 +1275,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1336,7 +1288,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1346,7 +1297,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1359,7 +1310,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1369,7 +1319,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1390,7 +1340,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1400,7 +1349,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1421,7 +1370,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1431,7 +1379,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1452,7 +1400,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1462,7 +1409,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1483,7 +1430,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1493,7 +1439,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skills": {
@@ -1514,7 +1460,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1524,7 +1469,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "skills": {
@@ -1545,7 +1490,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1555,7 +1499,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -1584,7 +1528,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1594,7 +1537,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -1615,7 +1558,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   },
   {
@@ -1625,7 +1567,7 @@ Tool definitions:
     "instructions": [
       "subsession.txt"
     ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -1642,7 +1584,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "strict": true,
     "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   }
 ]

@@ -3,7 +3,7 @@
     "name":"context-history-retrieve",
     "description": "Retrieve the original content of conversation history entries.",
     "command": "history-retrieve.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"ids": {
@@ -16,7 +16,6 @@
       },
       "required": ["ids"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

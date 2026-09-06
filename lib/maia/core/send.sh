@@ -447,6 +447,8 @@ handle_send_command() {
 	if (( tools_count > 0 )); then
             if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
 		etools=true
+		# .parameters is kept for backwards compatibility with pre 1.0 release software
+		# It can be removed eventually keeping only .inputSchema
 		if ! tools_json=$(jq '
 		   [.[] |
                        if (.name and .description) then
@@ -456,7 +458,7 @@ handle_send_command() {
 			       {
                                  name,
                                  description,
-			         parameters: .parameters
+			         parameters: (.inputSchema // .parameters)
                                }
 			       | if .parameters == null then del(.parameters) else . end
 			     )
@@ -478,6 +480,9 @@ handle_send_command() {
 	# Extract enabled tools for Bedrock (toolSpecs) but do NOT add to messages
 	if (( tools_count > 0 )); then
 	    # AWS Bedrock do not allow null parameters definition. Translated to an empty object.
+	    # Also strict is ignored so no reason to add it.
+	    # .parameters is kept for backwards compatibility with pre 1.0 release software
+	    # It can be removed eventually keeping only .inputSchema
 	    etools=true
 	    if ! toolSpecs_json=$(jq '
 	      [ .[] |
@@ -487,7 +492,7 @@ handle_send_command() {
 		    name: .name,
 		    description: .description,
 		    inputSchema: {
-		      json: (.parameters // {
+		      json: ((.inputSchema // .parameters) // {
 		        type: "object",
 			properties: {},
 			additionalProperties: false

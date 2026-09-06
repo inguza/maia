@@ -3,7 +3,7 @@
     "name":"net-request-tcp",
     "description": "Establish a tcp connection to a host and port to send data to it.",
     "command": "net-request-tcp.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "host": {
@@ -25,14 +25,13 @@
       },
       "required": ["host","port"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "net-request-ssl",
     "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
     "command": "net-request-ssl.sh",
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "host": {
@@ -54,7 +53,6 @@
       },
       "required": ["host", "port"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

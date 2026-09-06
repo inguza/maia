@@ -4,7 +4,7 @@
     "description": "Create a new AI interaction subsession. A subsession inherits most tool and skill context, but not file context.",
     "command": "maia-subsession-create.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -14,15 +14,14 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-show",
     "description": "Show information about a subsession.",
     "command": "maia-subsession-show.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -32,15 +31,14 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-delete",
     "description": "Remove an AI interaction subsession.",
     "command": "maia-subsession-delete.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -50,23 +48,21 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-list",
     "description": "List all AI interaction subsessions.",
     "command": "maia-subsession-list.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": null,
-    "strict": true
+    "inputSchema": null
   },
   {
     "name": "subsession-tool-list",
     "description": "List allowed tools for a subsession.",
     "command": "maia-subsession-list-common.sh tool",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -76,15 +72,14 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-skill-list",
     "description": "List allowed skills for a subsession.",
     "command": "maia-subsession-list-common.sh skill",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -94,15 +89,14 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-tool-restrict",
     "description": "Restrict tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
     "command": "maia-subsession-restrict-common.sh tool",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -119,15 +113,14 @@
       },
       "required": ["subsession", "restrictions"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-skill-restrict",
     "description": "Restrict skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
     "command": "maia-subsession-restrict-common.sh skill",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -144,15 +137,14 @@
       },
       "required": ["subsession", "restrictions"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-tool-allow",
     "description": "Allow tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
     "command": "maia-subsession-allow-common.sh tool",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -169,15 +161,14 @@
       },
       "required": ["subsession", "allow"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-skill-allow",
     "description": "Allow skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
     "command": "maia-subsession-allow-common.sh skill",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -194,15 +185,14 @@
       },
       "required": ["subsession", "allow"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-skill-remember",
     "description": "Make a subsession remember a skill instruction.",
     "command": "maia-skill-remember.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"skills": {
@@ -219,15 +209,14 @@
       },
       "required": ["skills", "subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-skill-forget",
     "description": "Make a subsession forget a skill instruction.",
     "command": "maia-skill-forget.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
 	"skills": {
@@ -244,15 +233,14 @@
       },
       "required": ["skills", "subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name":"subsession-file-remember",
     "description": "Make a subsession remember file content.",
     "command": "maia-file-remember.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -277,15 +265,14 @@
       },
       "required": ["files", "subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-file-forget",
     "description": "Make a subsession forget file content.",
     "command": "maia-file-forget.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "files": {
@@ -302,15 +289,14 @@
       },
       "required": ["files", "subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   },
   {
     "name": "subsession-send",
     "description": "Send a message to a subsession.",
     "command": "maia-send.sh",
     "instructions": [ "subsession.txt" ],
-    "parameters": {
+    "inputSchema": {
       "type": "object",
       "properties": {
         "subsession": {
@@ -324,7 +310,6 @@
       },
       "required": ["subsession"],
       "additionalProperties": false
-    },
-    "strict": true
+    }
   }
 ]

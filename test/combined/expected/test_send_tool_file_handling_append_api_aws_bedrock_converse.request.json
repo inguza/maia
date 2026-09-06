@@ -44,15 +44,16 @@
                     },
                     "arguments": {
                       "type": "object",
-                      "description": "Arguments for the function/tool use."
+                      "description": "Arguments for the function/tool use.",
+                      "additionalProperties": true
                     }
                   },
                   "required": [
                     "name",
                     "arguments"
-                  ],
-                  "additionalProperties": false
-                }
+                  ]
+                },
+                "additionalProperties": false
               }
             },
             "required": [
@@ -82,7 +83,8 @@
                     },
                     "arguments": {
                       "type": "object",
-                      "description": "Arguments for the function/tool use."
+                      "description": "Arguments for the function/tool use.",
+                      "additionalProperties": true
                     }
                   },
                   "required": [

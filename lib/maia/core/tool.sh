@@ -356,6 +356,32 @@ handle_tool_command() {
             printf '%s\n' "${filtered_tools[@]}" > "$filepath"
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
+	discover)
+	    init_tool_search_dirs
+	    local servers=$(jq -r '.mcp_servers // empty' <<<"$_cfg")
+	    while IFS= read -r server; do
+		local name="${server%%=*}"
+		local endpoint="${server#*=}"
+		local tooldirs="${TOOL_DIRS[$scope]}"
+		local tooldir="${tooldirs%%:*}"
+		mkdir -p "${tooldir}"
+		local toolfile="${tooldir}/mcp-$name.td"
+		printf '%s\n' \
+		       '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+		    | mcp_request "$endpoint" > "${toolfile}.tmp"
+		# Time to parse the output
+		# Make sure .mcp_name = .name is before .name is changed
+		jq --arg prefix "$name" --arg endpoint "$endpoint" '
+		  .result.tools |
+		  map(
+		    .command = ("mcp.sh " + .name + " " + $endpoint) |
+		    .name = ($prefix + "-" + .name)
+		  )
+		  ' < "${toolfile}.tmp" > "$toolfile"
+		rm -f "${toolfile}.tmp"
+		notice "Written $toolfile"
+	    done < <(jq -r '.[]' <<< "$servers")
+	    ;;
 	view|"")
 	    if [[ "$1" == "--expand" ]] ; then
 		mapfile -t allowed_patterns < <(prompt_for_scope "$scope" "$prompt_type")

@@ -27,6 +27,7 @@
   "api_type": "AUTODETECT",
   "presence_penalty": 0,
   "api_base_url": "https://api.openai.com",
+  "mcp_servers": "[]",
   "default_session_filesets": "[\"__SESSION_NAME__\"]",
   "cost_output_gpt_5_4_nano": 1.25,
   "max_input_tokens": 64000,
