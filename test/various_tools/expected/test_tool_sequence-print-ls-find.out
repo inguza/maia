@@ -1,11 +1,11 @@
-======== [1] core-print({"content":"Test"}) ========
+======== [1] core-print {"content":"Test"} ========
 Test
 -> 0
-======== [2] util-ls({"pathspec":".","arguments":""}) ========
+======== [2] util-ls {"pathspec":".","arguments":""} ========
 file-to-see.txt
 
 -> 0
-======== [3] util-find({"pathspec":"."}) ========
+======== [3] util-find {"pathspec":"."} ========
 .
 ./file-to-see.txt
 

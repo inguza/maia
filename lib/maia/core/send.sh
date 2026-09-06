@@ -729,6 +729,7 @@ handle_send_command() {
 			echo "--------------------------------------------------------------------------------"
 			separator=false
 		    fi
+		    # We do not return intermediate reasoning things to the caller in case this is a subsession
 		    echo "$reply"
 		fi
 	    else
@@ -804,7 +805,7 @@ handle_send_command() {
 		    if [[ "$output_mode" == "full" ]] ; then
 			local idshort="$(shorten_callid "${id}")"
 			local shortargs=$(shorten_args "$func_args")
-			notice "Spawn $tool_start_count [$iteration of $allowed_iterations] $idshort: $func_name($shortargs)"
+			notice "Spawn $tool_start_count [$iteration of $allowed_iterations] $idshort: $func_name $shortargs"
 		    fi
 		    tool_fork \
 			"$tool_tmp_dir" \
@@ -887,7 +888,7 @@ handle_send_command() {
 		    fi
 		    local shortargs=$(shorten_args "$arguments")
 		    local short
-		    echo "######## $idshort $toolname($shortargs) -> $status ########"
+		    echo "######## $idshort $toolname $shortargs -> $status ########"
 		    cat "$tool_tmp_dir/$id.output"
 		    # Make sure we print a separator to show that the tool end and the response is shown
 		    separator=true

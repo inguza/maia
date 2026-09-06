@@ -1,17 +1,17 @@
-======== [1] subsession-create({"subsession":"review-xcommon"}) ========
+======== [1] subsession-create {"subsession":"review-xcommon"} ========
 [NOTICE] Bootstrapped session 'review-xcommon'
 [NOTICE] Created session 'review-xcommon' with workspace 'default', resolved from current session.
 
 -> 0
-======== [2] context-file-remember({"files":["x/x.info.yml"],"subsession":"review-xcommon"}) ========
+======== [2] context-file-remember {"files":["x/x.info.yml"],"subsession":"review-xcommon"} ========
 [WARN] File 'x/x.info.yml' not found, skipping.
 
 -> 0
-======== [3] subsession-file-remember({"files":["xcommon/tests/src/Functional/TestBase.php"],"subse...) ========
+======== [3] subsession-file-remember {"files":["xcommon/tests/src/Functional/TestBase.php"],"subse... ========
 [WARN] File 'xcommon/tests/src/Functional/TestBase.php' not found, skipping.
 
 -> 0
-======== [4] subsession-send({"subsession":"review-xcommon","content":"Sub-session name: r...) ========
+======== [4] subsession-send {"subsession":"review-xcommon","content":"Sub-session name: r... ========
 [ERROR] OPENAI_API_KEY environment variable is not set.
 
 -> 1
