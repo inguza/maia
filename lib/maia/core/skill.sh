@@ -358,12 +358,31 @@ handle_skill_command() {
 	    ;;
     esac
 
+    local subcmd="${1:-}"
+    shift || true
+
     # default scope if none given
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
         echo "$implicit_scope"
         return
     fi
+
+    # Special default scope handling
+    case "$subcmd" in
+	list)
+	    scope="$implicit_scope"
+	    ;;
+        refresh|verify|edit)
+	    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+		scope="$implicit_scope"
+	    fi
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
+
     if [[ -z "$scope" ]]; then
         scope="session"
     fi
@@ -372,9 +391,6 @@ handle_skill_command() {
         die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
     fi
     
-    local subcmd="${1:-}"
-    shift || true
-
     local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
     local skillset_context_file="${SCOPE_DIRS[$scope]}/skillsetcontext.txt"
 
@@ -490,7 +506,7 @@ handle_skill_command() {
 	    echo "----------------------------"
 	    prompt_for_scope "$scope" "skillsetcontext" "gen"
             ;;
-        append|allow|edit|read|compose|replace|clear|delete)
+        append|allow|edit|replace|clear|delete)
 	    # seed on first append
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"
