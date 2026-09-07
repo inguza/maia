@@ -295,22 +295,38 @@ handle_tool_command() {
     done
     prompt_type="toolset"
 
+    local subcmd="${1:-}"
+    shift
+
     # default scope if none given
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
 	echo "$implicit_scope"
 	return
     fi
+
+    # Special default scope handling
+    case "$subcmd" in
+	list)
+	    scope="$implicit_scope"
+	    ;;
+        refresh|verify|edit)
+	    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+		scope="$implicit_scope"
+	    fi
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
+
     if [[ -z "$scope" ]]; then
 	scope="session"
     fi
 
-    local subcmd="${1:-}"
-    shift
-    
     # compute filename & path
-    filename="${prompt_type}.txt"
-    filepath="${SCOPE_DIRS[$scope]}/$filename"
+    local filename="${prompt_type}.txt"
+    local filepath="${SCOPE_DIRS[$scope]}/$filename"
 
     case "$subcmd" in
         list)
@@ -455,12 +471,13 @@ handle_tool_command() {
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
 	    ;;
-        edit|read|compose|replace|clear|delete)
+        edit|replace|clear|delete)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
         refresh)
+	    notice "Refreshing scope '$scope'"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
         verify)
