@@ -90,7 +90,7 @@ unset EDITOR
 run_system_cmd "show_after_edit" show
 
 # Test read command (simulate read from stdin by echo piped in)
-echo "Read from stdin prompt line." | run_system_cmd "read_from_stdin" read
+echo "Read from stdin prompt line." | run_system_cmd "read_from_stdin" append +read
 
 # Test tool instructions a little
 run_system_cmd "show_type_tools" --type tools show

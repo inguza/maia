@@ -16,9 +16,6 @@ COMMANDS
   edit
     Edit the text.
 
-  read
-    Append text from stdin.
-
   replace <...>
     Clear and then append.
 
