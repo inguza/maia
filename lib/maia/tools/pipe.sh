@@ -44,19 +44,22 @@ while IFS= read -r tool_call; do
 
     # Find full path to executable without relying on PATH for security reasons
     tool_exec="${tool_cmd%% *}"
+    if [[ "$tool_exec" == "mcp.sh" && $i -gt 1 ]] ; then
+	rm -rf "$tool_tmp_dir"
+	die "Cannot pipe to an MCP defined tool '$func_name'. The MCP specification does not have a pipe concept."
+    fi
     tool_exec_dir="$(command_exec_dir "${tool_exec}" "$tool_search_path")"
 	
     if [[ -z "$tool_exec_dir" ]]; then
 	rm -rf "$tool_tmp_dir"
 	die "Executable '$tool_exec' for tool '$func_name' not found in tool search path."
-    else
-	# Build the pipe
-	args_file="$tool_tmp_dir/$i.args"
-	printf '%s\n' "$func_args" > "$args_file"
-	debug "Command $i in pipeline: $func_name($func_args)"
-	# Make sure to quite since we execute with bash -c later
-	pipeline_cmd+=" | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")"
     fi
+    # Build the pipe
+    args_file="$tool_tmp_dir/$i.args"
+    printf '%s\n' "$func_args" > "$args_file"
+    debug "Command $i in pipeline: $func_name($func_args)"
+    # Make sure to quite since we execute with bash -c later
+    pipeline_cmd+=" | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")"
     ((i++))
 done < <(jq -c '.[]' <<< "$pipeline")
 
