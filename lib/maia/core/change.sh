@@ -1092,13 +1092,19 @@ handle_change_command() {
 	    # Parse options before IDs
 	    while [[ $# -gt 0 && "$1" == --* ]]; do
 		case "$1" in
-		    --all) shift; MATCH="*-+-*" ;;
+		    --all) shift; MATCH="*-+-*.json" ;;
 		    *) break ;;
 		esac
 	    done
 	    if [[ -n "$MATCH" ]] ; then
-		local add_ids
-		mapfile -t all_ids < <(ls "$changes_dir/$session"/$MATCH.json 2>/dev/null | xargs -n1 basename | sed -E 's/-\+-.*//')
+		local -a all_ids=()
+		local f fname id
+		for f in "$changes_dir/$session"/$MATCH; do
+		    [[ -f "$f" ]] || continue
+		    fname=$(basename -- "$f")
+		    id=${fname%%-+-*}
+		    all_ids+=( "$id" )
+		done
 		if [[ ${#all_ids[@]} -eq 0 ]]; then
                     notice "No changes found."
                     exit 0
