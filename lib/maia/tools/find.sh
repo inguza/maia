@@ -64,10 +64,12 @@ if [[ -n "$ipathpattern" ]] ; then
     args+=(-ipath "$ipathpattern")
 fi
 
-paths=()
-pathspec="$(printf '%b' "${param[pathspec]:-}")"
-for path in $pathspec ; do
+pathspecs="${param[pathspecs]:-}"
+declare -a paths=()
+if [[ -n "$pathspecs" ]] ; then
+    mapfile -t paths < <(jq -r '.[]' <<< "$pathspecs")
+fi
+for path in "${paths[@]}" ; do
     validate_path "$path"
-    paths+=("$path")
 done
 find -P "${paths[@]}" "${args[@]}" | grep -v "/\."

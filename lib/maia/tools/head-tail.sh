@@ -28,8 +28,12 @@ if [[ -n "$lines" && "$lines" =~ ^[0-9]+$ ]] ; then
     args+=(-n $lines)
 fi
 
-pathspec="$(printf '%b' "${param[pathspec]:-}")"
-for path in $pathspec ; do
+pathspecs="${param[pathspecs]:-}"
+declare -a paths=()
+if [[ -n "$pathspecs" ]] ; then
+    mapfile -t paths < <(jq -r '.[]' <<< "$pathspecs")
+fi
+for path in "${paths[@]}" ; do
     validate_path "$path"
 done
-$command "${args[@]}" $pathspec
+$command "${args[@]}" "${paths[@]}"

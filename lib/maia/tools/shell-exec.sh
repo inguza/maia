@@ -36,7 +36,7 @@ else
     commandsstr="Stdin"
 fi
 
-write_meta "$ws_changes" "$baseid" "$index" "$path" "shell exec"
+write_meta "$ws_changes" "$baseid" "$index" "" "shell exec"
 printf '%b' "[NOTICE] Direct execution was not possible due to security principles.\n\nExecution proposal created:\n$id\n\nThe requested commands are now represented by this pending execution.\n\n"
 # Exit with 0 since otherwise you get an error
 exit 0

@@ -10,17 +10,20 @@
           "type": "string",
           "description": "Regular expression to search for."
         },
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to search in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to search in. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"after-context": {
 	  "type": "string",
-	  "description": "Print before-context lines of trailing context after matching lines."
+	  "description": "Print before-context number of lines of trailing context after matching lines."
 	},
 	"before-context": {
 	  "type": "string",
-	  "description": "Print before-context lines of leading context after matching lines."
+	  "description": "Print before-context number of lines of leading context before matching lines."
 	},
 	"arguments": {
 	  "type": "array",
@@ -41,9 +44,12 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to search for. Multiple files can be separated by space. Only paths relative to the current directory allowed."
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to search for. Only paths relative to the current directory allowed."
         },
 	"mindepth": {
           "type": "string",
@@ -70,11 +76,14 @@
           "description": "Path name matches shell pattern pattern, case insensitive."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of find command line arguments. Allowed are: -d -depth -executable -nogroup -nouser -readable -ls."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of find command line arguments. Allowed are: -d -depth -executable -nogroup -nouser -readable -ls."
 	}
       },
-      "required": ["pathspec"],
+      "required": ["pathspecs"],
       "additionalProperties": false
     }
   },
@@ -85,16 +94,22 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to list. Multiple files can be separated by space. Only paths relative to the current directory allowed."
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to list. Only paths relative to the current directory allowed."
         },
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
 	}
       },
-      "required": ["pathspec"],
+      "required": ["pathspecs"],
       "additionalProperties": false
     }
   },
@@ -105,13 +120,19 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to sort. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to sort. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
 	}
       },
       "required": [],
@@ -126,13 +147,19 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to print the content of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to print the content of. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of sort command line arguments. Allowed are: --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of cat command line arguments. Allowed are: --."
 	}
       },
       "required": [],
@@ -146,9 +173,12 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to print the head for. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to print the head for. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"lines": {
           "type": "string",
@@ -166,9 +196,12 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to print the tail of. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to print the tail of. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"lines": {
           "type": "string",
@@ -186,13 +219,19 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to count in. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from standin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to count in. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
 	}
       },
       "required": [],
@@ -210,13 +249,19 @@
 	  "type": "string",
 	  "description": "Sed script to be executed."
 	},
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
 	}
       },
       "required": [],
@@ -234,13 +279,19 @@
 	  "type": "string",
 	  "description": "Sed script to be executed."
 	},
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to edit. Only paths relative to the current directory allowed. Multiple files can be separated by space. If absent data is read from stdin."
+        "filespecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
 	}
       },
       "required": [],
@@ -259,8 +310,11 @@
           "description": "Specific file to operate on. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of uniq command line arguments. Allowed are: -c -d -D -i -u."
 	}
       },
       "required": [],
@@ -274,16 +328,22 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to compare. Only paths relative to the current directory allowed. Multiple files can be separated by space."
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to compare. Only paths relative to the current directory allowed."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of uniq command line arguments. Allowed are: -c -d -D -i -u --."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of diff command line arguments. Allowed are: -c -d -D -i -u --."
 	}
       },
-      "required": ["pathspec"],
+      "required": ["pathspecs"],
       "additionalProperties": false
     }
   },
@@ -299,8 +359,11 @@
           "description": "Read the patch from path. Same as patch option -i. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-          "type": "string",
-          "description": "Space separated list of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z."
 	}
       },
       "required": [],

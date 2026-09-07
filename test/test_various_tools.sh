@@ -156,13 +156,13 @@ run_tool_cmd "pipe-to-unknown-1" "pipe.sh" '{"pipeline":[
 # Pipe ls
 # We do not test with ls -l because that generate a new timestamp each run
 run_tool_cmd "pipe-ls-1" "pipe.sh" '{"pipeline":[
-{"name":"util-ls","arguments":{"pathspec":".","arguments":""}}
+{"name":"util-ls","arguments":{"pathspecs":["."],"arguments":[]}}
 ]}'
 
 # Pipe ls to grep
 # We do not test with ls -l because that generate a new timestamp each run
 run_tool_cmd "pipe-ls-to-grep-1" "pipe.sh" '{"pipeline":[
-{"name":"util-ls","arguments":{"pathspec":".","arguments":[]}},
+{"name":"util-ls","arguments":{"pathspecs":["."],"arguments":[]}},
 {"name":"util-grep","arguments":{"searchpattern":"file"}}
 ]}'
 
@@ -192,8 +192,8 @@ run_tool_cmd "pipe-to-head-1" "pipe.sh" '{"pipeline":[
 # We can't test with ls -l because it generates a new timestamp each time
 run_tool_cmd "sequence-print-ls-find" "sequence.sh" '{"sequence":[
 {"name":"core-print","arguments":{"content":"Test"}},
-{"name":"util-ls","arguments":{"pathspec":".","arguments":""}},
-{"name":"util-find","arguments":{"pathspec":"."}}
+{"name":"util-ls","arguments":{"pathspecs":["."],"arguments":""}},
+{"name":"util-find","arguments":{"pathspecs":["."]}}
 ]}'
 run_tool_cmd "sequence-with-unknown-1" "sequence.sh" '{"sequence":[
 {"name":"core-print","arguments":{"content":"Test"}},
@@ -206,7 +206,7 @@ run_tool_cmd "sequence-complicated-1" "sequence.sh" '{"sequence":[{"name":"subse
 run_tool_cmd "print-1" "print.sh" '{"content":"This is a test\nAnd after new line\n"}'
 
 ##### GNU
-run_tool_cmd "grep-complicated-1" "grep.sh" '{"searchpattern":"unserialize\\(|eval\\(|create_function\\(|shell_exec\\(|exec\\(|passthru\\(|system\\(|`\\$\\(|preg_replace\\(\\s*[\"].*e.*[\"]","pathspec":"."}'
+run_tool_cmd "grep-complicated-1" "grep.sh" '{"searchpattern":"unserialize\\(|eval\\(|create_function\\(|shell_exec\\(|exec\\(|passthru\\(|system\\(|`\\$\\(|preg_replace\\(\\s*[\"].*e.*[\"]","pathspecs":["."]}'
 
 ##### Shell exec
 export ASSISTANT_BASEID="20260717T214714-68e23e97"
@@ -332,10 +332,10 @@ run_tool_cmd "maia-change-apply-4" "maia-change-apply.sh" '{"ids": ["'$C3'"]}'
 run_tool_cmd "maia-change-skip-2" "maia-change-skip.sh" '{"ids": ["'$C1'","'$C2'"]}'
 
 # Curl
-run_tool_cmd "curl-1" "curl.sh" '{"url": "https://inguza.org/testharness/maia/will-not-change.html"}'
+run_tool_cmd "curl-1" "curl.sh" '{"urls": ["https://inguza.org/testharness/maia/will-not-change.html"]}'
 
 # Job management
-run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspec":".","arguments":[]}}'
+run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspecs":["."],"arguments":[]}}'
 sleep 0.1
 run_tool_cmd "job-list" "job-list.sh" '{}'
 ID=$($MAIA job list)

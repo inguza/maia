@@ -9,9 +9,9 @@
 	"ids": {
 	  "type": "array",
 	  "items": {
-	    "type": "string",
-            "description": "Identity of a conversation history entry whose original content should be retrieved."
-	  }
+	    "type": "string"
+	  },
+	  "description": "Conversation history item ID(s) whose original content should be retrieved."
 	}
       },
       "required": ["ids"],

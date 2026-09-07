@@ -6,19 +6,22 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "url": {
-          "type": "string",
-          "description": "The url to browse"
-        },
+        "urls": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "The URLs to browse"
+	},
 	"arguments": {
 	  "type": "array",
 	  "items": {
 	    "type": "string"
 	  },
-	  "description": "List of file command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
+	  "description": "List of lynx command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
 	}
       },
-      "required": ["url"],
+      "required": ["urls"],
       "additionalProperties": false
     }
   },

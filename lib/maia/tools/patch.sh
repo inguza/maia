@@ -27,14 +27,13 @@ parsearguments
 
 declare -a args
 for argument in "${arguments[@]}"; do
-    if [[ $argument =~ ^-p[0-9]+$  ]] ; then
-	ok=1
-    if [[ $argument =~ ^[0-9]*$ ]] ; then
-		ok=1
-	elif [[ -z "${allowed[$argument]+x}" ]]; then
-	    echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
-	    exit 2
-	fi
+    if [[ $argument =~ ^-p[0-9]+$ ]]; then
+        :
+    elif [[ $argument =~ ^[0-9]*$ ]]; then
+        :
+    elif [[ -z "${allowed[$argument]+x}" ]]; then
+        echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
+        exit 2
     fi
     args+=("$argument")
 done
@@ -43,5 +42,5 @@ path="$(printf '%b' "${param[path]:-}")"
 if [[ -n "$path" ]] ; then
     validate_path "$path"
     args+=(-i "$path")
-done
+fi
 $command "${args[@]}"

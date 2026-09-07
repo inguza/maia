@@ -6,9 +6,12 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "url": {
-          "type": "string",
-          "description": ""
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "One or more URLs."
         },
 	"header": {
 	  "type": "array",
@@ -47,10 +50,10 @@
 	  "items": {
 	    "type": "string"
 	  },
-	  "description": "List of file command line arguments. Allowed are: -i -D -G --get --raw -s -Sx -X POST."
+	  "description": "List of curl command line arguments. Allowed are: -i -D -G --get --raw -s -Sx -X POST."
 	}
       },
-      "required": ["url"],
+      "required": ["urls"],
       "additionalProperties": false
     }
   }

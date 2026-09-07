@@ -32,11 +32,15 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspec="$(printf '%b' "${param[pathspec]:-}")"
-for path in $pathspec ; do
+filespecs="${param[filespecs]:-}"
+declare -a paths=()
+if [[ -n "$filespecs" ]] ; then
+    mapfile -t paths < <(jq -r '.[]' <<< "$filespecs")
+fi
+for path in "${paths[@]}" ; do
     validate_path "$path"
 done
 script="$(printf '%b' "${param[script]}")"
 
 # Disable glob expansion
-$command --sandbox "${args[@]}" -e "$script" $pathspec
+$command --sandbox "${args[@]}" -e "$script" "${paths[@]}"

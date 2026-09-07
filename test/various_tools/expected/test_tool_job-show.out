@@ -3,7 +3,9 @@
   "starttime": "<starttime>",
   "tool": "util-ls",
   "arguments": {
-    "pathspec": ".",
+    "pathspecs": [
+      "."
+    ],
     "arguments": []
   },
   "toolcallid": "<datetime>-<pid>-<starttime>",

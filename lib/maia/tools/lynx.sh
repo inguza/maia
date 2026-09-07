@@ -20,7 +20,7 @@ for arg in "$@"; do
     allowed["$arg"]=1
 done
 
-delcare -a arguments=()
+declare -a arguments=()
 parsearguments
 
 declare -a args
@@ -32,11 +32,15 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-url="$(printf '%b' "${param[url]:-}")"
-if [[ -z "$url" ]] ; then
+urls="${param[urls]:-}"
+declare -a url_array=()
+if [[ -n "$urls" ]] ; then
+    mapfile -t url_array < <(jq -r '.[]' <<< "$urls")
+fi
+if [[ ${#url_array[@]} -eq 0 ]] ; then
     query="$(printf '%b' "${param[query]:-}")"
-    url="https://html.duckduckgo.com/html/?q=$(urlencode "$query")"
+    url_array=("https://html.duckduckgo.com/html/?q=$(urlencode "$query")")
 fi
 
 # Disable glob expansion
-$command -dump "${args[@]}" "$url"
+$command -dump "${args[@]}" "${url_array[@]}"

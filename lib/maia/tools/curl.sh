@@ -32,7 +32,12 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-url="$(printf '%b' "${param[url]:-}")"
+urls="${param[urls]:-}"
+
+declare -a url_array=()
+if [[ -n "$urls" ]] ; then
+    mapfile -t url_array < <(jq -r '.[]' <<< "$urls")
+fi
 
 if [[ -v "param[json]" ]] ; then
     args+=(--json "$(printf '%b' "${param[json]}")")
@@ -47,4 +52,4 @@ for d in "data" "data-raw" "data-binary" "header" ; do
 done
 
 # Disable glob expansion
-$command --no-progress-meter "${args[@]}" "$url"
+$command --no-progress-meter "${args[@]}" "${url_array[@]}"

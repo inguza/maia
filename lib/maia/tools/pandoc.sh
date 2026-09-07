@@ -32,18 +32,18 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspec="$(printf '%b' "${param[path]:-}")"
-for path in $pathspec ; do
+path="$(printf '%b' "${param[path]:-}")"
+if [[ -n "$path" ]] ; then
     validate_path "$path"
-done
-if="${param[input-format]}"
-if [[ -n "$if" && "$if" =~ ^[0-9a-zA-Z]+$ ]] ; then
-    args+=(-f $if)
 fi
-of="${param[output-format]}"
-if [[ -n "$of" && "$of" =~ ^[0-9a-zA-Z]+$ ]] ; then
-    args+=(-t $of)
+input_format="${param[input-format]}"
+if [[ -n "$input_format" && "$input_format" =~ ^[0-9a-zA-Z]+$ ]] ; then
+    args+=(-f $input_format)
+fi
+output_format="${param[output-format]}"
+if [[ -n "$output_format" && "$output_format" =~ ^[0-9a-zA-Z]+$ ]] ; then
+    args+=(-t $output_format)
 fi
 
 # Disable glob expansion
-$command "${args[@]}" $pathspec
+$command "${args[@]}" "$path"

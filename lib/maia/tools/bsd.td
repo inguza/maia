@@ -6,16 +6,22 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "pathspec": {
-          "type": "string",
-          "description": "Pattern of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from stdin."
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from stdin."
         },
 	"arguments": {
-	  "type": "string",
-	  "description": "Space separated list of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
 	}
       },
-      "required": ["pathspec"],
+      "required": ["pathspecs"],
       "additionalProperties": false
     }
   }

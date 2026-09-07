@@ -32,20 +32,24 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspec="$(printf '%b' "${param[pathspec]:-}")"
-for path in $pathspec ; do
+pathspecs="${param[pathspecs]:-}"
+declare -a paths=()
+if [[ -n "$pathspecs" ]] ; then
+    mapfile -t paths < <(jq -r '.[]' <<< "$pathspecs")
+fi
+for path in "${paths[@]}" ; do
     validate_path "$path"
 done
 searchpattern="$(printf '%b' "${param[searchpattern]}")"
 
-before="${param[before-context]:-}"
+before="${param["before-context"]:-}"
 if [[ -n "$before" && "$before" =~ ^[0-9]+$ ]] ; then
     args+=(-B $before)
 fi
-after="${param[after-context]:-}"
+after="${param["after-context"]:-}"
 if [[ -n "$after" && "$after" =~ ^[0-9]+$ ]] ; then
     args+=(-A $after)
 fi
 
 # Disable glob expansion
-$command "${args[@]}" "$searchpattern" $pathspec
+$command "${args[@]}" "$searchpattern" "${paths[@]}"
