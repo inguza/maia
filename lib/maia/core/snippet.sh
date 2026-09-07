@@ -272,12 +272,6 @@ handle_snippet_command() {
 		subcmd="show"
 		set -- "$snippet_name"
             else
-		# If first arg is "read" or "compose", treat as append
-		if [[ "$1" == "read" || "$1" == "compose" ]]; then
-                    subcmd="add"
-		else
-                    subcmd="add"
-		fi
 		set -- "$snippet_name" "$@"
             fi
 	    if [[ -n "$scope" ]] ; then
