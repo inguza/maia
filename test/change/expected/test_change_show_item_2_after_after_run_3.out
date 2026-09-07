@@ -5,7 +5,7 @@
 
 Command output below:
 =====================
-$ sleep 3
+$ sleep 8
 $ echo Foo
 Foo
 
