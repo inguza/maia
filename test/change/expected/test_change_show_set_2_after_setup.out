@@ -10,6 +10,6 @@ Sub-change: <dateandtime>-abcd1235-1
 }
 Suggested commands below:
 =========================
-sleep 8
+sleep 3
 echo Foo
 
