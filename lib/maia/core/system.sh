@@ -27,9 +27,6 @@ COMMANDS
   edit
     Edit the text.
 
-  read
-    Append text from stdin.
-
   replace <...>
     Clear and then append.
 
@@ -161,11 +158,11 @@ handle_system_command() {
     fi
 
     # now parse subcommand
-    subcmd="${1:-}"
+    local subcmd="${1:-}"
 
     # compute filename & path
-    filename="${prompt_type}.txt"
-    filepath="${SCOPE_DIRS[$scope]}/$filename"
+    local filename="${prompt_type}.txt"
+    local filepath="${SCOPE_DIRS[$scope]}/$filename"
     case "$subcmd" in
 	show|"")
 	    # just fetch via our common helper
@@ -185,7 +182,7 @@ handle_system_command() {
 	    handle_text_file_command "$filepath" "$@"
 	    ;;
 
-	edit|read|compose|replace|clear|delete)
+	edit|replace|clear|delete)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    handle_text_file_command "$filepath" "$@"
 	    ;;
