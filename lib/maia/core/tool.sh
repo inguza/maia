@@ -301,11 +301,8 @@ handle_tool_command() {
 	echo "$implicit_scope"
 	return
     fi
-    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
-	scope="$implicit_scope"
-    fi
     if [[ -z "$scope" ]]; then
-	scope="home"
+	scope="session"
     fi
 
     local subcmd="${1:-}"

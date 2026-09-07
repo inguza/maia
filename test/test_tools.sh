@@ -93,14 +93,14 @@ run_tools_cmd "verify_after_delete" verify
 # MCP tests
 $MAIA config --scope session "mcp_servers" '["test=stdio:test.sh -xxx"]'
 export PATH=$PATH:$TEST_ROOT/mcp
-run_tools_cmd "mcp_discover1" discover
+run_tools_cmd "mcp_discover1" --scope home discover
 run_tools_cmd "mcp_list1" list
 if [ ! -e "$XMAIA_HOME/.maia/tools/mcp-test.td" ] ; then
     echo "Test error. exit. $XMAIA_HOME/.maia/tools/mcp-test.td"
     exit
 fi
 rm -f "$XMAIA_HOME/.maia/tools/mcp-test.td"
-run_tools_cmd "mcp_discover2" --scope session discover
+run_tools_cmd "mcp_discover2" discover
 run_tools_cmd "mcp_list2" list
 run_tools_cmd "mcp_allow" allow "test-*"
 run_tools_cmd "mcp_list3" list

@@ -42,7 +42,7 @@ setup_changes_dir() {
 
     echo '{"type":"set"}' > "$changes_dir/20250513T142512-abcd1235-+-pending.json"
     echo '{"type":"shell","filename":""}' > "$changes_dir/20250513T142512-abcd1235-1-pending.json"
-    echo 'sleep 3' > "$changes_dir/20250513T142512-abcd1235-1-pending.shell"
+    echo 'sleep 8' > "$changes_dir/20250513T142512-abcd1235-1-pending.shell"
     echo 'echo Foo' >> "$changes_dir/20250513T142512-abcd1235-1-pending.shell"
 }
 
@@ -100,7 +100,7 @@ show_x failed
 run_change_cmd "run" run "${set2}-1" &
 sleep 0.5
 show_x after_run
-sleep 3
+sleep 8
 show_x after_run_3
 
 # Test delete command

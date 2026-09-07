@@ -32,7 +32,7 @@ send_hook                      default    ""
 splice_allowed_files           default    "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$"
 stream                         default    false
 tab_width                      default    8
-temperature                    home       0.3
+temperature                    session    0.3
 term_loglevel                  home       "NOTICE"
 tool_iteration_limit           default    20
 tool_loop_prevent              default    "file-write file-change"

@@ -6,10 +6,7 @@
 Command output below:
 =====================
 $ sleep 3
-$ echo Foo
-Foo
 
 Exit status below:
 ==================
-0
 

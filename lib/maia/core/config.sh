@@ -159,10 +159,10 @@ handle_config_command() {
     [[ "$2" =~ ^-h|--help$ ]] && config_usage
     local filter="normal"
     
-    # We'll track whether user provided --scope. Writes default to "home".
+    # We'll track whether user provided --scope. Writes default to "session".
     local scope=""
     local scope_given=0
-    local write_scope="home"
+    local write_scope=""
     local view_scope=""
     local effective_flag=0
 
@@ -204,12 +204,12 @@ handle_config_command() {
 
     # Decide view vs write scopes:
     # - If user provided --scope, both view and write should use that scope.
-    # - If not, viewing defaults to session (merged to session) while writing defaults to home.
+    # - If not, viewing defaults to session (merged to session) while writing defaults to session.
     if [[ "$scope_given" -eq 1 ]]; then
         write_scope="$scope"
         view_scope="$scope"
     else
-        write_scope="home"
+        write_scope="session"
         view_scope="session"
     fi
 

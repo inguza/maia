@@ -340,9 +340,9 @@ setup_maia_home() {
     $MAIA home create > /dev/null 2>&1
     export XMAIA_HOME="$tmpdir"
     if [[ "$DEBUG" == "true" ]] ; then
-	$MAIA config term_loglevel "DEBUG" > /dev/null 2>&1
+	$MAIA config --scope home term_loglevel "DEBUG" > /dev/null 2>&1
     else
-	$MAIA config term_loglevel "NOTICE" > /dev/null 2>&1
+	$MAIA config --scope home term_loglevel "NOTICE" > /dev/null 2>&1
     fi
     cd "$XMAIA_HOME"
 }
