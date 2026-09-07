@@ -39,6 +39,9 @@ COMMANDS
   verify
       Verify allowed tools are current with discovered .td files.
 
+  discover
+      Discover additional tools and generate tool definition file(s).
+
   delete
       Delete the tool definitions from this scope.
 
