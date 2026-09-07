@@ -29,7 +29,7 @@ TOOLSET_DEF_EXT=".td"
 
 # Default configuration values
 declare -A DEFAULT_CONFIG=(
-    [model]="gpt-4.1-mini"
+    [model]="gpt-5.4-mini"
     [temperature]=0.7
     [max_output_tokens]=32000
     [max_input_tokens]=64000

@@ -28,7 +28,7 @@ OPTIONS
 
   --model <model>
     Specify the model to use for cost calculation (overrides config).
-    Supported models: gpt-4, gpt-4-32k, gpt-3.5-turbo, gpt-4.1-mini.
+    Supported models: gpt-4, gpt-4-32k, gpt-3.5-turbo, gpt-4.1-mini, gpt-5.4-mini.
 
   --file-handling <mode>
     Override file handling mode for this send command.

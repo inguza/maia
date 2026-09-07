@@ -22,7 +22,7 @@ http_logging                   default    true
 max_input_tokens               default    64000
 max_output_tokens              default    32000
 mcp_servers                    default    "[]"
-model                          default    "gpt-4.1-mini"
+model                          default    "gpt-5.4-mini"
 n                              default    1
 presence_penalty               default    0
 prune_mode                     default    "reduce"

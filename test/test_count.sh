@@ -49,7 +49,7 @@ run_count_cmd "command_edit" +edit
 unset EDITOR
 
 # Test count with --model option set to each supported model
-for model in gpt-4 gpt-4-32k gpt-3.5-turbo gpt-4.1-mini; do
+for model in gpt-4 gpt-4-32k gpt-3.5-turbo gpt-4.1-mini gpt-5.4-mini; do
     run_count_cmd "model_${model//./_}" --model "$model" "This is a test for model $model."
 done
 
