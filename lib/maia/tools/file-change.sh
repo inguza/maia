@@ -56,8 +56,9 @@ else
     fi
     # Applied cleanly but no change anyway
     if [[ ! -e "$xpath" && ! -e "$pfile" ]] ; then
-	write_meta "$ws_changes" "$baseid" "$index" "$path"
-        printf '%b' "[NOTICE] Changed content identical to the content in $path. No upate made.\n\nFile $path already exists.\n\nChange created for reference:\n$id\n"
+	rm -f "$wpath"
+	rm -f "$cpath"
+        printf '%b' "[NOTICE] File already contains the requested content. No change made.\n"
     elif [[ -e "$xpath" && ! -e "$pfile" ]] ; then
 	rm -f "$wpath"
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
