@@ -147,18 +147,22 @@ handle_system_command() {
 	esac
     done
 
+    # now parse subcommand
+    local subcmd="${1:-}"
+
     # default scope if none given
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
 	echo "$implicit_scope"
 	return
     fi
+    # Special default scope handling
+    if [[ -z "$scope" && "$subcmd" == "edit" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+	scope="$implicit_scope"
+    fi
     if [[ -z "$scope" ]]; then
 	scope="session"
     fi
-
-    # now parse subcommand
-    local subcmd="${1:-}"
 
     # compute filename & path
     local filename="${prompt_type}.txt"
