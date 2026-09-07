@@ -322,6 +322,9 @@ handle_tool_command() {
 
     if [[ -z "$scope" ]]; then
 	scope="session"
+	if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+            die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
+	fi
     fi
 
     # compute filename & path
@@ -471,7 +474,7 @@ handle_tool_command() {
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
 	    ;;
-        edit|replace|clear|delete)
+        edit|replace|clear|delete|clearnonotice)
 	    mkdir -p "${SCOPE_DIRS[$scope]}"
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"

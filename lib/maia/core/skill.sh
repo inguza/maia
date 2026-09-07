@@ -385,12 +385,11 @@ handle_skill_command() {
 
     if [[ -z "$scope" ]]; then
         scope="session"
+	if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+            die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
+	fi
     fi
 
-    if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
-        die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-    fi
-    
     local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
     local skillset_context_file="${SCOPE_DIRS[$scope]}/skillsetcontext.txt"
 
@@ -506,7 +505,7 @@ handle_skill_command() {
 	    echo "----------------------------"
 	    prompt_for_scope "$scope" "skillsetcontext" "gen"
             ;;
-        append|allow|edit|replace|clear|delete)
+        append|allow|edit|replace|clear|clearnonotice|delete)
 	    # seed on first append
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"

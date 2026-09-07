@@ -911,6 +911,9 @@ handle_text_file_command() {
             ;;
 	edit)
 	    shift || true
+            if [[ ! -e "$file" ]] ; then
+		notice "Creating a new file to edit."
+	    fi
 	    edit_file "$file"
 	    ;;
         append)
@@ -1022,32 +1025,30 @@ handle_text_file_command() {
 		esac
             done
             ;;
-        read)
-            shift || true
-            cat >> "$file"
-            ;;
-        compose)
-            shift || true
-            local content
-            if content=$(read_text_from_editor); then
-                echo "$content" >> "$file"
-            else
-                notice "Compose aborted (empty content)."
-            fi
-            ;;
         replace)
             shift || true
-            handle_text_file_command "$file" clear
+            handle_text_file_command "$file" clearnonotice
             handle_text_file_command "$file" append "$@"
             ;;
+	clearnonotice)
+            shift || true
+	    : > "$file"
+	    ;;
         clear)
             shift || true
-            : > "$file"
+            if [[ ! -e "$file" ]] ; then
+		notice "Nothing to clear"
+	    else
+		: > "$file"
+	    fi
             ;;
         delete)
             shift || true
-            [[ ! -e "$file" ]] && notice "Nothing to delete"
-            rm -f "$file"
+            if [[ ! -e "$file" ]] ; then
+		notice "Nothing to delete"
+	    else
+		rm -f "$file"
+	    fi
             ;;
         *)
             die "Unrecognized command '$subcmd'"

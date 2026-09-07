@@ -67,8 +67,8 @@ apply_config_param() {
 
 # Make sure to reset, just in case there is defaults from session create
 export MAIA_SESSION="$actualsession"
-"$MAIA_BIN" tool --scope session clear
-"$MAIA_BIN" skill --scope session clear
+"$MAIA_BIN" tool --scope session clearnonotice
+"$MAIA_BIN" skill --scope session clearnonotice
 "$MAIA_BIN" skill --scope session forget "*"
 export MAIA_SESSION="$thissession"
 apply_config_param default_subsession_tool_allow tool allow
