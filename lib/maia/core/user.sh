@@ -56,10 +56,10 @@ NOTES
 
   You can also run:
 
-    maia user append read
+    maia user append +read
       Read from stdin.
 
-    maia user append compose
+    maia user append +compose
       Open an editor to compose the text.
 
     maia user "This is the error message I get:" compose
@@ -97,7 +97,7 @@ handle_user_command() {
 	"")
 	    handle_text_file_command "$outbox_file" show "$@"
 	    ;;
-	edit|show|append|read|compose|replace|clear|delete)
+	edit|show|append|replace|clear|delete)
 	    handle_text_file_command "$outbox_file" "$@"
 	    ;;
 	*)
