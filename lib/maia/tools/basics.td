@@ -2,8 +2,8 @@
   {
     "name": "core-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
-    "command": "pipe.sh",
-    "instructions": [ "basics.txt", "pipe.txt" ],
+    "command": "core-pipe.sh",
+    "instructions": [ "basics.txt", "core-pipe.txt" ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -34,7 +34,7 @@
   {
     "name": "core-sequence",
     "description": "Execute multiple tools in sequence order.",
-    "command": "sequence.sh",
+    "command": "core-sequence.sh",
     "instructions": [ "basics.txt", "sequence.txt" ],
     "inputSchema": {
       "type": "object",
@@ -66,7 +66,7 @@
   {
     "name": "core-print",
     "description": "Print content.",
-    "command": "print.sh",
+    "command": "core-print.sh",
     "inputSchema": {
       "type": "object",
       "properties": {

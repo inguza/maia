@@ -51,7 +51,7 @@ Tool definitions:
   {
     "name": "core-sequence",
     "description": "Execute multiple tools in sequence order.",
-    "command": "sequence.sh",
+    "command": "core-sequence.sh",
     "instructions": [
       "basics.txt",
       "sequence.txt"
@@ -92,7 +92,7 @@ Tool definitions:
   {
     "name": "core-print",
     "description": "Print content.",
-    "command": "print.sh",
+    "command": "core-print.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -315,7 +315,7 @@ Tool definitions:
   {
     "name": "context-file-remember",
     "description": "Add a files to the known context",
-    "command": "maia-file-remember.sh",
+    "command": "context-file-remember.sh",
     "instructions": [
       "context-file-remember.txt"
     ],
@@ -348,7 +348,7 @@ Tool definitions:
   {
     "name": "context-file-forget",
     "description": "Forget file content from the known context.",
-    "command": "maia-file-forget.sh",
+    "command": "context-file-forget.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -370,7 +370,7 @@ Tool definitions:
   {
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
-    "command": "maia-change-apply.sh",
+    "command": "change-apply.sh",
     "instructions": [
       "change-apply.txt"
     ],
@@ -395,7 +395,7 @@ Tool definitions:
   {
     "name": "change-skip",
     "description": "Skip (reject) one or more change proposals.",
-    "command": "maia-change-skip.sh",
+    "command": "change-skip.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -417,7 +417,7 @@ Tool definitions:
   {
     "name": "change-revert",
     "description": "Revert one or more changes.",
-    "command": "maia-change-revert.sh",
+    "command": "change-revert.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -439,7 +439,7 @@ Tool definitions:
   {
     "name": "util-grep",
     "description": "Search files using regular expression.",
-    "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
+    "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -480,7 +480,7 @@ Tool definitions:
   {
     "name": "util-find",
     "description": "Search files - but not files starting with a .",
-    "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
+    "command": "util-find.sh -d -depth -executable -nogroup -nouser -readable -ls",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -591,7 +591,7 @@ Tool definitions:
     "description": "Print the content of one or more concatenated files",
     "command": "allowed-tool.sh cat --",
     "instructions": [
-      "cat.txt"
+      "util-cat.txt"
     ],
     "inputSchema": {
       "type": "object",
@@ -694,7 +694,7 @@ Tool definitions:
   {
     "name": "util-sed",
     "description": "Stream editor - write forbidden",
-    "command": "sed.sh --posix -s -E -r --regexp-extended --",
+    "command": "util-sed.sh --posix -s -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -725,7 +725,7 @@ Tool definitions:
   {
     "name": "write-util-sed",
     "description": "Stream editor - write allowed",
-    "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
+    "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -809,7 +809,7 @@ Tool definitions:
   {
     "name": "write-util-patch",
     "description": "Count newline, word and bytes for files",
-    "command": "patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
+    "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1195,7 +1195,7 @@ Tool definitions:
   {
     "name": "context-skill-remember",
     "description": "Remember a skill instruction in the current context.",
-    "command": "maia-skill-remember.sh",
+    "command": "context-skill-remember.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1217,7 +1217,7 @@ Tool definitions:
   {
     "name": "context-skill-forget",
     "description": "Forget a skill instruction from the current context.",
-    "command": "maia-skill-forget.sh",
+    "command": "context-skill-forget.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1239,7 +1239,7 @@ Tool definitions:
   {
     "name": "skill-exec",
     "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
-    "command": "maia-skill-execute.sh",
+    "command": "skill-execute.sh",
     "inputSchema": {
       "type": "object",
       "properties": {

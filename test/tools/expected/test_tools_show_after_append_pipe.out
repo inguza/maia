@@ -7,10 +7,10 @@ Tool definitions:
   {
     "name": "core-pipe",
     "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
-    "command": "pipe.sh",
+    "command": "core-pipe.sh",
     "instructions": [
       "basics.txt",
-      "pipe.txt"
+      "core-pipe.txt"
     ],
     "inputSchema": {
       "type": "object",

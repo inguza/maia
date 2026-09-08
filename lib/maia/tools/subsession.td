@@ -2,7 +2,7 @@
   {
     "name": "subsession-create",
     "description": "Create a new AI interaction subsession. A subsession inherits most tool and skill context, but not file context.",
-    "command": "maia-subsession-create.sh",
+    "command": "subsession-create.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -19,7 +19,7 @@
   {
     "name": "subsession-show",
     "description": "Show information about a subsession.",
-    "command": "maia-subsession-show.sh",
+    "command": "subsession-show.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -36,7 +36,7 @@
   {
     "name": "subsession-delete",
     "description": "Remove an AI interaction subsession.",
-    "command": "maia-subsession-delete.sh",
+    "command": "subsession-delete.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -53,14 +53,14 @@
   {
     "name": "subsession-list",
     "description": "List all AI interaction subsessions.",
-    "command": "maia-subsession-list.sh",
+    "command": "subsession-list.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": null
   },
   {
     "name": "subsession-tool-list",
     "description": "List allowed tools for a subsession.",
-    "command": "maia-subsession-list-common.sh tool",
+    "command": "subsession-list-common.sh tool",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -77,7 +77,7 @@
   {
     "name": "subsession-skill-list",
     "description": "List allowed skills for a subsession.",
-    "command": "maia-subsession-list-common.sh skill",
+    "command": "subsession-list-common.sh skill",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -94,7 +94,7 @@
   {
     "name": "subsession-tool-restrict",
     "description": "Restrict tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
-    "command": "maia-subsession-restrict-common.sh tool",
+    "command": "subsession-restrict-common.sh tool",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -118,7 +118,7 @@
   {
     "name": "subsession-skill-restrict",
     "description": "Restrict skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
-    "command": "maia-subsession-restrict-common.sh skill",
+    "command": "subsession-restrict-common.sh skill",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -142,7 +142,7 @@
   {
     "name": "subsession-tool-allow",
     "description": "Allow tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
-    "command": "maia-subsession-allow-common.sh tool",
+    "command": "subsession-allow-common.sh tool",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -166,7 +166,7 @@
   {
     "name": "subsession-skill-allow",
     "description": "Allow skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
-    "command": "maia-subsession-allow-common.sh skill",
+    "command": "subsession-allow-common.sh skill",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -190,7 +190,7 @@
   {
     "name": "subsession-skill-remember",
     "description": "Make a subsession remember a skill instruction.",
-    "command": "maia-skill-remember.sh",
+    "command": "context-skill-remember.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -214,7 +214,7 @@
   {
     "name": "subsession-skill-forget",
     "description": "Make a subsession forget a skill instruction.",
-    "command": "maia-skill-forget.sh",
+    "command": "context-skill-forget.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -238,7 +238,7 @@
   {
     "name":"subsession-file-remember",
     "description": "Make a subsession remember file content.",
-    "command": "maia-file-remember.sh",
+    "command": "context-file-remember.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -270,7 +270,7 @@
   {
     "name": "subsession-file-forget",
     "description": "Make a subsession forget file content.",
-    "command": "maia-file-forget.sh",
+    "command": "context-file-forget.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -294,7 +294,7 @@
   {
     "name": "subsession-send",
     "description": "Send a message to a subsession.",
-    "command": "maia-send.sh",
+    "command": "subsession-send.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",

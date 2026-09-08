@@ -80,7 +80,7 @@
   {
     "name":"context-file-remember",
     "description": "Add a files to the known context",
-    "command": "maia-file-remember.sh",
+    "command": "context-file-remember.sh",
     "instructions": [ "context-file-remember.txt" ],
     "inputSchema": {
       "type": "object",
@@ -108,7 +108,7 @@
   {
     "name": "context-file-forget",
     "description": "Forget file content from the known context.",
-    "command": "maia-file-forget.sh",
+    "command": "context-file-forget.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -127,7 +127,7 @@
   {
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
-    "command": "maia-change-apply.sh",
+    "command": "change-apply.sh",
     "instructions": [ "change-apply.txt" ],
     "inputSchema": {
       "type": "object",
@@ -147,7 +147,7 @@
   {
     "name": "change-skip",
     "description": "Skip (reject) one or more change proposals.",
-    "command": "maia-change-skip.sh",
+    "command": "change-skip.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -166,7 +166,7 @@
   {
     "name": "change-revert",
     "description": "Revert one or more changes.",
-    "command": "maia-change-revert.sh",
+    "command": "change-revert.sh",
     "inputSchema": {
       "type": "object",
       "properties": {

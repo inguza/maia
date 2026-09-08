@@ -2,7 +2,7 @@
   {
     "name":"util-grep",
     "description": "Search files using regular expression.",
-    "command": "grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
+    "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -40,7 +40,7 @@
   {
     "name":"util-find",
     "description": "Search files - but not files starting with a .",
-    "command": "find.sh -d -depth -executable -nogroup -nouser -readable -ls",
+    "command": "util-find.sh -d -depth -executable -nogroup -nouser -readable -ls",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -143,7 +143,7 @@
     "name":"util-cat",
     "description": "Print the content of one or more concatenated files",
     "command": "allowed-tool.sh cat --",
-    "instructions": [ "cat.txt" ],
+    "instructions": [ "util-cat.txt" ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -241,7 +241,7 @@
   {
     "name":"util-sed",
     "description": "Stream editor - write forbidden",
-    "command": "sed.sh --posix -s -E -r --regexp-extended --",
+    "command": "util-sed.sh --posix -s -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -271,7 +271,7 @@
   {
     "name":"write-util-sed",
     "description": "Stream editor - write allowed",
-    "command": "sed.sh --posix -s -i -E -r --regexp-extended --",
+    "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -350,7 +350,7 @@
   {
     "name":"write-util-patch",
     "description": "Count newline, word and bytes for files",
-    "command": "patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
+    "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
     "inputSchema": {
       "type": "object",
       "properties": {
