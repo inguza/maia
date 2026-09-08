@@ -416,6 +416,9 @@ handle_tool_command() {
 	    local tool_tmp_dir="$(mktemp -d)"
 	    local id=manual
 	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+	    local shaid="$(printf '%s' "$func_name($func_args)" | sha256sum | cut -c1-8)"
+	    local timestamp=$(date +"%Y%m%dT%H%M%S")
+	    export ASSISTANT_BASEID="$timestamp-$shaid"
 	    tool_fork \
 		"$tool_tmp_dir" \
 		"$id" \
