@@ -348,8 +348,13 @@ case "$COMMAND" in
 	handle_send_command "+compose" "$@"
 	;;
     *)
-	. "$MAIA_CORE_LIB_DIR/send.sh"
-	handle_send_command "$@"
+	# Send to the LLm only for intentional prompts. Reject likely spelling errors.
+	if [[ "$1" =~ [[:space:]] || "$1" =~ ^[A-Z] ]]; then
+	    . "$MAIA_CORE_LIB_DIR/send.sh"
+	    handle_send_command "$@"
+	else
+	    die "Unknown command '$COMMAND'. Run 'maia --help' for instructions."
+	fi
 	;;
 esac
 exit 0
