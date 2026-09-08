@@ -1,0 +1,21 @@
+----------------- Tool output manual start ------------------------------------
+[NOTICE] Direct file modification was not possible.
+
+File 1/12342v3v.txt already exists.
+
+Change proposal created:
+<dateandtime>-5cf46fbd-1
+
+The content of the proposed change is the following:
+```patch
+--- a/1/12342v3v.txt
++++ b/1/12342v3v.txt
+@@ -1,5 +1,5 @@
+ # Some header
+-	Tab indented text
++		New tab indented text
+ 	More tab indented text 
+ # Some other header
+     Tab indented text 
+```
+----------------- Tool output manual end --------------------------------------

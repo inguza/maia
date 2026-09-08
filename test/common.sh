@@ -143,6 +143,7 @@ run_cmd() {
     local exit_code=$?
 
     # Normalize outputs before saving
+    cat "$raw_out" "$raw_err" > "$OUTPUT_DIR/${testname}.capture"
     normalize_output < "$raw_out" > "$OUTPUT_DIR/${testname}.out"
     normalize_output < "$raw_err" > "$OUTPUT_DIR/${testname}.err"
     if [ -e "$OUTPUT_DIR/${testname}.request.json" ] ; then

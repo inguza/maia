@@ -1,0 +1,1 @@
+[ERROR] Unable to spawn tool for manual run: file-change({"path":"1/12342v3v.txt","changes":[{"existing":"\tTab indented text\n","replacement":"\t\tNew tab indented text\n"}]}). Tool 'file-change' not found.
