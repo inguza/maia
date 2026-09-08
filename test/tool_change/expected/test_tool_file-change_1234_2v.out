@@ -1,0 +1,20 @@
+----------------- Tool output manual start ------------------------------------
+[NOTICE] Direct file modification was not possible.
+
+File 1/1234.txt already exists.
+
+Change proposal created:
+<dateandtime>-db0525ee-1
+
+The content of the proposed change is the following:
+```patch
+--- a/1/1234.txt
++++ b/1/1234.txt
+@@ -1,4 +1,4 @@
+ # Some header
+-	Tab indented text
++		New tab indented text
+ 	More tab indented text 
+ # Some other header
+```
+----------------- Tool output manual end --------------------------------------

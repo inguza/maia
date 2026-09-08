@@ -58,6 +58,24 @@ exit 0;
 ################# Help Functions ##############################
 ###############################################################
 
+sub build_relaxed_existing_pattern {
+    my ($old) = @_;
+
+    # TODO, handle \r\n
+    my @lines = split(/\n/, $old, -1);
+    return undef if !@lines;
+
+    my @parts;
+    for my $line (@lines) {
+	$line =~ s/^\s+//;
+        $line =~ s/\s+$//;
+        my $escaped = quotemeta($line);
+        push @parts, '^\\s*' . $escaped . '\\s*$';
+    }
+
+    return join('\\n', @parts);
+}
+
 sub change_file {
     my ($content, $change) = @_;
     
@@ -65,6 +83,7 @@ sub change_file {
 	$error = "No changes provided.\n";
 	return;
     }
+
 
     my $sep = "";
     my $i = 0;
@@ -121,10 +140,31 @@ sub change_file {
 		}
 	    }
 
-	    $error = "Change $i: old text not found. Skipping.\n";
+	    # Fallback: relaxed indentation-aware multiline match.
+	    # We only use this when the exact literal match failed.
+	    my $pattern = &build_relaxed_existing_pattern($old);
+	    if (defined $pattern) {
+		if ($content =~ s/$pattern/$new/sm) {
+		    next;
+		}
+	    }
+	    if ($old =~ /\n\z/) {
+		my $old_no_nl = "$old";
+		$old_no_nl =~ s/\n\z//;
+		my $new_no_nl = "$new";
+		$new_no_nl =~ s/\n\z//;
+		my $pattern = &build_relaxed_existing_pattern($old_no_nl);
+		if (defined $pattern) {
+		    if ($content =~ s/$pattern/${new_no_nl}/sm) {
+			next;
+		    }
+		}
+	    }
+
+	    $error = "Change $i: Existing text not found. Skipping.\n";
 	    # Provide diagnostics
 	    open TF, ">>$txtfile";
-	    print TF "Change $i. Could not find the exact old text. Please replace the following text manually:\n";
+	    print TF "Change $i. Could not find the exact existing text. Please replace the following text manually:\n";
 	    print TF "---- Existing text to replace ----\n";
 	    print TF "$old\n";
 	    print TF "---- End ----\n";
@@ -140,3 +180,4 @@ sub change_file {
     
     return $content;
 }
+

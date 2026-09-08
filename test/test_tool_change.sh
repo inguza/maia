@@ -72,6 +72,8 @@ run_tool_cmd "file-change_12342v3v_3" run file-change "{\"path\":\"1/12342v3v.tx
 run_tool_cmd "file-change_12342v3v_2v" run file-change "{\"path\":\"1/12342v3v.txt\",\"changes\":[{\"existing\":\"$text2var\",\"replacement\":\"$new2\"}]}"
 
 # Now to the problematic cases when we have indentation change
+run_tool_cmd "file-change_1234_2v" run file-change "{\"path\":\"1/1234.txt\",\"changes\":[{\"existing\":\"$text2var\",\"replacement\":\"$new2\"}]}"
+run_tool_cmd "file-change_1234_3v" run file-change "{\"path\":\"1/1234.txt\",\"changes\":[{\"existing\":\"$text3var\",\"replacement\":\"$new2\"}]}"
 
 # Cleanup
 cleanup_maia_home
