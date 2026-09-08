@@ -10,7 +10,7 @@
   "messages": [
     {
       "role": "system",
-      "content": "You are a helpful, knowledgeable assistant."
+      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
     },
     {
       "role": "assistant",

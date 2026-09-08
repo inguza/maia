@@ -4,7 +4,7 @@
       "role": "user",
       "content": [
         {
-          "text": "You are a helpful, knowledgeable assistant."
+          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
         }
       ]
     },
