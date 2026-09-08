@@ -45,7 +45,7 @@
     "name":"file-change",
     "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
     "command": "file-change.sh",
-    "instructions": [ "file.txt" ],
+    "instructions": [ "file.txt", "file-change.txt" ],
     "inputSchema": {
       "type": "object",
       "properties": {
