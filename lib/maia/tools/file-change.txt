@@ -1,1 +1,1 @@
-- For `file-change`, always copy the exact `existing` text from the current file content, including whitespace and indentation; never guess or reconstruct it.
+- Before calling `file-change`, make sure the file content has been provided in the Files: section, if not do not call `file-change` and tell that you are lacking the content.
