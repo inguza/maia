@@ -20,6 +20,9 @@ declare -A allowed
 
 session_name="$(resolve_session_name)"
 ws_path="$(resolve_workspace_path)"
+if [[ -z "$ws_path" ]] ; then
+    die "No workspace defined."
+fi
 ws_changes="${ws_path}/changes/${session_name}"
 
 path="$(printf '%b' "${param[path]}")"
