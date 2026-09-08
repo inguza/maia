@@ -12,6 +12,9 @@ core-sleep
 file-append
 file-change
 file-write
+git-log
+git-show
+git-status
 job-cancel
 job-delete
 job-exist
