@@ -124,7 +124,7 @@ COMMANDS:
     +shell	     An alias of 'maia send +shell'
 
   Context handling
-    history|h        History operations (show, pop, top, delete, search, clear, export)
+    history|h        History operations (show, pop, top, delete, summarize, search, clear, export)
     filesets|fileset Fileset management (list, create, delete, show, clear)
     files|file|f     File management (add, forget, remove)
     toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
