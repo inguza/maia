@@ -75,34 +75,14 @@ generate_allowed_toolset_def_file() {
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
+    local default_allowed_effects=$(jq -r '.default_allowed_tool_effects // []' <<<"$_cfg")
     # We match the names against the regexp and then for the matched ones we keep only the last if there are
     # several with the same name.
     # This uses the object index method that overwrites earlier entries
-    jq --argjson patterns "$patterns_json" '
-      def glob_to_regex:
-        "^" +
-	(gsub("\\."; "\\.")
-	| gsub("\\*"; ".*")
-	| gsub("\\?"; ".")) +
-	"$";
-
-  [
-    .[] |
-    select(
-      .name as $name |
-      any($patterns[];
-        . as $pattern |
-        $name | test($pattern | glob_to_regex)
-      )
-    )
-  ]
-  |
-  reduce .[] as $item (
-    {};
-    .[$item.name] = $item
-  )
-  | [.[]]
-' <<< "$all_tool_defs_json" > "$allowed_tools_def_file"
+    jq --argjson default_allowed_effects "$default_allowed_effects" \
+       --argjson patterns "$patterns_json" \
+       -f "$MAIA_CORE_LIB_DIR/generate-allowed-toolset.jq" \
+       <<< "$all_tool_defs_json" > "$allowed_tools_def_file"
 }
 
 tool_instr_dir() {
@@ -234,12 +214,21 @@ expand_tool_wildcards() {
     init_tool_search_dirs
     mapfile -t all_tools < <(jq -r '.[].name' < <(load_all_tool_defs))
 
-    local glob_pattern=$(make_glob_from_var "${patterns[@]}")
+    for pattern in "${patterns[@]}"; do
+        local tool_pattern="${pattern%%:*}"
+        local effect_suffix=""
 
-    for tool in "${all_tools[@]}"; do
-        if [[ -n $glob_pattern && $tool == $glob_pattern ]]; then
-	    echo "$tool"
+        if [[ "$pattern" == *:* ]]; then
+            effect_suffix=":${pattern#*:}"
         fi
+
+        local glob_pattern=$(make_glob_from_var "$tool_pattern")
+
+        for tool in "${all_tools[@]}"; do
+            if [[ -n $glob_pattern && $tool == $glob_pattern ]]; then
+                echo "${tool}${effect_suffix}"
+            fi
+        done
     done
 }
 
@@ -337,10 +326,11 @@ handle_tool_command() {
             # Remove tools matching restrict patterns
             local filtered_tools=()
             for tool in "${expanded_tools[@]}"; do
+		local tool_name="${tool%%:*}"
                 local skip=false
                 for pattern in "$@"; do
                     local regex_pattern="^${pattern//\*/.*}$"
-                    if [[ "$tool" =~ $regex_pattern ]]; then
+                    if [[ "$tool_name" =~ $regex_pattern ]]; then
                         skip=true
                         break
                     fi

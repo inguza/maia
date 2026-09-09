@@ -45,6 +45,7 @@ declare -A DEFAULT_CONFIG=(
     [prune_when_applied]=true
     [prune_when_skipped]=true
     [additional_tool_paths]=""
+    [default_allowed_tool_effects]='["limited-write"]'
     [additional_skill_paths]=""
     [auto_add_new_files_on_apply]=true
     [api_type]="AUTODETECT"

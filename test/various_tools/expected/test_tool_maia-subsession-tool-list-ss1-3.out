@@ -1,8 +1,8 @@
 core-pipe
-core-sequence
 core-print
+core-sequence
 core-sleep
-file-write
 file-append
 file-change
+file-write
 util-cat

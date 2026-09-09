@@ -134,7 +134,7 @@ run_tools_cmd "restrict_file-write" restrict "file-write"
 run_tools_cmd "list_after_restrict_file-write" list
 run_tools_cmd "view_after_restrict_file-write" view
 
-run_tools_cmd "allow_all_allow" allow "*"
+run_tools_cmd "allow_all_allow" allow "*:write"
 run_tools_cmd "list_after_allow_all_allow" list
 run_tools_cmd "show_after_allow_all_allow" show
 
@@ -147,6 +147,23 @@ run_tools_cmd "restrict_exact" restrict "core-pipe"
 run_tools_cmd "list_after_restrict_exact" list
 run_tools_cmd "show_after_restrict_exact" show
 run_tools_cmd "view_after_restrict_exact" view
+
+# With effects
+run_tools_cmd "replace_all" replace "*"
+run_tools_cmd "list_after_replace_all" list
+run_tools_cmd "show_after_replace_all" show
+run_tools_cmd "view_after_replace_all" view
+
+run_tools_cmd "replace_all-lw" replace "*:-limited-write"
+run_tools_cmd "list_after_replace_all-lw" list
+run_tools_cmd "show_after_replace_all-lw" show
+run_tools_cmd "view_after_replace_all-lw" view
+
+run_tools_cmd "replace_all_w" replace "*:write"
+run_tools_cmd "list_after_replace_all_w" list
+run_tools_cmd "show_after_replace_all_w" show
+run_tools_cmd "view_after_replace_all_w" view
+
 
 # Test skill restrict
 run_skills_cmd "restrict_empty" restrict "*"

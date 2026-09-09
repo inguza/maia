@@ -1,57 +1,6 @@
 Allowed tools:
 --------------
-change-apply:write
-change-revert:write
-change-skip:write
-context-file-forget:write
-context-file-remember:write
-context-history-retrieve:write
-context-skill-forget:write
-context-skill-remember:write
-core-pipe:write
-core-print
-core-print:write
-core-sequence:write
-core-sleep:write
-file-append
-file-append:write
-file-change
-file-change:write
-file-write:write
-git-log:write
-git-show:write
-git-status:write
-job-cancel:write
-job-delete:write
-job-exist:write
-job-list:write
-job-output:write
-job-show:write
-job-start:write
-job-status:write
-jq:write
-net-request-ssl:write
-net-request-tcp:write
-pandoc:write
-shell-exec:write
-skill-exec:write
-util-cat:write
-util-diff:write
-util-file:write
-util-find:write
-util-grep:write
-util-head:write
-util-ls:write
-util-patch:write
-util-sed-inline:write
-util-sed:write
-util-sort:write
-util-tail:write
-util-uniq:write
-util-wc:write
-web-browser-curl:write
-web-browser-lynx:write
-web-search-lynx:write
+*:-limited-write
 Tool definitions:
 -----------------
 [
@@ -264,113 +213,6 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/curl.td"
   },
   {
-    "name": "file-write",
-    "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
-    "command": "file-write.sh",
-    "instructions": [
-      "file.txt"
-    ],
-    "effects": [
-      "limited-write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "Path of the file to write."
-        },
-        "content": {
-          "type": "string",
-          "description": "The full content to write to the file. If omitted, content is read from stdin."
-        }
-      },
-      "required": [
-        "path"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
-  },
-  {
-    "name": "file-append",
-    "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
-    "command": "file-append.sh",
-    "instructions": [
-      "file.txt"
-    ],
-    "effects": [
-      "limited-write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "Path of the file to append to."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content to append to the file. If omitted, content is read from stdin."
-        }
-      },
-      "required": [
-        "path"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
-  },
-  {
-    "name": "file-change",
-    "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
-    "command": "file-change.sh",
-    "instructions": [
-      "file.txt",
-      "file-change.txt"
-    ],
-    "effects": [
-      "limited-write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "File to update."
-        },
-        "changes": {
-          "type": "array",
-          "description": "A list of exact text replacements. Each change replaces one exact, contiguous region of the current file.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "existing": {
-                "type": "string",
-                "description": "The exact text currently present in the file. Matching is literal; whitespace and every other character matter. The text must occur exactly once in the current file."
-              },
-              "replacement": {
-                "type": "string",
-                "description": "The exact text to insert in place of `existing`. All other file content remains unchanged."
-              }
-            },
-            "required": [
-              "existing",
-              "replacement"
-            ],
-            "additionalProperties": false
-          }
-        }
-      },
-      "required": [
-        "path",
-        "changes"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
-  },
-  {
     "name": "context-file-remember",
     "description": "Add a files to the known context",
     "command": "context-file-remember.sh",
@@ -426,34 +268,6 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/file.td"
   },
   {
-    "name": "change-apply",
-    "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
-    "command": "change-apply.sh",
-    "instructions": [
-      "change-apply.txt"
-    ],
-    "effects": [
-      "write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Change proposal ID(s) to apply in order."
-          }
-        }
-      },
-      "required": [
-        "ids"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
-  },
-  {
     "name": "change-skip",
     "description": "Skip (reject) one or more change proposals.",
     "command": "change-skip.sh",
@@ -465,31 +279,6 @@ Tool definitions:
           "items": {
             "type": "string",
             "description": "Change proposal ID(s) to skip in order."
-          }
-        }
-      },
-      "required": [
-        "ids"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
-  },
-  {
-    "name": "change-revert",
-    "description": "Revert one or more changes.",
-    "command": "change-revert.sh",
-    "effects": [
-      "write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Change proposal ID(s) to revert in order."
           }
         }
       },
@@ -868,42 +657,6 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
-    "name": "util-sed-inline",
-    "description": "Stream editor - inline replace allowed",
-    "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
-    "effects": [
-      "write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "script": {
-          "type": "string",
-          "description": "Sed script to be executed."
-        },
-        "filespecs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed."
-        },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
-        }
-      },
-      "required": [
-        "filespecs"
-      ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
-  },
-  {
     "name": "util-uniq",
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
@@ -952,33 +705,6 @@ Tool definitions:
       "required": [
         "pathspecs"
       ],
-      "additionalProperties": false
-    },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
-  },
-  {
-    "name": "util-patch",
-    "description": "Count newline, word and bytes for files",
-    "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
-    "effects": [
-      "write"
-    ],
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "Read the patch from path. Same as patch option -i. Only paths relative to the current directory allowed. If absent data is read from stdin."
-        },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of patch command line arguments. Allowed are: -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F <number> -l -n -p<number> --posix -s -t -T -u -Z."
-        }
-      },
-      "required": [],
       "additionalProperties": false
     },
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -1419,5 +1145,399 @@ Tool definitions:
       "additionalProperties": false
     },
     "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+  },
+  {
+    "name": "subsession-create",
+    "description": "Create a new AI interaction subsession. A subsession inherits most tool and skill context, but not file context.",
+    "command": "subsession-create.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession to create."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-show",
+    "description": "Show information about a subsession.",
+    "command": "subsession-show.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession to show."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-delete",
+    "description": "Remove an AI interaction subsession.",
+    "command": "subsession-delete.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession to delete."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-list",
+    "description": "List all AI interaction subsessions.",
+    "command": "subsession-list.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": null,
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-tool-list",
+    "description": "List allowed tools for a subsession.",
+    "command": "subsession-list-common.sh tool",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to list the allowed tools."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-list",
+    "description": "List allowed skills for a subsession.",
+    "command": "subsession-list-common.sh skill",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to list the allowed skills."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-tool-restrict",
+    "description": "Restrict tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
+    "command": "subsession-restrict-common.sh tool",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to restrict tools."
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the tool to restrict. Glob patterns can be used to match tools."
+          }
+        }
+      },
+      "required": [
+        "subsession",
+        "restrictions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-restrict",
+    "description": "Restrict skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
+    "command": "subsession-restrict-common.sh skill",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to restrict skills."
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to restrict. Glob patterns can be used to match skills."
+          }
+        }
+      },
+      "required": [
+        "subsession",
+        "restrictions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-tool-allow",
+    "description": "Allow tools for a subsession. If a tool is both allowed and restricted, the most recent operation takes precedence.",
+    "command": "subsession-allow-common.sh tool",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to allow tools."
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the tool to allow. Glob patterns can be used to match tools."
+          }
+        }
+      },
+      "required": [
+        "subsession",
+        "allow"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-allow",
+    "description": "Allow skills for a subsession. If a skill is both allowed and restricted, the most recent operation takes precedence.",
+    "command": "subsession-allow-common.sh skill",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession for which to allow skills."
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to allow. Glob patterns can be used to match skills."
+          }
+        }
+      },
+      "required": [
+        "subsession",
+        "allow"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-remember",
+    "description": "Make a subsession remember a skill instruction.",
+    "command": "context-skill-remember.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to remember. Glob patterns can be used to match allowed skills."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession that should remember the specified skill."
+        }
+      },
+      "required": [
+        "skills",
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-skill-forget",
+    "description": "Make a subsession forget a skill instruction.",
+    "command": "context-skill-forget.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the skill to forget. Glob patterns can be used to match skills."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession that should forget the specified skill."
+        }
+      },
+      "required": [
+        "skills",
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-file-remember",
+    "description": "Make a subsession remember file content.",
+    "command": "context-file-remember.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "File(s) to add to the known context. Glob pattern matching can be used to match files."
+          }
+        },
+        "linestart": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify the number of the first line to remember."
+        },
+        "lineend": {
+          "type": "string",
+          "description": "If the whole file is not needed, specify the number of the last line to remember."
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession whose known context should be modified."
+        }
+      },
+      "required": [
+        "files",
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-file-forget",
+    "description": "Make a subsession forget file content.",
+    "command": "context-file-forget.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "File(s) to remove from the subsessions known context. Glob patterns can be used to match files."
+          }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession whose known context should be modified."
+        }
+      },
+      "required": [
+        "files",
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
+  },
+  {
+    "name": "subsession-send",
+    "description": "Send a message to a subsession.",
+    "command": "subsession-send.sh",
+    "instructions": [
+      "subsession.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession to receive the message."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the message to send. If omitted, content is read from stdin."
+        }
+      },
+      "required": [
+        "subsession"
+      ],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/subsession.td"
   }
 ]

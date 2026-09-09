@@ -269,9 +269,10 @@
     }
   },
   {
-    "name":"write-util-sed",
-    "description": "Stream editor - write allowed",
+    "name":"util-sed-inline",
+    "description": "Stream editor - inline replace allowed",
     "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
+    "effects":["write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -284,7 +285,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed."
         },
 	"arguments": {
           "type": "array",
@@ -294,7 +295,7 @@
           "description": "List of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
 	}
       },
-      "required": [],
+      "required": ["filespecs"],
       "additionalProperties": false
     }
   },
@@ -348,9 +349,10 @@
     }
   },
   {
-    "name":"write-util-patch",
+    "name":"util-patch",
     "description": "Count newline, word and bytes for files",
     "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
+    "effects":["write"],
     "inputSchema": {
       "type": "object",
       "properties": {

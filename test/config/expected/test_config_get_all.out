@@ -1,5 +1,6 @@
 {
   "cost_output_gpt_4_1": 8,
+  "default_allowed_tool_effects": "[\"limited-write\"]",
   "http_logging": true,
   "cost_input_gpt_5_4_mini": 0.75,
   "splice_allowed_files": "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$",

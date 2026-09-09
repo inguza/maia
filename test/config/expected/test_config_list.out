@@ -1,3 +1,4 @@
+default_allowed_tool_effects
 http_logging
 splice_allowed_files
 default_subsession_tool_restrict

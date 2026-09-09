@@ -4,6 +4,7 @@
     "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
     "command": "file-write.sh",
     "instructions": [ "file.txt" ],
+    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -25,6 +26,7 @@
     "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
     "command": "file-append.sh",
     "instructions": [ "file.txt" ],
+    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -46,6 +48,7 @@
     "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
     "command": "file-change.sh",
     "instructions": [ "file.txt", "file-change.txt" ],
+    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -129,6 +132,7 @@
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "change-apply.sh",
     "instructions": [ "change-apply.txt" ],
+    "effects":["write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -167,6 +171,7 @@
     "name": "change-revert",
     "description": "Revert one or more changes.",
     "command": "change-revert.sh",
+    "effects":["write"],
     "inputSchema": {
       "type": "object",
       "properties": {

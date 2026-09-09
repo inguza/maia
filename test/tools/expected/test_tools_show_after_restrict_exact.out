@@ -1,53 +1,56 @@
 Allowed tools:
 --------------
-change-apply
-change-revert
-change-skip
-context-file-forget
-context-file-remember
-context-history-retrieve
-context-skill-forget
-context-skill-remember
+change-apply:write
+change-revert:write
+change-skip:write
+context-file-forget:write
+context-file-remember:write
+context-history-retrieve:write
+context-skill-forget:write
+context-skill-remember:write
 core-print
-core-sequence
-core-sleep
+core-print:write
+core-sequence:write
+core-sleep:write
 file-append
+file-append:write
 file-change
-file-write
-git-log
-git-show
-git-status
-job-cancel
-job-delete
-job-exist
-job-list
-job-output
-job-show
-job-start
-job-status
-jq
-net-request-ssl
-net-request-tcp
-pandoc
-shell-exec
-skill-exec
-util-cat
-util-diff
-util-file
-util-find
-util-grep
-util-head
-util-ls
-util-sed
-util-sort
-util-tail
-util-uniq
-util-wc
-web-browser-curl
-web-browser-lynx
-web-search-lynx
-write-util-patch
-write-util-sed
+file-change:write
+file-write:write
+git-log:write
+git-show:write
+git-status:write
+job-cancel:write
+job-delete:write
+job-exist:write
+job-list:write
+job-output:write
+job-show:write
+job-start:write
+job-status:write
+jq:write
+net-request-ssl:write
+net-request-tcp:write
+pandoc:write
+shell-exec:write
+skill-exec:write
+util-cat:write
+util-diff:write
+util-file:write
+util-find:write
+util-grep:write
+util-head:write
+util-ls:write
+util-patch:write
+util-sed-inline:write
+util-sed:write
+util-sort:write
+util-tail:write
+util-uniq:write
+util-wc:write
+web-browser-curl:write
+web-browser-lynx:write
+web-search-lynx:write
 Tool definitions:
 -----------------
 [
@@ -225,6 +228,9 @@ Tool definitions:
     "instructions": [
       "file.txt"
     ],
+    "effects": [
+      "limited-write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -250,6 +256,9 @@ Tool definitions:
     "command": "file-append.sh",
     "instructions": [
       "file.txt"
+    ],
+    "effects": [
+      "limited-write"
     ],
     "inputSchema": {
       "type": "object",
@@ -277,6 +286,9 @@ Tool definitions:
     "instructions": [
       "file.txt",
       "file-change.txt"
+    ],
+    "effects": [
+      "limited-write"
     ],
     "inputSchema": {
       "type": "object",
@@ -378,6 +390,9 @@ Tool definitions:
     "instructions": [
       "change-apply.txt"
     ],
+    "effects": [
+      "write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -422,6 +437,9 @@ Tool definitions:
     "name": "change-revert",
     "description": "Revert one or more changes.",
     "command": "change-revert.sh",
+    "effects": [
+      "write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -808,9 +826,12 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
-    "name": "write-util-sed",
-    "description": "Stream editor - write allowed",
+    "name": "util-sed-inline",
+    "description": "Stream editor - inline replace allowed",
     "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
+    "effects": [
+      "write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -823,7 +844,7 @@ Tool definitions:
           "items": {
             "type": "string"
           },
-          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed."
         },
         "arguments": {
           "type": "array",
@@ -833,7 +854,9 @@ Tool definitions:
           "description": "List of sed command line arguments. Allowed are: --posix -s -i -E -r --regexp-extended --."
         }
       },
-      "required": [],
+      "required": [
+        "filespecs"
+      ],
       "additionalProperties": false
     },
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
@@ -892,9 +915,12 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
   },
   {
-    "name": "write-util-patch",
+    "name": "util-patch",
     "description": "Count newline, word and bytes for files",
     "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
+    "effects": [
+      "write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
