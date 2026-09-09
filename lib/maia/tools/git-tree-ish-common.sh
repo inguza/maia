@@ -15,6 +15,9 @@ parseparam
 
 declare -A allowed
 
+subcmd="$1"
+shift
+
 for arg in "$@"; do
     allowed["$arg"]=1
 done
@@ -32,21 +35,9 @@ for argument in "${arguments[@]}"; do
 done
 
 treeish="${param[tree-ish]}"
-pathspecs="${param[pathspecs]:-}"
-declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    mapfile -t paths < <(jq -r '.[]' <<< "$pathspecs")
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
 
-declare -a reset_args=("${args[@]}")
-if [[ -n "$tree-ish" ]] ; then
-    reset_args+=("$tree-ish")
+if [[ -n "$treeish" ]] ; then
+    git "$subcmd" "${args[@]}" "$treeish"
+else
+    git "$subcmd" "${args[@]}"
 fi
-if [[ ${#paths[@]} -gt 0 ]] ; then
-    reset_args+=("--" "${paths[@]}")
-fi
-
-git reset "${reset_args[@]}"

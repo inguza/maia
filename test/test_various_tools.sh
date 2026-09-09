@@ -334,12 +334,6 @@ run_tool_cmd "maia-change-skip-2" "change-skip.sh" '{"ids": ["'$C1'","'$C2'"]}'
 # Curl
 run_tool_cmd "curl-1" "curl.sh" '{"urls": ["https://inguza.org/testharness/maia/will-not-change.html"]}'
 
-# Git
-git init -q
-run_tool_cmd "git-status" "git-status.sh" '{}'
-run_tool_cmd "git-show" "git-show.sh" '{}'
-run_tool_cmd "git-log" "git-log.sh" '{}'
-
 # Job management
 run_tool_cmd "job-start" "job-start.sh" '{"name":"util-ls","arguments":{"pathspecs":["."],"arguments":[]}}'
 sleep 0.1

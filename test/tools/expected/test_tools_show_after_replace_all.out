@@ -478,6 +478,37 @@ Tool definitions:
     "source": "/home/ola/git/maia/lib/maia/tools/git.td"
   },
   {
+    "name": "git-diff",
+    "description": "Git diff.",
+    "command": "git-tree-pathspecs-common.sh diff switch -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tree-ish": {
+          "type": "string",
+          "description": "The commit to diff against. The syntax <commit>...<commit> is also possible."
+        },
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to diff. Only paths relative to the current directory allowed."
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of git command line arguments. Allowed are: -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+  },
+  {
     "name": "util-grep",
     "description": "Search files using regular expression.",
     "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",

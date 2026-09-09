@@ -78,6 +78,36 @@
     }
   },
   {
+    "name":"git-diff",
+    "description": "Git diff.",
+    "command": "git-tree-pathspecs-common.sh diff switch -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tree-ish": {
+          "type": "string",
+          "description": "The commit to diff against. The syntax <commit>...<commit> is also possible."
+        },
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to diff. Only paths relative to the current directory allowed."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base."
+	}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
     "name":"git-commit",
     "description": "Git commit.",
     "command": "git-commit.sh --dry-run --short -q --quiet",
@@ -111,7 +141,7 @@
   {
     "name":"git-reset",
     "description": "Git reset.",
-    "command": "git-reset.sh --soft --mixed --hard --merge -q --quiet --no-refresh",
+    "command": "git-tree-pathspecs-common.sh reset --soft --mixed --hard --merge -q --quiet --no-refresh",
     "effects":["write"],
     "inputSchema": {
       "type": "object",
@@ -125,7 +155,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Glob patterns of files and directories to restore. Only paths relative to the current directory allowed."
+          "description": "Glob patterns of files and directories to reset. Only paths relative to the current directory allowed."
         },
 	"arguments": {
 	  "type": "array",
@@ -190,6 +220,160 @@
 	}
       },
       "required": ["pathspecs"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-clean",
+    "description": "Git clean.",
+    "command": "git-pathspecs-common.sh clean -f --force -n --dry-run -q --quiet -x -X -d",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to remove. Only paths relative to the current directory allowed."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: -f --force -n --dry-run -q --quiet -x -X -d."
+	}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-switch",
+    "description": "Git switch.",
+    "command": "git-switch.sh -c -C -f --force -q --quiet",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "The branch to switch to, or the new branch name if -c or -C is used."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: -c -C -f --force -q --quiet."
+	}
+      },
+      "required": ["branch"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-rebase",
+    "description": "Git rebase.",
+    "command": "git-tree-ish-common.sh rebase --continue --skip --abort --quit -q --quiet -f --force-rebase --no-ff",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tree-ish": {
+          "type": "string",
+          "description": "The upstream branch to rebase to."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: --continue --skip --abort --quit -q --quiet -f --force-rebase --no-ff."
+	}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-merge",
+    "description": "Git merge.",
+    "command": "git-tree-ish-common.sh merge --continue --abort --quit --apply -q --quiet --commit --no-commit -ff --ff-only --no-ff --squash --no-squash --stat -n --no-stat",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tree-ish": {
+          "type": "string",
+          "description": "The upstream branch to merge into the current branch."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: --continue --abort --quit --apply --commit --no-commit -q --quiet -ff --ff-only --no-ff --squash --no-squash --stat -n --no-stat."
+	}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-revert",
+    "description": "Git revert.",
+    "command": "git-revert.sh -n --no-commit --continue --skip --quit --abort",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "commits": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of commits to revert."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: -n --no-commit --continue --skip --quit --abort."
+	}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"git-branch",
+    "description": "Git branch.",
+    "command": "git-branch.sh -d -D -c -C -m -M",
+    "effects":["write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "The branch name. The new branch name if -c, -C, -m or -M is specified."
+        },
+        "oldbranch": {
+          "type": "string",
+          "description": "The old branch name."
+        },
+	"arguments": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "List of git command line arguments. Allowed are: -d -D -c -C -m -M."
+	}
+      },
+      "required": [],
       "additionalProperties": false
     }
   },
