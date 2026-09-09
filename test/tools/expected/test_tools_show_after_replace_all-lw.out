@@ -292,7 +292,7 @@ Tool definitions:
   {
     "name": "git-status",
     "description": "Git status.",
-    "command": "git-status.sh -s --short -b --branch",
+    "command": "git-pathspecs-common.sh status -s --short -b --branch",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -319,7 +319,7 @@ Tool definitions:
   {
     "name": "git-log",
     "description": "Git log.",
-    "command": "git-log.sh --no-decorate --source",
+    "command": "git-pathspecs-common.sh log --no-decorate --source",
     "inputSchema": {
       "type": "object",
       "properties": {

@@ -15,6 +15,9 @@ parseparam
 
 declare -A allowed
 
+subcmd="$1"
+shift
+
 for arg in "$@"; do
     allowed["$arg"]=1
 done
@@ -39,4 +42,4 @@ fi
 for path in "${paths[@]}" ; do
     validate_path "$path"
 done
-git status "${args[@]}" "${paths[@]}"
+git "$subcmd" "${args[@]}" -- "${paths[@]}"

@@ -15,7 +15,16 @@ file-append:write
 file-change
 file-change:write
 file-write:write
+git-add:write
+git-commit:write
+git-fetch:write
 git-log:write
+git-mv:write
+git-pull:write
+git-push:write
+git-reset:write
+git-restore:write
+git-rm:write
 git-show:write
 git-status:write
 job-cancel:write

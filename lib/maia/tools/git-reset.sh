@@ -31,6 +31,7 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
+treeish="${param[tree-ish]}"
 pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
 if [[ -n "$pathspecs" ]] ; then
@@ -39,6 +40,13 @@ fi
 for path in "${paths[@]}" ; do
     validate_path "$path"
 done
-# TODO implement revision range
 
-git log "${args[@]}" -- "${paths[@]}"
+declare -a reset_args=("${args[@]}")
+if [[ -n "$tree-ish" ]] ; then
+    reset_args+=("$tree-ish")
+fi
+if [[ ${#paths[@]} -gt 0 ]] ; then
+    reset_args+=("--" "${paths[@]}")
+fi
+
+git reset "${reset_args[@]}"
