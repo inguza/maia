@@ -29,6 +29,9 @@ COMMANDS
     Forget entries matching the given filename or glob from the selected
     filesets.
 
+  discover
+    Discover resources.
+
 OPTIONS
 
   --all
@@ -57,7 +60,7 @@ EXAMPLES
     maia file forget "*.tmp"
       Forget entries matching *.tmp from session's workspace filesets.
 
-   maia file forget "*:*_usage"
+    maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
 
 NOTES
@@ -281,6 +284,26 @@ handle_file_command() {
             shift
             forget_entries "$@"
             ;;
+
+	discover)
+	    init_tool_search_dirs
+	    local servers=$(jq -r '.mcp_servers // empty' <<<"$_cfg")
+	    while IFS= read -r server; do
+		local name="${server%%=*}"
+		local endpoint="${server#*=}"
+		echo "[$name]"
+		printf '%s\n' \
+		       '{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' \
+		    | mcp_request "discover" "$name" "$endpoint" |
+		    jq -r '
+  .result.resources as $r |
+  ($r | map(.name | length) | max) as $width |
+  $r[] |
+  "  \(.name | . + (" " * ($width - length)))  \(.uri)\n" +
+  "  \((" " * $width))  \(.description // "")\(if .mimeType then " [\(.mimeType)]" else "" end)\n"
+'
+	    done < <(jq -r '.[]' <<< "$servers")
+	    ;;
 
         "")
             # Default to list

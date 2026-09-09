@@ -19,6 +19,9 @@ COMMANDS
     Forget entries matching the given filename or glob from the selected
     filesets.
 
+  discover
+    Discover resources.
+
 OPTIONS
 
   --all
@@ -47,7 +50,7 @@ EXAMPLES
     maia file forget "*.tmp"
       Forget entries matching *.tmp from session's workspace filesets.
 
-   maia file forget "*:*_usage"
+    maia file forget "*:*_usage"
       Forget all function filters ending with _usage in all files.
 
 NOTES
