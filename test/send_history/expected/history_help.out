@@ -25,6 +25,10 @@ COMMANDS
   search [options] <keyword>
     Find entries containing keyword.
 
+  summarize|compact
+    Summarize the whole conversation history. The whole history will replaced
+    by a summary request and an assistant response containing the summary.
+
   clear
     Wipe the active history.
 
@@ -66,6 +70,8 @@ EXAMPLES
 
     maia history prune --user --edit
       Edit user messages in the full history.
+
+    maia history summarize
 
 NOTES
 

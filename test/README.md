@@ -63,5 +63,6 @@ Then we also have direct tests of the internal tools to extend the coverage:
 
 - api
 - send with tool call response
+- history compact
 
 Chat and interative would require to write some wrapper which is a little tricky.

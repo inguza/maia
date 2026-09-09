@@ -14,6 +14,7 @@ DEFAULT_FILES_PROMPT_TXT="# Files\n\nMAIA generates a user message starting with
 DEFAULT_TOOLS_PROMPT_TXT="# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
 DEFAILT_TOOL_INSTR_PROMPT_TXT=""
 DEFAULT_TOOLSET_PROMPT_TXT=""
+DEFAULT_SUMMARIZE_PROMPT_TXT="Summarize the whole conversation.\n"
 DEFAULT_SKILLS_PROMPT_TXT="# Available skills\n\n"
 DEFAULT_SKILLSCONTEXT_PROMPT_TXT="# Skills\n\n"
 DEFAULT_SKILLSET_PROMPT_TXT=""

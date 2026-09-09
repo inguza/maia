@@ -35,6 +35,10 @@ COMMANDS
   search [options] <keyword>
     Find entries containing keyword.
 
+  summarize|compact
+    Summarize the whole conversation history. The whole history will replaced
+    by a summary request and an assistant response containing the summary.
+
   clear
     Wipe the active history.
 
@@ -76,6 +80,8 @@ EXAMPLES
 
     maia history prune --user --edit
       Edit user messages in the full history.
+
+    maia history summarize
 
 NOTES
 
@@ -499,6 +505,20 @@ handle_history_command() {
 	    local slice=$(range_defaults "${1:-}")
 	    exclusive_json_modify "$history_file" "del(.[${slice}])"
 	    info "Entries deleted from history '$history_name'."
+	    ;;
+
+	summarize|compact)
+	    shift
+	    . "$MAIA_CORE_LIB_DIR/send.sh"
+	    local request=$(prompt_for_scope "session" "summarize")
+	    local summary
+	    summary=$(handle_send_command --no-files --no-tools --no-skills "$request")
+	    local status=$?
+	    if [[ -n "$summary" && $status -eq 0 ]] ; then
+		exclusive_json_modify "$history_file" 'if length > 2 then .[-2:] else . end'
+	    else
+		warn "Unable to make a summary. History not compacted."
+	    fi
 	    ;;
 
 	prune)
