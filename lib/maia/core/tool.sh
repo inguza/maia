@@ -50,38 +50,19 @@ list_tools() {
     # Load all tools}
     init_tool_search_dirs
     local all_tools_json=$(load_all_tool_defs)
-    local scope="$1"
-    local allowed_tools_list_file="$2"
-
-    # Default to list all tools
-    local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
-    # Deduplicate tools by name (keep last occurrence)
-    local deduped_tools_json=$(jq '
-        reduce .[] as $item ({}; .[$item.name] = $item) | [.[]]
-    ' <<< "$all_tools_json")
-
-    # Output list with allowed mark
-    jq -r --argjson patterns "$patterns_json" '
-      def glob_to_regex:
-        "^" +
-	(gsub("\\."; "\\.")
-	| gsub("\\*"; ".*")
-	| gsub("\\?"; ".")) +
-	"$";
-
-      def allowed_filter:
-        .name as $name |
-        any($patterns[];
-	  . as $pattern |
-	  $name | test($pattern | glob_to_regex)
-	);
-
-      .[] |
-      if allowed_filter
-      then "* " + .name + "   (" + .source + ")"
-      else "  " + .name + "   (" + .source + ")"
-      end
-    ' <<< "$deduped_tools_json"
+    local allowed_tools_list_file="$1"
+    local allowed_tools_json="[]"
+    if [[ -s "$allowed_tools_list_file" ]] ; then
+	allowed_tools_json=$(<"$allowed_tools_list_file")
+    fi
+    jq -r --argjson allowed "$allowed_tools_json" '
+        ($allowed | map(.name)) as $allowed_names |
+        .[] |
+        if (.name | IN($allowed_names[]))
+        then "* " + .name + "   (" + .source + ")"
+        else "  " + .name + "   (" + .source + ")"
+        end
+    ' <<< "$all_tools_json"
 }
    
 # IMPOPRTANT! init_tool_search_dirs
@@ -329,11 +310,12 @@ handle_tool_command() {
 
     # compute filename & path
     local filename="${prompt_type}.txt"
-    local filepath="${SCOPE_DIRS[$scope]}/$filename"
+    local filepath="${SCOPE_DIRS[$scope]}/${prompt_type}.txt"
+    local filegenpath="${SCOPE_DIRS[$scope]}/${prompt_type}.json"
 
     case "$subcmd" in
         list)
-	    list_tools "$scope" "$filepath"
+	    list_tools "$filegenpath"
             ;;
         restrict)
 	    # In case there is no file in this scope, copy it over
