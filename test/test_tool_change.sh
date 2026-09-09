@@ -75,6 +75,13 @@ run_tool_cmd "file-change_12342v3v_2v" run file-change "{\"path\":\"1/12342v3v.t
 run_tool_cmd "file-change_1234_2v" run file-change "{\"path\":\"1/1234.txt\",\"changes\":[{\"existing\":\"$text2var\",\"replacement\":\"$new2\"}]}"
 run_tool_cmd "file-change_1234_3v" run file-change "{\"path\":\"1/1234.txt\",\"changes\":[{\"existing\":\"$text3var\",\"replacement\":\"$new2\"}]}"
 
+# Git testing now
+git init -q
+run_tool_cmd "append" allow "git-*"
+run_tool_cmd "git-status-1" run git-status '{}'
+run_tool_cmd "git-show-1" run git-show '{}'
+run_tool_cmd "git-log-1" run git-log '{}'
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir
