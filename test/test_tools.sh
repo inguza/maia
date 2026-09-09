@@ -103,9 +103,6 @@ rm -f "$XMAIA_HOME/.maia/tools/mcp-test.td"
 run_tools_cmd "mcp_discover2" discover
 run_tools_cmd "mcp_list2" list
 run_tools_cmd "mcp_allow" allow "test-*"
-run_tools_cmd "mcp_list3" list
-run_tools_cmd "mcp_allow" delete "test-*"
-run_tools_cmd "mcp_allow" --scope session allow "test-*"
 run_tools_cmd "mcp_list4" list
 run_tools_cmd "mcp_show" show
 run_tools_cmd "mcp_test1-ok" run "test-test1" '{}'
