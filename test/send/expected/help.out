@@ -37,6 +37,15 @@ OPTIONS
   --continue
     Used to continue tool loops.
 
+  --no-files
+    Do not include workspace files context in the request.
+
+  --no-tools
+    Do not include enabled tools in the request.
+
+  --no-skills
+    Do not include enabled skills in the request.
+
 EXAMPLES
 
     maia send "Hello, AI!"

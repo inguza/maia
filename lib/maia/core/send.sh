@@ -51,6 +51,15 @@ OPTIONS
   --continue
     Used to continue tool loops.
 
+  --no-files
+    Do not include workspace files context in the request.
+
+  --no-tools
+    Do not include enabled tools in the request.
+
+  --no-skills
+    Do not include enabled skills in the request.
+
 EXAMPLES
 
     maia send "Hello, AI!"
@@ -103,7 +112,10 @@ build_messages_json() {
     local model="$2"
     local tools_enabled="$3"
     local file_handling_mode_raw="$4"
-    local api_type="${5:-OPENAI_CHAT_COMPLETIONS}"
+    local no_files="$5"
+    local no_tools="$6"
+    local no_skills="$7"
+    local api_type="${8:-OPENAI_CHAT_COMPLETIONS}"
     
     local session=$(resolve_session_name)
     local history_file=$(resolve_history_meta "$session")
@@ -143,12 +155,16 @@ build_messages_json() {
     fi
     local skill_list="$(prompt_for_scope "session" "skillset" "gen")"
     local skill_memory="$(prompt_for_scope "session" "skillsetcontext" "gen")"
+    if [[ "$no_skills" == true ]]; then
+	skill_list=""
+	skill_memory=""
+    fi
     case "${mode^^}" in
         BEFORE)
             # System prompt (and “Files:” instructions if any)
             local sys="$(prompt_for_scope "session" system)"
-	    local t
-	    if [[ "$tools_enabled" == true ]] ; then
+	    if [[ "$tools_enabled" == true && "$no_tools" == false ]] ; then
+		local t
 		for t in tools tool_instr ; do
 		    local tool_instruction="$(prompt_for_scope "session" "$t")"
 		    if [[ -n "$tool_instruction" ]] ; then
@@ -166,13 +182,7 @@ build_messages_json() {
 		sys+=$'\n\n'"$smemh"$'\n'
 		sys+="$skill_memory"
 	    fi
-	    for t in  ; do
-		local tool_instruction="$(prompt_for_scope "session" "$t")"
-		if [[ -n "$tool_instruction" ]] ; then
-		    sys+=$'\n\n'"$tool_instruction"$'\n'
-		fi
-	    done
-	    if [[ -n "${ws_name}" ]]; then
+            if [[ -n "${ws_name}" && "$no_files" == false ]]; then
 		local file_instruction="$(prompt_for_scope "session" files)"
 		if [[ -n "$file_instruction" ]] ; then
                     sys+=$'\n\n'"$file_instruction"
@@ -196,7 +206,7 @@ build_messages_json() {
 		msgs=$(jq --slurpfile txt <(printf '%s' "$out" | jq -R -s '.') '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
 	    fi
             # One combined “Files:” user message, inserted before the last user message
-            if [[ -n "$combined" ]]; then
+            if [[ -n "$combined" && "$no_files" == false ]]; then
 		# Avoid argument list too long by using slurpfile
 		msgs=$(jq --slurpfile content \
 			  <(printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.') '
@@ -209,13 +219,13 @@ build_messages_json() {
 			    else
 			        $m
 			    end
-		' <<< "$msgs")
+			' <<< "$msgs")
             fi
             ;;
         APPEND)
             # System prompt only, no files instructions here
             local sys="$(prompt_for_scope "session" system)"
-	    if [[ "$tools_enabled" == true ]] ; then
+	    if [[ "$tools_enabled" == true && "$no_tools" == false ]] ; then
 		local t
 		for t in tools tool_instr ; do
 		    local tool_instruction="$(prompt_for_scope "session" "$t")"
@@ -257,22 +267,24 @@ build_messages_json() {
 	    fi
             # Prepare files instructions and fenced content if any
             local files_section=""
-            if [[ -n "${ws_name}" ]]; then
+            if [[ -n "${ws_name}" && "$no_files" == false ]]; then
                 local files_prompt=$(prompt_for_scope "session" files)
 		files_section=$'\n\n'"$files_prompt"$'\n\n'"Files:"$'\n\n'"$filesinstr"$'\n\n'"$combined"
             fi
 	    # Then append the files section to the end of the last user message
-	    msgs=$(jq --slurpfile files \
+	    if [[ -n "$files_section" ]]; then
+		msgs=$(jq --slurpfile files \
 		      <(printf '%s' "$files_section" | jq -R -s '.') '
 		      . as $m
 		      | ([$m | to_entries[] |
 		          select(.value.role == "user")] | last) as $last
 		      | if $last then
 		          .[$last.key].content += $files[0]
-		      else
+			else
 			  .
-		      end
-	    ' <<< "$msgs")
+			end
+		' <<< "$msgs")
+	    fi
             ;;
         *)
 	    die "Unknown file handling mode '$mode'"
@@ -328,6 +340,9 @@ handle_send_command() {
     local send_hook=$(jq -r '.send_hook' <<<"$_cfg")
     local file_handling_mode_raw
     local output_mode="full"
+    local no_files=false
+    local no_tools=false
+    local no_skills=false
 
     local dry_run=false
     local response_file=""
@@ -356,6 +371,15 @@ handle_send_command() {
             --temperature)
                 shift
 		temperature="$1"
+                ;;
+	    --no-files)
+                no_files=true
+                ;;
+            --no-tools)
+                no_tools=true
+                ;;
+            --no-skills)
+                no_skills=true
                 ;;
             --file-handling-mode|--file-handling)
                 shift
@@ -424,6 +448,10 @@ handle_send_command() {
     # Tools preparation
     local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
     local tools_count=$(jq 'length' <<<"$enabled_tools_json")
+    if $no_tools; then
+	enabled_tools_json='[]'
+	tools_count=0
+    fi
 
     # Build API payload JSON
     # Use --slurpfile to avoid argument list too long problem
@@ -540,7 +568,7 @@ handle_send_command() {
     while (( allowed_iterations_left > 0 )); do
 	((iteration++))
 	local messages_json
-	if ! messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$api_type") ; then
+	if ! messages_json=$(build_messages_json "$outbox_file" "$model" "$etools" "$file_handling_mode_raw" "$no_files" "$no_tools" "$no_skills" "$api_type") ; then
 	    # Here we silently fail because this will only happen at die
 	    exit 1
 	fi
