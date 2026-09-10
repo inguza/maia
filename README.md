@@ -64,14 +64,27 @@ Ensure you have the following software installed:
 - `curl`
 - `perl`
 - `bash`
+- `coreutils`
+- `awk` (mawk or gawk)
+- `sed`
+
+For optional functionality:
+
+- `bsdutils` - for monitored maia shell
+- `xxd`	     - for AWS API support
+
 
 It can optionally use the following tools (a --dependson--> b):
 
 - pandoc tool     -> pandoc
 - lynx tools      -> lynx
 - netcat tools    -> netcat
+- net-request-ssl -> openssl
+- bc	 	  -> bc
+- git tools	  -> git
+- util-patch      -> patch
 - monitored shell -> script
-- util tools      -> GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, head, find, ls,
+- util tools      -> GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, find, ls,
        		     BSD utilities: file
 
 ## Install the software
