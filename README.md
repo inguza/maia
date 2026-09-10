@@ -53,12 +53,17 @@ The user should have control over what the AI knows. History editing, session ma
 
 No dependency on a specific AI model or provider. MAIA is designed to work with different AI APIs and providers, allowing the user to choose the models and services that best fit their needs.
 
-
 # Installation & Setup
+
+MAIA is designed to be portable and requires no compilation or system-wide installation.
+
+It can be installed simply by copying the MAIA software to a directory, unpacking it first if necessary.
+
+The directory where MAIA is installed is referred to as $MAIA_ROOT in the rest of this document.
 
 ## Prerequisites
 
-Ensure you have the following software installed:
+MAIA requires the following software:
 
 - `jq` 1.5 or later
 - `curl`
@@ -70,82 +75,131 @@ Ensure you have the following software installed:
 
 For optional functionality:
 
-- `bsdutils` - for monitored maia shell
-- `xxd`	     - for AWS API support
+| Optional functionality | Depends on |
+| --- | --- |
+| maia shell enter | script from bsdutils |
+| AWS API | xxd |
 
+Some MAIA tools have additional dependencies:
 
-It can optionally use the following tools (a --dependson--> b):
+| MAIA tool | Depends on |
+| --- | --- |
+| pandoc | pandoc |
+| web-*-lynx tools | lynx |
+| net-request-tcp | netcat |
+| net-request-ssl | openssl |
+| bc | bc |
+| git-* tools | git |
+| util-<x> tools | <x> |
 
-- pandoc tool     -> pandoc
-- lynx tools      -> lynx
-- netcat tools    -> netcat
-- net-request-ssl -> openssl
-- bc	 	  -> bc
-- git tools	  -> git
-- util-patch      -> patch
-- monitored shell -> script
-- util tools      -> GNU utilities: grep, sort, sed, uniq, wc, tail, head, patch, diff, find, ls,
-       		     BSD utilities: file
+## Install the dependencies
+
+How to install the dependencies depends on the platform you use.
+
+### Linux
+
+On most Linux installations, the dependencies are already installed. If not, install them using your Linux distribution's package manager.
+
+Example for apt-based systems, such as Debian and Ubuntu:
+```bash
+sudo apt-get install jq
+```
+
+### Microsoft Windows
+
+MAIA can be run from Git Bash on Windows.
+
+Open a PowerShell terminal and install the required software:
+
+```powershell
+winget install jqlang.jq
+winget install --id Git.Git -e --source winget
+```
+
+Then start Git Bash.
+
+Alternatively, MAIA can be run under WSL.
+
+```powershell
+wsl --install
+```
+
+How to configure WSL and install a Linux distribution is outside the scope of this document.
 
 ## Install the software
 
 The installation is easy. Simply copy to a directory where you want it to be and you are done.
-The directory where you want MAIA to reside is called `$MAIA_ROOT` below.
 
-1. Unpack the software
+MAIA can be installed from either a release archive or a Git repository.
 
-   ```bash
-   tar xfz maia-xxxx.tar.gz
-   ```
+### From a release archive
 
-2. Copy where you want it to be
+Unpack the software
 
-   ```bash
-   mkdir -p /some-path
-   cp -a maia-<version>/* /some-path
-   ```
+```bash
+tar xfz maia-<version>.tar.gz
+```
+
+This creates a `maia-<version>` directory. You can use this directory directly or copy it to the desired location.
+
+### From a Git repository
+
+Clone the repository:
+
+```bash
+git clone https://github.com/inguza/maia.git
+```
+
+This creates a `maia` directory. You can use this directory directly or copy it to the desired location.
 
 ## Configuration
 
-### ~/.basrc configuration
+### ~/.bashrc configuration
 
-There are two ways to handle maia.
+There are different ways to configure MAIA, depending on how you intend to use it.
 
-1) Enter a maia shell using `maia shell` or `maia shell enter`
+- If you use a MAIA shell, MAIA can handle much of the shell configuration
+  automatically.
+- If you use MAIA from a regular Bash shell, you can configure the shell
+  integration yourself.
 
-   With this solution a lot of things is done automatically. It also has more advanced functionality such as
-   printing the workspace in the prompt as well.
+You can also mix the two.
 
-   You essentially just need to add $MAIA_ROOT/bin to the PATH or make an alias for the maia executable.
-   ```shell
-   alias maia='/path/to/maia/bin/maia'
+1) Enter a MAIA shell using `maia shell` or `maia shell enter`
+
+   With this approach much of the shell configuration is handled automatically. It also provides more advanced functionality such as
+   displaying the workspace in the prompt.
+
+   You essentially just need to add `$MAIA_ROOT/bin` to the PATH or create an alias for the MAIA executable.
+   
+   ```bash
+   alias maia="$MAIA_ROOT/bin/maia"
    ```
    or
-   ```shell
+   ```bash
    export PATH="$PATH:/path/to/maia/bin"
    ```
 
-   If you want to manage PS1 with this solution you do the following in your .bashrc file.
-   ```shell
+   If you want to manage PS1 with this approach you add the following to your `~/.bashrc` file.
+   ```bash
    unset MAIA_PS1
    ```
 
-2) Setup the helper functions yourself
+2) Set up the helper functions yourself
 
-   Add the following to your .bashrc file
-   ```shell
-   alias maia='/path/to/maia/bin/maia'
+   Add the following to your `~/.bashrc` file
+   ```bash
+   alias maia="$MAIA_ROOT/bin/maia"
    # For easy session setting
    maias() {
-       export AIA_SESSION="$1"
+       export MAIA_SESSION="$1"
    }
    # To see the session in your bash shell
    # Change 35m to 34m to get blue path
    export PS1='\[\e]0;\u@\h${MAIA_SESSION:+[$MAIA_SESSION]}: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]${MAIA_SESSION:+\[\033[01;36m\][\[\033[00m\]$MAIA_SESSION\[\033[01;36m\]]\[\033[00m\]}:\[\033[01;35m\]\w\[\033[00m\]\$ '
    ```
 
-   For bash completions, copy the `etc/bash.completions` file to `/etc/bash_completion.d/maia` (may be a different path
-   depending on your Linux distribution) or source it in your `~/.bashrc` file.
+   For bash completions, copy the `etc/bash.completions` file to `/etc/bash_completion.d/maia` (the path may be different depending on your Linux distribution) or source it in your `~/.bashrc` file.
 
 ### Additional ~/.bashrc configuration
 
