@@ -157,6 +157,7 @@ git clone https://github.com/inguza/maia.git
 
 This creates a `maia` directory. You can use this directory directly or copy it to the desired location.
 
+<!--
 **NOTE!** If you use Git for Windows, be aware that its default line-ending configuration may check out files using Windows-style `\r\n` line endings.
 
 A clone using Windows-style line endings should not also be used from WSL or another Linux environment expecting Unix-style line endings. Use separate clones for Git Bash and WSL/Linux, or configure Git to use Unix-style line endings consistently before sharing a clone between environments.
@@ -167,7 +168,7 @@ If you plan to share the filesystem between Git Bash and WSL/Linux run the follo
 git config --global core.autocrlf false
 git clone https://github.com/inguza/maia.git
 ```
-
+-->
 ## Configuration
 
 ### ~/.bashrc configuration
