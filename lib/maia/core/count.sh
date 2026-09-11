@@ -171,7 +171,7 @@ handle_count_command() {
 	    ((aindex++))
         fi
     done
-    local total_input_tokens=$(echo "$total_user_tokens + $total_assistant_tokens - $last_assistant_tokens" | bc -l)
+    local total_input_tokens=$((total_user_tokens + total_assistant_tokens - last_assistant_tokens))
     local total_output_tokens=$last_assistant_tokens
     echo "──────────────────────────────"
     printf "APPROXIMATE TOKENS for model '%s':\n" "$model"
@@ -187,9 +187,9 @@ handle_count_command() {
 	return
     fi
     # Calculate and display approximate cost separately for user and assistant
-    local cost_input_total=$(echo "$total_input_tokens * $cost_input / 1000000" | bc -l)
-    local cost_output_total=$(echo "$total_output_tokens * $cost_output / 1000000" | bc -l)
-    local cost_total=$(echo "$cost_input_total + $cost_output_total" | bc -l)
+    local cost_input_total=$(perl -E "say $total_input_tokens * $cost_input / 1000000")
+    local cost_output_total=$(perl -E "say $total_output_tokens * $cost_output / 1000000")
+    local cost_total=$(perl -E "say $cost_input_total + $cost_output_total")
     
     LC_NUMERIC=C printf "APPROXIMATE COST (USD) for model '%s':\n" "$model"
     LC_NUMERIC=C printf "  Total:      \$%.6f\n" "$cost_total"

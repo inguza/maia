@@ -79,7 +79,6 @@ For optional functionality:
 | --- | --- |
 | maia shell enter | script from bsdutils |
 | AWS API | xxd |
-| maia count | bc |
 
 Some MAIA tools have additional dependencies:
 
