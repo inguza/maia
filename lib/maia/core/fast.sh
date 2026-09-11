@@ -179,6 +179,16 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
+# Git Bash workaround
+normalize_lf() {
+    local -n _dst="$1"
+    local i
+
+    for i in "${!_dst[@]}"; do
+        _dst[i]="${_dst[i]%$'\r'}"
+    done
+}
+
 mapfile_from_command() {
     local -n _dst="$1"
     shift
@@ -187,6 +197,7 @@ mapfile_from_command() {
     "$@" > "$tmpfile" || status=$?
     mapfile -t _dst < "$tmpfile"
     rm -f "$tmpfile"
+    normalize_lf _dst
     return $status
 }
 
@@ -196,6 +207,7 @@ mapfile_from_json() {
     local tmpfile="$(mktemp)"
     jq -r '.[]' <<<"$json" > "$tmpfile"
     mapfile -t _dst < "$tmpfile"
+    normalize_lf _dst
     rm -f "$tmpfile"
 }
 
@@ -203,4 +215,5 @@ mapfile_from_file() {
     local -n _dst="$1"
     local file="$2"
     mapfile -t _dst < "$file"
+    normalize_lf _dst
 }

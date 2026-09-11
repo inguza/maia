@@ -1556,6 +1556,7 @@ mcp_request_stdio() {
 	die "'$mcpname' MCP server for '$name' returned an empty response"
     fi
 
+    # TODO: Handle CRLF
     printf '%s\n' "$response"
 
     kill "$mcp_pid" 2>/dev/null
@@ -1637,6 +1638,7 @@ mcp_request_http() {
 	rm -f "${headers}"
         die "'$mcpname' MCP server returned an empty response."
     fi
+    # TODO: Handle CRLF
 
     local content_type=$(
 	sed -n 's/^[Cc]ontent-[Tt]ype:[[:space:]]*//p' "$headers" |

@@ -144,6 +144,10 @@ handle_workspace_command() {
 	    #    First leftover arg is the workspace name, else derive from CWD
 	    local name="${REMAINING_ARGS[0]:-$(basename "$PWD")}"
 	    local path="${PARSED_PATH:-$PWD}"
+	    # Git Bash workaround
+	    if command -v cygpath > /dev/null 2>&1 ; then
+		path=$(cygpath -u "$path")
+	    fi
 	    # 3) Prepare directories & ensure none exists
 	    local ws_dir="$(resolve_workspace_path "$name")"
 	    local meta="$(resolve_workspace_meta "$name")"
@@ -261,6 +265,7 @@ handle_workspace_command() {
 		if [[ "$filesets" != "null" && "$filesets" != "[]" ]]; then
 		    echo "Filesets:"
 		    jq -r '.filesets[]' <<< "$workspace_json" | while IFS= read -r fs; do
+			fs="${fs%$'\r'}"
 			if [[ -n "${session_fs_map[$fs]}" ]]; then
 			    echo " *+ $fs"
 			else

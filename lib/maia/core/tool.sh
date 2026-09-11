@@ -94,6 +94,7 @@ tool_instr_dir() {
     local tool_instr_dir=""
     IFS=: read -ra dirs <<< "$tool_search_path"
     for d in "${dirs[@]}"; do
+	d="${d%$'\r'}"
 	if [[ -e "$d/$tool_instr" ]]; then
 	    tool_instr_dir="$d"
 	    break
