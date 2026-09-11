@@ -234,7 +234,8 @@ handle_fileset_command() {
 		    local marker=$(fileset_marker "$name")
 		    printf '%-3s %s%s\n' "$marker" "$name" "$note"
 		    # print its contents if file exists
-                    while IFS= read -r line; do
+                    while IFS= read -r line || [[ -n "$line" ]]; do
+			line="${line%$'\r'}"
 			printf '     %s\n' "$line"
                     done < "$file"
 		else

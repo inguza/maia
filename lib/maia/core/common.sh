@@ -687,6 +687,7 @@ fileset_content_extract() {
 	# Read each line (file spec) in fileset file
 	local spec
 	while IFS= read -r spec || [[ -n "$spec" ]]; do
+	    spec="${spec%$'\r'}"
 	    # Skip empty lines and comments
             [[ -z "$spec" || -n "${seen[$spec]}" || "$spec" =~ ^# ]] && continue
 	    if [[ "$action" != "list" ]] ; then
@@ -1242,7 +1243,8 @@ curl_extra_headers() {
     local -n args="$1"
     if [[ -n "$hdrs" ]]; then
         # Split on newlines, add each as -H "header"
-        while IFS= read -r line; do
+        while IFS= read -r line || [[ -n "$line" ]] ; do
+	    line="${line%$'\r'}"
             if [[ -n "$line" ]]; then
                 args+=( -H "$line" )
             fi
@@ -1255,7 +1257,8 @@ make_glob_from_file() {
     if [[ ! -e "$patternfile" ]] ; then
 	return
     fi
-    while IFS= read -r pattern; do
+    while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+	pattern="${pattern%$'\r'}"
         [[ -z $pattern ]] && continue
         [[ -n $result ]] && result+='|'
         result+="$pattern"

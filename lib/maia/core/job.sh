@@ -92,6 +92,7 @@ handle_job_command() {
 	list|ls)
 	    if [[ -d "${session_path}/jobs" ]] ; then
 		ls "${session_path}/jobs/"*.json | while read f ; do
+		    f="${f%$'\r'}"
 		    local ff=$(basename "$f")
 		    echo $ff
 		done | sed 's/.json//;'

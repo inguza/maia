@@ -32,3 +32,13 @@ In particular, do not introduce process substitution merely as a convenient way 
 When large data is involved, avoid replacing process substitution with command substitution if that would unnecessarily put the data into a Bash variable or command-line argument. Prefer a temporary file in those cases.
 
 This restriction applies to new code and when modifying existing code: if practical, replace process substitution encountered in the code being changed.
+
+### Remember line ending
+
+Linux/unit and Windows/DOS line endings are different. Make sure to handle that.
+This typically means that when reading a line the \r character should be stripped.
+
+We shall also make sure we read the last line even if it does not end with a newline.
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+       line="${line%$'\r'}"

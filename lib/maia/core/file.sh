@@ -90,7 +90,8 @@ forget_entries() {
 	    continue
 	fi
         local tmp=$(mktemp)
-        while IFS= read -r line; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
+	    line="${line%$'\r'}"
             local keep=true
             for pat in "${patterns[@]}"; do
                 if [[ "$line" == $pat ]]; then
@@ -212,7 +213,8 @@ handle_file_command() {
             # Gather all unique files from filesets
             declare -A seen=()
             for fs in "${FILESET_FILES[@]}"; do
-                while IFS= read -r line; do
+                while IFS= read -r line || [[ -n "$line" ]]; do
+		    line="${line%$'\r'}"
                     [[ -z "$line" ]] && continue
                     seen["$line"]=1
                 done < "$fs"

@@ -161,6 +161,7 @@ fast_jq() {
     local line
     local val=""
     while IFS= read -r line; do
+	line="${line%$'\r'}"
 	case $line in
             '  "'$param'": "'*)
 		val=${line#*'"'$param'": "'}
