@@ -110,7 +110,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   },
   {
     "name": "core-sequence",
@@ -151,7 +151,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   },
   {
     "name": "core-print",
@@ -168,7 +168,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   },
   {
     "name": "core-sleep",
@@ -187,7 +187,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   },
   {
     "name": "util-file",
@@ -216,7 +216,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/bsd.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/bsd.td"
   },
   {
     "name": "web-browser-curl",
@@ -277,7 +277,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/curl.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/curl.td"
   },
   {
     "name": "file-write",
@@ -306,7 +306,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "file-append",
@@ -335,7 +335,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "file-change",
@@ -384,7 +384,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "context-file-remember",
@@ -417,7 +417,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "context-file-forget",
@@ -439,7 +439,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "change-apply",
@@ -467,7 +467,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "change-skip",
@@ -489,7 +489,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "change-revert",
@@ -514,7 +514,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/file.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
     "name": "git-status",
@@ -541,7 +541,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-log",
@@ -568,7 +568,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-show",
@@ -595,7 +595,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-diff",
@@ -626,7 +626,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-commit",
@@ -662,7 +662,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-reset",
@@ -696,7 +696,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-restore",
@@ -728,7 +728,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-add",
@@ -760,7 +760,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-clean",
@@ -790,7 +790,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-switch",
@@ -819,7 +819,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-rebase",
@@ -846,7 +846,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-merge",
@@ -873,7 +873,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-revert",
@@ -903,7 +903,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-branch",
@@ -934,7 +934,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-rm",
@@ -966,7 +966,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-mv",
@@ -1000,7 +1000,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-pull",
@@ -1034,7 +1034,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "git-fetch",
@@ -1068,7 +1068,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/git.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/git.td"
   },
   {
     "name": "util-grep",
@@ -1109,7 +1109,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-find",
@@ -1162,7 +1162,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-ls",
@@ -1191,7 +1191,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-sort",
@@ -1218,7 +1218,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-cat",
@@ -1248,7 +1248,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-head",
@@ -1272,7 +1272,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-tail",
@@ -1296,7 +1296,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-wc",
@@ -1323,7 +1323,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-sed",
@@ -1354,7 +1354,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-sed-inline",
@@ -1390,7 +1390,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-uniq",
@@ -1414,7 +1414,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-diff",
@@ -1443,7 +1443,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "util-patch",
@@ -1470,7 +1470,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/gnu.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
     "name": "context-history-retrieve",
@@ -1492,7 +1492,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/history.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/history.td"
   },
   {
     "name": "job-start",
@@ -1515,14 +1515,14 @@ Tool definitions:
         "arguments"
       ]
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
     "inputSchema": null,
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-show",
@@ -1541,7 +1541,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-status",
@@ -1560,7 +1560,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-output",
@@ -1579,7 +1579,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-cancel",
@@ -1598,7 +1598,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-delete",
@@ -1621,7 +1621,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "job-exist",
@@ -1640,7 +1640,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/job.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
     "name": "jq",
@@ -1662,7 +1662,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/jq.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/jq.td"
   },
   {
     "name": "web-browser-lynx",
@@ -1691,7 +1691,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/lynx.td"
   },
   {
     "name": "web-search-lynx",
@@ -1717,7 +1717,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/lynx.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/lynx.td"
   },
   {
     "name": "net-request-tcp",
@@ -1749,7 +1749,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/net-request.td"
   },
   {
     "name": "net-request-ssl",
@@ -1781,7 +1781,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/net-request.td"
   },
   {
     "name": "pandoc",
@@ -1813,7 +1813,7 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/pandoc.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/pandoc.td"
   },
   {
     "name": "shell-exec",
@@ -1832,7 +1832,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/shell.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/shell.td"
   },
   {
     "name": "context-skill-remember",
@@ -1854,7 +1854,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/skill.td"
   },
   {
     "name": "context-skill-forget",
@@ -1876,7 +1876,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/skill.td"
   },
   {
     "name": "skill-exec",
@@ -1907,6 +1907,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/skill.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/skill.td"
   }
 ]

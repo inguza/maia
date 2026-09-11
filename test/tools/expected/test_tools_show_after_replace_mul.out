@@ -34,7 +34,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/net-request.td"
   },
   {
     "name": "net-request-ssl",
@@ -66,6 +66,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/net-request.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/net-request.td"
   }
 ]

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2025 Ola Lundqvist <ola@inguza.com>
+# Copyright (c) 2025 Ola Lundqvist <<user>@host.com>
 #
 session_usage() {
     # TODO: Allow a more flexible placement of --use and other options

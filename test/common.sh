@@ -14,7 +14,8 @@ readonly TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SUITENAME=$(basename "$0" | sed 's/test_//;s/\.sh$//;')
 readonly OUTPUT_DIR="$TEST_ROOT/$SUITENAME/output"
 readonly EXPECTED_DIR="$TEST_ROOT/$SUITENAME/expected"
-MAIA=$(realpath "$TEST_ROOT/../bin/maia")
+readonly M_ROOT=$(realpath "$TEST_ROOT/..")
+MAIA=$(realpath "$M_ROOT/bin/maia")
 
 # Unset known MAIA variables
 unset MAIA_SESSION
@@ -108,6 +109,7 @@ normalize_output() {
     sed "
 s/\x1B\[[0-9;]*m//g;
 s|$XMAIA_HOME|<MAIA_HOME>|g;
+s|$M_ROOT|<MAIA_ROOT>|g;
 s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]-[0-9][0-9]*-[0-9][0-9][0-9][0-9][0-9][0-9]*/<datetime>-<pid>-<starttime>/g;
 s/.starttime.: .[0-9][0-9]*./\"starttime\": \"<starttime>\"/;
 s/.pid.: .[0-9][0-9]*./\"pid\": <pid>/;

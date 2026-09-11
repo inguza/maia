@@ -44,7 +44,7 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   },
   {
     "name": "core-sequence",
@@ -85,6 +85,6 @@ Tool definitions:
       ],
       "additionalProperties": false
     },
-    "source": "/home/ola/git/maia/lib/maia/tools/basics.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
   }
 ]
