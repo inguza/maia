@@ -7,9 +7,6 @@
 # Commercial licensing is available separately.
 #
 
-# Git Bash workaround
-export MSYS_NO_PATHCONV=1
-
 # Resolve data directory
 resolve_home_dir() {
     local home_paths=( $(resolve_home_paths) )
