@@ -52,18 +52,21 @@ list_tools() {
     init_tool_search_dirs
     local all_tools_json=$(load_all_tool_defs)
     local allowed_tools_list_file="$1"
-    local allowed_tools_json="[]"
-    if [[ -s "$allowed_tools_list_file" ]] ; then
-	allowed_tools_json=$(<"$allowed_tools_list_file")
+    if [[ -s "$allowed_tools_list_file" ]]; then
+        jq -r --slurpfile allowed "$allowed_tools_list_file" '
+            ($allowed[0] | map(.name)) as $allowed_names |
+            .[] |
+            if (.name | IN($allowed_names[]))
+            then "* " + .name + "   (" + .source + ")"
+            else "  " + .name + "   (" + .source + ")"
+            end
+        ' <<<"$all_tools_json"
+    else
+        jq -r '
+            .[] |
+            "  " + .name + "   (" + .source + ")"
+        ' <<<"$all_tools_json"
     fi
-    jq -r --argjson allowed "$allowed_tools_json" '
-        ($allowed | map(.name)) as $allowed_names |
-        .[] |
-        if (.name | IN($allowed_names[]))
-        then "* " + .name + "   (" + .source + ")"
-        else "  " + .name + "   (" + .source + ")"
-        end
-    ' <<< "$all_tools_json"
 }
    
 # IMPOPRTANT! init_tool_search_dirs
