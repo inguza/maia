@@ -107,7 +107,15 @@ sudo apt-get install jq
 
 ### Microsoft Windows
 
-MAIA can be run from Git Bash on Windows.
+On Windows, MAIA can run under WSL.
+
+```powershell
+wsl --install
+```
+
+How to configure WSL and install a Linux distribution is outside the scope of this document.
+
+MAIA can also be run from Git Bash on Windows.
 
 Open a PowerShell terminal and install the required software:
 
@@ -118,13 +126,8 @@ winget install --id Git.Git -e --source winget
 
 Then start Git Bash.
 
-Alternatively, MAIA can be run under WSL.
-
-```powershell
-wsl --install
-```
-
-How to configure WSL and install a Linux distribution is outside the scope of this document.
+**Windows support has not been fully tested.**
+In particular, MAIA appears to run significantly slower under Git Bash than under WSL.
 
 ## Install the software
 
