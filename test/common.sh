@@ -106,12 +106,14 @@ cleanup_mock_curl() {
 
 normalize_output() {
     sed "
+s/\x1B\[[0-9;]*m//g;
 s|$XMAIA_HOME|<MAIA_HOME>|g;
 s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]-[0-9][0-9]*-[0-9][0-9][0-9][0-9][0-9][0-9]*/<datetime>-<pid>-<starttime>/g;
 s/.starttime.: .[0-9][0-9]*./\"starttime\": \"<starttime>\"/;
 s/.pid.: .[0-9][0-9]*./\"pid\": <pid>/;
 s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]/<dateandtime>/g;
 s/\(<<Original text reference: <dateandtime>\)-[0-9a-z]*\(>>\)/\1-<extraref>\2/g;
+s/[a-z0-9][a-z0-9]*@[a-z][a-z0-9]*/<user>@host/g;
 "
 }
 
