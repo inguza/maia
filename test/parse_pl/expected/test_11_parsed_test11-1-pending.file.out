@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (c) 2025 Ola Lundqvist <<user>@host.com>
+# Copyright (c) 2025 Ola Lundqvist <<user>@<host>>
 #
 use strict;
 use warnings;

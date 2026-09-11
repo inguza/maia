@@ -1,4 +1,4 @@
 [NOTICE] Entered MAIA shell
-]0;<user>@host[default!|-]: <MAIA_HOME><user>@host[default!|-]:<MAIA_HOME>$ echo 'Foo'
-]0;<user>@host[default!|-]: <MAIA_HOME><user>@host[default!|-]:<MAIA_HOME>$ exit
+]0;<user>@<host>[default!|-]: <MAIA_HOME><user>@<host>[default!|-]:<MAIA_HOME>$ echo 'Foo'
+]0;<user>@<host>[default!|-]: <MAIA_HOME><user>@<host>[default!|-]:<MAIA_HOME>$ exit
 [NOTICE] Left MAIA shell
