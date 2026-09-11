@@ -7,6 +7,9 @@
 # Commercial licensing is available separately.
 #
 
+# Git Bash workaround
+export MSYS_NO_PATHCONV=1
+
 # Resolve data directory
 resolve_home_dir() {
     local home_paths=( $(resolve_home_paths) )
@@ -181,11 +184,11 @@ fast_jq() {
 
 # Git Bash workaround
 normalize_lf() {
-    local -n _dst="$1"
+    local -n _xdst="$1"
     local i
 
-    for i in "${!_dst[@]}"; do
-        _dst[i]="${_dst[i]%$'\r'}"
+    for i in "${!_xdst[@]}"; do
+        _xdst[i]="${_xdst[i]%$'\r'}"
     done
 }
 
