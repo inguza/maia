@@ -121,7 +121,7 @@ s/.starttime.: .[0-9][0-9]*./\"starttime\": \"<starttime>\"/;
 s/.pid.: .[0-9][0-9]*./\"pid\": <pid>/;
 s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]/<dateandtime>/g;
 s/\(<<Original text reference: <dateandtime>\)-[0-9a-z]*\(>>\)/\1-<extraref>\2/g;
-s/[a-zA-Z0-9][a-zA-Z0-9]*@[a-zA-Z][a-zA-Z0-9_\-\.]*/<user>@<host>/g;
+s/[a-zA-Z0-9][a-zA-Z0-9_\-\.\+]*@[a-zA-Z][a-zA-Z0-9_\-\.]*/<user>@<host>/g;
 "
 }
 
