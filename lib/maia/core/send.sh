@@ -433,7 +433,11 @@ handle_send_command() {
             die "Invalid temperature value '$temperature'. Must be a number between 0 and 1."
         fi
 	# Clamp temperature to [0,1]
-        temperature=$(LC_NUMERIC=C awk -v t="$temperature" 'BEGIN { if (t<0) t=0; if (t>1) t=1; printf "%.3f", t }')
+	# Note! The integer < 0 check is skipped since negative numbers are not allowed above
+	IFS=. read -r integer fraction <<< "$temperature"
+	if (( integer >= 1 )) ; then
+	    temperature=1
+	fi
     fi
 
     # Detect API type
