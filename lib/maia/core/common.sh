@@ -350,7 +350,9 @@ write_workspace_meta() {
     local filesets_json="$3"
     local meta="$ws_dir/workspace.json"
 
-    jq -n \
+    # Git Bash Workaround on next line, the jq after is normal
+    MSYS_NO_PATHCONV=1 \
+	jq -n \
        --arg path "$fs_path" \
        --argjson filesets "$filesets_json" \
        '{ path: $path, filesets: $filesets }' \

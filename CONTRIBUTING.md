@@ -42,3 +42,10 @@ We shall also make sure we read the last line even if it does not end with a new
 
     while IFS= read -r line || [[ -n "$line" ]]; do
        line="${line%$'\r'}"
+
+### Git Bash path substitution
+
+Git Bash is a little special. It converts /c ... to C:.
+We want that for many cases, but not for the path of the workspace.
+
+For that we use MSYS_NO_PATHCONV=1 when path arguments shall be preserved.
