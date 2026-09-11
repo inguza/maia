@@ -3,7 +3,7 @@
 [NOTICE] Created session 'review-xcommon' with workspace 'default', resolved from current session.
 
 -> 0
-======== [2] context-file-remember {"files":["x/x.info.yml"],"subsession":"review-xcommon"} ========
+======== [2] context-file-remember {"files":["x/x.info.yml"]} ========
 [WARN] File 'x/x.info.yml' not found, skipping.
 
 -> 0
