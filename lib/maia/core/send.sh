@@ -294,7 +294,7 @@ build_messages_json() {
 	    # Then append the files section to the end of the last user message
 	    if [[ -n "$files_section" ]]; then
 		local tmpf="$(mktemp)"
-		printf '%s' "$files_section" > "$tmpf"
+		printf '%s' "$files_section" | jq -R -s '.' > "$tmpf"
 		msgs=$(jq --slurpfile files "$tmpf" '
 		      . as $m
 		      | ([$m | to_entries[] |
