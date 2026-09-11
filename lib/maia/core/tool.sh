@@ -212,7 +212,11 @@ expand_tool_wildcards() {
     local patterns=("$@")
     local all_tools=()
     init_tool_search_dirs
-    mapfile -t all_tools < <(jq -r '.[].name' < <(load_all_tool_defs))
+    # Load all tools
+    local tmpfile="$(mktemp)"
+    load_all_tool_defs > "$tmpfile"
+    mapfile_from_command all_tools jq -r '.[].name' < "$tmpfile"
+    rm -f "$tmpfile"
 
     for pattern in "${patterns[@]}"; do
         local tool_pattern="${pattern%%:*}"
@@ -319,9 +323,12 @@ handle_tool_command() {
 	    fi
             # Expand current allowed wildcards to explicit tool names
             mapfile -t allowed_patterns < "$filepath"
-	    mapfile -t expanded_tools < <(expand_tool_wildcards "${allowed_patterns[@]}")
+	    mapfile_from_command expanded_tools expand_tool_wildcards "${allowed_patterns[@]}"
             # Deduplicate
-            mapfile -t expanded_tools < <(printf '%s\n' "${expanded_tools[@]}" | sort -u)
+	    local tmpfile="$(mktemp)"
+	    printf '%s\n' "${expanded_tools[@]}" | sort -u > "$tmpfile"
+	    mapfile -t expanded_tools < "$tmpfile"
+	    rm -f "$tmpfile"
 
             # Remove tools matching restrict patterns
             local filtered_tools=()
@@ -346,8 +353,9 @@ handle_tool_command() {
             ;;
 	discover)
 	    init_tool_search_dirs
-	    local servers=$(jq -r '.mcp_servers // empty' <<<"$_cfg")
-	    while IFS= read -r server; do
+	    local serverscfg="$(jq -r '.mcp_servers // empty' <<<"$_cfg")"
+	    mapfile_from_json servers "$serverscfg"
+	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
 		local endpoint="${server#*=}"
 		local tooldirs="${TOOL_DIRS[$scope]}"
@@ -368,11 +376,11 @@ handle_tool_command() {
 		  ' < "${toolfile}.tmp" > "$toolfile"
 		#rm -f "${toolfile}.tmp"
 		notice "Written $toolfile"
-	    done < <(jq -r '.[]' <<< "$servers")
+	    done
 	    ;;
 	view|"")
 	    if [[ "$1" == "--expand" ]] ; then
-		mapfile -t allowed_patterns < <(prompt_for_scope "$scope" "$prompt_type")
+		mapfile_from_command allowed_patterns prompt_for_scope "$scope" "$prompt_type"
 		expand_tool_wildcards "${allowed_patterns[@]}" | uniq
 	    else
 		prompt_for_scope "$scope" "$prompt_type"

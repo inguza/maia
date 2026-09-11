@@ -48,7 +48,7 @@ apply_config_param() {
     read -ra patterns <<< "$value"
     if [[ "$maia_cmd2" == allow || "$maia_cmd2" == remember ]] ; then
 	parent_allowed=()
-	mapfile -t parent_allowed < <($MAIA_BIN "$2" view --expand)
+	mapfile_from_command parent_allowed $MAIA_BIN "$2" view --expand || true
 	glob_pattern=$(make_glob_from_var "${patterns[@]}")
 	patterns=()
 	for p in "${parent_allowed[@]}" ; do

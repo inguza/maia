@@ -55,7 +55,7 @@ if [[ -n ${param[allow]:-} ]]; then
 fi
 
 parent_allowed=()
-mapfile -t parent_allowed < <($MAIA_BIN "$1" view --expand)
+mapfile_from_command parent_allowed $MAIA_BIN "$1" view --expand || true
 
 # Determine tool or skill command based on script name
 export MAIA_SESSION="$actualsession"

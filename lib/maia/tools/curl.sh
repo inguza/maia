@@ -9,6 +9,7 @@
 
 set -eo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -36,18 +37,20 @@ urls="${param[urls]:-}"
 
 declare -a url_array=()
 if [[ -n "$urls" ]] ; then
-    mapfile -t url_array < <(jq -r '.[]' <<< "$urls")
+    mapfile_from_json url_array "$urls"
 fi
 
 if [[ -v "param[json]" ]] ; then
     args+=(--json "$(printf '%b' "${param[json]}")")
 fi
 
-for d in "data" "data-raw" "data-binary" "header" ; do
-    if [[ -v "param[$d]" ]] ; then
-	while IFS= read -r value; do
-	    args+=(--$d "$value")
-	done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$d]}")")
+for d in "data" "data-raw" "data-binary" "header"; do
+    if [[ -v "param[$d]" ]]; then
+        local values
+        mapfile_from_command values jq -r '.[]' <<<"$(printf '%b' "${param[$d]}")" || true
+        for value in "${values[@]}"; do
+            args+=(--$d "$value")
+        done
     fi
 done
 

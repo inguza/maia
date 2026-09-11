@@ -9,6 +9,7 @@
 
 set -eo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -34,6 +35,6 @@ done
 objects="${param[objects]:-}"
 declare -a objs=()
 if [[ -n "$objects" ]] ; then
-    mapfile -t objs < <(jq -r '.[]' <<< "$objects")
+    mapfile_from_json objs "$objects"
 fi
 git show "${args[@]}" "${objs[@]}"

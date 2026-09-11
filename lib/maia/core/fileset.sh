@@ -155,12 +155,12 @@ handle_fileset_command() {
 	list|ls)
 	    shift
             # load workspace filesets
-            mapfile -t WS_FSS < <(resolve_workspace_filesets)
+            mapfile_from_command WS_FSS resolve_workspace_filesets
             # load session filesets
 	    local expanded_filesets=$(get_session_expanded_filesets "$session")
 	    local expanded_extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
-	    mapfile -t SESS_FSS < <(jq -r '.[]' <<<"$expanded_filesets")
-	    mapfile -t SESS_E_S_FSS < <(jq -r '.[]' <<<"$expanded_extra_send_filesets")
+	    mapfile_from_json SESS_FSS "$expanded_filesets"
+	    mapfile_from_json SESS_E_S_FSS "$expanded_extra_send_filesets"
             # build quick-lookup maps
 	    local fs
             for fs in "${WS_FSS[@]}";   do in_ws["$fs"]=1;   done
@@ -205,11 +205,11 @@ handle_fileset_command() {
 		shift
             fi
             # Load workspace and session lists
-            mapfile -t WS_FSS < <(resolve_workspace_filesets)
+            mapfile_from_command WS_FSS resolve_workspace_filesets
 	    local expanded_filesets=$(get_session_expanded_filesets "$session")
-	    mapfile -t SESS_FSS < <(jq -r '.[]' <<<"$expanded_filesets")
+	    mapfile_from_json SESS_FSS "$expanded_filesets"
 	    local expanded_extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
-	    mapfile -t SESS_E_S_FSS < <(jq -r '.[]' <<<"$expanded_extra_send_filesets")
+	    mapfile_from_json SESS_E_S_FSS "$expanded_extra_send_filesets"
             # Build lookup maps
 	    local fs
             for fs in "${WS_FSS[@]}";   do in_ws["$fs"]=1;   done
@@ -218,7 +218,7 @@ handle_fileset_command() {
             # Determine which filesets to show
             local to_show=()
             if [[ "$show_all" == true ]]; then
-		mapfile -t to_show < <(resolve_all_workspace_filesets)
+		mapfile_from_command to_show resolve_all_workspace_filesets
 	    elif [[ "$show_workspace" == true ]]; then
 		to_show=( "${WS_FSS[@]}" )
 	    elif [[ -n "$1" ]]; then
@@ -317,7 +317,7 @@ handle_fileset_command() {
             if [[ -z "$1" ]]; then
 		# no name: clear all filesets in use from session expanded filesets
 		local expanded_filesets=$(get_session_expanded_filesets "$session")
-		mapfile -t names < <(jq -r '.[]' <<<"$expanded_filesets")
+		mapfile_from_json names "$expanded_filesets"
 		for name in "${names[@]}"; do
 		    : > "$(fileset_file "${name}")"
 		    info "Cleared fileset '$name'"
@@ -335,7 +335,7 @@ handle_fileset_command() {
             if [[ -z "$1" ]]; then
 		# no name: clear all filesets in use from session expanded filesets
 		local expanded_filesets=$(get_session_expanded_filesets "$session")
-		mapfile -t names < <(jq -r '.[]' <<<"$expanded_filesets")
+		mapfile_from_json names "$expanded_filesets"
 		for name in "${names[@]}"; do
 		    rm -f "$(fileset_file "$name")"
 		    info "Deleted fileset '$name'"

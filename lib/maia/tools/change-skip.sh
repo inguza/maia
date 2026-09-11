@@ -9,6 +9,7 @@
 
 set -euo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -19,7 +20,8 @@ if [[ -v param[ids] ]] ; then
     idskey="ids"
 fi
 
-while IFS= read -r id; do
+mapfile_from_json ids "${param[$idskey]}"
+for id in "${ids[@]}"; do
     # TODO check that id does not contain any unknown characters
     "$MAIA_BIN" change skipped "$id"
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$idskey]}")")
+done

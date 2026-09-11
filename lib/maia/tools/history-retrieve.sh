@@ -21,9 +21,7 @@ if [[ ! -v "param[ids]" ]]; then
 fi
 
 declare -a ids=()
-mapfile -t ids < <(
-    jq -r '.[]' <<< "${param[ids]}"
-)
+mapfile_from_json ids "${param[ids]}"
 
 history_file="$(resolve_history_meta)"
 jq \

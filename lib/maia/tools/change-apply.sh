@@ -20,7 +20,8 @@ if [[ -v param[ids] ]] ; then
     idskey="ids"
 fi
 
-while IFS= read -r id; do
+mapfile_from_json ids "${param[$idskey]}"
+for id in "${ids[@]}"; do
     if [[ -z "$id" ]]; then
 	continue
     fi
@@ -29,4 +30,4 @@ while IFS= read -r id; do
         continue
     fi
     "$MAIA_BIN" change apply "$id"
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$idskey]}")")
+done

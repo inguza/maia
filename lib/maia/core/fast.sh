@@ -175,3 +175,31 @@ fast_jq() {
     fi
     echo "$val"
 }
+
+# Not fully needed in this file but does not hurt the performance
+
+mapfile_from_command() {
+    local -n _dst="$1"
+    shift
+    local tmpfile="$(mktemp)"
+    local status=0
+    "$@" > "$tmpfile" || status=$?
+    mapfile -t _dst < "$tmpfile"
+    rm -f "$tmpfile"
+    return $status
+}
+
+mapfile_from_json() {
+    local -n _dst="$1"
+    local json="$2"
+    local tmpfile="$(mktemp)"
+    jq -r '.[]' <<<"$json" > "$tmpfile"
+    mapfile -t _dst < "$tmpfile"
+    rm -f "$tmpfile"
+}
+
+mapfile_from_file() {
+    local -n _dst="$1"
+    local file="$2"
+    mapfile -t _dst < "$file"
+}

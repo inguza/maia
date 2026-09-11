@@ -9,6 +9,7 @@
 
 set -eo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -34,7 +35,7 @@ done
 commitlist="${param[refspecs]:-}"
 declare -a refs=()
 if [[ -n "$commitlist" ]] ; then
-    mapfile -t commits < <(jq -r '.[]' <<< "$commitlist")
+    mapfile_from_json commits "$commitlist"
 fi
 
 git revert -no-edit "${args[@]}" "${commits[@]}"

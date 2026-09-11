@@ -438,7 +438,7 @@ add_file_to_session_filesets() {
     local ws_name=$(resolve_session_workspace "$session")
     local expanded_filesets_json=$(get_session_expanded_filesets "$session")
     local sess_fs
-    mapfile -t sess_fs < <(jq -r '.[]' <<<"$expanded_filesets_json")
+    mapfile_from_json sess_fs "$expanded_filesets_json"
     local workspace_root="$(resolve_workspace_root "$ws_name")"
     local ws_root=$(resolve_workspace_path "$ws_name")
     if [[ ! -e "$workspace_root/$file" ]] ; then

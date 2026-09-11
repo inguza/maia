@@ -292,8 +292,9 @@ handle_file_command() {
 
 	discover)
 	    init_tool_search_dirs
-	    local servers=$(jq -r '.mcp_servers // empty' <<<"$_cfg")
-	    while IFS= read -r server; do
+	    local serverscfg="$(jq -r '.mcp_servers // empty' <<<"$_cfg")"
+	    mapfile_from_json servers "$serverscfg"
+	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
 		local endpoint="${server#*=}"
 		echo "[$name]"
@@ -307,7 +308,7 @@ handle_file_command() {
   "  \(.name | . + (" " * ($width - length)))  \(.uri)\n" +
   "  \((" " * $width))  \(.description // "")\(if .mimeType then " [\(.mimeType)]" else "" end)\n"
 '
-	    done < <(jq -r '.[]' <<< "$servers")
+	    done
 	    ;;
 
         "")

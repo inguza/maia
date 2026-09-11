@@ -24,7 +24,8 @@ sequence="$(printf '%b' "${param[sequence]}")"
 i=1
 
 debug "Running sequence from workspace root"
-while IFS= read -r tool_call; do
+mapfile_from_command tool_calls jq -c '.[]' <<< "$sequence" || true
+for tool_call in "${tool_calls[@]}" ; do
     func_name=""
     func_name=$(jq -r '.name' <<<"$tool_call")
     if [[ "$func_name" == "null" ]] ; then
@@ -60,7 +61,7 @@ while IFS= read -r tool_call; do
 	echo "-> $status"
     fi
     ((i++))
-done < <(jq -c '.[]' <<< "$sequence")
+done
 
 rm -rf "${tool_tmp_dir}"
 # We can remove the calls, because the calls are recorded in the output

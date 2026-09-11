@@ -123,14 +123,12 @@ handle_parse_command() {
     slice=$(range_defaults "$range")
 
     # 3) extract assistant replies in that slice
-    mapfile -t entries < <(
-        jq -c "
+    mapfile_from_command entries jq -c "
             .[$slice]
             | (if type==\"array\" then . else [.] end)
             | to_entries[]
             | select(.value.role==\"assistant\")
             " "$history_file"
-    )
 
     local default_filenames_file="$(mktemp)"
     printf '%s\n' "${default_filenames[@]}" > "$default_filenames_file"

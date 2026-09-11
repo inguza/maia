@@ -444,7 +444,7 @@ handle_skill_command() {
             fi
             # Read current allowed skills
 	    mapfile -t current_skills_globs < "$skillset_file"
-	    mapfile -t current_skills < <(expand_skill_wildcards "${current_skills_globs[@]}")
+	    mapfile_from_command current_skills expand_skill_wildcards "${current_skills_globs[@]}"
 
             # Expand wildcards for given patterns
             local matched_skills=()
@@ -482,7 +482,7 @@ handle_skill_command() {
 	view|"")
 	    # Expand allowed wildcards to explicit allowed skills
 	    if [[ "$1" == "--expand" ]]; then
-                mapfile -t allowed_patterns < <(prompt_for_scope "$scope" "$prompt_type")
+                mapfile_from_command allowed_patterns prompt_for_scope "$scope" "$prompt_type"
                 expand_skill_wildcards "${allowed_patterns[@]}" | uniq
 	    else
 		prompt_for_scope "$scope" "$prompt_type"
@@ -553,10 +553,12 @@ handle_skill_command() {
             if [[ ! -f "$skillset_context_file" ]]; then
                 return 0
             fi
-            local expanded=$(expand_skill_wildcards "$@")
             # Remove from loaded context
-            local tmpfile=$(mktemp)
-            grep -vxF -f <(printf '%s\n' "${expanded[@]}") "$skillset_context_file" > "$tmpfile"
+            local tmpfile="$(mktemp)"
+	    local tmppatternsfile="$(mktemp)"
+	    expand_skill_wildcards "$@" > "$tmppatternsfile"
+            grep -vxF -f "$tmppatternsfile" "$skillset_context_file" > "$tmpfile"
+	    rm -f "$tmppatternsfile"
             mv "$tmpfile" "$skillset_context_file"
 	    refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;

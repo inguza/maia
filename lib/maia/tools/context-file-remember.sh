@@ -29,8 +29,9 @@ startline="${param[startline]:-}"
 stopline="${param[stopline]:-}"
 
 filedefs=()
-while IFS= read -r filepattern; do
-    mapfile -t files < <(compgen -G "$filepattern")
+mapfile_from_json filepatterns "${param[$fileparam]}"
+for filepattern in "${filepatterns[@]}" ; do
+    mapfile_from_command files compgen -G "$filepattern" || true
     if [[ ${#files[@]} == 0 ]] ; then
 	warn "File '$filepattern' not found, skipping."
     fi
@@ -49,7 +50,7 @@ while IFS= read -r filepattern; do
 	    filedefs+=("$file")
 	fi
     done
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$fileparam]}")")
+done
 
 thissession="$(resolve_session_name)"
 subsession="${param[subsession]:-}"

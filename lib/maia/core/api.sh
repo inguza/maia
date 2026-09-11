@@ -128,7 +128,7 @@ handle_api_command() {
 		     "$url/v1/models" \
 		    | jq -r ".data[] | select($condition) | .id"
 	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		readarray -t SIGNED_HEADERS < <(sigv4headers "$METHOD" "$url/foundation-models" "bedrock" "")
+		mapfile_from_command SIGNED_HEADERS sigv4headers "$METHOD" "$url/foundation-models" "bedrock" ""
 		for hdr in "${SIGNED_HEADERS[@]}"; do
 		    curl_headers+=(-H "$hdr")
 		done

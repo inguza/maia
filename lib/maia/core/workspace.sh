@@ -154,9 +154,10 @@ handle_workspace_command() {
 	    # 6) Materialize each fileset as an empty file
 	    local fs
 	    # Use jq to extract names robustly
-	    while IFS= read -r fs; do
+	    mapfile_from_json cfilesets "$filesets_json"
+	    for fs in "${cfilesets[@]}" ; do
 		: > "$ws_dir/${fs}.fileset"
-	    done < <(jq -r '.[]' <<<"$filesets_json")
+	    done
 	    # 7) Write workspace.json with all four keys
 	    write_workspace_meta \
 		"$ws_dir" \
@@ -182,7 +183,7 @@ handle_workspace_command() {
             local new_path="${PARSED_PATH:-$current_path}"
             local filesets_json="${PARSED_FILESETS:-$current_filesets_json}"
             # Build JSON array of existing fileset names on disk
-            mapfile -t EXISTING_FS < <(resolve_all_workspace_filesets "$name")
+            mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$name"
             local existing_json=$(printf '%s\n' "${EXISTING_FS[@]}" \
 				      | jq -R . | jq -s .)
             # 6a) Validate that any supplied --filesets are a subset of what exists
@@ -245,9 +246,11 @@ handle_workspace_command() {
 		declare -A session_fs_map=()
 		local session_expanded_filesets=$(get_session_expanded_filesets "$session_name")
 		local fs
-		while IFS= read -r fs; do
+		local filesets
+		mapfile_from_command filesets jq -r '.[]' <<<"$session_expanded_filesets"
+		for fs in "${filesets[@]}"; do
 		    session_fs_map["$fs"]=1
-		done < <(jq -r '.[]' <<< "$session_expanded_filesets")
+		done
 
 		echo "Workspace: $name"
 		if [[ -n "$path" ]]; then

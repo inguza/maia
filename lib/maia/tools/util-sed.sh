@@ -9,6 +9,7 @@
 
 set -eo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -35,7 +36,7 @@ done
 filespecs="${param[filespecs]:-}"
 declare -a paths=()
 if [[ -n "$filespecs" ]] ; then
-    mapfile -t paths < <(jq -r '.[]' <<< "$filespecs")
+    mapfile_from_json paths "$filespecs"
 fi
 for path in "${paths[@]}" ; do
     validate_path "$path"

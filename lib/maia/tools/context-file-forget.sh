@@ -27,9 +27,10 @@ if [[ ! -v param[$fileparam] ]] ; then
 fi
 
 filedefs=()
-while IFS= read -r filepattern; do
+mapfile_from_json filepatterns "${param[$fileparam]}"
+for filepattern in "${filepatterns[@]}" ; do
     filedefs+=("$filepattern")
-done < <(jq -r '.[]' <<< "$(printf '%b' "${param[$fileparam]}")")
+done
 
 # Start code for subsession-file-forget
 subsession="${param[subsession]:-}"

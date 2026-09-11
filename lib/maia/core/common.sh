@@ -445,32 +445,6 @@ list_to_json() {
     printf '%s\n' $* | jq -R . | jq -s .
 }
 
-mapfile_from_command() {
-    local -n _dst="$1"
-    shift
-    local tmpfile="$(mktemp)"
-    "$@" > "$tmpfile"
-    local status=$?
-    mapfile -t _dst < "$tmpfile"
-    rm -f "$tmpfile"
-    return $status
-}
-
-mapfile_from_json() {
-    local -n _dst="$1"
-    local json="$2"
-    local tmpfile="$(mktemp)"
-    jq -r '.[]' <<<"$json" > "$tmpfile"
-    mapfile -t _dst < "$tmpfile"
-    rm -f "$tmpfile"
-}
-
-mapfile_from_file() {
-    local -n _dst="$1"
-    local file="$2"
-    mapfile -t _dst < "$file"
-}
-
 # validate_subset <candidates_json> <allowed_json> <label>
 #   Ensures every element in the first JSON array appears in the second.
 #   Exits with an error if any element is missing.

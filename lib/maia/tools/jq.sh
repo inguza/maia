@@ -7,25 +7,6 @@
 # Commercial licensing is available separately.
 #
 
-#if [[ ! -v "param[filter]" ]]; then
-#    die "Missing filter parameter"
-#fi
-
-#declare -a filepatterns=()
-#if [[ -n ${param[filepatterns]:-} ]]; then
-#    mapfile -t filepatterns < <(
-#        jq -r '.[]' <<< "${param[filepatterns]}"
-#    )
-#fi
-#check_patterns() {
-#    while [[ $# -gt 0 ]]; do
-#	validate_path "$1"
-#	shift
-#    done
-#}
-
-#check_patterns "${filepatterns[@]}"
-
 set -eo pipefail
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
@@ -44,7 +25,7 @@ expand_pattern() {
     local -a matches
 
     if [[ "$pattern" == *[\*\?\[]* ]]; then
-        mapfile -t matches < <(compgen -G "$pattern")
+        mapfile_from_command matches compgen -G "$pattern" || true
 
         if ((${#matches[@]})); then
             printf '%s\n' "${matches[@]}"
@@ -104,7 +85,7 @@ check_arguments() {
 		else
 		    # Treat as file
 		    validate_path "$arg"
-		    mapfile -t matches < <(expand_pattern "$arg")
+		    mapfile_from_command matches expand_pattern "$arg" || true
 		    usearguments+=("${matches[@]}")
 		fi
 		;;

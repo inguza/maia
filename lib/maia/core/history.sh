@@ -643,7 +643,8 @@ print_history_entries() {
 
         # If assistant message has function_call, print it visibly
 	if [[ "$role" == "assistant" && -n "$tools_call_json" && "$tools_call_json" != "null" ]]; then
-	    while IFS= read -r tool_call; do
+	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
+	    for tool_call in "${tool_calls[@]}"; do
 		id=$(jq -r '.id // empty' <<<"$tool_call")
 		func_name=$(jq -r '.function.name // empty' <<<"$tool_call")
 		func_args=$(jq -r '.function.arguments // empty' <<<"$tool_call")
@@ -652,7 +653,7 @@ print_history_entries() {
 		    echo "[tool call] $id $func_name($func_args)"
 		    echo
 		fi
-	    done < <(jq -c '.[]' <<<"$tools_call_json")
+	    done
 	fi
 
     done

@@ -9,6 +9,7 @@
 
 set -eo pipefail
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -35,7 +36,7 @@ done
 urls="${param[urls]:-}"
 declare -a url_array=()
 if [[ -n "$urls" ]] ; then
-    mapfile -t url_array < <(jq -r '.[]' <<< "$urls")
+    mapfile_from_json url_array "$urls"
 fi
 if [[ ${#url_array[@]} -eq 0 ]] ; then
     query="$(printf '%b' "${param[query]:-}")"

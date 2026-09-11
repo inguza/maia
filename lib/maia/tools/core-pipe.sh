@@ -24,7 +24,8 @@ pipeline="$(printf '%b' "${param[pipeline]}")"
 i=1
 pipeline_cmd="echo ''"
 
-while IFS= read -r tool_call; do
+mapfile_from_command tool_calls jq -c '.[]' <<< "$pipeline" || true
+for tool_call in "${tool_calls[@]}" ; do
     func_name=""
     func_name=$(jq -r '.name' <<<"$tool_call")
     if [[ "$func_name" == "null" ]] ; then
@@ -61,7 +62,7 @@ while IFS= read -r tool_call; do
     # Make sure to quite since we execute with bash -c later
     pipeline_cmd+=" | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")"
     ((i++))
-done < <(jq -c '.[]' <<< "$pipeline")
+done
 
 # Make sure to quite since we execute with bash -c
 debug "Running pipelne as '$pipeline_cmd' from workspace root"
