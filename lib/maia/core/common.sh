@@ -1247,6 +1247,12 @@ load_merged_config() {
 	[[ "$s" == "$target_scope" ]] && break
     done
 
+    # Avoid jq hanging if there are no config files
+    if [[ ${#config_files[@]} -eq 0 ]] ; then
+	jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }"
+        return
+    fi
+
     # 5) Emit the merged config
     jq -s \
         "${jq_args[@]}" \
