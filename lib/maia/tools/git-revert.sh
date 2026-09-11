@@ -9,7 +9,6 @@
 
 set -eo pipefail
 
-. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -32,10 +31,13 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-commitlist="${param[refspecs]:-}"
+commitlist="${param[commits]:-}"
 declare -a refs=()
 if [[ -n "$commitlist" ]] ; then
-    mapfile_from_json commits "$commitlist"
+    if ! mapfile_from_json commits "$commitlist" ; then
+	echo "[ERROR] commits parse error." >&2
+	exit 2
+    fi
 fi
 
 git revert -no-edit "${args[@]}" "${commits[@]}"

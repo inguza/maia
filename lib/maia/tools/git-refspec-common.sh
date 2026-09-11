@@ -9,7 +9,6 @@
 
 set -eo pipefail
 
-. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -39,7 +38,10 @@ repository="${param[repository]}"
 refspecs="${param[refspecs]:-}"
 declare -a refs=()
 if [[ -n "$refspecs" ]] ; then
-    mapfile_from_json refs "$refspecs"
+    if ! mapfile_from_json refs "$refspecs" ; then
+	echo "[ERROR] refspecs parse error."
+	exit 3
+    fi
 fi
 
 if [[ -n "$repository" ]] ; then

@@ -6,8 +6,10 @@
 # Commercial licensing is available separately.
 #
 
+. "$MAIA_CORE_LIB_DIR/fast.sh"
+
 parseparam() {
-    local output status
+    local output status=0
 
     if ! output=$(
         jq -r '
@@ -30,21 +32,16 @@ parseparam() {
     # It will loop at least once so we need to check against empty key
     while IFS=$'\t' read -r key value; do
 	[[ -n "$key" ]] || continue
-        param["$key"]="$value"
+	# Remove \r for windows users
+        param["$key"]="${value%$'\r'}"
     done <<< "$output"
 }
 
 parsearguments() {
     arguments=()
 
-    if [[ -n ${param[arguments]:-} ]]; then
-        local output
-
-        if output=$(jq -r '.[]' <<< "${param[arguments]}" 2> /dev/null ) ; then
-            if [[ -n "$output" ]]; then
-                mapfile -t arguments <<< "$output"
-            fi
-        else
+    if [[ -n "${param[arguments]:-}" ]]; then
+	if ! mapfile_from_json arguments "${param[arguments]}" ; then
             printf '[ERROR] Argument parsing error\n' >&2
             exit 1
         fi

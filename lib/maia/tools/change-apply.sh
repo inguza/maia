@@ -20,7 +20,9 @@ if [[ -v param[ids] ]] ; then
     idskey="ids"
 fi
 
-mapfile_from_json ids "${param[$idskey]}"
+if ! mapfile_from_json ids "${param[$idskey]}" ; then
+    die "ids parse error."
+fi
 for id in "${ids[@]}"; do
     if [[ -z "$id" ]]; then
 	continue

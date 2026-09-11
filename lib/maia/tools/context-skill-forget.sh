@@ -26,7 +26,9 @@ fi
 declare -a skills=()
 
 if [[ -n ${param[skills]:-} ]]; then
-    mapfile_from_json skills "${param[skills]}"
+    if ! mapfile_from_json skills "${param[skills]}" ; then
+	die "skills parse error."
+    fi
 fi
 
 thissession="$(resolve_session_name)"

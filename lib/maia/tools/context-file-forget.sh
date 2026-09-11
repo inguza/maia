@@ -27,7 +27,10 @@ if [[ ! -v param[$fileparam] ]] ; then
 fi
 
 filedefs=()
-mapfile_from_json filepatterns "${param[$fileparam]}"
+if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
+    echo "[ERROR] files parse error." >&2
+    exit 2
+fi
 for filepattern in "${filepatterns[@]}" ; do
     filedefs+=("$filepattern")
 done

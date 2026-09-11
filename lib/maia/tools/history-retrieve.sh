@@ -21,7 +21,9 @@ if [[ ! -v "param[ids]" ]]; then
 fi
 
 declare -a ids=()
-mapfile_from_json ids "${param[ids]}"
+if ! mapfile_from_json ids "${param[ids]}" ; then
+    die "ids parse error."
+fi
 
 history_file="$(resolve_history_meta)"
 jq \

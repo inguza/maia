@@ -29,7 +29,9 @@ startline="${param[startline]:-}"
 stopline="${param[stopline]:-}"
 
 filedefs=()
-mapfile_from_json filepatterns "${param[$fileparam]}"
+if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
+    die "$fileparam parse error."
+fi
 for filepattern in "${filepatterns[@]}" ; do
     mapfile_from_command files compgen -G "$filepattern" || true
     if [[ ${#files[@]} == 0 ]] ; then

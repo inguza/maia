@@ -9,7 +9,6 @@
 
 set -eo pipefail
 
-. "$MAIA_CORE_LIB_DIR/fast.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -32,7 +31,10 @@ fi
 pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
 if [[ -n "$pathspecs" ]] ; then
-    mapfile_from_json paths "$pathspecs"
+    if ! mapfile_from_json paths "$pathspecs" ; then
+	echo "[ERROR] pathspecs parse error." >&2
+	exit 2
+    fi
 fi
 for path in "${paths[@]}" ; do
     validate_path "$path"
