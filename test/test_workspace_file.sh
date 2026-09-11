@@ -74,8 +74,8 @@ run_file_cmd "list_add_again" add x1.txt x2.txt
 run_file_cmd "list_after_add_2" list
 
 # Previous remove but now forget
-run_file_cmd "forget_single" forget x2.txt
-run_file_cmd "forget_single" forget "y3.txt*"
+run_file_cmd "forget_single_1" forget x2.txt
+run_file_cmd "forget_single_2" forget "y3.txt*"
 
 run_and_check "ls_y" ls y*.txt
 
