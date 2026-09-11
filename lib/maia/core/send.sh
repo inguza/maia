@@ -106,6 +106,19 @@ EOF
     exit 0
 }
 
+append_message() {
+    local -n _msgs="$1"
+    local role="$2"
+    local content="$3"
+
+    local tmpf="$(mktemp)"
+    printf '%s' "$content" > "$tmpf"
+    _msgs=$(jq --rawfile content "$tmpf" \
+        --arg role "$role" \
+        '. + [{role:$role, content:$content}]' <<<"$_msgs")
+    rm -f "$tmpf"
+}
+
 # Build the API "messages" array as a JSON string.
 build_messages_json() {
     local outbox_file="$1"
@@ -189,13 +202,16 @@ build_messages_json() {
 		fi
             fi
             if [[ -n "$sys" ]]; then
-                msgs=$(jq --slurpfile txt <(printf '%s' "$sys" | jq -R -s '.') '. + [{role:"'$systemrole'",content:$txt[0]}]' <<< "$msgs")
+		append_message msgs "$systemrole" "$sys"
             fi
             # History messages
             if [[ -f "$history_file" ]]; then
+		local tmpf="$(mktemp)"
+		printf '%s' "$msgs" > "$tmpf"
                 msgs=$(jq -s '
                     .[0] + (.[1] | map(if type=="object" then del(.timestamp, .id) else . end))
-                ' <(echo "$msgs") "$history_file")
+                ' "$tmpf" "$history_file")
+		rm -f "$tmpf"
             fi
             # Outbox as final user message
             local out=""
@@ -203,13 +219,15 @@ build_messages_json() {
                 out=$(<"$outbox_file")
             fi
 	    if [[ -n "$out" ]] ; then
-		msgs=$(jq --slurpfile txt <(printf '%s' "$out" | jq -R -s '.') '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
+		append_message msgs "user" "$out"
 	    fi
             # One combined “Files:” user message, inserted before the last user message
             if [[ -n "$combined" && "$no_files" == false ]]; then
 		# Avoid argument list too long by using slurpfile
+		local tmpf="$(mktemp)"
+		printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.' > "$tmpf"
 		msgs=$(jq --slurpfile content \
-			  <(printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.') '
+			  "$tmpf" '
 			  . as $m
 			  | ([$m | to_entries[] | select(.value.role == "user")] | last) as $last
 			  | if $last then
@@ -220,6 +238,7 @@ build_messages_json() {
 			        $m
 			    end
 			' <<< "$msgs")
+		rm -f "$tmpf"
             fi
             ;;
         APPEND)
@@ -245,13 +264,16 @@ build_messages_json() {
 		sys+="$skill_memory"
 	    fi
             if [[ -n "$sys" ]]; then
-                msgs=$(jq --slurpfile txt <(printf '%s' "$sys" | jq -R -s '.') '. + [{role:"'$systemrole'",content:$txt[0]}]' <<< "$msgs")
+		append_message msgs "$systemrole" "$sys"
             fi
             # History messages
             if [[ -f "$history_file" ]]; then
+		local tmpf="$(mktemp)"
+		printf '%s' "$msgs" > "$tmpf"
                 msgs=$(jq -s '
                     .[0] + (.[1] | map(if type=="object" then del(.timestamp) else . end))
-                ' <(echo "$msgs") "$history_file")
+                ' "$tmpf" "$history_file")
+		rm -f "$tmpf"
             fi
             # Outbox content plus appended files instructions and fenced files
             local out=""
@@ -261,9 +283,7 @@ build_messages_json() {
 
 	    # Add the user message
 	    if [[ -n "$out" ]]; then
-		msgs=$(jq --slurpfile txt \
-			  <(printf '%s' "$out" | jq -R -s '.') \
-			  '. + [{role:"user",content:$txt[0]}]' <<< "$msgs")
+		append_message msgs "user" "$out"
 	    fi
             # Prepare files instructions and fenced content if any
             local files_section=""
@@ -273,8 +293,9 @@ build_messages_json() {
             fi
 	    # Then append the files section to the end of the last user message
 	    if [[ -n "$files_section" ]]; then
-		msgs=$(jq --slurpfile files \
-		      <(printf '%s' "$files_section" | jq -R -s '.') '
+		local tmpf="$(mktemp)"
+		printf '%s' "$files_section" > "$tmpf"
+		msgs=$(jq --slurpfile files "$tmpf" '
 		      . as $m
 		      | ([$m | to_entries[] |
 		          select(.value.role == "user")] | last) as $last
@@ -284,6 +305,7 @@ build_messages_json() {
 			  .
 			end
 		' <<< "$msgs")
+		rm -f "$tmpf"
 	    fi
             ;;
         *)
@@ -578,6 +600,8 @@ handle_send_command() {
 	fi
 
 	if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
+	    local tmpmf="$(mktemp)"
+	    printf '%s' "$messages_json" > "$tmpmf"
 	    if [[ -n "$tools_json" ]] ; then
 		jq -n \
 		   --arg model "$model" \
@@ -589,7 +613,7 @@ handle_send_command() {
 		   --argjson n "$n" \
 		   --argjson stream "$stream" \
 		   --argjson tools "$tools_json" \
-		   --slurpfile messages <(printf '%s' "$messages_json") \
+		   --slurpfile messages "$tmpmf" \
 		   '{model: $model, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0], tools: $tools}' \
 		   > "$tmp_payload"
 	    else
@@ -602,10 +626,11 @@ handle_send_command() {
 		   --argjson presence_penalty "$presence_penalty" \
 		   --argjson n "$n" \
 		   --argjson stream "$stream" \
-		   --slurpfile messages <(printf '%s' "$messages_json") \
+		   --slurpfile messages "$tmpmf" \
 		   '{model: $model, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]}' \
 		   > "$tmp_payload"
 	    fi
+	    rm -f "$tmpmf"
 	elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 	    # Build Bedrock converse payload:
 	    # - Add parameters object with maxTokensToSample, temperature, stopSequences
@@ -691,7 +716,7 @@ handle_send_command() {
 		local METHOD="POST"
 		curl_headers+=(-X "$METHOD")
 		. "$MAIA_CORE_LIB_DIR/aws.sh"
-		readarray -t SIGNED_HEADERS < <(sigv4headers "$METHOD" "$url" "bedrock" "$tmp_payload")
+		mapfile_from_command SIGNED_HEADERS sigv4headers "$METHOD" "$url" "bedrock" "$tmp_payload"
 		for hdr in "${SIGNED_HEADERS[@]}"; do
 		    curl_headers+=(-H "$hdr")
 		done
@@ -811,7 +836,8 @@ handle_send_command() {
 	    # Allow tools to be run in parallel
 	    local duplicate="no"
 	    seen_commands_this=()
-	    while IFS= read -r tool_call; do
+	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
+	    for tool_call in "${tool_calls[@]}"; do
 		local func_name="" func_args=""
 		local id=$(jq -r '.id' <<<"$tool_call")
 		local func_name=$(jq -r '.function.name' <<<"$tool_call")
@@ -876,7 +902,7 @@ handle_send_command() {
 			  content: $output
 			}]'
 		fi
-	    done < <(jq -c '.[]' <<<"$tools_call_json")
+	    done
 	    # Now reset the seen commands and copy the ones from this round
 	    seen_commands=()
 	    for key in "${!seen_commands_this[@]}"; do

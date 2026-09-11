@@ -125,6 +125,11 @@ forget_entries() {
     fi
 }
 
+find_filesets() {
+    local ws_dir="$1"
+    find "$ws_dir" -maxdepth 1 -name '*.fileset' -exec basename {} \; | sed 's/\.fileset$//'
+}
+
 handle_file_command() {
     # help flags
     [[ "$1" =~ ^-h|--help$ ]] && file_usage
@@ -140,9 +145,9 @@ handle_file_command() {
 
     # Resolve session expanded filesets JSON and parse into array
     local session_fs_json=$(get_session_expanded_filesets "$session_name")
-    mapfile -t session_fs < <(jq -r '.[]' <<<"$session_fs_json")
+    mapfile_from_json session_fs "$session_fs_json"
     local session_extra_send_fs_json=$(get_session_expanded_extra_send_filesets "$session_name")
-    mapfile -t session_extra_send_fs < <(jq -r '.[]' <<<"$session_extra_send_fs_json")
+    mapfile_from_json session_extra_send_fs "$session_extra_send_fs_json"
 
     # Parse global flags: --all and --filesets
     local all_flag=false
@@ -175,7 +180,7 @@ handle_file_command() {
     elif [[ "$all_flag" == true ]]; then
         # Use all filesets physically present in workspace dir
         local ws_dir=$(resolve_workspace_path "$session_ws")
-        mapfile -t active_fs < <(find "$ws_dir" -maxdepth 1 -name '*.fileset' -exec basename {} \; | sed 's/\.fileset$//')
+        mapfile_from_command active_fs find_filesets "$ws_dir"
     else
         active_fs=("${session_fs[@]}")
     fi

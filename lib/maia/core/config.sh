@@ -119,7 +119,7 @@ find_highest_scope_with_key() {
     local s
     for s in "${SCOPE_ORDER[@]}"; do
 	[[ "$s" == "default" ]] && continue
-	local file=$(content_of_file_in_scope "$s" "config.json")
+	local file=$(file_in_scope "$s" "config.json")
 	if [[ -n "$file" && -f "$file" ]] && jq -e --arg k "$name" '.[$k]' "$file" >/dev/null 2>&1; then
 	    echo "$s"
 	    return 0
@@ -439,7 +439,7 @@ show_config() {
 		    start=true
 		fi
 		[[ "$start" != true ]] && continue
-		local file=$(content_of_file_in_scope "$s" "config.json")
+		local file=$(file_in_scope "$s" "config.json")
 		if [[ -n "$file" && -f "$file" ]] && jq -e --arg k "$key" '.[$k]' "$file" >/dev/null; then
 		    found=$s
 		    break

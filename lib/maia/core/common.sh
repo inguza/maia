@@ -399,7 +399,7 @@ resolve_workspace_default_session_filesets() {
     echo "$(jq -c '.default_session_filesets' < "$ws_meta")"
 }
 # Echoes a newline-separated list of basenames (no “.fileset”) for all existing .fileset files.
-# consume as: mapfile -t EXISTING_FS < <( resolve_all_workspace_filesets "$ws_name" )
+# consume as: mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$ws_name"
 resolve_all_workspace_filesets() {
     local ws_name="$(resolve_workspace_name "$1")"
     local ws_dir="$(resolve_workspace_path "$ws_name")"
@@ -445,6 +445,32 @@ list_to_json() {
     printf '%s\n' $* | jq -R . | jq -s .
 }
 
+mapfile_from_command() {
+    local -n _dst="$1"
+    shift
+    local tmpfile="$(mktemp)"
+    "$@" > "$tmpfile"
+    local status=$?
+    mapfile -t _dst < "$tmpfile"
+    rm -f "$tmpfile"
+    return $status
+}
+
+mapfile_from_json() {
+    local -n _dst="$1"
+    local json="$2"
+    local tmpfile="$(mktemp)"
+    jq -r '.[]' <<<"$json" > "$tmpfile"
+    mapfile -t _dst < "$tmpfile"
+    rm -f "$tmpfile"
+}
+
+mapfile_from_file() {
+    local -n _dst="$1"
+    local file="$2"
+    mapfile -t _dst < "$file"
+}
+
 # validate_subset <candidates_json> <allowed_json> <label>
 #   Ensures every element in the first JSON array appears in the second.
 #   Exits with an error if any element is missing.
@@ -454,7 +480,7 @@ validate_subset() {
     local label="$1";      shift
 
     # Load allowed values via jq
-    mapfile -t allowed_arr < <(jq -r '.[]' <<<"$allow_json")
+    mapfile_from_json allowed_arr "$allow_json"
     declare -A allowed_map
     for v in "${allowed_arr[@]}"; do
 	if [[ -n "$v" ]]; then
@@ -463,7 +489,7 @@ validate_subset() {
     done
 
     # Load candidate values via jq
-    mapfile -t cand_arr < <(jq -r '.[]' <<<"$cand_json")
+    mapfile_from_json cand_arr "$cand_json"
     for v in "${cand_arr[@]}"; do
         if [[ -z "${allowed_map[$v]}" ]]; then
             die "${label^} '$v' is not permitted. The permitted are: $(printf '%s ' "${allowed_arr[@]}")"
@@ -1172,7 +1198,7 @@ file_for_scope() {
     return 1
 }
 
-content_of_file_in_scope() {
+file_in_scope() {
     local target="$1"
     local filename="$2"
 
@@ -1202,34 +1228,30 @@ load_merged_config() {
 	fi
 	jq_fields+=( "\"$key\": \$$key" )
     done
-    local result
-    result=$(jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }")
 
     # If the target is the pseudo-scope "default", just return defaults (no disk merges).
     if [[ "$target_scope" == "default" ]]; then
-        echo "$result"
+	jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }"
         return
     fi
 
+    local config_files=()
     # 2) Derive merge order by reversing SCOPE_ORDER, skipping "default"
-    local scopes=()
     for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
 	local s=${SCOPE_ORDER[idx]}
 	[[ "$s" == "default" ]] && continue
-	scopes+=("$s")
-    done
-
-    # 4) Merge each scope up through the target
-    for s in "${scopes[@]}"; do
-	local cfg=$(content_of_file_in_scope "$s" "config.json")
+	local cfg=$(file_in_scope "$s" "config.json")
 	if [[ -n "$cfg" ]]; then
-	    result=$(jq -s '.[0] * .[1]' <(echo "$result") "$cfg")
+	    config_files+=("$cfg")
 	fi
 	[[ "$s" == "$target_scope" ]] && break
     done
 
     # 5) Emit the merged config
-    echo "$result"
+    jq -s \
+        "${jq_args[@]}" \
+        "([ { $(IFS=,; echo "${jq_fields[*]}") } ] + . | reduce .[] as \$item ({}; . * \$item))" \
+        "${config_files[@]}"
 }
 
 # Helper to convert environment variable MAIA_CURL_EXTRA_HEADERS into curl -H arguments.
@@ -1304,7 +1326,7 @@ skill_execute() {
     local script="$3"
     shift 3
     local -a args=()
-    mapfile -t args < <(expand_glob_files "$@")
+    mapfile_from_command args expand_glob_files "$@"
     skill_execute_no_glob_expansion "$scope" "$skill" "$script" "${args[@]}"
 }
 
@@ -1316,7 +1338,7 @@ skill_execute_no_glob_expansion() {
     local status=1
 
     local -a skillset
-    mapfile -t skillset < <(prompt_for_scope "$scope" "skillset")
+    mapfile_from_command skillset prompt_for_scope "$scope" "skillset"
     local allowed_glob=$(make_glob_from_var "${skillset[@]}")
     if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
         local skill_search_path=$(build_skill_search_path)
@@ -1745,20 +1767,22 @@ trigger_event() {
     # Then look up tool hooks among the allowed tools
     local tool_search_path="$(build_tool_search_path)"
     local enabled_tools_json="$(prompt_for_scope "session" "toolset" "json")"
-    while IFS=$'\t' read -r tool hook_exec; do
+    local hooks=()
+    mapfile_from_command hooks jq -r --arg event "$event" '
+      .[]
+      | select(.hooks[$event] != null)
+      | [.name, .hooks[$event]]
+      | @tsv
+    ' <<<"$enabled_tools_json"
+
+    for hook in "${hooks[@]}" ; do
 	local hook_exec_dir="$(command_exec_dir "${hook_exec}" "$tool_search_path")"
 	if [[ -z "$hook_exec_dir" ]]; then
 	    warning "Unable to execute '$hook_exec' for event '$event' (not found in tool search path)."
 	else
 	    hook_execute "$hook_exec_dir/$hook_exec" "$event" "$tool_search_path" "${data[@]}"
 	fi
-    done < <(
-	jq -r --arg event "$event" '
-	  .[]
-	  | select(.hooks[$event] != null)
-	  | [.name, .hooks[$event]]
-	  | @tsv
-	    ' <<<"$enabled_tools_json")
+    done
     # And then skills
 #    local skill_search_path="$(build_skill_search_path)"
 #    local skillset_file="$(file_for_scope "session" "skillset.txt")"
@@ -1772,7 +1796,7 @@ trigger_event() {
 #		hook_execute "$execpath" "$event" "$skill_search_path" "${data[@]}"
 #	    fi
 #	    # TODO!!! This line is not complete
-#	done < <(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
+#	done < FRAGILE!!!<(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
 #    fi
 }
 
