@@ -115,6 +115,7 @@ wsl --install
 
 How to configure WSL and install a Linux distribution is outside the scope of this document.
 
+<!--
 MAIA can also be run from Git Bash on Windows.
 
 Open a PowerShell terminal and install the required software:
@@ -128,6 +129,7 @@ Then start Git Bash.
 
 **Windows support has not been fully tested.**
 In particular, MAIA appears to run significantly slower under Git Bash than under WSL.
+-->
 
 ## Install the software
 
