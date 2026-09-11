@@ -422,6 +422,7 @@ handle_session_command() {
 		    if [[ "$filesets_json" != "" && "$filesets_json" != "[]" ]]; then
 			echo "Filesets:"
 			jq -r '.filesets[]' <<< "$session_json" | while IFS= read -r fs; do
+			    fs="${fs%$'\r'}"
 			    local note=""
 			    local fsname="$fs"
 			    if [[ "$fs" == "__SESSION_NAME__" ]] ; then
@@ -442,6 +443,7 @@ handle_session_command() {
 		    if [[ "$extra_send_filesets_json" != "" && "$extra_send_filesets_json" != "[]" ]]; then
 			echo "Extra send filesets:"
 			jq -r '.extra_send_filesets[]' <<< "$session_json" | while IFS= read -r fs; do
+			    fs="${fs%$'\r'}"
 			    local note=""
 			    local fsname="$fs"
 			    if [[ "$fs" == "__SESSION_NAME__" ]] ; then
