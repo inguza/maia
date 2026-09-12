@@ -605,6 +605,8 @@ print_history_entries() {
         (.content | @base64),
         ((.tool_calls // "") | @base64)
     ] | @tsv' | while IFS=$'\t' read -r idx role user_idx assistant_idx tool_idx ts id toolid content_b64 tools_call_b64; do
+	# Git Bash workaround
+	tools_call_b64="${tools_call_b64%$'\r'}"
 	local content=""
 	if [[ -n "$content_b64" ]] ; then
             content=$(echo "$content_b64" | base64 --decode)
