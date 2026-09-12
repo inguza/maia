@@ -107,6 +107,7 @@ cleanup_mock_curl() {
 
 normalize_output() {
     local GITBASHW=qpoiu4vpoupoimcsrpoicsomethingthatwedefinitelydonotreplace
+    local GITBASHJQ="$GITBASHW"
     if command -v cygpath > /dev/null 2>&1 ; then
 	GITBASHW=$(cygpath -w "$M_ROOT")
 	GITBASHJQ=${GITBASHW//\\/\\//}
