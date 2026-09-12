@@ -43,7 +43,7 @@ sigv4headers() {
     #    DATESTAMP="20250610"
     local CONTENT_HASH
     if [[ -e "$PAYLOAD" ]] ; then
-	CONTENT_HASH=$(cat "$PAYLOAD" | openssl dgst -sha256 -hex | sed 's/^.* //')
+	CONTENT_HASH=$(read_file "$PAYLOAD" | openssl dgst -sha256 -hex | sed 's/^.* //')
 	cp $PAYLOAD tmp-payload.txt
     else
 	CONTENT_HASH=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hex | sed 's/^.* //')

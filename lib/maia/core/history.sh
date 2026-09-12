@@ -292,13 +292,13 @@ history_prune() {
                     printf '%s' "$orig_content" > "$edit_tmp"
 		    # TODO, allow either MAIA_EDITOR or EDITOR
                     "$editor" "$edit_tmp"
-                    local new_content=$(cat "$edit_tmp")
+                    local new_content=$(read_file "$edit_tmp")
                 fi
                 if [[ -n "$orig_tool_calls" ]]; then
                     printf '%s' "$orig_tool_calls" > "$edit_tmp"
 		    # TODO, allow either MAIA_EDITOR or EDITOR
                     "$editor" "$edit_tmp"
-                    local new_tool_calls=$(cat "$edit_tmp")
+                    local new_tool_calls=$(read_file "$edit_tmp")
                 fi
                 rm -f "$edit_tmp"
             elif [[ "$mode" == "reduce" ]]; then

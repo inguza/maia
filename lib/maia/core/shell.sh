@@ -23,7 +23,7 @@ handle_shell_command() {
 		if [[ -d "$base/$dir" ]] ; then
 		    local status=unknown
 		    if [[ -e "$base/$dir/exit_status" ]] ; then
-			local exit_status=$(cat "$base/$dir/exit_status")
+			local exit_status=$(read_file "$base/$dir/exit_status" cr)
 			if [[ -z "$exit_status" ]] ; then
 			    status="created"
 			elif [[ "$exit_status" == 0 ]] ; then

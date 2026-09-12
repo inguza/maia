@@ -35,7 +35,7 @@ if [[ -v "param[commands]" ]] ; then
     printf "%b" "${param[commands]}" > "$wpath"
     commandsstr="Commands"
 else
-    cat > "$wpath"
+    read_file > "$wpath"
     commandsstr="Stdin"
 fi
 

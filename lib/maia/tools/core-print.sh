@@ -16,6 +16,6 @@ parseparam
 if [[ -v "param[content]" ]] ; then
     printf '%b' "${param[content]}"
 else
-    cat -
+    read_file
 fi
 exit 0

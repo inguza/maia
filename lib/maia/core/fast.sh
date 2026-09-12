@@ -189,10 +189,51 @@ normalize_lf() {
     done
 }
 
+read_file_by_line() {
+    local filename="$1"
+    local filter="$2"
+    local input=/dev/stdin
+    [[ -n "$filename" ]] && input="$filename"
+
+    local line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+	case "$filter" in
+	    cr)
+		line="${line%$'\r'}"
+		;;
+	    *)
+		:
+		;;
+	esac
+	printf '%s\n' "$line"
+    done < "$input"
+}
+
 read_file() {
-    local content="$(<"$1")"
-    content=${content//$'\r'/}
-    printf '%s' "$content"
+    local filename="$1"
+    local filter="$2"
+    local input=/dev/stdin
+    [[ -n "$filename" ]] && input="$filename"
+
+    while true; do
+	local line
+	IFS= read -r line
+	local status=$?
+	[[ $status -eq 0 || -n "$line" ]] || break
+	case "$filter" in
+	    cr)
+		line="${line%$'\r'}"
+		;;
+	    *)
+		:
+		;;
+	esac
+	if [[ $status -eq 0 ]]; then
+	    printf '%s\n' "$line"
+	else
+            printf '%s' "$line"
+	fi
+    done < "$input"
 }
 
 mapfile_from_command() {

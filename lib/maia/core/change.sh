@@ -718,35 +718,37 @@ showfiles() {
     if [ -n "$patch" ] ; then
 	echo "Suggested patch below:"
 	echo "======================"
-	cat "$patch"
+	read_file_by_line "$patch" cr
     elif [ -n "$shell" ] ; then
 	local shellout=$(match_single_file "$prefix" .output)
 	local shellstat=$(match_single_file "$prefix" .exit_status)
 	if [ -n "$shellout" ] ; then
 	    echo "Command output below:"
 	    echo "====================="
-	    cat "$shellout"
+	    read_file_by_line "$shellout" cr
 	    echo
 	    echo "Exit status below:"
 	    echo "=================="
 	    if [ -n "$shellstat" ] ; then
-		cat "$shellstat"
+		read_file_by_line "$shellstat" cr
 	    fi
 	    echo
 	else
 	    echo "Suggested commands below:"
 	    echo "========================="
-	    cat "$shell"
+	    read_file_by_line "$shell" cr
 	    echo
 	fi
     elif [ -n "$text" ] ; then
 	echo "Manual change description below:"
 	echo "================================"
-	cat "$text"
+	read_file_by_line "$text" cr
+	echo
     elif [ -n "$snippet" ] ; then
 	echo "Suggested code snippet below:"
 	echo "============================="
-	cat "$snippet"
+	read_file_by_line "$snippet" cr
+	echo
     fi
 }
 
@@ -819,7 +821,7 @@ handle_change_command() {
 		    cat "$prefix"*.* 2>/dev/null || die "No files for ID $id"
 		    echo
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
-			cat "$changes_dir/$session/$id.txt"
+			read_file_by_line "$changes_dir/$session/$id.txt" cr
 		    fi
 		else
 		    jq . "$file"; echo
@@ -827,7 +829,7 @@ handle_change_command() {
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
 			echo "Assistant response text below:"
 			echo "=============================="
-			cat "$changes_dir/$session/$id.txt"
+			read_file_by_line "$changes_dir/$session/$id.txt" cr
 		    fi
 		fi
 
@@ -853,7 +855,7 @@ handle_change_command() {
 		    cat "$prefix"*.* 2>/dev/null || die "No files for ID $id"
 		    echo
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
-			cat "$changes_dir/$session/$id.txt"
+			read_file_by_line "$changes_dir/$session/$id.txt" cr
 		    fi
 		else
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"

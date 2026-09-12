@@ -161,7 +161,7 @@ handle_snippet_command() {
             if [[ -n "$scope" ]]; then
                 local file=$(snippet_file_path "$scope" "$name")
                 if [[ -f "$file" ]]; then
-                    cat "$file"
+                    read_file_by_line "$file" cr
                 else
                     die "Snippet '$name' not found in scope '$scope'"
                 fi
@@ -169,7 +169,7 @@ handle_snippet_command() {
                 local found=$(find_snippet_scope_and_path "$name") || die "Snippet '$name' not found in any scope"
                 local found_scope="${found%%|*}"
                 local found_file="${found#*|}"
-                cat "$found_file"
+                read_file_by_line "$found_file" cr
             fi
             ;;
 	append)
@@ -185,7 +185,7 @@ handle_snippet_command() {
             fi
             local file=$(snippet_file_path "$target_scope" "$name")
 	    if [[ -n "$found_file" && "$found_file" != "$file" && ! -e "$file" ]] ; then
-		cat "$found_file" > $file
+		read_file_by_line "$found_file" > $file
 	    fi
             mkdir -p "$(dirname "$file")"
             handle_text_file_command "$file" append "$@"

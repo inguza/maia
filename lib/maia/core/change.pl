@@ -42,6 +42,7 @@ my $txtfile = shift @ARGV;
 my $ws_root = shift @ARGV;
 my $sourcefile = "$ws_root/$filename";
 
+# TODO: Consider stripping \r\n. But first we need to test to see how the LLM behaves.
 my $source = &read_file("$sourcefile");
 my $change = &read_json_file("$changefile");
 
@@ -129,9 +130,9 @@ sub change_file {
 	    # mid-file replacements.
 	    if ($old =~ /\n\z/) {
 		my $old_no_nl = "$old";
-		$old_no_nl =~ s/\n\z//;
+		$old_no_nl =~ s/\r?\n\z//;
 		my $new_no_nl = "$new";
-		$new_no_nl =~ s/\n\z//;
+		$new_no_nl =~ s/\r?\n\z//;
 		my $rpos = rindex($content, $old_no_nl);
 		if ($rpos >= 0 && $rpos + length($old_no_nl) == length($content)) {
 		    # Found match at EOF without trailing newline. Replace that region.
@@ -150,9 +151,9 @@ sub change_file {
 	    }
 	    if ($old =~ /\n\z/) {
 		my $old_no_nl = "$old";
-		$old_no_nl =~ s/\n\z//;
+		$old_no_nl =~ s/\r?\n\z//;
 		my $new_no_nl = "$new";
-		$new_no_nl =~ s/\n\z//;
+		$new_no_nl =~ s/\r?\n\z//;
 		my $pattern = &build_relaxed_existing_pattern($old_no_nl);
 		if (defined $pattern) {
 		    if ($content =~ s/$pattern/${new_no_nl}/sm) {

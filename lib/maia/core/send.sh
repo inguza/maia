@@ -216,7 +216,7 @@ build_messages_json() {
             # Outbox as final user message
             local out=""
             if [[ -e "$outbox_file" ]]; then
-                out=$(read_file "$outbox_file")
+                out=$(read_file "$outbox_file" cr)
             fi
 	    if [[ -n "$out" ]] ; then
 		append_message msgs "user" "$out"
@@ -278,7 +278,7 @@ build_messages_json() {
             # Outbox content plus appended files instructions and fenced files
             local out=""
             if [[ -e "$outbox_file" ]]; then
-                out=$(read_file "$outbox_file")
+                out=$(read_file "$outbox_file" cr)
             fi
 
 	    # Add the user message
@@ -583,7 +583,7 @@ handle_send_command() {
         die "Outbox is empty. Nothing to send."
     fi
 
-    local outbox_content=$(read_file "$outbox_file")
+    local outbox_content=$(read_file "$outbox_file" cr)
 
     local allowed_iterations=$(jq -r '.tool_iteration_limit' <<<"$_cfg")
     local allowed_iterations_left=$allowed_iterations
@@ -689,7 +689,7 @@ handle_send_command() {
             local log_dir=$(resolve_logs_dir)
             mkdir -p "$log_dir"
 	    echo "$url" > "$log_dir/${timestamp}-${iteration}-request.log"
-            cat "$tmp_payload" >> "$log_dir/${timestamp}-${iteration}-request.json"
+            read_file "$tmp_payload" >> "$log_dir/${timestamp}-${iteration}-request.json"
             info "Request logged to $log_dir/${timestamp}-${iteration}-request.json"
 	fi
 
@@ -698,7 +698,7 @@ handle_send_command() {
 	local tools_call_json=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
-            response=$(read_file "$response_file")
+            response=$(read_file "$response_file" cr)
             reply=$(jq -r '.choices[0].message.content' <<<"$response")
 	elif $dry_run; then
             reply="Dry-run response"
@@ -881,7 +881,7 @@ handle_send_command() {
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
 		    else
-			local fork_output=$(read_file "$tool_tmp_dir/$id.start")
+			local fork_output=$(read_file "$tool_tmp_dir/$id.start" cr)
 			if [[ "$output_mode" == "full" ]] ; then
 			    echo "$fork_output" >&2
 			fi
@@ -931,7 +931,7 @@ handle_send_command() {
 		local id="${finished##*/}"
 		id="${id%.finished}"
 
-		status="$(read_file "$tool_tmp_dir/$id.finished")"
+		status="$(read_file "$tool_tmp_dir/$id.finished" cr)"
 
 		local exitinfo=""
 		if (( status != 0 )); then
@@ -952,7 +952,7 @@ handle_send_command() {
 		    local shortargs=$(shorten_args "$arguments")
 		    local short
 		    echo "######## $idshort $toolname $shortargs -> $status ########"
-		    cat "$tool_tmp_dir/$id.output"
+		    read_file_by_line "$tool_tmp_dir/$id.output" cr
 		    # Make sure we print a separator to show that the tool end and the response is shown
 		    separator=true
 		fi

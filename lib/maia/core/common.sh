@@ -799,7 +799,7 @@ read_text_from_editor() {
         rm -f "$tmpfile"
         return 1
     fi
-    local content=$(read_file "$tmpfile")
+    local content=$(read_file "$tmpfile" cr)
     rm -f "$tmpfile"
     printf '%s' "$content"
 }
@@ -850,7 +850,7 @@ expand_snippet_name() {
     local found
     if found=$(find_snippet_scope_and_path "$name"); then
         local file="${found#*|}"
-        cat "$file"
+        read_file "$file" cr
         return 0
     fi
     return 1
@@ -860,8 +860,8 @@ deduplicate_files() {
     local file
     for file in $@ ; do
 	if [[ -e "$file" ]] ; then
-	    cat "$file" > "${file}.tmp"
-	    cat "${file}.tmp" | uniq > "$file"
+	    read_file "$file" cr > "${file}.tmp"
+	    read_file "${file}.tmp" cr | uniq > "$file"
 	    rm -f "${file}.tmp"
 	fi
     done
@@ -885,7 +885,7 @@ handle_text_file_command() {
     case "$subcmd" in
         show)
             shift || true
-            [[ -f "$file" ]] && cat "$file"
+            [[ -f "$file" ]] && read_file_by_line "$file" cr
             ;;
 	edit)
 	    shift || true
@@ -901,7 +901,7 @@ handle_text_file_command() {
 		case "$1" in
 		    +read)
 			shift
-			cat >> "$file"
+			read_file "" cr >> "$file"
 			;;
 		    +compose)
 			shift
@@ -925,11 +925,10 @@ handle_text_file_command() {
 			echo '# Shell output' >> "$file"
 			echo '' >> "$file"
 			echo '```text' >> "$file"
-			cat "$shell_output" >> "$file"
-			echo "" >> "$file"
+			read_file_by_line "$shell_output" cr >> "$file"
 			echo '```' >> "$file"
 			if [[ -e "$exit_status" ]] ; then
-			    echo "Exit status: ""$(cat "$exit_status")" >> "$file"
+			    echo "Exit status: ""$(read_file "$exit_status" cr)" >> "$file"
 			else
 			    echo "The process is still running." >> "$file"
 			fi
@@ -960,9 +959,9 @@ handle_text_file_command() {
 			echo "# Shell execution" >> "$file"
 			echo "" >> "$file"
 			echo '```text' >> "$file"
-			cat "$shell_output" >> "$file"
+			read_file_by_line "$shell_output" cr >> "$file"
 			echo '```' >> "$file"
-			echo "Exit status: ""$(cat "$exit_status")" >> "$file"
+			echo "Exit status: ""$(read_file "$exit_status" cr)" >> "$file"
 			echo "" >> "$file"
 			;;
 		    +edit)
@@ -990,7 +989,7 @@ handle_text_file_command() {
 			# todo strip = from the file
                         local efile="${1#=}"
 			if [[ -f "$efile" ]]; then
-                            cat "$efile" >> "$file"
+                            read_file_by_line "$efile" cr >> "$file"
 			else
 			    warn "File '$efile' do not exist."
 			fi

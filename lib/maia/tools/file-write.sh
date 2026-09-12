@@ -43,7 +43,7 @@ if [[ -v "param[content]" ]] ; then
     printf "%b" "${param[content]}" > "$wpath"
     contentstr="Content"
 else
-    cat > "$wpath"
+    read_file > "$wpath"
     contentstr="Stdin"
 fi
 
@@ -56,7 +56,7 @@ if [[ "$path" != "$wpath" ]] ; then
     else
 	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe content of the proposed change is the following:\n"
 	echo "\`\`\`patch"
-	cat "$pfile"
+	read_file_by_line "$pfile" cr
 	echo "\`\`\`"
     fi
 else

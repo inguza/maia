@@ -118,7 +118,7 @@ handle_job_command() {
 	    if [[ ! -e "${session_path}/jobs/${id}.json" ]] ; then
 		echo "Missing"
 	    elif [[ -e "${session_path}/jobs/${id}.finished" ]] ; then
-		local status=$(cat "${session_path}/jobs/${id}.finished")
+		local status=$(read_file "${session_path}/jobs/${id}.finished" cr)
 		if [[ -z "$status" ]] ; then
 		    echo "Vanished"
 		elif [[ $status == 0 ]] ; then
@@ -150,7 +150,7 @@ handle_job_command() {
 	    if [[ ! -e "${session_path}/jobs/${id}.output" ]] ; then
 		echo "Missing output file"
 	    else
-		cat "${session_path}/jobs/${id}.output"
+		read_file "${session_path}/jobs/${id}.output" cr
 	    fi
 	    ;;
 
