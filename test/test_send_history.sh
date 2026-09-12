@@ -23,27 +23,22 @@ setup_mock_curl
 FIXTURE_DIR="$OUTPUT_DIR/fixtures"
 mkdir -p "$FIXTURE_DIR"
 
-# Prepare static fixture files for assistant responses
-cat > "$FIXTURE_DIR/response_1.txt" <<EOF
-Assistant response 1
-EOF
+# The assumption is that the LLM responds with \n always not \r\n
 
-cat > "$FIXTURE_DIR/response_2.txt" <<EOF
-Assistant response 2
-EOF
+# Prepare static fixture files for assistant responses
+printf '%s\n' 'Assistant response 1' > "$FIXTURE_DIR/response_1.txt"
+printf '%s\n' 'Assistant response 2' > "$FIXTURE_DIR/response_2.txt"
 
 # For response 3, include fenced file snippet as part of assistant response
-cat > "$FIXTURE_DIR/response_3.txt" <<EOF
-Here is some sample text with a fenced file:
-\`\`\`
-file.txt
-This is the file content
-\`\`\`
-EOF
+printf '%s\n%s\n%s\n%s\n%s\n' \
+       "Here is some sample text with a fenced file:" \
+       "\`\`\`" \
+       "file.txt" \
+       "This is the file content" \
+       "\`\`\`" \
+       > "$FIXTURE_DIR/response_3.txt"
 
-cat > "$FIXTURE_DIR/response_4.txt" <<EOF
-Assistant response 4
-EOF
+printf '%s\n' 'Assistant response 4' > "$FIXTURE_DIR/response_4.txt"
 
 # Encode responses to JSON once, to be used as MOCK_CURL_RESPONSE_FILE
 encode_response_to_json "$FIXTURE_DIR/response_1.txt" "$FIXTURE_DIR/response_1.json"
