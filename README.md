@@ -3,13 +3,12 @@
 MAIA is a lightweight, command-line AI assistant designed to run on Unix-like environments. It provides a
 structured environment for working with AI models through sessions, workspaces, context and tools.
 
-It is built around the Unix environment rather than requiring a separate application ecosystem.
-This makes it portable across Linux, WSL, Git Bash and other environments that provide its small set of required dependencies.
+It has no compiled components or heavy runtime dependencies, making it practical to deploy on everything
+from development workstations to older or stripped-down servers.
+MAIA can run on Linux and on Windows through WSL or Git Bash, as well as other environments that provide its required dependencies.
 
-It takes a different approach to many other AI tools. Rather than building a large integrated AI development
-environment, it aims to provide a small, portable AI assistant that you can deploy almost anywhere you have a shell.
-
-This also makes MAIA easy to use from integrated terminals in IDEs and editors without requiring IDE-specific integration.
+Rather than becoming an integrated development environment itself, MAIA works alongside the environment you already use.
+It can be used from a regular terminal, over SSH, or from an integrated terminal in an IDE or editor.
 
 ## The name
 
