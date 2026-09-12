@@ -8,6 +8,8 @@ It is built around the Unix environment rather than requiring a separate applica
 It takes a different approach to many other AI tools. Rather than building a large integrated AI development
 environment, it aims to provide a small, portable AI assistant that you can deploy almost anywhere you have a shell.
 
+This also makes MAIA easy to use from integrated terminals in IDEs and editors without requiring IDE-specific integration.
+
 ## The name
 
 The name stands for Multipurpose Artificial Intelligence Assistant.
