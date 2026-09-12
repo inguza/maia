@@ -130,8 +130,8 @@ Then start Git Bash.
 In particular, MAIA appears to run significantly slower under Git Bash than under WSL.
 
 There are behavioral differences when MAIA is run from Git Bash due to:
-- Unix-style paths are used by MAIA, but some MAIA output may contain Windows-style paths (`C:\...` vs `/c/...`)
-- Line endings (CRLF vs LF)
+- Unix-style paths are used by MAIA, but some MAIA output may contain Windows-style paths (`C:\...` vs `/c/...`) [#77](https://github.com/inguza/maia/issues/77)
+- Line endings (CRLF vs LF) [#74](https://github.com/inguza/maia/issues/74) [#75](https://github.com/inguza/maia/issues/75) [#76](https://github.com/inguza/maia/issues/76)
 - MSYS text-mode translation
 - Differences in behavior of the provided Unix-style utilities
 - Differences in process and signal handling
