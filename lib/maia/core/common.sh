@@ -447,32 +447,6 @@ list_to_json() {
     printf '%s\n' $* | jq -R . | jq -s .
 }
 
-# validate_subset <candidates_json> <allowed_json> <label>
-#   Ensures every element in the first JSON array appears in the second.
-#   Exits with an error if any element is missing.
-validate_subset() {
-    local cand_json="$1"; shift
-    local allow_json="$1"; shift
-    local label="$1";      shift
-
-    # Load allowed values via jq
-    mapfile_from_json allowed_arr "$allow_json"
-    declare -A allowed_map
-    for v in "${allowed_arr[@]}"; do
-	if [[ -n "$v" ]]; then
-            allowed_map["$v"]=1
-	fi
-    done
-
-    # Load candidate values via jq
-    mapfile_from_json cand_arr "$cand_json"
-    for v in "${cand_arr[@]}"; do
-        if [[ -z "${allowed_map[$v]}" ]]; then
-            die "${label^} '$v' is not permitted. The permitted are: $(printf '%s ' "${allowed_arr[@]}")"
-        fi
-    done
-}
-
 # update_session <name> <bootstrap?> <workspace> <filesets_json>
 # - name: session name
 # - bootstrap?: "true" to initialize dir+files, "false" to assume exists
@@ -1311,8 +1285,11 @@ skill_execute() {
     local script="$3"
     shift 3
     local -a args=()
-    mapfile_from_command args expand_glob_files "$@"
-    skill_execute_no_glob_expansion "$scope" "$skill" "$script" "${args[@]}"
+    if ! mapfile_from_command args expand_glob_files "$@" ; then
+	error "Expansion of $@ failed."
+    else
+	skill_execute_no_glob_expansion "$scope" "$skill" "$script" "${args[@]}"
+    fi
 }
 
 skill_execute_no_glob_expansion() {
@@ -1769,12 +1746,15 @@ trigger_event() {
     local tool_search_path="$(build_tool_search_path)"
     local enabled_tools_json="$(prompt_for_scope "session" "toolset" "json")"
     local hooks=()
-    mapfile_from_command hooks jq -r --arg event "$event" '
+    if ! mapfile_from_command hooks jq -r --arg event "$event" '
       .[]
       | select(.hooks[$event] != null)
       | [.name, .hooks[$event]]
       | @tsv
-    ' <<<"$enabled_tools_json"
+    ' <<<"$enabled_tools_json" ; then
+	error "Unable to parse the enabled tools."
+	return 2
+    fi
 
     for hook in "${hooks[@]}" ; do
 	local hook_exec_dir="$(command_exec_dir "${hook_exec}" "$tool_search_path")"

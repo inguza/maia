@@ -85,11 +85,37 @@ EOF
     exit 0
 }
 
-# parse_workspace_options [<args>…]
-# Returns:
-#   PARSED_PATH        — string or empty
-#   PARSED_FILESETS    — JSON array string (or empty)
-# Leaves leftovers in REMAINING_ARGS[@]
+# validate_subset <candidates_json> <allowed_json> <label>
+#   Ensures every element in the first JSON array appears in the second.
+#   Exits with an error if any element is missing.
+validate_subset() {
+    local cand_json="$1"; shift
+    local allow_json="$1"; shift
+    local label="$1";      shift
+
+    # Load allowed values via jq
+    if ! mapfile_from_json allowed_arr "$allow_json" ; then
+	die "Unable to parse the allowed structure."
+    fi
+
+    declare -A allowed_map
+    for v in "${allowed_arr[@]}"; do
+	if [[ -n "$v" ]]; then
+            allowed_map["$v"]=1
+	fi
+    done
+
+    # Load candidate values via jq
+    if ! mapfile_from_json cand_arr "$cand_json" ; then
+	die "Unable to parse candidate structure."
+    fi
+    for v in "${cand_arr[@]}"; do
+        if [[ -z "${allowed_map[$v]}" ]]; then
+	    die "${label^} '$v' is not permitted. The permitted are: $(printf '%s ' "${allowed_arr[@]}")"
+        fi
+    done
+}
+
 parse_workspace_options() {
     PARSED_PATH=""
     PARSED_FILESETS=""
@@ -158,7 +184,7 @@ handle_workspace_command() {
 	    # 6) Materialize each fileset as an empty file
 	    local fs
 	    # Use jq to extract names robustly
-	    mapfile_from_json cfilesets "$filesets_json"
+	    mapfile_from_json cfilesets "$filesets_json" || true
 	    for fs in "${cfilesets[@]}" ; do
 		: > "$ws_dir/${fs}.fileset"
 	    done
@@ -187,7 +213,7 @@ handle_workspace_command() {
             local new_path="${PARSED_PATH:-$current_path}"
             local filesets_json="${PARSED_FILESETS:-$current_filesets_json}"
             # Build JSON array of existing fileset names on disk
-            mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$name"
+            mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$name" || true
             local existing_json=$(printf '%s\n' "${EXISTING_FS[@]}" \
 				      | jq -R . | jq -s .)
             # 6a) Validate that any supplied --filesets are a subset of what exists
@@ -251,7 +277,7 @@ handle_workspace_command() {
 		local session_expanded_filesets=$(get_session_expanded_filesets "$session_name")
 		local fs
 		local filesets
-		mapfile_from_command filesets jq -r '.[]' <<<"$session_expanded_filesets"
+		mapfile_from_command filesets jq -r '.[]' <<<"$session_expanded_filesets" || true
 		for fs in "${filesets[@]}"; do
 		    session_fs_map["$fs"]=1
 		done

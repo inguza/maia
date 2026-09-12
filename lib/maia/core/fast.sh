@@ -205,8 +205,11 @@ mapfile_from_json() {
     local -n _dst="$1"
     local json="$2"
     local tmpfile="$(mktemp)"
-    jq -r '.[]' <<<"$json" > "$tmpfile" 2>/dev/null
-    local status=$?
+    local status=0
+    if [[ -n "$json" ]] ; then
+	jq -r '.[]' <<<"$json" > "$tmpfile" 2>/dev/null
+	status=$?
+    fi
     mapfile -t _dst < "$tmpfile"
     normalize_lf _dst
     rm -f "$tmpfile"
