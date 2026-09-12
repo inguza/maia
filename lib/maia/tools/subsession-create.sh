@@ -45,6 +45,8 @@ apply_config_param() {
     local maia_cmd1="$2"
     local maia_cmd2="$3"
     local value=$(jq -r --arg key "$param_name" '.[$key] // ""' <<< "$_cfg")
+    # Git Bash workaround
+    value="${value%$'\r'}"
     read -ra patterns <<< "$value"
     if [[ "$maia_cmd2" == allow || "$maia_cmd2" == remember ]] ; then
 	parent_allowed=()
