@@ -110,7 +110,7 @@ normalize_output() {
     local GITBASHJQ="$GITBASHW"
     if command -v cygpath > /dev/null 2>&1 ; then
 	GITBASHW=$(cygpath -w "$M_ROOT")
-	GITBASHJQ=${GITBASHW//\\/\\//}
+	GITBASHJQ=${GITBASHW//\\//}
 	GITBASHW=${GITBASHW//\\/\\\\}
     fi
     sed "
