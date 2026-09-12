@@ -1321,9 +1321,16 @@ skill_execute_no_glob_expansion() {
     local scriptname="$3"
     shift 3
     local status=1
-
+    local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
+    if [[ -z "$ws_root" ]] ; then
+	error "No workspace root defined."
+	return 2
+    fi
     local -a skillset
-    mapfile_from_command skillset prompt_for_scope "$scope" "skillset"
+    if ! mapfile_from_command skillset prompt_for_scope "$scope" "skillset" ; then
+	error "Skillset parse error."
+	return 3
+    fi
     local allowed_glob=$(make_glob_from_var "${skillset[@]}")
     if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
         local skill_search_path=$(build_skill_search_path)
@@ -1334,7 +1341,7 @@ skill_execute_no_glob_expansion() {
 	else
 	    (
 		export PATH="$skill_search_path:$PATH"
-		cd "$(printf '%q' "$(resolve_workspace_root)")"
+		cd "$ws_root"
 		echo '' | "$skill_exec_dir/$skill/$scriptname" "$@" 2>&1
 	    )
 	    status=$?
@@ -1455,11 +1462,18 @@ tool_cmd() {
     local tool_cmd="$4"
     local func_args="$5"
 
+    # TODO: Move this to the caller, since we do not want error handling in this function
+    local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
+    if [[ -z "$ws_root" ]] ; then
+	error "No workspace root defined."
+	return 2
+    fi
+    
     # Do the actual tool call (log to files?)
     local args_file="$tool_tmp_dir/$id.args"
     printf '%s\n' "$func_args" > "$args_file"
     # Make sure to quite since we execute with bash -c
-    bash -c "cd $(printf '%q' "$(resolve_workspace_root)"); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
+    bash -c "cd $ws_root; echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
     status=$?
     printf '%s\n' "$status" > "$tool_tmp_dir/$id.finished"
 }
