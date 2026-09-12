@@ -109,6 +109,7 @@ normalize_output() {
     local GITBASHW=qpoiu4vpoupoimcsrpoicsomethingthatwedefinitelydonotreplace
     if command -v cygpath > /dev/null 2>&1 ; then
 	GITBASHW=$(cygpath -w "$M_ROOT")
+	GITBASHJQ=${GITBASHW//\\/\\//}
 	GITBASHW=${GITBASHW//\\/\\\\}
     fi
     sed "
@@ -116,6 +117,7 @@ s/\x1B\[[0-9;]*m//g;
 s|$XMAIA_HOME|<MAIA_HOME>|g;
 s|$M_ROOT|<MAIA_ROOT>|g;
 s|$GITBASHW|<MAIA_ROOT>|ig;
+s|$GITBASHJQ|<MAIA_ROOT>|ig;
 s/20[0-9][0-9][0-2][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]-[0-9][0-9]*-[0-9][0-9][0-9][0-9][0-9][0-9]*/<datetime>-<pid>-<starttime>/g;
 s/.starttime.: .[0-9][0-9]*./\"starttime\": \"<starttime>\"/;
 s/.pid.: .[0-9][0-9]*./\"pid\": <pid>/;
