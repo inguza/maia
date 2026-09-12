@@ -1440,7 +1440,7 @@ tool_cmd() {
     local func_args="$5"
 
     # If there is no workspace defined, fallback to current directory
-    local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
+    local ws_root="$(resolve_workspace_root)"
     if [[ -z "$ws_root" ]] ; then
 	ws_root="."
     fi
@@ -1449,7 +1449,7 @@ tool_cmd() {
     local args_file="$tool_tmp_dir/$id.args"
     printf '%s\n' "$func_args" > "$args_file"
     # Make sure to quite since we execute with bash -c
-    bash -c "cd $ws_root; echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
+    bash -c "cd $(printf '%q' $ws_root); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
     status=$?
     printf '%s\n' "$status" > "$tool_tmp_dir/$id.finished"
 }
