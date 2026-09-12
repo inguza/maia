@@ -605,7 +605,10 @@ print_history_entries() {
         (.content | @base64),
         ((.tool_calls // "") | @base64)
     ] | @tsv' | while IFS=$'\t' read -r idx role user_idx assistant_idx tool_idx ts id toolid content_b64 tools_call_b64; do
-        content=$(echo "$content_b64" | base64 --decode)
+	local content=""
+	if [[ -n "$content_b64" ]] ; then
+            content=$(echo "$content_b64" | base64 --decode)
+	fi
         # Replace null content with empty string
         if [[ "$content" == "null" ]] || [[ -z "$content" ]]; then
             content=""
@@ -614,7 +617,10 @@ print_history_entries() {
             toolid=""
         fi
 
-	tools_call_json=$(echo "$tools_call_b64" | base64 --decode)
+	local tools_call_json=""
+	if [[ -n "$tools_call_b64" ]] ; then
+	    tools_call_json=$(echo "$tools_call_b64" | base64 --decode)
+	fi
         if [[ "$tools_call_json" == "null" ]] || [[ -z "$tools_call_json" ]]; then
             tools_call_json=""
         fi
