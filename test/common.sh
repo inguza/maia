@@ -326,29 +326,27 @@ run_and_check() {
 encode_response_to_json() {
     local input_file="$1"
     local output_file="$2"
-    local content=$(jq -R -s '.' < "$input_file")
-    cat > "$output_file" <<EOF
+    sed 's/\r$//' "$input_file" |
+	jq -Rs '
 {
-  "id": "mock-response-id",
-  "object": "chat.completion",
-  "created": 1234567890,
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": $content
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 10,
-    "completion_tokens": 5,
-    "total_tokens": 15
+  id: "mock-response-id",
+  object: "chat.completion",
+  created: 1234567890,
+  choices: [{
+    index: 0,
+    message: {
+      role: "assistant",
+      content: .
+    },
+    finish_reason: "stop"
+  }],
+  usage: {
+    prompt_tokens: 10,
+    completion_tokens: 5,
+    total_tokens: 15
   }
 }
-EOF
+' > "$output_file"
 }
 
 # Setup isolated MAIA_HOME directory for tests
