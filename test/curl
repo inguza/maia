@@ -54,14 +54,14 @@ done
 # Determine which response to output
 if [[ -n "${MOCK_CURL_RESPONSE_FILE:-}" ]]; then
     if [[ -f "$MOCK_CURL_RESPONSE_FILE" ]]; then
-	cat "$MOCK_CURL_RESPONSE_FILE"
+	content="$(<"$MOCK_CURL_RESPONSE_FILE")"
+	printf '%s' "$content"
     else
 	echo "$MOCK_CURL_RESPONSE_FILE not found!"
     fi
 else
     # Default canned success response
-    cat <<EOF
-{
+    printf '%s\n' '{
   "id": "mock-response-id",
   "object": "chat.completion",
   "created": 1234567890,
@@ -81,8 +81,7 @@ else
     "completion_tokens": 5,
     "total_tokens": 15
   }
-}
-EOF
+}'
 fi
 
 exit 0
