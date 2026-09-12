@@ -192,7 +192,7 @@ normalize_lf() {
 read_file() {
     local content="$(<"$1")"
     content=${content//$'\r'/}
-    print '%s' "$content"
+    printf '%s' "$content"
 }
 
 mapfile_from_command() {
