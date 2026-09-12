@@ -115,8 +115,7 @@ wsl --install
 
 How to configure WSL and install a Linux distribution is outside the scope of this document.
 
-<!--
-MAIA can also be run from Git Bash on Windows.
+MAIA can also be run from [Git Bash](https://git-scm.com/install/windows) on Windows.
 
 Open a PowerShell terminal and install the required software:
 
@@ -129,7 +128,13 @@ Then start Git Bash.
 
 **Windows support has not been fully tested.**
 In particular, MAIA appears to run significantly slower under Git Bash than under WSL.
--->
+
+There are behavioral differences when MAIA is run from Git Bash due to:
+- Unix-style paths are used by MAIA, but some MAIA output may contain Windows-style paths (`C:\...` vs `/c/...`)
+- Line endings (CRLF vs LF)
+- MSYS text-mode translation
+- Differences in behavior of the provided Unix-style utilities
+- Differences in process and signal handling
 
 ## Install the software
 
@@ -157,7 +162,6 @@ git clone https://github.com/inguza/maia.git
 
 This creates a `maia` directory. You can use this directory directly or copy it to the desired location.
 
-<!--
 **NOTE!** If you use Git for Windows, be aware that its default line-ending configuration may check out files using Windows-style `\r\n` line endings.
 
 A clone using Windows-style line endings should not also be used from WSL or another Linux environment expecting Unix-style line endings. Use separate clones for Git Bash and WSL/Linux, or configure Git to use Unix-style line endings consistently before sharing a clone between environments.
@@ -168,7 +172,7 @@ If you plan to share the filesystem between Git Bash and WSL/Linux run the follo
 git config --global core.autocrlf false
 git clone https://github.com/inguza/maia.git
 ```
--->
+
 ## Configuration
 
 ### ~/.bashrc configuration
