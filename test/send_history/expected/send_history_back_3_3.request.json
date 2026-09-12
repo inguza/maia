@@ -18,7 +18,7 @@
     },
     {
       "role": "assistant",
-      "content": "Here is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
+      "content": "First some description line.\nHere is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
     },
     {
       "role": "user",
@@ -42,7 +42,7 @@
     },
     {
       "role": "assistant",
-      "content": "Here is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
+      "content": "First some description line.\nHere is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
     },
     {
       "role": "user",

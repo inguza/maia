@@ -1,5 +1,6 @@
-[1] assistant#0 <dateandtime>-18f6548e
+[1] assistant#0 <dateandtime>-8d4380c3
 ----------------------------------------
+First some description line.
 Here is some sample text with a fenced file:
 <<BLOCK #0: pruned>>
 <<Original text reference: <dateandtime>-<extraref>>>
@@ -12,8 +13,9 @@ Assistant response 1
 ----------------------------------------
 Assistant response 2
 
-[7] assistant#3 <dateandtime>-18f6548e
+[7] assistant#3 <dateandtime>-8d4380c3
 ----------------------------------------
+First some description line.
 Here is some sample text with a fenced file:
 <<BLOCK #3: pruned>>
 <<Original text reference: <dateandtime>-<extraref>>>

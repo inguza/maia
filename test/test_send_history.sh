@@ -30,7 +30,8 @@ printf '%s\n' 'Assistant response 1' > "$FIXTURE_DIR/response_1.txt"
 printf '%s\n' 'Assistant response 2' > "$FIXTURE_DIR/response_2.txt"
 
 # For response 3, include fenced file snippet as part of assistant response
-printf '%s\n%s\n%s\n%s\n%s\n' \
+printf '%s\n%s\n%s\n%s\n%s\n%s\n' \
+       "First some description line." \
        "Here is some sample text with a fenced file:" \
        "\`\`\`" \
        "file.txt" \
