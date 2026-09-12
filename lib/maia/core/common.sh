@@ -141,7 +141,7 @@ init_tool_search_dirs() {
 	[user]="${SCOPE_DIRS[user]}/tools"
 	[system]="${SCOPE_DIRS[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
-	[extra]="$(jq -r '.additional_tool_paths' <<<"$_cfg")"
+	[extra]="$(get_config additional_tool_paths)"
     )
 }
 
@@ -154,7 +154,7 @@ init_skill_search_dirs() {
 	[user]="${SCOPE_DIRS[user]}/skills"
 	[system]="${SCOPE_DIRS[system]}/skills"
 	[install]="${MAIA_SKILLS_LIB_DIR}"
-	[extra]="$(jq -r '.additional_skill_paths' <<<"$_cfg")"
+	[extra]="$(get_config additional_skill_paths)"
     )
 }
 
@@ -515,7 +515,7 @@ ensure_session_exists() {
 	    validate_workspace_exists "$workspace"
 	else
 	    # Default
-	    workspace="$(jq -r '.default_workspace' <<<"$_cfg")"
+	    workspace="$(get_config default_workspace)"
 	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
 		local workspace="$(resolve_workspace_name)"
 	    fi
@@ -523,7 +523,7 @@ ensure_session_exists() {
 		workspace=""
 	    fi
 	fi
-	local filesets_json="$(jq -r '.default_session_filesets' <<<"$_cfg")"
+	local filesets_json="$(get_config default_session_filesets)"
 	update_session "default" "true" "$workspace" "$filesets_json"
     fi
     # For non-default sessions, we now do nothing (no error)
@@ -673,7 +673,7 @@ fileset_content_extract() {
     local -a filespecs=()
     local -A seen=()
     local sendset
-    local default_filter=$(jq -r '.default_filter // ""' <<<"$_cfg")
+    local default_filter="$(get_config default_filter)"
     for sendset in "${fs[@]}"; do
 	# Resolve path to fileset data file
 	local fs_file="$ws_root/${sendset}.fileset"

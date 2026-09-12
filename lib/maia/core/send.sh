@@ -147,9 +147,9 @@ build_messages_json() {
     model_key="${model_key//-/_}"
     # Extract cost per token for user and assistant from config or fallback to defaults
     local file_handling_key="file_handling_mode_${model_key}"
-    local mode=$(jq -r --arg key "$file_handling_key" '.[ $key ] // empty' <<<"$_cfg")
+    local mode=$(jq -r --arg key "$file_handling_key" '.[ $key ] // empty' <<<"$_cfg" | read_file "" cr)
     if [[ ! $mode ]] ; then
-	mode=$(jq -r '.file_handling_mode' <<<"$_cfg")
+	mode=$(get_config file_handling_mode)
     fi
     if [[ $file_handling_mode_raw ]] ; then
 	mode=$file_handling_mode_raw
@@ -331,7 +331,7 @@ handle_send_command() {
     # Show help if requested
     [[ "$1" =~ ^-h|--help$ ]] && send_usage
     [[ "$2" =~ ^-h|--help$ ]] && send_usage
-    local maia_api_base_url="$(echo "$_cfg" | jq -r '.api_base_url')"
+    local maia_api_base_url="$(get_config api_base_url)"
 
     local history_dir=$(resolve_session_path)
     local history_file=$(resolve_history_meta)
@@ -345,21 +345,21 @@ handle_send_command() {
 
     # Extract config values into local variables
     # TODO: speed up configuration reading by using fewer jq commands
-    local model=$(jq -r '.model' <<<"$_cfg")
-    local temperature=$(jq -r '.temperature' <<<"$_cfg")
-    local max_output_tokens=$(jq -r '.max_output_tokens' <<<"$_cfg")
-    local max_input_tokens=$(jq -r '.max_input_tokens' <<<"$_cfg")
-    local top_p=$(jq -r '.top_p' <<<"$_cfg")
-    local frequency_penalty=$(jq -r '.frequency_penalty' <<<"$_cfg")
-    local presence_penalty=$(jq -r '.presence_penalty' <<<"$_cfg")
+    local model=$(get_config model)
+    local temperature=$(get_config temperature)
+    local max_output_tokens=$(get_config max_output_tokens)
+    local max_input_tokens=$(get_config max_input_tokens)
+    local top_p=$(get_config top_p)
+    local frequency_penalty=$(get_config frequency_penalty)
+    local presence_penalty=$(get_config presence_penalty)
     local tool_loop_prevent
-    read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg")"
+    read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg" | read_file "" cr)"
     local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
-    local n=$(jq -r '.n' <<<"$_cfg")
-    local stream=$(jq -r '.stream' <<<"$_cfg")
-    local api_type=$(jq -r '.api_type' <<<"$_cfg")
-    local http_logging=$(jq -r '.http_logging' <<<"$_cfg")
-    local send_hook=$(jq -r '.send_hook' <<<"$_cfg")
+    local n=$(get_config n)
+    local stream=$(get_config stream)
+    local api_type=$(get_config api_type)
+    local http_logging=$(get_config http_logging)
+    local send_hook=$(get_config send_hook)
     local file_handling_mode_raw
     local output_mode="full"
     local no_files=false
@@ -585,7 +585,7 @@ handle_send_command() {
 
     local outbox_content=$(read_file "$outbox_file" cr)
 
-    local allowed_iterations=$(jq -r '.tool_iteration_limit' <<<"$_cfg")
+    local allowed_iterations=$(get_config tool_iteration_limit)
     local allowed_iterations_left=$allowed_iterations
     declare -A seen_commands=()
     declare -A seen_commands_this
@@ -825,7 +825,7 @@ handle_send_command() {
 	fi
 	if [[ -n "$reply" ]] ; then
             # Auto-parse feature: if auto_parse is yes or true (case-insensitive)
-            local auto_parse=$(jq -r '.auto_parse' <<<"$_cfg")
+            local auto_parse=$(get_config auto_parse)
             local auto_parse_lc="${auto_parse,,}"
             if [[ "$auto_parse_lc" == "yes" || "$auto_parse_lc" == "true" ]]; then
 		# Call parse on the last assistant message, with --auto-parse option

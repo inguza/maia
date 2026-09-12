@@ -294,7 +294,7 @@ handle_file_command() {
 
 	discover)
 	    init_tool_search_dirs
-	    local serverscfg="$(jq -r '.mcp_servers // empty' <<<"$_cfg")"
+	    local serverscfg="$(get_config mcp_servers empty)"
 	    mapfile_from_json servers "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"

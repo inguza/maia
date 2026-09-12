@@ -145,8 +145,8 @@ handle_parse_command() {
             rm -f "$ws_changes/${entry_ts}-${id}"* 2>/dev/null || true
         fi
         if [[ ! -f "$outfile" ]]; then
-	    local tab_width=$(jq -r '.tab_width' <<<"$_cfg")
-	    local allowed_files=$(jq -r '.splice_allowed_files' <<<"$_cfg")
+	    local tab_width=$(get_config tab_width)
+	    local allowed_files=$(get_config splice_allowed_files)
             printf '%s' "$content" > "$outfile"
             "$MAIA_CORE_LIB_DIR/parse.pl" "parse" $auto_parse_flag --loglevel "$TERM_LOGLEVEL" \
 				--default-filenames-file "$default_filenames_file" \

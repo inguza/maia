@@ -69,7 +69,7 @@ handle_count_command() {
     [[ "$2" =~ ^-h|--help$ ]] && count_usage
 
     # Parse arguments for --model option
-    local model=$(jq -r '.model' <<<"$_cfg")
+    local model=$(get_config model)
     local file_handling_mode_raw
     local args=()
     while [[ $# -gt 0 ]]; do
@@ -109,8 +109,8 @@ handle_count_command() {
     local cost_input_key="cost_input_${model_key}"
     local cost_output_key="cost_output_${model_key}"
 
-    local cost_input=$(jq -r --arg key "$cost_input_key" '.[ $key ] // empty' <<<"$_cfg")
-    local cost_output=$(jq -r --arg key "$cost_output_key" '.[ $key ] // empty' <<<"$_cfg")
+    local cost_input=$(get_config "$cost_input_key" empty)
+    local cost_output=$(get_config "$cost_output_key" empty)
 
     # Determine history and outbox
     local history_dir=$(resolve_session_path)

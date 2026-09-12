@@ -151,7 +151,7 @@ history_prune() {
     local -a ranges=()
 
     # Default mode from config
-    local mode=$(jq -r '.prune_mode' <<<"$_cfg" | read_file "" cr)
+    local mode=$(get_config "prune_mode")
 
     # Parse flags before ranges
     while [[ $# -gt 0 ]]; do
