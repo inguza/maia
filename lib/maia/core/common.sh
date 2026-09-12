@@ -1042,7 +1042,8 @@ prompt_for_scope() {
     fi
     local f="$(file_for_scope "$target" "${type}.${ext}")"
     if [[ -n "$f" ]]; then
-	cat "$f"
+	# Git Bash workaround to use sed instead of cat
+	sed 's/\r$//' "$f"
     else
 	local T="${type^^}"
 	local E="${ext^^}"
