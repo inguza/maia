@@ -1,9 +1,10 @@
 # Introduction
 
-MAIA is a lightweight, command-line AI assistant designed to run on most Linux systems. It provides a
+MAIA is a lightweight, command-line AI assistant designed to run on Unix-like environments. It provides a
 structured environment for working with AI models through sessions, workspaces, context and tools.
 
 It is built around the Unix environment rather than requiring a separate application ecosystem.
+This makes it portable across Linux, WSL, Git Bash and other environments that provide its small set of required dependencies.
 
 It takes a different approach to many other AI tools. Rather than building a large integrated AI development
 environment, it aims to provide a small, portable AI assistant that you can deploy almost anywhere you have a shell.
@@ -32,7 +33,7 @@ MAIA was developed around the following design principles.
 
 Easy to deploy anywhere you have a shell.
 
-It is designed to run on most Linux installations, including older systems and stripped-down server deployments.
+It is designed to run on most unix-like environments, including older systems and stripped-down server deployments.
 
 It has no compiled components or heavy runtime dependencies. Installation requires little more than copying
 the files to a system and making the command available.
@@ -92,7 +93,7 @@ Some MAIA tools have additional dependencies:
 | net-request-ssl | openssl |
 | bc | bc |
 | git-* tools | git |
-| util-<x> tools | <x> |
+| `util-<x>` tools | util `<x>` |
 
 ## Install the dependencies
 
@@ -267,6 +268,10 @@ export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 
 ### MCP
 
+MAIA can connect to external tools and resources through the Model Context Protocol (MCP).
+
+NOTE! For resources only discovery is currently supported. [#71](https://github.com/inguza/maia/issues/71)
+
 Configure the MCP servers.
 
 The MCP server syntax is:
@@ -381,7 +386,7 @@ Optional external capabilities that can be made available to the AI to perform a
    Allow tools (this is a small set, there are more tools available):
 
    ```bash
-   maia tool --scope session replace "core-*" "file-*" "context-*" "change-*"
+   maia tool --scope session replace "core-*" "file-*" "context-*" "change-*:write"
    ```
    
    Allow skills and make sure they are in context.
