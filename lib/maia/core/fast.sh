@@ -189,6 +189,12 @@ normalize_lf() {
     done
 }
 
+read_file() {
+    local content="$(<"$1")"
+    content=${content//$'\r'/}
+    print '%s' "$content"
+}
+
 mapfile_from_command() {
     local -n _dst="$1"
     shift

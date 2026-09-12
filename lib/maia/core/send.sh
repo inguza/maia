@@ -216,7 +216,7 @@ build_messages_json() {
             # Outbox as final user message
             local out=""
             if [[ -e "$outbox_file" ]]; then
-                out=$(<"$outbox_file")
+                out=$(read_file "$outbox_file")
             fi
 	    if [[ -n "$out" ]] ; then
 		append_message msgs "user" "$out"
@@ -278,7 +278,7 @@ build_messages_json() {
             # Outbox content plus appended files instructions and fenced files
             local out=""
             if [[ -e "$outbox_file" ]]; then
-                out=$(<"$outbox_file")
+                out=$(read_file "$outbox_file")
             fi
 
 	    # Add the user message
@@ -583,7 +583,7 @@ handle_send_command() {
         die "Outbox is empty. Nothing to send."
     fi
 
-    local outbox_content=$(<"$outbox_file")
+    local outbox_content=$(read_file "$outbox_file")
 
     local allowed_iterations=$(jq -r '.tool_iteration_limit' <<<"$_cfg")
     local allowed_iterations_left=$allowed_iterations
@@ -698,7 +698,7 @@ handle_send_command() {
 	local tools_call_json=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
-            response=$(<"$response_file")
+            response=$(read_file "$response_file")
             reply=$(jq -r '.choices[0].message.content' <<<"$response")
 	elif $dry_run; then
             reply="Dry-run response"
@@ -881,7 +881,7 @@ handle_send_command() {
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
 		    else
-			local fork_output=$(<"$tool_tmp_dir/$id.start")
+			local fork_output=$(read_file "$tool_tmp_dir/$id.start")
 			if [[ "$output_mode" == "full" ]] ; then
 			    echo "$fork_output" >&2
 			fi
@@ -931,7 +931,7 @@ handle_send_command() {
 		local id="${finished##*/}"
 		id="${id%.finished}"
 
-		status="$(<"$tool_tmp_dir/$id.finished")"
+		status="$(read_file "$tool_tmp_dir/$id.finished")"
 
 		local exitinfo=""
 		if (( status != 0 )); then

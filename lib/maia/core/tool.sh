@@ -413,7 +413,7 @@ handle_tool_command() {
 		"$enabled_tools_json" \
 		" run" > "$tool_tmp_dir/$id.start" 2>&1
 	    local status=$?
-	    local errormsg=$(<"$tool_tmp_dir/$id.start")
+	    local errormsg=$(read_file "$tool_tmp_dir/$id.start")
 	    if [[ -n "$errormsg" ]] ; then
 		echo "$errormsg" >&2
 	    else
@@ -422,7 +422,7 @@ handle_tool_command() {
 		if [[ -z "$finished" ]]; then
 		    die "Tool call malfunction."
 		fi
-		status="$(<"$tool_tmp_dir/$id.finished")"
+		status="$(read_file "$tool_tmp_dir/$id.finished")"
 		local exitinfo=""
 		if (( status != 0 )); then
 		    exitinfo="Tool exited with code $status.

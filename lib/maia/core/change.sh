@@ -151,7 +151,7 @@ prune_history() {
 	# We do not log since this is the normal case for file-* tools
 	return
     fi
-    local instructions=$(< "$instructions_file")
+    local instructions=$(read_file "$instructions_file")
 
     # 2) Append the status line
     if [[ "$action" == "applied" ]]; then

@@ -799,8 +799,7 @@ read_text_from_editor() {
         rm -f "$tmpfile"
         return 1
     fi
-    local content
-    content=$(<"$tmpfile")
+    local content=$(read_file "$tmpfile")
     rm -f "$tmpfile"
     printf '%s' "$content"
 }
