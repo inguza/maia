@@ -2,6 +2,9 @@
 
 `maia` supports integration with external tools that can be invoked by the AI model through function calls. These tools enhance the AI's capabilities by allowing it to perform actions or retrieve information from your environment.
 
+If a workspace is defined the tool is called from the workspace root.
+If no workspace is defined the tool is called from the current directory.
+
 ## Tool Definitions (`.td` files)
 
 Tools are defined through metadata files with the `.td` extension. These JSON files describe the tool's interface, including its name, description, parameters, and the command used to execute it.

@@ -1299,9 +1299,9 @@ skill_execute_no_glob_expansion() {
     shift 3
     local status=1
     local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
+    # If there is no workspace defined, fallback to current directory
     if [[ -z "$ws_root" ]] ; then
-	error "No workspace root defined."
-	return 2
+	ws_root="."
     fi
     local -a skillset
     if ! mapfile_from_command skillset prompt_for_scope "$scope" "skillset" ; then
@@ -1439,11 +1439,10 @@ tool_cmd() {
     local tool_cmd="$4"
     local func_args="$5"
 
-    # TODO: Move this to the caller, since we do not want error handling in this function
+    # If there is no workspace defined, fallback to current directory
     local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
     if [[ -z "$ws_root" ]] ; then
-	error "No workspace root defined."
-	return 2
+	ws_root="."
     fi
     
     # Do the actual tool call (log to files?)
