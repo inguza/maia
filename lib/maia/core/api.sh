@@ -71,8 +71,8 @@ handle_api_command() {
     # If no subcommand or help flag, display help
     [[ "$1" =~ ^-h|--help$ ]] && api_usage
     [[ "$2" =~ ^-h|--help$ ]] && api_usage
-    local maia_api_base_url="$(echo "$_cfg" | jq -r '.api_base_url')"
-    local api_type=$(jq -r '.api_type' <<<"$_cfg")
+    local maia_api_base_url="$(get_config api_base_url)"
+    local api_type=$(get_config api_type)
     # Detect API type
     if [[ "$api_type" == "AUTODETECT" || -z "$api_type" ]] ; then
 	if [[ "${maia_api_base_url}" == *"bedrock"*"amazonaws.com"* ]] ; then

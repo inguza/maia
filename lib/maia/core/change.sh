@@ -406,8 +406,8 @@ change_process() {
     [[ -n "$ws_root" && -d "$ws_root" ]] || die "Workspace root '$ws_root' not found or invalid"
 
     # Pass along options for parse.pl from config
-    local tab_width=$(jq -r '.tab_width // 4' <<< "$_cfg")
-    local splice_allowed_files=$(jq -r '.splice_allowed_files // "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$"' <<< "$_cfg")
+    local tab_width=$(get_config tab_width)
+    local splice_allowed_files=$(get_config splice_allowed_files)
     local session_name=$(resolve_session_name)
 
     for id in "${ids[@]}"; do
@@ -769,12 +769,12 @@ handle_change_command() {
     changes_dir="$(resolve_changes_path "$session_ws")"
 
     # Global flags
-    UPDATE_HISTORY=$(jq -r '.prune_when_applied' <<< "$_cfg")
+    UPDATE_HISTORY=$(get_config prune_when_applied)
     if [ "$cmd" = "skipped" ] ; then
-	UPDATE_HISTORY=$(jq -r '.prune_when_skipped' <<< "$_cfg")
+	UPDATE_HISTORY=$(get_config prune_when_skipped)
     fi
     DRY_RUN=false
-    AUTO_ADD=$(jq -r '.auto_add_new_files_on_apply // true' <<< "$_cfg")
+    AUTO_ADD=$(get_config auto_add_new_files_on_apply true)
     while [[ "$1" =~ ^-- ]]; do
 	case "$1" in
 	    --update-history) UPDATE_HISTORY=true;  shift;;

@@ -200,7 +200,7 @@ handle_session_command() {
 	    fi
 
 	    local ws_source=", from default_workspace configuration"
-	    local workspace="$(jq -r '.default_workspace' <<< "$_cfg")"
+	    local workspace=$(get_config default_workspace)
 	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
 		ws_source=", resolved from current session"
 		workspace="$(resolve_workspace_name)"
@@ -263,12 +263,12 @@ handle_session_command() {
 		if [[ -n "$PARSED_FILESETS" ]]; then
 		    filesets_json="$PARSED_FILESETS"
 		else
-		    filesets_json=$(jq -r '.default_session_filesets' <<<"$_cfg")
+		    filesets_json=$(get_config default_session_filesets)
 		fi
 		if [[ -n "$PARSED_EXTRA_SEND_FILESETS" ]]; then
                     extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
 		else
-		    extra_send_filesets_json=$(jq -r '.default_session_extra_send_filesets' <<<"$_cfg")
+		    extra_send_filesets_json=$(get_config default_session_extra_send_filesets)
 		fi
 	    fi
 

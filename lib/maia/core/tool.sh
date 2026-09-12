@@ -79,7 +79,7 @@ generate_allowed_toolset_def_file() {
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
-    local default_allowed_effects=$(jq -r '.default_allowed_tool_effects // []' <<<"$_cfg")
+    local default_allowed_effects="$(get_config default_allowed_tool_effects '[]')"
     # We match the names against the regexp and then for the matched ones we keep only the last if there are
     # several with the same name.
     # This uses the object index method that overwrites earlier entries
@@ -359,7 +359,7 @@ handle_tool_command() {
             ;;
 	discover)
 	    init_tool_search_dirs
-	    local serverscfg="$(jq -r '.mcp_servers // empty' <<<"$_cfg")"
+	    local serverscfg="$(get_config mcp_servers empty)"
 	    mapfile_from_json servers "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
