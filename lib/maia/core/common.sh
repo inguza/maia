@@ -189,6 +189,24 @@ is_first_letter_upper() {
 
 # resolve_home_paths from fast.sh
 
+get_config() {
+    local param="$1"
+    local default="$2"
+    local var
+    if [[ -z "$default" ]] ; then
+	var=$(jq -r ".$param" <<<"$_cfg")
+    else
+	var=$(jq -r ".$param // $default" <<<"$_cfg")
+    fi
+    # Git Bash workaround
+    var="${var%$'\r'}"
+    if [[ "$var" == null ]] ; then
+	var=""
+    fi
+    printf '%s' "$var"
+    return 0
+}
+
 # determine_implicit_scope — sets $implicit_scope to the first scope
 # (in SCOPE_ORDER) whose ${type}.txt exists, or “default” otherwise.
 determine_implicit_scope() {

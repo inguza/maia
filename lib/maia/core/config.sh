@@ -267,13 +267,13 @@ handle_config_command() {
 	    fi
 	    if [ -z "$name" ] ; then
 		# Show merged config according to view scope (defaults to session when --scope not given)
-		get_config "" "$view_scope"
+		get_scope_config "" "$view_scope"
 		return
 	    fi
 	    if [[ "$name" == --* ]]; then
 		die "Invalid configuration key name '$name'. It cannot start with '--'."
 	    fi
-	    get_config "$name" "$view_scope"
+	    get_scope_config "$name" "$view_scope"
 	    ;;
 
 	set)
@@ -367,7 +367,7 @@ handle_config_command() {
 		show_config # This cannot happen since we have "" above
 	    elif [[ -n "$name" && -z "$value" ]] ; then
 		debug "Get config"
-		get_config "$name" "$view_scope"
+		get_scope_config "$name" "$view_scope"
 	    else
 		debug "Set config '$name' '$value' '$write_scope'"
 		# Special handling for default_session_filesets to convert CSV to JSON array
@@ -516,7 +516,7 @@ config_exists() {
 }
 
 # Get effective merged setting for name or all
-get_config() {
+get_scope_config() {
     local name="$1"
     if [[ -n "$name" ]] ; then
 	config_exists "$name"
