@@ -1476,6 +1476,18 @@ pid_starttime() {
     awk '{print $22}' "/proc/$pid/stat"
 }
 
+cleanup_tools()
+{
+    local file
+    if [[ -d "$tool_tmp_dir" ]] ; then
+	for file in "$tool_tmp_dir"/*.json; do
+            [ -f "$file" ] || continue
+            local pid="$(jq -r '.pid // empty' "$file" | read_file "" cr)"
+            [ -n "$pid" ] && kill "$pid" 2>/dev/null
+	done
+    fi
+}
+
 # Tool command, will not produce any output on its own
 tool_cmd() {
     local tool_tmp_dir="$1"

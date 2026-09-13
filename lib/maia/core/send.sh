@@ -841,6 +841,10 @@ handle_send_command() {
 	    local duplicate="no"
 	    seen_commands_this=()
 	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
+
+	    # Make sure we kill tools in case this is interrupted
+	    trap 'cleanup_tools "$tool_tmp_dir"' INT TERM
+
 	    for tool_call in "${tool_calls[@]}"; do
 		local func_name="" func_args=""
 		local id=$(jq -r '.id' <<<"$tool_call")
@@ -977,6 +981,7 @@ handle_send_command() {
 	    if [[ "$duplicate" == "yes" && $tool_count -eq 0 ]] ; then
 		allowed_iterations_left=0
 	    fi
+	    trap - INT TERM
 	    rm -rf "$tool_tmp_dir"
 	fi
 	if [[ -n "$function_call_json" || "$tools_call_json" ]] ; then

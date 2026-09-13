@@ -400,6 +400,8 @@ handle_tool_command() {
 	    local func_args="$2"
 	    shift 2
 	    local tool_tmp_dir="$(mktemp -d)"
+	    trap 'cleanup_tools "$tool_tmp_dir"' INT TERM
+
 	    local id=manual
 	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
 	    local shaid="$(printf '%s' "$func_name($func_args)" | sha256sum | cut -c1-8)"
@@ -437,6 +439,7 @@ handle_tool_command() {
 		read_file_by_line "$tool_tmp_dir/$id.output" cr
 		echo "----------------- Tool output $id end --------------------------------------"
 	    fi
+	    trap - INT TERM
 	    rm -Rf "$tool_tmp_dir"
 	    ;;
 	show)
