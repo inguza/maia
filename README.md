@@ -281,7 +281,7 @@ It contains a list of MCP server definitions, each using the following syntax:
 Where `<name>` is a name you choose and `<endpoint>` is an MCP endpoint.
 
 Two types of endpoints are supported:
-- stdio - syntax 'stdio:command with optional arguments'
+- stdio - syntax 'stdio:command [arguments]'
 - https - syntax 'https://host/path'
 
 Example:
