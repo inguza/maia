@@ -39,9 +39,11 @@ the files to a system and making the command available.
 
 ### Security
 
-Open source, so its capabilities and behavior can be inspected and audited.
+The source code is open and auditable, allowing the security of the implementation to be inspected rather than taken on trust.
 
-By default, the AI cannot directly make changes; changes are presented as suggestions that the user can review and explicitly apply. Additional capabilities can be granted through optional tools.
+Tools are classified by the effects they can have, and operations with potentially dangerous effects,
+such as executing commands or modifying files, result in change proposals that can be inspected before they are applied.
+Explicit tool permissions control which capabilities are available to the AI.
 
 ### Command-line First
 
