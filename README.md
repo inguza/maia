@@ -356,7 +356,7 @@ Optional external capabilities that can be made available to the AI to perform a
 
 ## Typical Workflow
 
-1. **Initialize a workspace**
+1. **Create a workspace**
 
    ```bash
    maia workspace create <workspacename>
@@ -366,14 +366,7 @@ Optional external capabilities that can be made available to the AI to perform a
 
    Create the session:
    ```bash
-   maia session create <sessionname>
-   or
    maia session create <sessionname> --workspace <workspacename>
-   ```
-
-   Associate it with a workspace:
-   ```bash
-   maia session set <sessionname> --workspace <workspacename>
    ```
 
    Select the session:
@@ -382,7 +375,8 @@ Optional external capabilities that can be made available to the AI to perform a
    ```
 
 3. **Allow tools and skills**
-   Allow tools (this is a small set, there are more tools available):
+
+Allow the tools and skills you think the AI will need to perform the task you want it to do.
 
    ```bash
    maia tool --scope session replace "core-*" "file-*" "context-*" "change-*:write"
@@ -394,7 +388,7 @@ Optional external capabilities that can be made available to the AI to perform a
    maia skill --scope session --remember replace "file"
    ```
 
-4. **Manage files**
+5. **Manage files**
    Add relevant files to provide context for the AI.
 
    ```bash
@@ -402,7 +396,7 @@ Optional external capabilities that can be made available to the AI to perform a
    maia file forget pathtofile1
    ```
 
-5. **Compose messages**
+6. **Compose messages**
 
    Send a message from command line:
    ```bash
@@ -414,7 +408,7 @@ Optional external capabilities that can be made available to the AI to perform a
    maia compose
    ```
 
-6. **Check history**
+7. **Check history**
 
    Read the last response:
    ```bash
