@@ -81,19 +81,19 @@ For optional functionality:
 
 | Optional functionality | Depends on |
 | --- | --- |
-| maia shell enter | script from bsdutils |
+| `maia shell enter` | script from bsdutils |
 | AWS API | xxd |
 
 Some MAIA tools have additional dependencies:
 
 | MAIA tool | Depends on |
 | --- | --- |
-| pandoc | pandoc |
-| web-*-lynx tools | lynx |
-| net-request-tcp | netcat |
-| net-request-ssl | openssl |
-| bc | bc |
-| git-* tools | git |
+| `pandoc` | pandoc |
+| `web-<x>-lynx` tools | lynx |
+| `net-request-tcp` | netcat |
+| `net-request-ssl` | openssl |
+| `bc` | bc |
+| `git-<x>` tools | git |
 | `util-<x>` tools | util `<x>` |
 
 ## Install the dependencies
@@ -271,9 +271,9 @@ export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 
 MAIA can connect to external tools and resources through the Model Context Protocol (MCP).
 
-Configure the MCP servers.
+MCP servers are configured using the `mcp_servers` configuration paramter.
+It contains a list of MCP server definitions, each using the following syntax:
 
-The MCP server syntax is:
 ```text
 <name>=<endpoint>
 ```
@@ -424,19 +424,6 @@ Allow the tools and skills you think the AI will need to perform the task you wa
 ---
 
 # Additional information
-
-## Notes
-
-- When commands are ambiguous, text starting with a capital letter or quoted with spaces is treated as user input.
-- `<text-or-file>` can be:
-  - a word
-  - quoted text
-  - `read` (stdin)
-  - `compose` (open editor and add new content)
-  - `edit` (edit inline)
-  - `@snippetname` (reference snippet text)
-- Multiple `<text-or-file>` arguments are appended as new lines.
-- Use quoted globs carefully when managing files.
 
 ## Help and Documentation
 
