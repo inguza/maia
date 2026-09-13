@@ -2,7 +2,7 @@
   {
     "name": "context-skill-remember",
     "description": "Remember a skill instruction in the current context.",
-    "command": "context-skill-remember.sh",
+    "command": "skill-remember.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -21,7 +21,7 @@
   {
     "name": "context-skill-forget",
     "description": "Forget a skill instruction from the current context.",
-    "command": "context-skill-forget.sh",
+    "command": "skill-forget.sh",
     "inputSchema": {
       "type": "object",
       "properties": {

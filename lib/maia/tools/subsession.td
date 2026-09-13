@@ -190,7 +190,7 @@
   {
     "name": "subsession-skill-remember",
     "description": "Make a subsession remember a skill instruction.",
-    "command": "context-skill-remember.sh",
+    "command": "skill-remember.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -214,7 +214,7 @@
   {
     "name": "subsession-skill-forget",
     "description": "Make a subsession forget a skill instruction.",
-    "command": "context-skill-forget.sh",
+    "command": "skill-forget.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -238,7 +238,7 @@
   {
     "name":"subsession-file-remember",
     "description": "Make a subsession remember file content.",
-    "command": "context-file-remember.sh",
+    "command": "file-remember.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -270,7 +270,7 @@
   {
     "name": "subsession-file-forget",
     "description": "Make a subsession forget file content.",
-    "command": "context-file-forget.sh",
+    "command": "file-forget.sh",
     "instructions": [ "subsession.txt" ],
     "inputSchema": {
       "type": "object",
@@ -288,6 +288,53 @@
         }
       },
       "required": ["files", "subsession"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"subsession-resource-remember",
+    "description": "Make a subsession remember resource content.",
+    "command": "resource-remember.sh",
+    "instructions": [],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "resources": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+            "description": "Resource to add to the currently known context."
+	  }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession whose known context should be modified."
+        }
+      },
+      "required": ["resources", "subsession"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "subsession-resource-forget",
+    "description": "Make a subsession forget resource content.",
+    "command": "resource-forget.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "resources": {
+	  "type": "array",
+          "items": {
+	    "type": "string",
+            "description": "Resource(s) to remove from the known context. Glob pattern matching can be used to match multiple resources."
+	  }
+        },
+        "subsession": {
+          "type": "string",
+          "description": "Name of the subsession whose known context should be modified."
+        }
+      },
+      "required": ["resources", "subsession"],
       "additionalProperties": false
     }
   },

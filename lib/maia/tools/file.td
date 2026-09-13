@@ -83,7 +83,7 @@
   {
     "name":"context-file-remember",
     "description": "Add a files to the known context",
-    "command": "context-file-remember.sh",
+    "command": "file-remember.sh",
     "instructions": [ "context-file-remember.txt" ],
     "inputSchema": {
       "type": "object",
@@ -111,7 +111,7 @@
   {
     "name": "context-file-forget",
     "description": "Forget file content from the known context.",
-    "command": "context-file-forget.sh",
+    "command": "file-forget.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
