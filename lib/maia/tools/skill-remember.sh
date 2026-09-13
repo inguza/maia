@@ -1,5 +1,5 @@
 #!/bin/bash
-# Forget a skill instruction
+# Remember a skill instruction
 #
 # Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
 #
@@ -31,10 +31,11 @@ if [[ -n ${param[skills]:-} ]]; then
     fi
 fi
 
-thissession="$(resolve_session_name)"
-subsession="${param[subsession]:-}"
-if [[ -n "$subsession" ]] ; then
+if [[ "$TOOL_NAME" == "subsession-skill-remember" ]] ; then
+    thissession="$(resolve_session_name)"
+    subsession="${param[subsession]:-}"
     set_subsession "$subsession"
+    "$MAIA_BIN" skill --scope "$scope" remember "${skills[@]}" | session_filter "$thissession"
+else
+    "$MAIA_BIN" skill --scope "$scope" remember "${skills[@]}"
 fi
-
-"$MAIA_BIN" skill --scope "$scope" forget "${skills[@]}" | session_filter "$thissession"

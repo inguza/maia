@@ -60,7 +60,7 @@ for tool_call in "${tool_calls[@]}" ; do
     printf '%s\n' "$func_args" > "$args_file"
     debug "Command $i in pipeline: $func_name($func_args)"
     # Make sure to quite since we execute with bash -c later
-    pipeline_cmd+=" | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")"
+    pipeline_cmd+=" | TOOL_NAME=func_name $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")"
     ((i++))
 done
 

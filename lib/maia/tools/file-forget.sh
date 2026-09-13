@@ -32,17 +32,18 @@ if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
     exit 2
 fi
 for filepattern in "${filepatterns[@]}" ; do
+    if [[ "$filepattern" == *'#'* ]]; then
+        warn "$filepattern is a resource, not a file. This tool only handles files."
+        continue
+    fi
     filedefs+=("$filepattern")
 done
 
-# Start code for subsession-file-forget
-subsession="${param[subsession]:-}"
-if [[ -n "$subsession" ]] ; then
-    validate_subsession "$subsession"
+if [[ "$TOOL_NAME" == "subsession-file-forget" ]] ; then
+    subsession="${param[subsession]:-}"
     thissession="$(resolve_session_name)"
     set_subsession "$subsession"
-    "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1 | session_filter "$thissession"
-# End code for subsession-file-forget
+    "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1 | session_filter "$thissession"
 else
     "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1
 fi

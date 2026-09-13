@@ -405,6 +405,7 @@ handle_tool_command() {
 	    local shaid="$(printf '%s' "$func_name($func_args)" | sha256sum | cut -c1-8)"
 	    local timestamp=$(date +"%Y%m%dT%H%M%S")
 	    export ASSISTANT_BASEID="$timestamp-$shaid"
+	    export TOOL_NAME="$func_name"
 	    tool_fork \
 		"$tool_tmp_dir" \
 		"$id" \

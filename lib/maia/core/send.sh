@@ -864,6 +864,7 @@ handle_send_command() {
 		    duplicate="yes"
 		else
 		    export ASSISTANT_BASEID="$timestamp-$shaid"
+		    export TOOL_NAME="$func_name"
 		    tool_start_count=$((tool_start_count + 1))
 		    if [[ "$output_mode" == "full" ]] ; then
 			local idshort="$(shorten_callid "${id}")"
@@ -878,6 +879,7 @@ handle_send_command() {
 			"$enabled_tools_json" \
 			" (allowed iterations left $allowed_iterations_left)" > "$tool_tmp_dir/$id.start" 2>&1
 		    status=$?
+		    unset TOOL_NAME
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
 		    else

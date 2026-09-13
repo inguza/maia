@@ -269,12 +269,17 @@ run_tools_cmd "view-parent-tools-6" view
 run_skills_cmd "list-parent-skills-6" list
 run_skills_cmd "view-parent-skills-6" view
 
-run_tool_cmd "maia-file-remember-ss1-1-missing" "context-file-remember.sh" '{"files": ["icommon/icommon.info.yml"],"subsession": "'$subsession1'"}'
-run_tool_cmd "maia-file-forget-ss1-1-missing" "context-file-forget.sh" '{"files": ["icommon/icommon.info.yml"],"subsession": "'$subsession1'"}'
+export TOOL_NAME=context-file-remember
+run_tool_cmd "maia-file-remember-ss1-1-missing" "file-remember.sh" '{"files": ["icommon/icommon.info.yml"],"subsession": "'$subsession1'"}'
+export TOOL_NAME=context-file-forget
+run_tool_cmd "maia-file-forget-ss1-1-missing" "file-forget.sh" '{"files": ["icommon/icommon.info.yml"],"subsession": "'$subsession1'"}'
 mkdir -p "$XMAIA_HOME/pathx"
 echo "File to remember" > "${XMAIA_HOME}/pathx/remember.txt"
-run_tool_cmd "maia-file-remember-ss1-2" "context-file-remember.sh" '{"files": ["pathx/remember.txt"],"subsession": "'$subsession1'"}'
-run_tool_cmd "maia-file-forget-ss1-2" "context-file-forget.sh" '{"files": ["pathx/remember.txt"],"subsession": "'$subsession1'"}'
+export TOOL_NAME=context-file-remember
+run_tool_cmd "maia-file-remember-ss1-2" "file-remember.sh" '{"files": ["pathx/remember.txt"],"subsession": "'$subsession1'"}'
+export TOOL_NAME=context-file-forget
+run_tool_cmd "maia-file-forget-ss1-2" "file-forget.sh" '{"files": ["pathx/remember.txt"],"subsession": "'$subsession1'"}'
+unset TOOL_NAME
 
 $MAIA session create testsession
 export MAIA_SESSION=testsession

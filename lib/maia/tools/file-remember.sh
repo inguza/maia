@@ -33,6 +33,10 @@ if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
     die "$fileparam parse error."
 fi
 for filepattern in "${filepatterns[@]}" ; do
+    if [[ "$filepattern" == *'#'* ]]; then
+        warn "$filepattern is a resource, not a file. This tool only handles files."
+        continue
+    fi
     mapfile_from_command files compgen -G "$filepattern" || true
     if [[ ${#files[@]} == 0 ]] ; then
 	warn "File '$filepattern' not found, skipping."
@@ -54,9 +58,11 @@ for filepattern in "${filepatterns[@]}" ; do
     done
 done
 
-thissession="$(resolve_session_name)"
-subsession="${param[subsession]:-}"
-if [[ -n "$subsession" ]] ; then
+if [[ "$TOOL_NAME" == "subsession-file-remember" ]] ; then
+    subsession="${param[subsession]:-}"
+    thissession="$(resolve_session_name)"
     set_subsession "$subsession"
+    "$MAIA_BIN" file remember "${resourcedefs[@]}" 2>&1 | session_filter "$thissession"
+else
+    "$MAIA_BIN" file remember "${filedefs[@]}"
 fi
-"$MAIA_BIN" file remember "${filedefs[@]}" 2>&1 | session_filter "$thissession"

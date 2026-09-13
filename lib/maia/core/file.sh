@@ -94,6 +94,8 @@ forget_entries() {
 	    line="${line%$'\r'}"
             local keep=true
             for pat in "${patterns[@]}"; do
+		# A pattern must have # in it to remove a resource
+		[[ "$pat" != *'#'* && "$line" == *'#'* ]] && continue
                 if [[ "$line" == $pat ]]; then
                     keep=false
 		    matched_patterns["$pat"]=true
