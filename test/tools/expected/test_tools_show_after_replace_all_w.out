@@ -1406,7 +1406,7 @@ Tool definitions:
     "source": "<MAIA_ROOT>/lib/maia/tools/gnu.td"
   },
   {
-    "name": "context-history-retrieve",
+    "name": "history-retrieve",
     "description": "Retrieve the original content of conversation history entries.",
     "command": "history-retrieve.sh",
     "inputSchema": {
@@ -1651,6 +1651,18 @@ Tool definitions:
       "additionalProperties": false
     },
     "source": "<MAIA_ROOT>/lib/maia/tools/lynx.td"
+  },
+  {
+    "name": "resource-discover",
+    "description": "Discover resources available from resource providers.",
+    "command": "resource-discover.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": null,
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/mcp.td"
   },
   {
     "name": "net-request-tcp",

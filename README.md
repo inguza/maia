@@ -271,8 +271,6 @@ export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 
 MAIA can connect to external tools and resources through the Model Context Protocol (MCP).
 
-NOTE! For resources only discovery is currently supported. [#71](https://github.com/inguza/maia/issues/71)
-
 Configure the MCP servers.
 
 The MCP server syntax is:

@@ -670,10 +670,21 @@ fileset_content_extract() {
     local fs
     local -a fs=( "${filesets[@]}" )
     # Loop over filesets in order
+    local -a specs=()
     local -a filespecs=()
+    local -a mcpspecs=()
     local -A seen=()
     local sendset
     local default_filter="$(get_config default_filter)"
+    # MCP support
+    local serverscfg="$(get_config mcp_servers empty)"
+    mapfile_from_json servers "$serverscfg"
+    declare -A services
+    for server in "${servers[@]}" ; do
+	local name="${server%%=*}"
+	local endpoint="${server#*=}"
+	services["$name"]="$endpoint"
+    done
     for sendset in "${fs[@]}"; do
 	# Resolve path to fileset data file
 	local fs_file="$ws_root/${sendset}.fileset"
@@ -681,13 +692,21 @@ fileset_content_extract() {
 	# Read each line (file spec) in fileset file
 	local spec
 	while IFS= read -r spec || [[ -n "$spec" ]]; do
+	    # Git Bash workaround
 	    spec="${spec%$'\r'}"
 	    # Skip empty lines and comments
             [[ -z "$spec" || -n "${seen[$spec]}" || "$spec" =~ ^# ]] && continue
 	    if [[ "$action" != "list" ]] ; then
 		spec=$(apply_default_filter_to_spec "$spec" "$default_filter")
 	    fi
-	    filespecs+=("$spec")
+	    specs+=("$spec")
+	    local name="${spec%%#*}"
+	    local endpoint="${services[$name]}"
+	    if [[ -n "$endpoint" ]] ; then
+		mcpspecs+=("$spec")
+	    else
+		filespecs+=("$spec")
+	    fi
 	    seen[$spec]=1
 	done < "$fs_file"
     done
@@ -700,7 +719,7 @@ fileset_content_extract() {
 	    fi
 	    echo "$workspace_root:"
 	    local spec
-	    for spec in "${filespecs[@]}" ; do
+	    for spec in "${specs[@]}" ; do
 		printf '    %s\n' "$spec"
 	    done
 	    ;;
@@ -708,6 +727,15 @@ fileset_content_extract() {
 	    # Output workspace root and file specs
 	    if (( ${#filespecs[@]} > 0 )); then
 		"$MAIA_CORE_LIB_DIR/extract.pl" --workspace "$workspace_root" "${filespecs[@]}"
+	    fi
+	    if (( ${#mcpspecs[@]} > 0 )); then
+		for spec in "${mcpspecs[@]}" ; do
+		    local name="${spec%%#*}"
+		    local endpoint="${services[$name]}"
+		    local uri="${spec#*#}"
+		    echo "[$spec]"
+		    mcp_content "$spec" "$name" "$endpoint" "$uri"
+		done
 	    fi
 	    ;;
 	*)
@@ -1709,6 +1737,30 @@ mcp_request() {
 	    ;;
     esac
 }
+
+mcp_content() {
+    local name="$1"
+    local mcpname="$2"
+    local endpoint="$3"
+    local uri="$4"
+    jq -c -n \
+       --arg uri "$uri" \
+    '{
+        jsonrpc: "2.0",
+        id: 1,
+        method: "resources/read",
+        params: {
+            uri: $uri
+        }
+    }' \
+	| mcp_request "$name" "$mcpname" "$endpoint" \
+	| jq -r '
+            .result.contents[]
+            | select(.text != null)
+            | .text
+	    '
+}
+
 
 ### 120-10*2-25-10=65
 shorten_args() {

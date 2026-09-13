@@ -3,7 +3,6 @@ change-revert:write
 change-skip:write
 context-file-forget:write
 context-file-remember:write
-context-history-retrieve:write
 context-skill-forget:write
 context-skill-remember:write
 core-print
@@ -34,6 +33,7 @@ git-rm:write
 git-show:write
 git-status:write
 git-switch:write
+history-retrieve:write
 job-cancel:write
 job-delete:write
 job-exist:write
@@ -46,6 +46,7 @@ jq:write
 net-request-ssl:write
 net-request-tcp:write
 pandoc:write
+resource-discover:write
 shell-exec:write
 skill-exec:write
 util-cat:write

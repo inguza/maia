@@ -1,6 +1,6 @@
 [
   {
-    "name":"context-history-retrieve",
+    "name":"history-retrieve",
     "description": "Retrieve the original content of conversation history entries.",
     "command": "history-retrieve.sh",
     "inputSchema": {

@@ -233,6 +233,14 @@ handle_file_command() {
         add|remember)
             shift
             local workspace_root=$(resolve_workspace_root "$session_ws")
+	    local serverscfg="$(get_config mcp_servers empty)"
+	    mapfile_from_json servers "$serverscfg"
+	    declare -A services
+	    for server in "${servers[@]}" ; do
+		local name="${server%%=*}"
+		local endpoint="${server#*=}"
+		services["$name"]="$endpoint"
+	    done
             for path in "$@"; do
                 local file_part filter_part
                 if [[ "$path" == *'|'* ]]; then
@@ -255,8 +263,12 @@ handle_file_command() {
                 fi
 
                 if [[ ! -f "$abs" ]]; then
-                    warn "File '$file_part' not found, skipping"
-                    continue
+		    local name="${file_part%%#*}"
+		    local endpoint="${services[$name]}"
+		    if [[ ! -n "$endpoint" ]] ; then
+		        warn "File '$file_part' not found, skipping"
+			continue
+		    fi
                 fi
 
 		# Get relative path to workspace root for the whole original path (including filter parts)
@@ -303,12 +315,15 @@ handle_file_command() {
 		printf '%s\n' \
 		       '{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' \
 		    | mcp_request "discover" "$name" "$endpoint" |
-		    jq -r '
+		    jq -r --arg prefix "$name#" '
   .result.resources as $r |
   ($r | map(.name | length) | max) as $width |
-  $r[] |
-  "  \(.name | . + (" " * ($width - length)))  \(.uri)\n" +
-  "  \((" " * $width))  \(.description // "")\(if .mimeType then " [\(.mimeType)]" else "" end)\n"
+  "  Name" + (" " * ($width - 4)) + "  Resource\n" +
+  "  " + ("-" * $width) + "  " + ("-" * 40) + "\n" +
+  ($r | map(
+    "  \(.name | . + (" " * ($width - length)))  \($prefix)\(.uri)\n" +
+    "  \((" " * $width))  \(.description // "")\(if .mimeType then " [\(.mimeType)]" else "" end)\n\n"
+  ) | join(""))
 '
 	    done
 	    ;;
