@@ -271,7 +271,7 @@ export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 
 MAIA can connect to external tools and resources through the Model Context Protocol (MCP).
 
-MCP servers are configured using the `mcp_servers` configuration paramter.
+MCP servers are configured using the `mcp_servers` configuration parameter.
 It contains a list of MCP server definitions, each using the following syntax:
 
 ```text
@@ -289,6 +289,16 @@ Example:
 ```text
 maia config mcp_servers '["name1=stdio:mcpcommand","name2=https://api.githubcopilot.com/mcp/"]'
 ```
+
+Once configured, MCP tools and resources can be discovered using:
+
+```text
+maia file discover
+maia tool discover
+```
+
+MCP resources are modelled as files using the following syntax `<servicename>#<uri>` while discovered MCP tools are handled as any other MAIA tool.
+Discovered MCP tools have `<name>-` as the prefix to the MCP discovered tool name.
 
 #### stdio
 
