@@ -19,29 +19,30 @@ handle_shell_command() {
 	list)
 	    local base="$(resolve_shell_base)"
 	    printf "  %-30s %-10s\n" "NAME" "STATE"
-	    for dir in $(ls $base >2/dev/null) ; do
-		if [[ -d "$base/$dir" ]] ; then
-		    local status=unknown
-		    if [[ -e "$base/$dir/exit_status" ]] ; then
-			local exit_status=$(read_file "$base/$dir/exit_status" cr)
-			if [[ -z "$exit_status" ]] ; then
-			    status="created"
-			elif [[ "$exit_status" == 0 ]] ; then
-			    status="finished"
-			else
-			    status="failed"
-			fi
+	    for path in "$base"/*/; do
+		[[ -d "$path" ]] || continue
+		local dir="${path%/}"
+		dir="${dir##*/}"
+		local status=unknown
+		if [[ -e "$base/$dir/exit_status" ]] ; then
+		    local exit_status="$(read_file "$base/$dir/exit_status" cr)"
+		    if [[ -z "$exit_status" ]] ; then
+			status="created"
+		    elif [[ "$exit_status" == 0 ]] ; then
+			status="finished"
 		    else
-			status="running"
+			status="failed"
 		    fi
-		    local x=""
-		    if [[ "$MAIA_SHELL" == "$dir" ]] ; then
-			x="*"
-		    fi
-		    printf "%-1s %-30s %-10s\n" "$x" "$dir" "$status"
+		else
+		    status="running"
 		fi
+		local x=""
+		if [[ "$MAIA_SHELL" == "$dir" ]] ; then
+		    x="*"
+		fi
+		printf "%-1s %-30s %-10s\n" "$x" "$dir" "$status"
 	    done
-	;;
+	    ;;
 	
 	create)
 	    local xn="$1"
