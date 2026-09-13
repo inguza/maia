@@ -226,16 +226,16 @@ You can also mix the two.
 
 ### Additional ~/.bashrc configuration
 
-It may also be useful to set the prefered editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
+It may also be useful to set the preferred editor and log level. If `$MAIA_EDITOR` is not set it then it will fall back to `$EDITOR`.
 
 ```bash
-export MAIA_EDITOR="emacs -nw"  # or your prefered editor
+export MAIA_EDITOR="emacs -nw"  # or your preferred editor
 maia config term_loglevel INFO  # to get more information about what the tool does
 ```
 
 ### Used AI APIs
 
-Depending on what AI provider you choose you configure it a little differenty. The access information
+Depending on what AI provider you choose you configure it a little differently. The access information
 is set as environment variables, preferrbly in a ~/.bashrc file.
 
 #### OpenAI
@@ -373,12 +373,12 @@ Optional external capabilities that can be made available to the AI to perform a
 
    Associate it with a workspace:
    ```bash
-   maia session set <sessioname> --workspace <workspacename>
+   maia session set <sessionname> --workspace <workspacename>
    ```
 
    Select the session:
    ```bash
-   maias sessionname1
+   maias <sessionname>
    ```
 
 3. **Allow tools and skills**
