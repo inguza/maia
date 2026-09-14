@@ -733,8 +733,26 @@ fileset_content_extract() {
 		    local name="${spec%%#*}"
 		    local endpoint="${services[$name]}"
 		    local uri="${spec#*#}"
+		    local cacheid="$(printf '%s' "$name$endpoint$uri" | sha256sum | cut -c1-16)"
+		    local sessionpath="$(resolve_session_path)"
+		    local cache="$sessionpath/cache/$cacheid.mcp"
+		    if [[ -d "$sessionpath" ]] ; then
+			mkdir "$sessionpath/cache"
+		    fi
 		    echo "[$spec]"
-		    mcp_content "$spec" "$name" "$endpoint" "$uri"
+		    if [[ ! -e "$cache" ]] ; then
+			local tmpf="$(mktemp)"
+			mcp_content "$spec" "$name" "$endpoint" "$uri" > "$tmpf"
+			local status=$?
+			if [[ $status -eq 0 ]] ; then
+			    mv "$tmpf" "$cache"
+			else
+			    error "Unable to retrieve content."
+			fi
+		    fi
+		    if [[ -s "$cache" ]] ; then
+			read_file "$cache" cr
+		    fi
 		done
 	    fi
 	    ;;
