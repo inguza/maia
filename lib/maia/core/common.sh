@@ -737,16 +737,20 @@ fileset_content_extract() {
 		    local sessionpath="$(resolve_session_path)"
 		    local cache="$sessionpath/cache/$cacheid.mcp"
 		    if [[ -d "$sessionpath" ]] ; then
-			mkdir "$sessionpath/cache"
+			if [[ ! -e "$sessionpath/cache" ]] ; then
+			    mkdir "$sessionpath/cache"
+			fi
 		    fi
 		    echo "[$spec]"
 		    if [[ ! -e "$cache" ]] ; then
+			info "Caching contenf of $spec."
 			local tmpf="$(mktemp)"
 			mcp_content "$spec" "$name" "$endpoint" "$uri" > "$tmpf"
 			local status=$?
 			if [[ $status -eq 0 ]] ; then
 			    mv "$tmpf" "$cache"
 			else
+			    rm -f "$tmpf"
 			    error "Unable to retrieve content."
 			fi
 		    fi
