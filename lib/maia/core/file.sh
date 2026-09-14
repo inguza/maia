@@ -32,6 +32,9 @@ COMMANDS
   discover
     Discover resources.
 
+  cache-clear|clear-cache
+    Clear resource cache, to re-read from the resource provider.
+
 OPTIONS
 
   --all
@@ -305,6 +308,13 @@ handle_file_command() {
             shift
             forget_entries "$@"
             ;;
+
+	cache-clear|clear-cache)
+	    local sessionpath="$(resolve_session_path)"
+	    if [[ -d "$sessionpath" ]] ; then
+		rm -Rf "$sessionpath/cache"
+	    fi
+	    ;;
 
 	discover)
 	    init_tool_search_dirs

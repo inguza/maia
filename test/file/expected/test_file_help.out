@@ -22,6 +22,9 @@ COMMANDS
   discover
     Discover resources.
 
+  cache-clear|clear-cache
+    Clear resource cache, to re-read from the resource provider.
+
 OPTIONS
 
   --all
