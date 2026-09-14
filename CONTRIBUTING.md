@@ -35,7 +35,7 @@ This restriction applies to new code and when modifying existing code: if practi
 
 ### Remember line ending
 
-Linux/unit and Windows/DOS line endings are different. Make sure to handle that.
+Linux/unix and Windows/DOS line endings are different. Make sure to handle that.
 This typically means that when reading a line the \r character should be stripped.
 
 We shall also make sure we read the last line even if it does not end with a newline.
