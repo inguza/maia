@@ -162,16 +162,18 @@ sub change_file {
 		}
 	    }
 
-	    $error = "Change $i: Existing text not found. Skipping.\n";
+	    $error .= "Change $i: Existing text not found. Skipping.\n";
 	    # Provide diagnostics
 	    open TF, ">>$txtfile";
 	    print TF "Change $i. Could not find the exact existing text. Please replace the following text manually:\n";
 	    print TF "---- Existing text to replace ----\n";
-	    print TF "$old\n";
+	    print TF "$old";
+	    printf TF "\n" if ($old !~ /\n$/);
 	    print TF "---- End ----\n";
 	    print TF "\n";
 	    print TF "---- Replacement text ----\n";
-	    print TF "$new\n";
+	    print TF "$new";
+	    printf TF "\n" if ($new !~ /\n$/);
 	    print TF "---- End ----\n";
 	    close(TF);
 	    next;
