@@ -14,8 +14,8 @@ Each `.td` file should be a valid JSON object with the following fields:
 
 - `name` (string): The fully qualified name of the tool function, typically namespaced with dots (e.g., `"git.status"`).
 - `description` (string): A human-readable description of the tool's purpose, shown to the AI model.
-- `command` (string or array): The executable command or script that implements the tool.
-- `effects`: A list of effects the tool can have:
+- `command` (string): The executable command or script that implements the tool.
+- `effects`: (optional) A list of effects the tool can have:
   - limited-write - Possible to write in certain cases, like append to file, create new file and similar
   - write - Can write to files, commit things and similar
   - push - Able to push local changes to a remote system
