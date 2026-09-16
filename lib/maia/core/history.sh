@@ -551,7 +551,7 @@ handle_history_command() {
 	    ;;
 
 	repair)
-	    exclusive_json_modify "$history_file" -f "$MAIA_CORE_LIB_DIR/history-verify.jq"
+	    exclusive_json_modify "$history_file" -f "$MAIA_CORE_LIB_DIR/history-repair.jq"
 	    ;;
 
 	search)
