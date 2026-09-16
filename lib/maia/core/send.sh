@@ -119,6 +119,24 @@ append_message() {
     rm -f "$tmpf"
 }
 
+append_history() {
+    local msgs_file="$1"
+    local history_file="$2"
+
+    jq -s '
+        .[0] + (.[1]
+            | map(
+                select(.hidden != true)
+                | if type == "object" then
+                    del(.timestamp, .id, .backup)
+                  else
+                    .
+                  end
+            )
+        )
+    ' "$msgs_file" "$history_file"
+}
+
 # Build the API "messages" array as a JSON string.
 build_messages_json() {
     local outbox_file="$1"
@@ -208,9 +226,7 @@ build_messages_json() {
             if [[ -f "$history_file" ]]; then
 		local tmpf="$(mktemp)"
 		printf '%s' "$msgs" > "$tmpf"
-                msgs=$(jq -s '
-                    .[0] + (.[1] | map(if type=="object" then del(.timestamp, .id, .backup) else . end))
-                ' "$tmpf" "$history_file")
+		msgs=$(append_history "$tmpf" "$history_file")
 		rm -f "$tmpf"
             fi
             # Outbox as final user message
@@ -270,9 +286,7 @@ build_messages_json() {
             if [[ -f "$history_file" ]]; then
 		local tmpf="$(mktemp)"
 		printf '%s' "$msgs" > "$tmpf"
-                msgs=$(jq -s '
-                    .[0] + (.[1] | map(if type=="object" then del(.timestamp) else . end))
-                ' "$tmpf" "$history_file")
+		msgs=$(append_history "$tmpf" "$history_file")
 		rm -f "$tmpf"
             fi
             # Outbox content plus appended files instructions and fenced files

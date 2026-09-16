@@ -29,6 +29,12 @@ COMMANDS
     Summarize the whole conversation history. The whole history will replaced
     by a summary request and an assistant response containing the summary.
 
+  verify
+    Verify that the history content is correct. Will print problematic entries.
+
+  repair
+    Repair incorrect history entries.
+
   clear
     Wipe the active history.
 

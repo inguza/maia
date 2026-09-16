@@ -14,62 +14,50 @@
     },
     {
       "role": "user",
-      "id": "b705c5bc",
       "content": "Hello, AI!"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {
       "role": "user",
-      "id": "b705c5bc",
       "content": "Hello, AI!"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {
       "role": "user",
-      "id": "9b009b3f",
       "content": "Test model override"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {
       "role": "user",
-      "id": "7fcf44ef",
       "content": "Test temperature override"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {
       "role": "user",
-      "id": "e8621625",
       "content": "Test file handling default"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {
       "role": "user",
-      "id": "24de1a2a",
       "content": "Test file handling before"
     },
     {
       "role": "assistant",
-      "id": "641164b0",
       "content": "Mocked response"
     },
     {

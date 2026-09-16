@@ -39,6 +39,12 @@ COMMANDS
     Summarize the whole conversation history. The whole history will replaced
     by a summary request and an assistant response containing the summary.
 
+  verify
+    Verify that the history content is correct. Will print problematic entries.
+
+  repair
+    Repair incorrect history entries.
+
   clear
     Wipe the active history.
 
@@ -280,8 +286,22 @@ history_prune() {
 		    new_content="$orig_content"
 		    new_tool_calls="$orig_tool_calls"
 		elif [[ -n "$orig_tool_calls" ]]; then
-		    # Delete the tool_calls first before we update the message
-		    json_modify "$tmpfile" "map(if .index == $global_index then del(.tool_calls) else . end)"
+		    # Delete the tool_calls first before we update the message, but make sure to mark the
+		    # tool responses so the API still accept requests.
+		    json_modify "$tmpfile" '
+		      . as $messages |
+		      ($messages['"$global_index"'].tool_calls // [] | map(.id)) as $pruned_ids |
+		      map(
+		        if .index == '"$global_index"' then
+			   del(.tool_calls)
+			elif .role == "tool" and
+			     (.tool_call_id as $id | ($pruned_ids | index($id)) != null) then
+			  . + {hidden: true, call_pruned: true}
+			else
+			  .
+			end
+		      )
+		    '
                 fi
             elif [[ "$mode" == "edit" ]]; then
                 # Edit mode: open editor for content and tool_calls separately if present
@@ -526,6 +546,14 @@ handle_history_command() {
 	    history_prune "$@"
 	    ;;
 
+	verify)
+	    jq -f "$MAIA_CORE_LIB_DIR/history-verify.jq" "$history_file"
+	    ;;
+
+	repair)
+	    exclusive_json_modify "$history_file" -f "$MAIA_CORE_LIB_DIR/history-verify.jq"
+	    ;;
+
 	search)
 	    shift
 	    # if no argument or an explicit empty-string is given, treat it like no-arg
@@ -596,6 +624,7 @@ print_history_entries() {
     jq -r '.[] | [
         (.index | tostring),
         .role,
+	(.hidden // false),
         (.user_index // 0),
         (.assistant_index // 0),
         (.tool_index // 0),
@@ -604,7 +633,7 @@ print_history_entries() {
 	(.tool_call_id // "-"),
         (.content | @base64),
         ((.tool_calls // "") | @base64)
-    ] | @tsv' | while IFS=$'\t' read -r idx role user_idx assistant_idx tool_idx ts id toolid content_b64 tools_call_b64; do
+    ] | @tsv' | while IFS=$'\t' read -r idx role hidden user_idx assistant_idx tool_idx ts id toolid content_b64 tools_call_b64; do
 	# Git Bash workaround
 	tools_call_b64="${tools_call_b64%$'\r'}"
 	local content=""
@@ -641,27 +670,31 @@ print_history_entries() {
 	if [[ -n "$toolid" ]] ; then
 	    pr='[%d] %s#%s %s-%s %s\n'
 	fi
-        printf "$pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid
-	if [[ -z "$toolid" ]] ; then
-            echo '----------------------------------------'
+	if [[ "$hidden" == true ]] ; then
+            printf "(hidden: $pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid")"
 	else
-            echo '-------------------------------------------------'
-	fi
-        printf '%s\n\n' "$content"
+	    printf "$pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid
+	    if [[ -z "$toolid" ]] ; then
+		echo '----------------------------------------'
+	    else
+		echo '-------------------------------------------------'
+	    fi
+            printf '%s\n\n' "$content"
 
-        # If assistant message has function_call, print it visibly
-	if [[ "$role" == "assistant" && -n "$tools_call_json" && "$tools_call_json" != "null" ]]; then
-	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
-	    for tool_call in "${tool_calls[@]}"; do
-		id=$(jq -r '.id // empty' <<<"$tool_call" | read_file "" cr)
-		func_name=$(jq -r '.function.name // empty' <<<"$tool_call" | read_file "" cr)
-		func_args=$(jq -r '.function.arguments // empty' <<<"$tool_call" | read_file "" cr)
+            # If assistant message has function_call, print it visibly
+	    if [[ "$role" == "assistant" && -n "$tools_call_json" && "$tools_call_json" != "null" ]]; then
+		mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
+		for tool_call in "${tool_calls[@]}"; do
+		    id=$(jq -r '.id // empty' <<<"$tool_call" | read_file "" cr)
+		    func_name=$(jq -r '.function.name // empty' <<<"$tool_call" | read_file "" cr)
+		    func_args=$(jq -r '.function.arguments // empty' <<<"$tool_call" | read_file "" cr)
 
-		if [[ -n "$func_name" ]]; then
-		    echo "[tool call] $id $func_name($func_args)"
-		    echo
-		fi
-	    done
+		    if [[ -n "$func_name" ]]; then
+			echo "[tool call] $id $func_name($func_args)"
+			echo
+		    fi
+		done
+	    fi
 	fi
 
     done
