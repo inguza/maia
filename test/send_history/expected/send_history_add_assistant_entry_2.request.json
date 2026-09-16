@@ -18,10 +18,7 @@
     },
     {
       "role": "assistant",
-      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #0: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>",
-      "backup": {
-        "content": "First some description line.\nHere is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
-      }
+      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #0: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>"
     },
     {
       "role": "user",
@@ -29,10 +26,7 @@
     },
     {
       "role": "assistant",
-      "content": "Assistant response 1",
-      "backup": {
-        "content": "Assistant response 1"
-      }
+      "content": "Assistant response 1"
     },
     {
       "role": "user",
@@ -40,10 +34,7 @@
     },
     {
       "role": "assistant",
-      "content": "Assistant response 2",
-      "backup": {
-        "content": "Assistant response 2"
-      }
+      "content": "Assistant response 2"
     },
     {
       "role": "user",
@@ -51,10 +42,7 @@
     },
     {
       "role": "assistant",
-      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #3: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>",
-      "backup": {
-        "content": "First some description line.\nHere is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
-      }
+      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #3: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>"
     },
     {
       "role": "user",
@@ -62,10 +50,7 @@
     },
     {
       "role": "assistant",
-      "content": "Assistant response 1",
-      "backup": {
-        "content": "Assistant response 1"
-      }
+      "content": "Assistant response 1"
     },
     {
       "role": "user",
@@ -73,10 +58,7 @@
     },
     {
       "role": "assistant",
-      "content": "Assistant response 2",
-      "backup": {
-        "content": "Assistant response 2"
-      }
+      "content": "Assistant response 2"
     },
     {
       "role": "user",
@@ -84,10 +66,7 @@
     },
     {
       "role": "assistant",
-      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #0: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>",
-      "backup": {
-        "content": "First some description line.\nHere is some sample text with a fenced file:\n```\nfile.txt\nThis is the file content\n```"
-      }
+      "content": "First some description line.\nHere is some sample text with a fenced file:\n<<BLOCK #0: pruned>>\n<<Original text reference: <dateandtime>-<extraref>>>"
     },
     {
       "role": "user",
@@ -95,10 +74,7 @@
     },
     {
       "role": "assistant",
-      "content": "Here is code:\\n```bash\\necho hello\\n```\\nEnd.",
-      "backup": {
-        "content": "Here is code:\\n```bash\\necho hello\\n```\\nEnd."
-      }
+      "content": "Here is code:\\n```bash\\necho hello\\n```\\nEnd."
     },
     {
       "role": "user",
@@ -106,10 +82,7 @@
     },
     {
       "role": "assistant",
-      "content": "<<Pruned>>\n\n<<Original text reference: <dateandtime>-<extraref>>>",
-      "backup": {
-        "content": "This entire message will be replaced."
-      }
+      "content": "<<Pruned>>\n\n<<Original text reference: <dateandtime>-<extraref>>>"
     },
     {
       "role": "user",

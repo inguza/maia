@@ -209,7 +209,7 @@ build_messages_json() {
 		local tmpf="$(mktemp)"
 		printf '%s' "$msgs" > "$tmpf"
                 msgs=$(jq -s '
-                    .[0] + (.[1] | map(if type=="object" then del(.timestamp, .id) else . end))
+                    .[0] + (.[1] | map(if type=="object" then del(.timestamp, .id, .backup) else . end))
                 ' "$tmpf" "$history_file")
 		rm -f "$tmpf"
             fi
