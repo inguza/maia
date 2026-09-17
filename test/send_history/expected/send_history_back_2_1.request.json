@@ -1,5 +1,6 @@
 {
   "model": "gpt-5.4-mini",
+  "store": false,
   "temperature": 0.7,
   "max_completion_tokens": 32000,
   "top_p": 1,

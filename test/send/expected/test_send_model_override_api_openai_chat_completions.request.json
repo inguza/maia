@@ -1,5 +1,6 @@
 {
   "model": "gpt-4",
+  "store": false,
   "temperature": 0.7,
   "max_tokens": 32000,
   "top_p": 1,

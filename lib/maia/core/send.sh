@@ -632,7 +632,7 @@ handle_send_command() {
 		   --argjson stream "$stream" \
 		   --argjson tools "$tools_json" \
 		   --slurpfile messages "$tmpmf" \
-		   '{model: $model, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0], tools: $tools}' \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0], tools: $tools}' \
 		   > "$tmp_payload"
 	    else
 		jq -n \
@@ -645,7 +645,7 @@ handle_send_command() {
 		   --argjson n "$n" \
 		   --argjson stream "$stream" \
 		   --slurpfile messages "$tmpmf" \
-		   '{model: $model, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]}' \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]}' \
 		   > "$tmp_payload"
 	    fi
 	    rm -f "$tmpmf"
