@@ -274,8 +274,8 @@ _maia()
                 COMPREPLY=( $(compgen -f -- "$cur") )
                 return 0
             fi
-            # If completing arguments to 'add' or 'remember', allow text-or-file completions
-            if [[ "$prev" == "add" || "$prev" == "remember" || "${COMP_WORDS[2]}" == "add" ]]; then
+            # If completing arguments to 'add', 'remember', 'forget' or 'delete', allow text-or-file completions
+            if [[ "$prev" == "add" || "$prev" == "remember" || "$prev" == "forget" || "$prev" == "delete" || "${COMP_WORDS[2]}" == "add" || "${COMP_WORDS[2]}" == "remember" || "${COMP_WORDS[2]}" == "forget" || "${COMP_WORDS[2]}" == "delete" ]]; then
                 _maia_complete_text_or_file
                 return 0
             fi
