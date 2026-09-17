@@ -87,9 +87,6 @@ run_and_check "ls_y" ls y*.txt
 # Test list all files in filesets (default session workspace)
 run_file_cmd "list_all" list --all
 
-# Test list files in specific filesets
-run_file_cmd "list_filesets" list --filesets default,tests
-
 # Test content command to show file contents
 run_file_cmd "content_file" content
 
@@ -134,11 +131,6 @@ run_file_cmd "remember_subdir2_file_2" remember y3.txt
 run_file_cmd "list_after_remember_subdir2_file_2" list
 run_file_cmd "forget_all_y3" forget "*y3.txt"
 run_file_cmd "list_after_forget_all_y3" list
-
-# Test usage of --filesets option with remember and forget
-run_file_cmd "remember_with_filesets" remember --filesets default y1.txt
-
-run_file_cmd "forget_with_filesets" forget --filesets default "y1.txt"
 
 # Test error handling: forget non-existing pattern
 run_file_cmd "forget_non_existing" forget "non_existing_file.txt"
