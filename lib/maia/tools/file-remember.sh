@@ -62,7 +62,7 @@ if [[ "$TOOL_NAME" == "subsession-file-remember" ]] ; then
     subsession="${param[subsession]:-}"
     thissession="$(resolve_session_name)"
     set_subsession "$subsession"
-    "$MAIA_BIN" file remember "${resourcedefs[@]}" 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" file remember "${filedefs[@]}" 2>&1 | session_filter "$thissession"
 else
     "$MAIA_BIN" file remember "${filedefs[@]}"
 fi
