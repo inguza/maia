@@ -28,6 +28,9 @@ COMMANDS
   prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
     Prune history entries by role and mode.
 
+  restore
+    Restore the entry as it was before it was pruned. Will also unhide it.
+
   search [options] <keyword>
     Find entries containing keyword.
 

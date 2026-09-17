@@ -38,6 +38,9 @@ COMMANDS
   prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
     Prune history entries by role and mode.
 
+  restore
+    Restore the entry as it was before it was pruned. Will also unhide it.
+
   search [options] <keyword>
     Find entries containing keyword.
 
@@ -524,6 +527,63 @@ handle_history_command() {
 	    local tmp=$(mktemp)
 	    exclusive_json_modify "$history_file" ".[ $n :]"
 	    info "Popped the first $n entr$([ "$n" -eq 1 ] && echo "y" || echo "ies") from history '$history_name'."
+	    ;;
+
+	restore)
+	    shift
+	    local slice=$(range_defaults "${1:-}")
+	    exclusive_json_modify "$history_file" "
+              (
+                [
+                  .[${slice}][]
+                  | select(
+                      has(\"backup\")
+                      and (.backup | has(\"tool_calls\"))
+                    )
+                  | .backup.tool_calls[].id
+                ] as \$restored_tool_call_ids
+
+                | .[${slice}] |= map(
+                    if has(\"backup\") then
+                      if .backup | has(\"content\") then
+                        .content = .backup.content
+                      else
+                        .
+                      end
+                      | if .backup | has(\"tool_calls\") then
+                        .tool_calls = .backup.tool_calls
+                      else
+                        .
+                      end
+                      | if .call_pruned == true then
+                          del(.summarized)
+                        else
+                          del(.hidden, .summarized, .call_pruned)
+                        end
+                    else
+                      .
+                    end
+                  )
+                | map(
+                    if .role == \"tool\"
+                       and (.tool_call_id // \"\") as \$id
+                       | (\$restored_tool_call_ids | index(\$id)) != null
+                    then
+                      del(.hidden, .call_pruned)
+                    else
+                      .
+                    end
+                  )
+              )
+            "
+	    info "Entries restored in history '$history_name'."
+	    ;;
+
+	restore)
+	    shift
+            local slice=$(range_defaults "${1:-}")
+            exclusive_json_modify "$history_file" ".[${slice}] |= map(.hidden = true)"
+            info "Entries hidden in history '$history_name'."	    
 	    ;;
 
 	hide)
