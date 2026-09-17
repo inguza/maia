@@ -91,7 +91,7 @@ forget_entries() {
     # For file matching
     local i
     for i in "${!patterns[@]}"; do
-	if [[ -n "${patterns[i]}" && -f "${patterns[i]}" ]]; then
+	if [[ -n "${patterns[i]}" && "${patterns[i]}" != *[\*\?\[]* ]]; then
             patterns[i]="$(realpath --relative-to="$ws_root" "${patterns[i]}")"
 	fi
     done
