@@ -91,14 +91,14 @@ Tool definitions:
   },
   {
     "name": "core-print",
-    "description": "Print content.",
+    "description": "Print content for use by other tools. Shall only be used as input to the next tool in a core-pipe.",
     "command": "core-print.sh",
     "inputSchema": {
       "type": "object",
       "properties": {
         "content": {
           "type": "string",
-          "description": "The content to print. If absent, stdin is printed."
+          "description": "The content to pass to another tool. If absent, stdin is passed."
         }
       },
       "required": [],
