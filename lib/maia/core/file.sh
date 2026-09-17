@@ -85,7 +85,16 @@ realpath_or_readlink() {
 
 # Helper function to remove entries from filesets that exactly match given patterns
 forget_entries() {
+    local ws_root="$1"
+    shift
     local patterns=("$@")
+    # For file matching
+    local i
+    for i in "${!patterns[@]}"; do
+	if [[ -n "${patterns[i]}" && -f "${patterns[i]}" ]]; then
+            patterns[i]="$(realpath --relative-to="$ws_root" "${patterns[i]}")"
+	fi
+    done
     # For warning handling
     declare -A matched_patterns=()
     for fs in "${FILESET_FILES[@]}"; do
@@ -306,7 +315,8 @@ handle_file_command() {
 
         delete|forget|remove|rm)
             shift
-            forget_entries "$@"
+            local workspace_root=$(resolve_workspace_root "$session_ws")
+            forget_entries "$workspace_root" "$@"
             ;;
 
 	cache-clear|clear-cache)
