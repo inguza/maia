@@ -92,7 +92,10 @@ forget_entries() {
     local i
     for i in "${!patterns[@]}"; do
 	if [[ -n "${patterns[i]}" && "${patterns[i]}" != *[\*\?\[]* ]]; then
-            patterns[i]="$(realpath --relative-to="$ws_root" "${patterns[i]}")"
+	    local relative_path
+            if relative_path=$(realpath --relative-to="$ws_root" "${patterns[i]}" 2>/dev/null); then
+		patterns[i]="$relative_path"
+            fi
 	fi
     done
     # For warning handling
