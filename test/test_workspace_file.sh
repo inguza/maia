@@ -35,6 +35,11 @@ echo "y1" > y1.txt
 echo "y2" > y2.txt
 echo "y3" > y3.txt
 
+mkdir t1
+mkdir t2
+echo "y3" > t1/y3.txt
+echo "y3" > t2/y3.txt
+
 run_workspace_cmd "create_and_use_workspace" create ws
 $MAIA session create testsession --workspace ws
 export MAIA_SESSION=testsession
@@ -97,6 +102,38 @@ run_file_cmd "list_after_add_alias" list
 # Test delete alias for forget
 run_file_cmd "delete_alias" delete x3.txt
 run_file_cmd "list_after_delete_alias" list
+
+# Test relative to other paths
+run_file_cmd "remember_pwd_file" remember $PWD/x3.txt
+run_file_cmd "list_after_remember_pwd_file" list
+run_file_cmd "forget_pwd_file" forget $PWD/x3.txt
+run_file_cmd "list_after_forget_pwd_file" list
+
+cd t1
+run_file_cmd "remember_subdir1_file" remember y3.txt
+run_file_cmd "list_after_remember_subdir1_file" list
+run_file_cmd "forget_subdir1_file" forget y3.txt
+run_file_cmd "list_after_forget_subdir1_file" list
+run_file_cmd "remember_subdir1_file_2" remember y3.txt
+# This should give a warning
+run_file_cmd "forget_single_3" forget "y3.txt*"
+run_file_cmd "list_after_forget_3" list
+run_file_cmd "forget_single_4" forget y3.txt*
+run_file_cmd "list_after_forget_4" list
+cd ../t1
+run_file_cmd "remember_subdir1_file_3" remember y3.txt
+run_file_cmd "list_after_remember_subdir1_file_3" list
+run_file_cmd "remember_subdir1_file_4" remember ../y3.txt
+run_file_cmd "list_after_remember_subdir1_file_4" list
+cd ../t2
+run_file_cmd "remember_subdir2_file" remember y3.txt
+run_file_cmd "list_after_remember_subdir2_file" list
+run_file_cmd "forget_single_5" forget y3.txt
+run_file_cmd "list_after_forget_subdir2_file_5" list
+run_file_cmd "remember_subdir2_file_2" remember y3.txt
+run_file_cmd "list_after_remember_subdir2_file_2" list
+run_file_cmd "forget_all_y3" forget "*y3.txt"
+run_file_cmd "list_after_forget_all_y3" list
 
 # Test usage of --filesets option with remember and forget
 run_file_cmd "remember_with_filesets" remember --filesets default y1.txt
