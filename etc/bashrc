@@ -37,3 +37,19 @@ if [[ "$PROMPT_COMMAND" != *maia_prompt_helper* ]]; then
 fi
 # Bash completions
 . "${MAIA_ROOT}/etc/bash.completions"
+# Utility function to do something for every session
+maiaforeachsession() {
+    local filter="$1"
+    shift
+    maia session list |
+        sed 's/^[\*+ \t]*//;s/[ \t].*$//;s/\r\n/\n/;' |
+        while read -r w || [[ -n "$w" ]] ; do
+            [[ -n "$w" ]] || continue
+            [[ "$w" == $filter ]] || continue
+            maias $w
+            local command
+            for command in "$@" ; do
+                eval "$command"
+            done
+        done
+}

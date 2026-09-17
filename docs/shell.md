@@ -1,21 +1,76 @@
 # Shell
 
-The maia shell is a standard bash shell with some extra functionality added on top.
+The `maia shell` provides a standard bash shell with additional functionality.
 
-* Showing the active session in the prompt. Will add ! in case the session does not exist.
-* Showing the active workspace in the prompt. Will add ! in case teh workspace does not exist and § in case
-  the current directory is outside the workspace root.
-* For monitored shells show the shell name.
-* maias command to set the active session
+The following functionality is added:
 
-Example of a maia shell
+* The prompt shows the active session, workspace and for monitored shells the shell name.
+  An `!` is added if the session does not exist.
+* The prompt shows the active workspace.
+  An `!` is added if the workspace does not exist.
+  An `§` is added if the current directory is outside the workspace root.
+  An `-` is shown if there is no active workspace defined.
+* For monitored shells, the prompt also shows the shell name.
+* The `maias` command changes the active session.
+* The `maiaforeachsession` function executes a command for each selected session.
+
+## Prompt
+
+A `maia shell` has a prompt such as:
+
 ```text
 ola@localhost[default|maia]:~/git/maia$
 ```
-In this example `default` is the session name and `maia` is the workspace name.
 
-Example of a monitored maia shell
+Here, default is the active session and maia is the active workspace.
+
+A monitored MAIA shell also shows the monitored shell name:
+
 ```text
 ola@localhost[default|maia|shell1]:~/git/maia$
 ```
-In this example `default` is the session name, `maia` is the workspace name and `shell1` is the monitored shell name.
+
+Here `shell1` is the monitored shell name.
+
+The prompt uses additional characters to indicate missing or invalid context:
+
+* An `!` is added to the session if the session does not exist.
+* An `!` is added to the workspace if the workspace does not exist.
+* An `§` is added to the workspace if the current directory is outside the workspace root.
+* An `-` is shown as the workspace if there is no active workspace defined.
+
+## maias
+
+`maias` changes the active MAIA session for the current shell.
+
+For example:
+
+```bash
+maias default
+```
+
+sets `default` as the active session.
+
+## maiaforeachsession
+
+```
+maiaforeachsession <glob pattern> <command1> [<command2> [...]]
+```
+
+`maiaforeachsession` executes one or more commands for each session matching a specified glob pattern.
+
+The first argument is a session glob pattern. Additional arguments are commands to execute.
+For each matching session, all commands are evaluated as shell commands in the order they were specified
+before proceeding to the next session.
+
+For example:
+
+```bash
+maiaforeachsession "developer%*" "maia session" "maia tool refresh"
+```
+
+runs both `maia session` to print the session and `maia tool refresh` to refresh the tools for every session
+whose name match "developer%*" glob pattern.
+
+Multiple commands can therefore be applied consistently to a group of sessions without having to select
+each session manually.
