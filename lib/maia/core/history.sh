@@ -29,6 +29,12 @@ COMMANDS
   delete [<range>...]
     Delete entries in n–m inclusive for all given ranges.
 
+  hide [<range>...]
+    Hide entries in n–m inclusive for all given ranges from the AI.
+
+  unhide [<range>...]
+    Make entries in n–m inclusive for all given ranges visible to the AI.
+
   prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
     Prune history entries by role and mode.
 
@@ -520,7 +526,21 @@ handle_history_command() {
 	    info "Popped the first $n entr$([ "$n" -eq 1 ] && echo "y" || echo "ies") from history '$history_name'."
 	    ;;
 
-        delete)
+	hide)
+	    shift
+            local slice=$(range_defaults "${1:-}")
+            exclusive_json_modify "$history_file" ".[${slice}] |= map(.hidden = true)"
+            info "Entries hidden in history '$history_name'."
+	    ;;
+
+	unhide)
+	    shift
+            local slice=$(range_defaults "${1:-}")
+            exclusive_json_modify "$history_file" ".[${slice}] |= map(del(.hidden))"
+            info "Entries unhidden in history '$history_name'."
+	    ;;
+
+	delete)
 	    shift
 	    local slice=$(range_defaults "${1:-}")
 	    exclusive_json_modify "$history_file" "del(.[${slice}])"
@@ -535,7 +555,13 @@ handle_history_command() {
 	    summary=$(handle_send_command --no-files --no-tools --no-skills "$request")
 	    local status=$?
 	    if [[ -n "$summary" && $status -eq 0 ]] ; then
-		exclusive_json_modify "$history_file" 'if length > 2 then .[-2:] else . end'
+		exclusive_json_modify "$history_file" '
+		    if length > 2 then
+		      .[0:-2] |= map(.hidden = true | .summarized = true)
+		    else
+		      .
+		    end
+		'
 	    else
 		warn "Unable to make a summary. History not compacted."
 	    fi

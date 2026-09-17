@@ -19,6 +19,12 @@ COMMANDS
   delete [<range>...]
     Delete entries in n–m inclusive for all given ranges.
 
+  hide [<range>...]
+    Hide entries in n–m inclusive for all given ranges from the AI.
+
+  unhide [<range>...]
+    Make entries in n–m inclusive for all given ranges visible to the AI.
+
   prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
     Prune history entries by role and mode.
 

@@ -128,7 +128,7 @@ append_history() {
             | map(
                 select(.hidden != true)
                 | if type == "object" then
-                    del(.timestamp, .id, .backup)
+                    del(.timestamp, .id, .backup, .summarized, .call_pruned)
                   else
                     .
                   end
