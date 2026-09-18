@@ -32,6 +32,13 @@ COMMANDS
   discover
     Discover resources.
 
+  verify
+    Check the file entries for duplicates and whether the files still exist or not.
+
+  clean
+    Remove entries that do not match a local file (resources are kept) and also
+    remove duplicated entries.
+
   cache-clear|clear-cache
     Clear resource cache, to re-read from the resource provider.
 
@@ -241,6 +248,60 @@ handle_file_command() {
                 printf '   %s\n' "$file"
             done
             ;;
+
+	verify|clean)
+            shift
+            local workspace_root=$(resolve_workspace_root "$session_ws")
+            if [[ ! -d "$workspace_root" ]]; then
+                die "Workspace root '$workspace_root' does not exist."
+            fi
+            # Gather all unique files from filesets
+	    local extra=""
+	    if [[ "$cmd" == "clean" ]] ; then
+		extra=", removing"
+	    fi
+            for fs in "${FILESET_FILES[@]}"; do
+		declare -A seen=()
+		declare tokeep=()
+                while IFS= read -r line || [[ -n "$line" ]]; do
+		    line="${line%$'\r'}"
+                    [[ -z "$line" ]] && continue
+		    # Resources are currently always kept.
+		    if [[ "$line" == *"#"* ]]; then
+			tokeep+=("$line")
+			continue
+		    fi
+		    # Duplicate
+		    if [[ -v seen["$line"] ]]; then
+			notice "Duplicate file entry$extra: $line"
+			continue
+		    fi
+		    local file_part filter_part actual_file
+                    if [[ "$line" == *'|'* ]]; then
+                        file_part="${line%%|*}"
+                    else
+                        file_part="$line"
+                    fi
+                    # Further split file_part on first colon ':' to get actual filename
+                    actual_file="${file_part%%:*}"
+		    # File no longer exists
+		    if [[ ! -f "$workspace_root/$actual_file" ]]; then
+			notice "File does not exist$extra: $line"
+			continue
+		    fi
+		    tokeep+=("$line")
+                done < "$fs"
+		if [[ "$cmd" == "clean" ]] ; then
+		    : > "$fs"
+		    for line in "${tokeep[@]}" ; do
+			printf '%s\n' "$line" >> "$fs"
+		    done
+		fi
+            done
+	    ;;
+
+	clean)
+	    ;;
 
 	content)
 	    shift

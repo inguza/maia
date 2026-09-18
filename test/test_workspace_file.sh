@@ -131,7 +131,30 @@ run_file_cmd "remember_subdir2_file_2" remember y3.txt
 run_file_cmd "list_after_remember_subdir2_file_2" list
 run_file_cmd "forget_all_y3" forget "*y3.txt"
 run_file_cmd "list_after_forget_all_y3" list
+cd ..
 
+# Verify and clean
+rm -f y1.txt
+run_file_cmd "verify" verify
+run_file_cmd "list_after_verify" list
+run_file_cmd "clean" clean
+run_file_cmd "list_after_clean" list
+echo "Dummy" > y1.txt
+run_file_cmd "remember1" remember "y1.txt"
+run_file_cmd "remember3" remember "y1.txt|test"
+run_file_cmd "remember4" remember "y1.txt:0-1100"
+$MAIA config mcp_servers '["provider=test"]'
+run_file_cmd "remember#" remember "provider#ui://test/foo"
+run_file_cmd "remember6" remember "y1.txt:0-1100"
+run_file_cmd "verify2" verify
+run_file_cmd "list_after_verify2" list
+run_file_cmd "clean2" clean
+run_file_cmd "list_after_clean2" list
+rm -f y1.txt
+run_file_cmd "clean3" clean
+run_file_cmd "list_after_clean3" list
+
+cd t2
 # Test error handling: forget non-existing pattern
 run_file_cmd "forget_non_existing" forget "non_existing_file.txt"
 
