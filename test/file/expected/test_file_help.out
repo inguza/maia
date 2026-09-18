@@ -22,6 +22,13 @@ COMMANDS
   discover
     Discover resources.
 
+  verify
+    Check the file entries for duplicates and whether the files still exist or not.
+
+  clean
+    Remove entries that do not match a local file (resources are kept) and also
+    remove duplicated entries.
+
   cache-clear|clear-cache
     Clear resource cache, to re-read from the resource provider.
 
