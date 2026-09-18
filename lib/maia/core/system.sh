@@ -48,7 +48,6 @@ OPTIONS
     Which prompt to manage:
       - system (default)
       - tools
-      - files
       - tools
       - toolscontext
 

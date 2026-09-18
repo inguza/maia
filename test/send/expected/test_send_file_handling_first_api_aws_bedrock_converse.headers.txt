@@ -1,0 +1,4 @@
+Content-Type: application/json
+Authorization: AWS4-HMAC-SHA256 Credential=mockedapikey/<date>/bedrock/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=<signature>
+X-Amz-Date: <dateandtime>
+X-Amz-Security-Token: mockedtoken

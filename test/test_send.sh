@@ -115,6 +115,8 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Test 6: send with file handling mode override (valid modes)
     run_send_cmd "file_handling_default${suffix}" --file-handling DEFAULT "Test file handling default"
+    run_send_cmd "file_handling_first${suffix}" --file-handling FIRST "Test file handling first"
+    run_send_cmd "file_handling_autotool${suffix}" --file-handling AUTOTOOL "Test file handling autotool"
     run_send_cmd "file_handling_before${suffix}" --file-handling BEFORE "Test file handling before"
     run_send_cmd "file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
 

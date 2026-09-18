@@ -72,12 +72,6 @@ unset EDITOR
 # Test show with --scope user
 run_system_cmd "show_scope_user" show --scope user
 
-# Test append with --type files
-run_system_cmd "show_type_files" --type files show
-run_system_cmd "append_type_files" --type files append "Files type prompt content."
-
-# Test show with --type files
-run_system_cmd "show_type_files_after_append" --type files show
 export EDITOR="$TEST_ROOT/mock_editor.sh"
 run_system_cmd "append_scope_user_compose" append --scope home +compose
 unset EDITOR

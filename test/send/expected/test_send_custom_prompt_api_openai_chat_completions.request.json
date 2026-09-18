@@ -55,6 +55,22 @@
     },
     {
       "role": "user",
+      "content": "Test file handling first"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling autotool"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
       "content": "Test file handling before"
     },
     {
