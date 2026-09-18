@@ -49,11 +49,12 @@ fi
 
 if [[ "$path" != "$wpath" ]] ; then
     make_patch "$ws_changes" "$id" "$path"
-    write_meta "$ws_changes" "$baseid" "$index" "$path"
     pfile="$ws_changes/$id-pending.patch"
     if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
+	rm -f "$pfile" "$wpath"
 	echo "$contentstr identical to the content in $path. Consider it written."
     else
+	write_meta "$ws_changes" "$baseid" "$index" "$path"
 	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe content of the proposed change is the following:\n"
 	echo "\`\`\`patch"
 	read_file_by_line "$pfile" cr
