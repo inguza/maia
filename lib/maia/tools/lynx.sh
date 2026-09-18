@@ -23,6 +23,31 @@ done
 declare -a arguments=()
 parsearguments
 
+urlencode_internal() {
+    local input="$1"
+    local output=""
+    local i ch hex
+    local LC_ALL=C
+
+    for (( i=0; i<${#input}; i++ )); do
+        ch="${input:i:1}"
+        case "$ch" in
+            [a-zA-Z0-9.~_-])
+                output+="$ch"
+                ;;
+            ' ')
+                output+='%20'
+                ;;
+            *)
+                printf -v hex '%%%02X' "'${ch}"
+                output+="$hex"
+                ;;
+        esac
+    done
+
+    printf '%s' "$output"
+}
+
 declare -a args
 for argument in "${arguments[@]}"; do
     if [[ -z "${allowed[$argument]+x}" ]]; then
@@ -42,7 +67,7 @@ if [[ -n "$urls" ]] ; then
 fi
 if [[ ${#url_array[@]} -eq 0 ]] ; then
     query="$(printf '%b' "${param[query]:-}")"
-    url_array=("https://html.duckduckgo.com/html/?q=$(urlencode "$query")")
+    url_array=("https://html.duckduckgo.com/html/?q=$(urlencode_internal "$query")")
 fi
 
 # Disable glob expansion
