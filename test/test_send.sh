@@ -118,7 +118,7 @@ for api in "${api_types_and_configs[@]}"; do
     run_send_cmd "file_handling_before${suffix}" --file-handling BEFORE "Test file handling before"
     run_send_cmd "file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
 
-    # Test 7: send with file handling mode override (invalid mode - falls back to DEFAULT)
+    # Test 7: send with file handling mode override (invalid mode should fail)
     run_send_cmd "file_handling_invalid${suffix}" --file-handling INVALID "Test file handling invalid"
     # Should give output
     run_user_cmd "file_handling_invalid${suffix}"

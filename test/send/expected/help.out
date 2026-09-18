@@ -32,7 +32,7 @@ OPTIONS
 
   --file-handling <mode>
     Override file handling mode for this send command.
-    Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
+    Allowed values: DEFAULT, FIRST, BEFORE, APPEND (case-insensitive).
 
   --continue
     Used to continue tool loops.

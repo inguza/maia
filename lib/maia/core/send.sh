@@ -46,7 +46,7 @@ OPTIONS
 
   --file-handling <mode>
     Override file handling mode for this send command.
-    Allowed values: DEFAULT, BEFORE, APPEND (case-insensitive).
+    Allowed values: DEFAULT, FIRST, BEFORE, APPEND (case-insensitive).
 
   --continue
     Used to continue tool loops.
@@ -175,7 +175,7 @@ build_messages_json() {
     
     # Determine effective file handling mode
     if [[ "${mode^^}" == "DEFAULT" ]] ; then
-	mode="BEFORE"
+	mode="FIRST"
     fi
     
     # 3) Build messages based on mode
@@ -190,124 +190,90 @@ build_messages_json() {
 	skill_list=""
 	skill_memory=""
     fi
+    # System prompt (and “Files:” instructions if any)
+    local sys="$(prompt_for_scope "session" system)"
+    if [[ "$tools_enabled" == true && "$no_tools" == false ]] ; then
+	local t
+	for t in tools tool_instr ; do
+	    local tool_instruction="$(prompt_for_scope "session" "$t")"
+	    if [[ -n "$tool_instruction" ]] ; then
+		sys+=$'\n\n'"$tool_instruction"$'\n'
+	    fi
+	done
+    fi
+    if [[ -n "$skill_list" ]] ; then
+	local slisth="$(prompt_for_scope "session" "skills")"
+	sys+=$'\n\n'"$slisth"$'\n'
+	sys+="$skill_list"
+    fi
+    if [[ -n "$skill_memory" ]] ; then
+	local smemh="$(prompt_for_scope "session" "skillscontext")"
+	sys+=$'\n\n'"$smemh"$'\n'
+	sys+="$skill_memory"
+    fi
+    local file_instruction="$(prompt_for_scope "session" files)"
     case "${mode^^}" in
-        BEFORE)
-            # System prompt (and “Files:” instructions if any)
-            local sys="$(prompt_for_scope "session" system)"
-	    if [[ "$tools_enabled" == true && "$no_tools" == false ]] ; then
-		local t
-		for t in tools tool_instr ; do
-		    local tool_instruction="$(prompt_for_scope "session" "$t")"
-		    if [[ -n "$tool_instruction" ]] ; then
-			sys+=$'\n\n'"$tool_instruction"$'\n'
-		    fi
-		done
-	    fi
-	    if [[ -n "$skill_list" ]] ; then
-		local slisth="$(prompt_for_scope "session" "skills")"
-		sys+=$'\n\n'"$slisth"$'\n'
-		sys+="$skill_list"
-	    fi
-	    if [[ -n "$skill_memory" ]] ; then
-		local smemh="$(prompt_for_scope "session" "skillscontext")"
-		sys+=$'\n\n'"$smemh"$'\n'
-		sys+="$skill_memory"
-	    fi
-            if [[ -n "${ws_name}" && "$no_files" == false ]]; then
-		local file_instruction="$(prompt_for_scope "session" files)"
+        BEFORE|FIRST)
+	    if [[ -n "${ws_name}" && "$no_files" == false ]]; then
 		if [[ -n "$file_instruction" ]] ; then
                     sys+=$'\n\n'"$file_instruction"
 		fi
             fi
-            if [[ -n "$sys" ]]; then
-		append_message msgs "$systemrole" "$sys"
-            fi
-            # History messages
-            if [[ -f "$history_file" ]]; then
-		local tmpf="$(mktemp)"
-		printf '%s' "$msgs" > "$tmpf"
-		msgs=$(append_history "$tmpf" "$history_file")
-		rm -f "$tmpf"
-            fi
-            # Outbox as final user message
-            local out=""
-            if [[ -e "$outbox_file" ]]; then
-                out=$(read_file "$outbox_file" cr)
-            fi
-	    if [[ -n "$out" ]] ; then
-		append_message msgs "user" "$out"
-	    fi
-            # One combined “Files:” user message, inserted before the last user message
-            if [[ -n "$combined" && "$no_files" == false ]]; then
-		# Avoid argument list too long by using slurpfile
-		local tmpf="$(mktemp)"
+	    ;;
+	APPEND)
+	    :
+	    ;;
+	*)
+	    die "Unknown file handling mode '$mode'"
+	    ;;
+    esac
+    if [[ -n "$sys" ]]; then
+	append_message msgs "$systemrole" "$sys"
+    fi
+    # History messages
+    if [[ -f "$history_file" ]]; then
+	local tmpf="$(mktemp)"
+	printf '%s' "$msgs" > "$tmpf"
+	msgs=$(append_history "$tmpf" "$history_file")
+	rm -f "$tmpf"
+    fi
+    local out=""
+    if [[ -e "$outbox_file" ]]; then
+        out=$(read_file "$outbox_file" cr)
+    fi
+    if [[ -n "$out" ]] ; then
+	append_message msgs "user" "$out"
+    fi
+    if [[ -n "$combined" && "${ws_name}" && "$no_files" == false ]]; then
+	# Avoid argument list too long by using slurpfile
+	local tmpf="$(mktemp)"
+	case "${mode^^}" in
+            BEFORE|FIRST)
 		printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.' > "$tmpf"
-		msgs=$(jq --slurpfile content \
+		# One combined “Files:” user message,
+		# inserted before the first actual user message or before last user message
+		msgs=$(jq --arg position "$mode" --slurpfile content \
 			  "$tmpf" '
 			  . as $m
-			  | ([$m | to_entries[] | select(.value.role == "user")] | last) as $last
-			  | if $last then
-			        $m[:$last.key]
-			        + [{role:"user",content:$content[0]}]
-			        + $m[$last.key:]
-			    else
-			        $m
-			    end
-			' <<< "$msgs")
-		rm -f "$tmpf"
-            fi
-            ;;
-        APPEND)
-            # System prompt only, no files instructions here
-            local sys="$(prompt_for_scope "session" system)"
-	    if [[ "$tools_enabled" == true && "$no_tools" == false ]] ; then
-		local t
-		for t in tools tool_instr ; do
-		    local tool_instruction="$(prompt_for_scope "session" "$t")"
-		    if [[ -n "$tool_instruction" ]] ; then
-			sys+=$'\n\n'"$tool_instruction"$'\n'
-		    fi
-		done
-	    fi
-	    if [[ -n "$skill_list" ]] ; then
-		local slisth="$(prompt_for_scope "session" "skills")"
-		sys+=$'\n\n'"$slisth"$'\n'
-		sys+="$skill_list"
-	    fi
-	    if [[ -n "$skill_memory" ]] ; then
-		local smemh="$(prompt_for_scope "session" "skillscontext")"
-		sys+=$'\n\n'"$smemh"$'\n'
-		sys+="$skill_memory"
-	    fi
-            if [[ -n "$sys" ]]; then
-		append_message msgs "$systemrole" "$sys"
-            fi
-            # History messages
-            if [[ -f "$history_file" ]]; then
-		local tmpf="$(mktemp)"
-		printf '%s' "$msgs" > "$tmpf"
-		msgs=$(append_history "$tmpf" "$history_file")
-		rm -f "$tmpf"
-            fi
-            # Outbox content plus appended files instructions and fenced files
-            local out=""
-            if [[ -e "$outbox_file" ]]; then
-                out=$(read_file "$outbox_file" cr)
-            fi
-
-	    # Add the user message
-	    if [[ -n "$out" ]]; then
-		append_message msgs "user" "$out"
-	    fi
-            # Prepare files instructions and fenced content if any
-            local files_section=""
-            if [[ -n "${ws_name}" && "$no_files" == false ]]; then
-                local files_prompt=$(prompt_for_scope "session" files)
-		files_section=$'\n\n'"$files_prompt"$'\n\n'"Files:"$'\n\n'"$filesinstr"$'\n\n'"$combined"
-            fi
-	    # Then append the files section to the end of the last user message
-	    if [[ -n "$files_section" ]]; then
-		local tmpf="$(mktemp)"
+			  | (
+			      if $position == "FIRST" then
+			        1
+			      elif $position == "BEFORE" then
+			        ([$m | to_entries[] | select(.value.role == "user")] | last).key
+			      else
+			        error("Invalid position: " + $position)
+			      end
+			    ) as $position
+			  | $m[:$position]
+			    + [{role:"user",content:$content[0]}]
+			    + $m[$position:]
+			  ' <<< "$msgs")
+		;;
+            APPEND)
+		# Outbox content plus appended files instructions and fenced files
+		# Prepare files instructions and fenced content if any
+		local files_section=$'\n\n'"$file_instruction"$'\n\n'"Files:"$'\n\n'"$filesinstr"$'\n\n'"$combined"
+		# Then append the files section to the end of the last user message
 		printf '%s' "$files_section" | jq -R -s '.' > "$tmpf"
 		msgs=$(jq --slurpfile files "$tmpf" '
 		      . as $m
@@ -318,14 +284,14 @@ build_messages_json() {
 			else
 			  .
 			end
-		' <<< "$msgs")
-		rm -f "$tmpf"
-	    fi
-            ;;
-        *)
-	    die "Unknown file handling mode '$mode'"
-            ;;
-    esac
+		     ' <<< "$msgs")
+		;;
+            *)
+		:
+		;;
+	esac
+	rm -f "$tmpf"
+    fi
 
     printf '%s' "$msgs"
 }
