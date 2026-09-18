@@ -90,7 +90,7 @@ Tool definitions:
   },
   {
     "name": "core-print",
-    "description": "Print content for use by other tools. Shall only be used as input to the next tool in a core-pipe.",
+    "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
     "command": "core-print.sh",
     "inputSchema": {
       "type": "object",
