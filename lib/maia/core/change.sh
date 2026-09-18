@@ -938,8 +938,10 @@ handle_change_command() {
 		    echo $exit_status > "${changes_dir}/$session/${id}-running.exit_status"
 		    if [[ $exit_status == 0 ]] ; then
 			change_state_for_jsons "finished" "$jsonf"
+			post_check "$session" "${id%-*}" finished
 		    else
 			change_state_for_jsons "failed" "$jsonf"
+			post_check "$session" "${id%-*}" failed
 		    fi
 		    # OBSERVE! Files are changed now to finished or failed!!!
 		    jsonf=$(match_single_file "$prefix" ".json")
@@ -985,10 +987,12 @@ handle_change_command() {
 			[[ "$status" == "pending" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
 			[[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
 			apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
+			post_check "$session" "${id%-*}" applied
 		    elif [[ "$cmd" == "revert" ]] ; then
 			[[ "$status" == "applied" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
 			[[ "$type"   == "patch"  ]] || die "Cannot auto-revert non-patch '$id'"
 			apply_patch -R "$workspace_root" "${changes_dir}/$session/${id}-applied.patch"
+			post_check "$session" "${id%-*}" pending
 		    fi
 		else
 		    # --- whole change set ---
