@@ -1083,9 +1083,11 @@ handle_change_command() {
 			pre_check "$session" "$id"
 		    fi
 		    change_state_for_jsons "$action" "$changes_dir/$session/${id}-"*[0-9]"-"*".json" $(match_single_file "$changes_dir/$session/$id-+-" ".json")
+		    notice "Updated to state '$action' for change set $id and all sub-entries."
 		else
 		    # --- single sub-entry ---
 		    change_state_for_jsons "$action" "$changes_dir/$session/${id}-"*".json"
+		    notice "Updated to state '$action' for change $id."
 		fi
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ && "$action" != "pending" ]]; then
 		    # --- whole change set ---
