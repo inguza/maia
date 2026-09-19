@@ -1,6 +1,6 @@
 ======== [1] subsession-create {"subsession":"review-xcommon"} ========
 [NOTICE] Bootstrapped session 'review-xcommon'
-[NOTICE] Created session 'review-xcommon' with workspace 'default', resolved from current session.
+[NOTICE] Created session 'review-xcommon' with workspace 'default' (resolved from current session) and with no profile (from default_profile configuration).
 
 -> 0
 ======== [2] context-file-remember {"files":["x/x.info.yml"]} ========
