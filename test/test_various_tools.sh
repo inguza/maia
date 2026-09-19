@@ -26,8 +26,8 @@ echo "Working in $XMAIA_HOME"
 $MAIA workspace create default --path "$XMAIA_HOME" > /dev/null 2>&1
 $MAIA session create default --workspace default > /dev/null 2>&1
 # Allow all tools and skills
-$MAIA tool --scope session replace "*" > /dev/null 2>&1
-$MAIA skill --scope session replace "file" "subsession"
+$MAIA tool replace "*" > /dev/null 2>&1
+$MAIA skill replace "file" "subsession"
 touch "$XMAIA_HOME/file-to-see.txt"
 #
 TOOL_DIR="$(realpath "$TEST_ROOT/../lib/maia/tools")"
@@ -213,8 +213,8 @@ export ASSISTANT_BASEID="20260717T214714-68e23e97"
 run_tool_cmd "shell-exec-1" "shell-exec.sh" '{"commands":"make\ngcc\n"}'
 
 ##### maia-* tools
-$MAIA tool --scope session replace "core-*" "file-*" "util-*" > /dev/null 2>&1
-$MAIA skill --scope session replace "file"
+$MAIA tool replace "core-*" "file-*" "util-*" > /dev/null 2>&1
+$MAIA skill replace "file"
 run_tools_cmd "list-parent-tools-1" list
 run_tools_cmd "view-parent-tools-1" view
 run_skills_cmd "list-parent-skills-1" list
@@ -283,8 +283,8 @@ unset TOOL_NAME
 
 $MAIA session create testsession
 export MAIA_SESSION=testsession
-$MAIA tool --scope session replace "core-*" "file-*" > /dev/null 2>&1
-$MAIA skill --scope session replace "file"
+$MAIA tool replace "core-*" "file-*" > /dev/null 2>&1
+$MAIA skill replace "file"
 run_tools_cmd "list-parent-tools-7" list
 run_tools_cmd "view-parent-tools-7" view
 run_skills_cmd "list-parent-skills-7" list

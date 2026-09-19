@@ -91,7 +91,7 @@ run_tools_cmd "verify_after_delete" verify
 # edit not tested
 
 # MCP tests
-$MAIA config --scope session "mcp_servers" '["test=stdio:test.sh -xxx"]'
+$MAIA config "mcp_servers" '["test=stdio:test.sh -xxx"]'
 export PATH=$PATH:$TEST_ROOT/mcp
 run_tools_cmd "mcp_discover1" --scope home discover
 run_tools_cmd "mcp_list1" list

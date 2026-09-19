@@ -23,7 +23,7 @@ setup_maia_home
 # Some special setups for job
 $MAIA session create jobtest
 export MAIA_HOME="jobtest"
-$MAIA tools --scope session append "core-*"
+$MAIA tools append "core-*"
 
 # Helper to run a session command and check output
 run_job_cmd() {

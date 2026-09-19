@@ -24,7 +24,7 @@ $MAIA workspace create default > /dev/null 2>&1
 $MAIA session create testsession --workspace default
 export MAIA_SESSION=testsession
 # This is the default but we set it anyway
-$MAIA config --scope session auto_parse false
+$MAIA config auto_parse false
 
 FIXTURE_DIR="$TEST_ROOT/parse_apply_flow/fixtures"
 
