@@ -536,7 +536,7 @@ set_config() {
     config_exists "$name"
     local value=$2
     local scope=$3
-    local file; file=$(config_file_for_scope "$scope")
+    local file=$(config_file_for_scope "$scope")
     mkdir -p "$(dirname "$file")"
 
     # Detect if value looks like JSON (starts with [ or {)
@@ -549,7 +549,7 @@ set_config() {
     fi
 
     if [[ -f "$file" ]]; then
-        local tmp; tmp=$(mktemp)
+        local tmp=$(mktemp)
         jq --arg key "$name" --argjson val "$json_val" '.[$key]=$val' "$file" > "$tmp" && mv "$tmp" "$file"
     else
         echo "{ \"$name\": $json_val }" > "$file"
@@ -563,7 +563,7 @@ unset_config() {
     local scope=$2
 
     # Determine the path to the scope’s config.json
-    local file; file=$(config_file_for_scope "$scope")
+    local file=$(config_file_for_scope "$scope")
 
     # If there's no config file at all, nothing to unset
     if [[ ! -e "$file" ]]; then
