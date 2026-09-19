@@ -134,6 +134,9 @@ init_scope_dirs() {
 
 validate_scope() {
     local scope="$1"
+    if [[ "$scope" == "default" ]] ; then
+	return
+    fi
     if [[ ! -v SCOPE_DIRS[$scope] ]]; then
 	die "Unknown scope: $scope. Valid scopes: ${SCOPE_ORDER[@]}"
     elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
