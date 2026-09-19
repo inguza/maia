@@ -58,6 +58,8 @@ declare -A DEFAULT_CONFIG=(
     [default_session_filesets]='["__SESSION_NAME__"]'
     [default_session_extra_send_filesets]='[]'
     [default_workspace]='__SESSION_WORKSPACE__'
+    [default_profile]=''
+    [allowed_profiles]='*'
     [send_hook]=''
     [default_subsession_tool_allow]="*"
     [default_subsession_tool_restrict]="subsession-*"
@@ -100,10 +102,10 @@ declare -A LOG_PRIORITIES=(
 
 # Scope handling
 declare -A SCOPE_DIRS
-declare -a SCOPE_ORDER=(session workspace home user system default)
-declare -a TOOL_SEARCH_ORDER=(install system user home workspace session extra)
+declare -a SCOPE_ORDER=(session profile workspace home user system default)
+declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session extra)
 declare -A TOOL_DIRS
-declare -a SKILL_SEARCH_ORDER=(install system user home workspace session extra)
+declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session extra)
 declare -A SKILL_DIRS
 
 # Initialize the map of all known scopes to their directories.
@@ -122,6 +124,7 @@ init_scope_dirs() {
 
     SCOPE_DIRS=(
 	[session]="$(resolve_session_path)"
+	[profile]="$(resolve_profile_path)"
 	[workspace]="$(resolve_workspace_path)"
 	[home]="$data_dir"
 	[user]="$user_dir"
@@ -135,6 +138,7 @@ init_tool_search_dirs() {
     local wsroot="$(resolve_workspace_root)"
     TOOL_DIRS=(
 	[session]="${SCOPE_DIRS[session]}/tools"
+	[profile]="${SCOPE_DIRS[profile]}/tools"
 	[workspace]="$wsroot/.maia/tools:${SCOPE_DIRS[workspace]}/tools"
 	[home]="${SCOPE_DIRS[home]}/tools"
 	[user]="${SCOPE_DIRS[user]}/tools"
@@ -148,6 +152,7 @@ init_skill_search_dirs() {
     local wsroot="$(resolve_workspace_root)"
     SKILL_DIRS=(
 	[session]="${SCOPE_DIRS[session]}/skills"
+	[profile]="${SCOPE_DIRS[profile]}/skills"
 	[workspace]="${SCOPE_DIRS[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
 	[home]="${SCOPE_DIRS[home]}/skills"
 	[user]="${SCOPE_DIRS[user]}/skills"
@@ -245,9 +250,9 @@ handle_x_list() {
     for d in "$base"/*/; do
         [[ -d "$d" ]] || continue
         local name="$(basename "$d")"
-	local meta_file="$(resolve_x_meta "$x" "$x" "$name")"
+	local meta_file="$(resolve_${x}_meta "$name")"
 	local statstr=""
-	if [[ ! -f "$meta_file" ]]; then
+	if [[ -n "$meta_file" && ! -f "$meta_file" ]]; then
 	    statstr=" (defunct)"
 	fi
         # Mark the active one
@@ -395,6 +400,14 @@ resolve_session_workspace() {
     fi
     echo "$sess_ws_raw"
 }
+resolve_session_profile() {
+    local sess_name="$1"
+    local sess_profile_raw="$(read_session_profile_raw "$sess_name")"
+    if [[ -z "$sess_profile_raw" ]]; then
+	return
+    fi
+    echo "$sess_profile_raw"
+}
 
 #
 # Fileset handling
@@ -460,21 +473,41 @@ validate_workspace_exists() {
     fi
 }
 
+validate_profile_exists() {
+    local profile_name="$1"
+    local profile_dir="$(resolve_profile_path "$profile_name")"
+    if [[ ! -d "$profile_dir" ]]; then
+	if [[ -n "$profile_name" ]] ; then
+            die "Profile '$profile_name' does not exist. Create it with 'maia profile create $profile_name' first."
+	else
+            warn "No profile defined. Create a profile with 'maia profile create <name>' first and uset or or set <name> to be the default-profile in the configuration."
+	fi
+    fi
+}
+
 list_to_json() {
     printf '%s\n' $* | jq -R . | jq -s .
 }
 
-# update_session <name> <bootstrap?> <workspace> <filesets_json>
+# update_session <name> <bootstrap?> <workspace> <profile> <filesets_json>
 # - name: session name
 # - bootstrap?: "true" to initialize dir+files, "false" to assume exists
 # - workspace: workspace name to set
+# - profile: profile name to set
 # - filesets_json: JSON array string of filesets
 update_session() {
-    local name="$1";    shift
-    local bootstrap="$1"; shift
-    local ws="$1";      shift
-    local filesets="$1"; shift
-    local extra_send_filesets="$1"; shift || extra_send_filesets="[]"
+    local name="$1"
+    shift
+    local bootstrap="$1"
+    shift
+    local ws="$1"
+    shift
+    local profile="$1"
+    shift
+    local filesets="$1"
+    shift
+    local extra_send_filesets="$1"
+    shift || extra_send_filesets="[]"
 
     local dir="$(resolve_session_path)"
 
@@ -489,9 +522,10 @@ update_session() {
     local meta="$(resolve_session_meta "$name")"
     jq -n \
        --arg workspace "$ws" \
+       --arg profile "$profile" \
        --argjson filesets "$filesets" \
        --argjson extra_send_filesets "$extra_send_filesets" \
-       '{workspace: $workspace, filesets: $filesets, extra_send_filesets: $extra_send_filesets}' \
+       '{workspace: $workspace, profile: $profile, filesets: $filesets, extra_send_filesets: $extra_send_filesets}' \
        > "$meta"
 }
 
@@ -510,6 +544,7 @@ ensure_session_exists() {
     # Only auto-create the default session
     if [[ "$name" == "default" ]]; then
 	local workspace="$(resolve_session_workspace "$name")"
+	local profile="$(resolve_session_profile "$name")"
 	if [[ -n "$workspace" ]]; then
 	    validate_workspace_exists "$workspace"
 	else
@@ -522,8 +557,11 @@ ensure_session_exists() {
 		workspace=""
 	    fi
 	fi
+	if [[ -n "$profile" ]] ; then
+	    validate_prifile_exists "$profile"
+	fi
 	local filesets_json="$(get_config default_session_filesets)"
-	update_session "default" "true" "$workspace" "$filesets_json"
+	update_session "default" "true" "$workspace" "$profile" "$filesets_json"
     fi
     # For non-default sessions, we now do nothing (no error)
 }

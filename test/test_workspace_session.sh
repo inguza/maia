@@ -92,6 +92,12 @@ run_workspace_cmd "create_workspace_no_use" create ws
 run_session_cmd "create_session_defaultresolve_noneused" create newsession --workspace ws
 run_session_cmd "show_session_defaultresolve_noneused" show newsession
 
+run_session_cmd "create_session_defaultresolve_nows" create newsessionnows --workspace ""
+run_session_cmd "show_session_defaultresolve_nows" show --raw newsessionnows
+
+run_session_cmd "set_session_defaultresolve_nows" set newsessionnows --workspace ws
+run_session_cmd "show_setsession_defaultresolve_nows" show --raw newsessionnows
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

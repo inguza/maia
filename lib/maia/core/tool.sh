@@ -262,11 +262,6 @@ handle_tool_command() {
 		scope="$1"
 		shift || true
 		scopearg=yes
-		if [[ -n "$scope" ]] ; then
-		    if [[ -z "${SCOPE_DIRS[$scope]+x}" ]]; then
-			die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-		    fi
-		fi
 		;;
 	    *)
 		break
@@ -302,9 +297,12 @@ handle_tool_command() {
 
     if [[ -z "$scope" ]]; then
 	scope="session"
-	if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
-            die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-	fi
+    fi
+
+    if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+        die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
+    elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+        die "Scope '$scope' is valid but not available."
     fi
 
     # compute filename & path

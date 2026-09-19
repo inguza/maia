@@ -134,11 +134,6 @@ handle_system_command() {
 		shift
 		scope="$1"; shift || true
 		scopearg=yes
-		if [[ -n "$scope" ]] ; then
-		    if [[ -z "${SCOPE_DIRS[$scope]+x}" ]]; then
-			die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-		    fi
-		fi
 		;;
 	    *)
 		break
@@ -161,6 +156,12 @@ handle_system_command() {
     fi
     if [[ -z "$scope" ]]; then
 	scope="session"
+    fi
+
+    if [[ ! -v SCOPE_DIRS[$scope] ]] ; then
+	die "Unknown scope: $scope"
+    else
+	die "Scope '$scope' is valid but not available."
     fi
 
     # compute filename & path

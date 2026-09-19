@@ -107,6 +107,7 @@ EOF
 # Leaves leftover flags in REMAINING_ARGS[@]
 parse_session_options() {
     PARSED_WS=""
+    PARSED_PROFILE=""
     PARSED_FILESETS=""
     PARSED_EXTRA_SEND_FILESETS=""
     REMAINING_ARGS=()
@@ -115,9 +116,14 @@ parse_session_options() {
         case "$1" in
             --workspace)
                 shift
-                [[ -n "$1" ]] || { error "The option --workspace requires an argument."; session_usage; }
+                (( $# >= 1 )) || { error "The option --workspace requires an argument."; session_usage; }
                 PARSED_WS="$1"; shift
                 ;;
+	    --profile)
+                shift
+                (( $# >= 1 )) || { error "The option --profile requires an argument."; session_usage; }
+                PARSED_PROFILE="$1"; shift
+		;;
             --filesets|--fileset)
                 shift
 		[[ $# -ge 1 ]] || { die "The option --filesets requires a comma-separated list."; }
@@ -173,6 +179,20 @@ parse_session_options() {
     done
 }
 
+profile_allowed() {
+    local profile=$1
+    local pattern
+    local -a patterns
+
+    read -ra patterns <<< "$(get_config allowed_profiles)"
+
+    for pattern in "${patterns[@]}"; do
+        [[ "$profile" == $pattern ]] && return 0
+    done
+
+    return 1
+}
+
 handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 
@@ -199,10 +219,12 @@ handle_session_command() {
 		src_session="${REMAINING_ARGS[0]}"
 	    fi
 
-	    local ws_source=", from default_workspace configuration"
+	    local ws_source=" (from default_workspace configuration)"
 	    local workspace=$(get_config default_workspace)
+	    local profile_source=" (from default_profile configuration)"
+	    local profile=$(get_config default_profile)
 	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
-		ws_source=", resolved from current session"
+		ws_source=" (resolved from current session)"
 		workspace="$(resolve_workspace_name)"
 	    fi
 	    local filesets_json="[]"
@@ -211,6 +233,7 @@ handle_session_command() {
 	    local src_fs
 	    local src_extra_fs
 
+	    local extracopyinfo=""
 	    # If copying from a source session, read its metadata first to get defaults
 	    if [[ -n "$src_session" ]]; then
 		local src_path="$(resolve_session_path "$src_session")"
@@ -219,16 +242,27 @@ handle_session_command() {
 		fi
 		local src_meta="$(resolve_session_meta "$src_session")"
 		if [[ -f "$src_meta" ]]; then
-		    # Read workspace and filesets from source session
+		    # Read workspace, profile and filesets from source session
 		    src_ws=$(jq -r '.workspace // empty' < "$src_meta")
+		    src_profile=$(jq -r '.profile // empty' < "$src_meta")
 		    src_fs=$(jq -c '.filesets // empty' < "$src_meta")
 		    src_extra_fs=$(jq -c '.extra_send_filesets // []' < "$src_meta")
 
 		    # Use source session workspace/filesets as defaults if not overridden by options
 		    if [[ -z "$PARSED_WS" && -n "$src_ws" ]]; then
+			ws_source=" (from source session)"
 			workspace="$src_ws"
 		    elif [[ -n "$PARSED_WS" ]]; then
+			ws_source=" (from --workspace)"
 			workspace="$PARSED_WS"
+		    fi
+
+		    if [[ -z "$PARSED_PROFILE" && -n "$src_profile" ]]; then
+			profile_source=" (from source session)"
+			profile="$src_profile"
+		    elif [[ -n "$PARSED_PROFILE" ]]; then
+			profile_source=" (from --profile)"
+			profile="$PARSED_PROFILE"
 		    fi
 
 		    if [[ -z "$PARSED_FILESETS" && "$src_fs" != "null" && "$src_fs" != "[]" ]]; then
@@ -245,7 +279,12 @@ handle_session_command() {
 		else
 		    # fallback if no metadata in source session
 		    if [[ -n "$PARSED_WS" ]]; then
+			ws_source=" (from --workspace)"
 			workspace="$PARSED_WS"
+		    fi
+		    if [[ -n "$PARSED_PROFILE" ]]; then
+			profile_source=" (from --profile)"
+			profile="$PARSED_PROFILE"
 		    fi
 		    if [[ -n "$PARSED_FILESETS" ]]; then
 			filesets_json="$PARSED_FILESETS"
@@ -257,8 +296,12 @@ handle_session_command() {
 	    else
 		# No source session, use options or defaults
 		if [[ -n "$PARSED_WS" ]] ; then
-		    ws_source=", from --workspace"
+		    ws_source=" (from --workspace)"
 		    workspace="$PARSED_WS"
+		fi
+		if [[ -n "$PARSED_PROFILE" ]] ; then
+		    profile_source=" (from --profile)"
+		    profile="$PARSED_PROFILE"
 		fi
 		if [[ -n "$PARSED_FILESETS" ]]; then
 		    filesets_json="$PARSED_FILESETS"
@@ -275,6 +318,12 @@ handle_session_command() {
 	    # Validate workspace exists
 	    if [[ -n "$workspace" ]]; then
 		validate_workspace_exists "$workspace"
+	    fi
+	    if [[ -n "$profile" ]]; then
+		validate_profile_exists "$profile"
+		if ! profile_allowed "$profile" ; then
+		    die "Profile '$profile' is not allowed."
+		fi
 	    fi
 
 	    if [[ -n "$src_session" ]]; then
@@ -315,18 +364,25 @@ handle_session_command() {
 		    fi
 		fi
 		#
-		update_session "$name" "false" "$workspace" "$filesets_json" "$extra_send_filesets_json"
-		notice "Created session '$name' by copying from session '$src_session'"
+		update_session "$name" "false" "$workspace" "$profile" "$filesets_json" "$extra_send_filesets_json"
+		extracopyinfo=" by copying from session '$src_session'"
 	    else
 		# Normal bootstrap new empty session
 		mkdir -p "$path"
-		update_session "$name" "true" "$workspace" "$filesets_json" "$extra_send_filesets_json"
+		update_session "$name" "true" "$workspace" "$profile" "$filesets_json" "$extra_send_filesets_json"
+		local extra=""
 		if [[ -n "$workspace" ]] ; then
-		    notice "Created session '$name' with workspace '$workspace'$ws_source."
+		    extra+=" with workspace '$workspace'$ws_source"
 		else
-		    notice "Created session '$name' with no workspace$ws_source."
+		    extra+=" with no workspace$ws_source"
+		fi
+		if [[ -n "$profile" ]] ; then
+		    extra+=" and with profile '$profile'$profile_source"
+		else
+		    extra+=" and with no profile$profile_source"
 		fi
 	    fi
+	    notice "Created session '$name'$extracopyinfo$extra."
 
             if [[ "$RESOLVE_FILESETS" == "true" ]]; then
                 # Expand filesets markers (__WORKSPACE_FILESETS__, __SESSION_NAME__)
@@ -403,9 +459,13 @@ handle_session_command() {
 		echo "$session_json" | jq .
 	    else
 		ws=$(jq -r '.workspace // empty' <<< "$session_json")
+		profile=$(jq -r '.profile // empty' <<< "$session_json")
 		local filesets_json=$(jq -r '.filesets // empty | @json' <<< "$session_json")
 		local extra_send_filesets_json=$(jq -c '.extra_send_filesets // empty' <<< "$session_json")
 		echo "Session:   $name"
+		if [[ -n "$profile" ]] ; then
+		    echo "Profile:   $profile"
+		fi
 		if [[ -n "$ws" ]]; then
 		    local note=""
 		    local ws_name="$ws"
@@ -498,6 +558,7 @@ handle_session_command() {
             [[ -f "$meta" ]] || die "Session '${name:-$(resolve_session_name)}' does not exist"
 	    
 	    local current_ws="$(jq -r '.workspace' < "$meta")"
+	    local current_profile="$(jq -r '.profile // empty' < "$meta")"
 	    local current_fs="$(jq -c '.filesets'  < "$meta")"
 	    local current_extra_fs="$(jq -c '.extra_send_filesets // []' < "$meta")"
 	    # Parse flags
@@ -507,6 +568,10 @@ handle_session_command() {
 	    local ws="${PARSED_WS:-$current_ws}"
             if [[ -n "$ws" ]]; then
 		validate_workspace_exists "$ws"
+            fi
+	    local profile="${PARSED_PROFILE:-$current_profile}"
+            if [[ -n "$profile" ]]; then
+		validate_profile_exists "$profile"
             fi
 	    local filesets_json="${PARSED_FILESETS:-$current_fs}"
 	    local extra_send_filesets_json="${PARSED_EXTRA_SEND_FILESETS:-$current_extra_fs}"
@@ -531,8 +596,8 @@ handle_session_command() {
 		    "$ws" \
                     "$extra_send_filesets_json"
 	    fi
-	    update_session "$name" "false" "$ws" "$filesets_json" "$extra_send_filesets_json"
-	    info "Updated session '$name' workspace='$ws' filesets=$filesets_json extra_send_filesets=$extra_send_filesets_json"
+	    update_session "$name" "false" "$ws" "$profile" "$filesets_json" "$extra_send_filesets_json"
+	    info "Updated session '$name' workspace='$ws' profile='$profile' filesets=$filesets_json extra_send_filesets=$extra_send_filesets_json"
 	    ;;
 	
 	delete)

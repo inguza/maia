@@ -490,10 +490,14 @@ config_file_for_scope() {
     # Look up the directory for this scope
     local dir=${SCOPE_DIRS[$scope]}
     if [[ -z "$dir" ]]; then
-	echo "Unknown scope: $scope" >&2
-	exit 1
+	if [[ ! -v SCOPE_DIRS[$scope] ]] ; then
+	    die "Unknown scope: $scope"
+	else
+	    die "Scope '$scope' is valid but not available."
+	fi
+    else
+	echo "$dir/config.json"
     fi
-    echo "$dir/config.json"
 }
 
 config_exists() {
@@ -536,7 +540,9 @@ set_config() {
     config_exists "$name"
     local value=$2
     local scope=$3
-    local file=$(config_file_for_scope "$scope")
+    local file
+    file=$(config_file_for_scope "$scope") || exit 1
+
     mkdir -p "$(dirname "$file")"
 
     # Detect if value looks like JSON (starts with [ or {)

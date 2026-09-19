@@ -305,10 +305,11 @@ handle_fileset_command() {
             else
                 # Update session metadata filesets
 		local ws_name=$(jq -r '.workspace // empty' < "$sess_meta")
+		local profile_name=$(jq -r '.profile // empty' < "$sess_meta")
 		if [ -z "$ws_name" ] ; then
 		    die "Must have a workspace name"
 		fi
-		update_session "$session" "false" "$ws_name" "$filesets_json"
+		update_session "$session" "false" "$ws_name" "$profile_name" "$filesets_json"
                 notice "Session filesets updated: $filesets_json"
             fi
             ;;

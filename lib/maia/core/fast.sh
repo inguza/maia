@@ -70,7 +70,7 @@ resolve_workspace_name() {
     if [[ -z "$ws" ]]; then
         # Indirection to session workspace
         local sess_name="$(resolve_session_name)"
-        local ws="$(read_session_workspace_raw "$sess_name")"
+        ws="$(read_session_workspace_raw "$sess_name")"
     fi
     echo "$ws"
 }
@@ -125,6 +125,36 @@ read_session_workspace_raw() {
 	#    jq -r '.workspace // empty' < "$sess_meta"
 	fast_jq "workspace" "$sess_meta"
     fi
+}
+
+read_session_profile_raw() {
+    local sess_name="$1"
+    local sess_meta="$(resolve_session_meta "$sess_name")"
+    if [[ -e "$sess_meta" ]] ; then
+	# The below code mimics the behavior of the following command but is much faster
+	#    jq -r '.profile // empty' < "$sess_meta"
+	fast_jq "profile" "$sess_meta"
+    fi
+}
+
+################################################################################################################
+
+resolve_profile_base() { resolve_x_base "profile" ; }
+
+resolve_profile_name() {
+    local profile="$1"
+    if [[ -z "$profile" ]]; then
+        # Indirection to session workspace
+        local sess_name="$(resolve_session_name)"
+        profile="$(read_session_profile_raw "$sess_name")"
+    fi
+    echo "$profile"
+}
+
+resolve_profile_path() { resolve_x_path "profile" "$1"; }
+
+resolve_profile_meta() {
+    echo -n ""
 }
 
 ################################################################################################################

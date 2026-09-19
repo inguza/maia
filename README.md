@@ -352,6 +352,10 @@ A project directory that provides the context and resources for one or more sess
 
 A persistent conversation with an AI, including its history and context.
 
+## Profile
+
+A configuration context that can be selected by a session.
+
 ## Filesets and Files
 
 Filesets define which files are available as context for a session, allowing the user to control what the AI can see.
@@ -391,13 +395,13 @@ Optional external capabilities that can be made available to the AI to perform a
 Allow the tools and skills you think the AI will need to perform the task you want it to do.
 
    ```bash
-   maia tool --scope session replace "core-*" "file-*" "context-*" "change-*:write"
+   maia tool replace "core-*" "file-*" "context-*" "change-*:write"
    ```
    
    Allow skills and make sure they are in context.
 
    ```bash
-   maia skill --scope session --remember replace "file"
+   maia skill --remember replace "file"
    ```
 
 5. **Manage files**

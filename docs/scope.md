@@ -9,8 +9,11 @@ Each scope corresponds to a level of specificity and persists in distinct direct
 - **Session**
   The most specific scope, tied to the current conversational session. Session scope stores history, outbox, system prompts, and snippets that apply only to that session.
 
+- **Profile**
+  A configuration profile selected by the session. Profile scope is available only when the session has selected a profile. It provides a configuration context that can be shared by multiple sessions.
+
 - **Workspace**
-  Represents the current project or workspace. Workspace scope holds project-level configuration, filesets, and shared snippets or prompts that apply to all sessions within the workspace.
+  The project or workspace selected by the session. Workspace scope is available only when the session has selected a workspace. It holds project-level configuration, filesets, and shared snippets or prompts that apply to sessions using that workspace.
 
 - **Home**
   The local MAIA home directory, usually located at `.maia` under your current working directory or a configured path. Home scope contains user-specific configuration and snippets that override system defaults but are less specific than workspace or session settings.
@@ -23,6 +26,8 @@ Each scope corresponds to a level of specificity and persists in distinct direct
 
 - **Default**
   Built-in defaults hardcoded within the tool itself. This is the fallback for any configuration or resource not defined in higher scopes.
+
+Home and User scope may concide.
 
 ## How Scopes Work
 

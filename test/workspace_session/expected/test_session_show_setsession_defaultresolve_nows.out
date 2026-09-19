@@ -1,0 +1,9 @@
+{
+  "workspace": "ws",
+  "profile": "",
+  "filesets": [
+    "__SESSION_NAME__"
+  ],
+  "extra_send_filesets": [],
+  "name": "newsessionnows"
+}

@@ -1,0 +1,21 @@
+USAGE
+
+  maia profile <command> [options]
+
+Manage profile manifests and their filesets.
+
+COMMANDS
+
+  create <name>
+
+  list|ls
+    List all available profiles.
+
+  delete [--force] <name>
+    Delete the specified profile (cannot delete the current one).
+
+OPTIONS
+
+  -h, --help
+    Show this help message for the "profile" subcommand.
+

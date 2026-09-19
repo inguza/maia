@@ -1,2 +1,2 @@
 [NOTICE] Bootstrapped session 'foo'
-[NOTICE] Created session 'foo' with no workspace, resolved from current session.
+[NOTICE] Created session 'foo' with no workspace (resolved from current session) and with no profile (from default_profile configuration).

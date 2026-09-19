@@ -112,7 +112,8 @@ COMMANDS:
     api              AI introspection (models, model, fine-tunes, fine-tune, usage)
 
   Session and prompt handling
-    session          Session management (create, use, list, show)
+    session          Session management (create, list, show, delete)
+    profile          Profile management (create, list, delete)
     send|s           Send prompt to API (with dry-run, response-file options)
     user|u|outbox    User outbox management (show, append, replace, clear, delete)
     count            Estimate token count for API payload
@@ -255,6 +256,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/session.sh"
 	handle_session_command "$@"
+	;;
+    profile)
+	shift
+	. "$MAIA_CORE_LIB_DIR/profile.sh"
+	handle_profile_command "$@"
 	;;
     job)
 	shift
