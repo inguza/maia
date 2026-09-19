@@ -43,9 +43,12 @@ setup_mock_curl
 
 # Predefine canned response files for tests
 declare -A canned_responses=(
-    ["default"]="$TEST_ROOT/send/responses/openai_success.json"
+    ["completions_success"]="$TEST_ROOT/send/responses/openai_completions_success.json"
     ["responses_success"]="$TEST_ROOT/send/responses/openai_responses_success.json"
-    ["aws_success"]="$TEST_ROOT/send/responses/aws_success_bedrock.json"
+    ["aws_success"]="$TEST_ROOT/send/responses/aws_success.json"
+    ["completions_tooluse"]="$TEST_ROOT/send/responses/openai_completions_tooluse.json"
+    ["responses_tooluse"]="$TEST_ROOT/send/responses/openai_responses_tooluse.json"
+    ["aws_tooluse"]="$TEST_ROOT/send/responses/aws_tooluse.json"
     ["openai_auth_error"]="$TEST_ROOT/send/responses/openai_error_auth.json"
     ["openai_rate_limit_error"]="$TEST_ROOT/send/responses/openai_error_rate_limit.json"
     ["openai_invalid_request_error"]="$TEST_ROOT/send/responses/openai_error_invalid_request.json"
@@ -67,6 +70,7 @@ api_types_and_configs=(
 
 # Test 1: show help for send command (no API type flag) — no request expected
 run_and_check "help" $MAIA send -h
+$MAIA config tool_loop_prevent "core-print"
 
 unset LANG
 unset LC_NUMERIC
@@ -76,18 +80,36 @@ for api in "${api_types_and_configs[@]}"; do
     $MAIA history clear
     #
     suffix=""
-    response_file="${canned_responses[default]}"
+    response_file="${canned_responses[responses_success]}"
     suffix="_api_${api,,}"
+    case "$api" in
+	AWS_BEDROCK_CONVERSE)
+            response_file="${canned_responses[aws_success]}"
+	    tool_file="${canned_responses[aws_tooluse]}"
+	    ;;
+	OPENAI_CHAT_COMPLETIONS)
+	    response_file="${canned_responses[completions_success]}"
+	    tool_file="${canned_responses[completions_tooluse]}"
+	    ;;
+	AUTODETECT)
+	    response_file="${canned_responses[responses_success]}"
+	    tool_file="${canned_responses[responses_tooluse]}"
+	    ;;
+	OPENAI_RESPONSES)
+	    response_file="${canned_responses[responses_success]}"
+	    tool_file="${canned_responses[responses_tooluse]}"
+	    ;;
+	*)
+	    exit
+	    ;;
+    esac
+
     if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
-        response_file="${canned_responses[aws_success]}"
 	export AWS_ACCESS_KEY_ID="mockedapikey"
 	export AWS_SECRET_ACCESS_KEY="mockedsecret"
 	export AWS_SESSION_TOKEN="mockedtoken"
 	unset OPENAI_API_KEY
     else
-        if [[ "$api" == "OPENAI_RESPONSES" || "$api" == "AUTODETECT" ]]; then
-            response_file="${canned_responses[responses_success]}"
-	fi
 	export OPENAI_API_KEY="mockedapikey"
 	unset AWS_ACCESS_KEY_ID
 	unset AWS_SECRET_ACCESS_KEY
@@ -149,7 +171,12 @@ for api in "${api_types_and_configs[@]}"; do
     # Clear canned response override after iteration
     unset MOCK_CURL_RESPONSE_FILE
 
-    # TODO tool cases
+    # Tool testing
+    $MAIA tool replace "core-print"
+    export MOCK_CURL_RESPONSE_FILE="$tool_file"
+    run_send_cmd "tool_use${suffix}" "Print something nice"
+    $MAIA tool delete
+    
     # TODO error cases for OPENAI RESPONSES
     # Specific error cases for OPENAI CHAT COMPLETIONS
     if [[ "api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
@@ -167,6 +194,8 @@ for api in "${api_types_and_configs[@]}"; do
     fi
     # Specific error cases for AWS
     if [[ "api" == "AWS_BEDROCK_CONVERSE" ]]; then
+	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
+	run_send_cmd "aws_tool_use" "Test AWS throttling error"
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
 	run_send_cmd "aws_throttling_error" "Test AWS throttling error"
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_access_denied_error]}"

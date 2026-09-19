@@ -1,0 +1,2 @@
+[NOTICE] Spawn 1 [1 of 20] call_1231...: core-print {"content":"Hello"}
+[NOTICE] Tool loop detected. Tool call for id call_123123123123123 [tdec94f44] not allowed: core-print({"content":"Hello"})

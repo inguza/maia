@@ -242,6 +242,48 @@
       "content": [
         {
           "type": "input_text",
+          "text": "Print something nice"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": []
+    },
+    {
+      "type": "function_call",
+      "call_id": call_<callid>,
+      "name": "core-print",
+      "arguments": "{\"content\":\"Hello\"}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": call_<callid>,
+      "output": "Hello"
+    },
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": []
+    },
+    {
+      "type": "function_call",
+      "call_id": call_<callid>,
+      "name": "core-print",
+      "arguments": "{\"content\":\"Hello\"}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": call_<callid>,
+      "output": "[ERROR] Duplicate tool call\\n\\nTool call already tried:\\ncore-print({\"content\":\"Hello\"})\\n\\nTwo identical tool calls are not allowed without new user input.\\n"
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
           "text": "Hello, AI!"
         }
       ]

@@ -62,7 +62,6 @@ Then we also have direct tests of the internal tools to extend the coverage:
 ## Areas lacking coverage
 
 - api
-- send with tool call response
 - history compact
 - history hide
 - history unhide

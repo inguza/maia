@@ -1,0 +1,27 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "call_123123123123123",
+            "name": "core-print",
+            "input": {
+              "content": "Hello"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "stopReason": "tool_use",
+  "usage": {
+    "inputTokens": 100,
+    "outputTokens": 20,
+    "totalTokens": 120
+  },
+  "metrics": {
+    "latencyMs": 500
+  }
+}

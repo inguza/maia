@@ -275,7 +275,9 @@ run_and_check() {
     shift
 
     export CAPTURE_FILE="$OUTPUT_DIR/${testname}.request.json"
+    : > "$CAPTURE_FILE"
     export CAPTURE_HEADERS_FILE="$OUTPUT_DIR/${testname}.headers.txt"
+    : > "$CAPTURE_HEADERS_FILE"
     local exit_code=$(run_cmd "$testname" "$@")
     # If we have headers, normalize it
     if [[ -s "$OUTPUT_DIR/${testname}.headers.txt" ]]; then

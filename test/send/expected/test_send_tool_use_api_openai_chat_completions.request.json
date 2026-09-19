@@ -1,0 +1,277 @@
+{
+  "model": "gpt-5.4-mini",
+  "store": false,
+  "temperature": 0.7,
+  "max_completion_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test model override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test temperature override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling default"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling first"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling autotool"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling before"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling append"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test prompt content"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "This is a start\nTest prompt content\nSomething more"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Print something nice"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "core-print",
+        "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "description": "The content to pass to another tool. If absent, stdin is passed."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}
+{
+  "model": "gpt-5.4-mini",
+  "store": false,
+  "temperature": 0.7,
+  "max_completion_tokens": 32000,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "n": 1,
+  "stream": false,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Hello, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test model override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test temperature override"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling default"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling first"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling autotool"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling before"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test file handling append"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Test prompt content"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "This is a start\nTest prompt content\nSomething more"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
+      "content": "Print something nice"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": call_<callid>,
+          "type": "function",
+          "function": {
+            "name": "core-print",
+            "arguments": "{\"content\":\"Hello\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": call_<callid>,
+      "content": "Hello"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "core-print",
+        "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "description": "The content to pass to another tool. If absent, stdin is passed."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

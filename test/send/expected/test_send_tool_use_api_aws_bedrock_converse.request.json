@@ -1,0 +1,492 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test model override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test temperature override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling default"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling first"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling autotool"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling before"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling append"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test prompt content"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "This is a start\nTest prompt content\nSomething more"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Print something nice"
+        }
+      ]
+    }
+  ],
+  "parameters": {
+    "maxTokens": 32000,
+    "temperature": 0.7,
+    "stopSequences": [
+      "\n\n"
+    ]
+  },
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "name": "core-print",
+          "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+          "inputSchema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "The content to pass to another tool. If absent, stdin is passed."
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test model override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test temperature override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling default"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling first"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling autotool"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling before"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling append"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test prompt content"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "This is a start\nTest prompt content\nSomething more"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Print something nice"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": call_<callid>,
+            "name": "core-print",
+            "input": {
+              "content": "Hello"
+            }
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": call_<callid>,
+          "type": "function",
+          "function": {
+            "name": "core-print",
+            "arguments": "{\"content\":\"Hello\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "tool_call_id": call_<callid>,
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": call_<callid>,
+            "content": [
+              {
+                "text": "Hello"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "parameters": {
+    "maxTokens": 32000,
+    "temperature": 0.7,
+    "stopSequences": [
+      "\n\n"
+    ]
+  },
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "name": "core-print",
+          "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+          "inputSchema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "The content to pass to another tool. If absent, stdin is passed."
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}

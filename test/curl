@@ -7,10 +7,6 @@ if [[ -z "${CAPTURE_FILE:-}" || -z "${CAPTURE_HEADERS_FILE:-}" ]]; then
     exit 1
 fi
 
-# Initialize empty files
-: > "$CAPTURE_FILE"
-: > "$CAPTURE_HEADERS_FILE"
-
 # Parse arguments to capture headers (-H) and data (--data or --data-binary)
 args=("$@")
 num_args=$#
@@ -35,13 +31,13 @@ while [[ $i -lt $num_args ]]; do
 	    if [[ "$data" == @* ]]; then
 		file_path="${data#@}"
 		if [[ -f "$file_path" ]]; then
-		    cat "$file_path" > "$CAPTURE_FILE"
+		    cat "$file_path" >> "$CAPTURE_FILE"
 		else
 		    echo "[mock curl] ERROR: Data file '$file_path' not found" >&2
 		    exit 1
 		fi
 	    else
-		echo "$data" > "$CAPTURE_FILE"
+		echo "$data" >> "$CAPTURE_FILE"
 	    fi
             ;;
         *)

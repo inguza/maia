@@ -728,13 +728,7 @@ handle_send_command() {
 	    # - Remove empty messages (not allowed by AWS API)
 	    # - Convert system roles to user role
 	    # - Add toolSpecs separately from messages if any enabled tools exist
-	    local messages_json_aws=$(jq '
-	      map(
-	        select(.content | test("^[[:space:]]*$") | not)
-	    	| if .role == "system" then .role = "user" else . end
-	    	| .content = [{text: .content}]
-  	      )
-	      ' <<<"$messages_json")
+	    local messages_json_aws=$(jq -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-messages.jq" <<<"$messages_json")
 
 	    # Compose payload JSON with toolSpecs if available
 	    if [[ -n "$toolSpecs_json" ]]; then
@@ -747,11 +741,13 @@ handle_send_command() {
 		   '{
 	             messages: $messages,
 	             parameters: {
-	               maxTokensToSample: $maxTokensToSample,
+	               maxTokens: $maxTokensToSample,
 	               temperature: $temperature,
 	               stopSequences: $stopSequences
 	             },
-	             toolSpecs: $toolSpecs
+		     toolConfig: {
+		       tools: $toolSpecs
+		     }
 		   }' > "$tmp_payload"
 	    else
 		jq -n \
@@ -762,7 +758,7 @@ handle_send_command() {
 		   '{
 	             messages: $messages,
 	             parameters: {
-	               maxTokensToSample: $maxTokensToSample,
+	               maxTokens: $maxTokensToSample,
 	               temperature: $temperature,
 	               stopSequences: $stopSequences
 	             }
@@ -836,9 +832,6 @@ handle_send_command() {
 			reply=$(jq -r '.choices[0].message.content // empty' <<<"$response")
 			#finish_reason=$(jq -r '.choices[0].finish_reason' <<<"$response")
 			tools_call_json=$(jq -c '.choices[0].message.tool_calls' <<<"$response")
-			if [[ "$tools_call_json" == "null" ]] ; then
-			    tools_call_json=""
-			fi
 		    fi
 		elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
 		    errormsg=$(jq -r '.error.message // empty' <<<"$response")
@@ -846,20 +839,20 @@ handle_send_command() {
 			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
 			# We ignore status field since we do not handle streaming events
 			tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
-			if [[ "$tools_call_json" == "null" ]] ; then
-			    tools_call_json=""
-			fi
 		    else
 			errormsg+=" param="
 			errormsg+=$(jq -r '.error.param // empty' <<<"$response")
 		    fi
 		elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		    reply=$(jq -r '.output.message.content[0].text // empty' <<<"$response")
+		    reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-reply.jq" <<<"$response")
 		    errormsg=$(jq -r '.message // empty' <<<"$response")
 		    if [[ -z "$errormsg" ]] ; then
 			errormsg=$(jq -r '.Message // empty' <<<"$response")
 		    fi
-		    # TODO implement tools functionality
+                    tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
+		fi
+		if [[ "$tools_call_json" == "null" ]] ; then
+		    tools_call_json=""
 		fi
             else
 		errormsg="API returned empty or null response."
