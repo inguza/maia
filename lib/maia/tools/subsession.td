@@ -10,7 +10,11 @@
         "subsession": {
           "type": "string",
           "description": "Name of the subsession to create."
-        }
+        },
+	"profile": {
+	  "type": "string",
+          "description": "Optional configuration profile for the subsession. Only specify this when the profile has been explicitly requested. Use the exact profile name; never invent, guess, or derive a profile name."
+	}
       },
       "required": ["subsession"],
       "additionalProperties": false
