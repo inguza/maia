@@ -2,6 +2,7 @@ CONFIG NAME                    SCOPE      VALUE
 ----------------------------------------------------------------------------
 additional_skill_paths         default    ""
 additional_tool_paths          default    ""
+allowed_profiles               default    "*"
 api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
 auto_add_new_files_on_apply    default    true
@@ -20,6 +21,7 @@ cost_output_gpt_5_4_mini       default    4.5
 cost_output_gpt_5_4_nano       default    1.25
 default_allowed_tool_effects   default    "[\"limited-write\"]"
 default_filter                 default    ""
+default_profile                default    ""
 default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
 default_subsession_skill_allow default    "*"

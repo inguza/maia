@@ -5,6 +5,7 @@ cost_input_gpt_5_4_mini
 splice_allowed_files
 default_subsession_tool_restrict
 cost_input_gpt_4_1_mini
+allowed_profiles
 cost_input_gpt_4_1
 tool_loop_prevent
 max_output_tokens
@@ -29,6 +30,7 @@ presence_penalty
 api_base_url
 mcp_servers
 default_session_filesets
+default_profile
 cost_output_gpt_5_4_nano
 max_input_tokens
 prune_when_applied
