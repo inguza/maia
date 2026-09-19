@@ -80,7 +80,7 @@ for api in "${api_types_and_configs[@]}"; do
     $MAIA history clear
     #
     suffix=""
-    response_file="${canned_responses[responses_success]}"
+    response_file=""
     suffix="_api_${api,,}"
     case "$api" in
 	AWS_BEDROCK_CONVERSE)

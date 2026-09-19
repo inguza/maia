@@ -86,9 +86,9 @@ run_history_cmd() {
 setup_mock_curl
 
 declare -A canned_responses=(
-    ["default"]="$TEST_ROOT/send/responses/openai_success.json"
+    ["completions_success"]="$TEST_ROOT/send/responses/openai_completions_success.json"
     ["responses_success"]="$TEST_ROOT/send/responses/openai_responses_success.json"
-    ["aws_success"]="$TEST_ROOT/send/responses/aws_success_bedrock.json"
+    ["aws_success"]="$TEST_ROOT/send/responses/aws_success.json"
     )
 api_types_and_configs=(
     "AUTODETECT"
@@ -111,18 +111,31 @@ cd ..
 # Loop over API types for main tests for sending to test sending
 for api in "${api_types_and_configs[@]}"; do
     suffix=""
-    response_file="${canned_responses[default]}"
+    response_file=""
     suffix="_api_${api,,}"
+    case "$api" in
+	AWS_BEDROCK_CONVERSE)
+            response_file="${canned_responses[aws_success]}"
+	    ;;
+	OPENAI_CHAT_COMPLETIONS)
+	    response_file="${canned_responses[completions_success]}"
+	    ;;
+	AUTODETECT)
+	    response_file="${canned_responses[responses_success]}"
+	    ;;
+	OPENAI_RESPONSES)
+	    response_file="${canned_responses[responses_success]}"
+	    ;;
+	*)
+	    exit
+	    ;;
+    esac
     if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
-        response_file="${canned_responses[aws_success]}"
 	export AWS_ACCESS_KEY_ID="mockedapikey"
 	export AWS_SECRET_ACCESS_KEY="mockedsecret"
 	export AWS_SESSION_TOKEN="mockedtoken"
 	unset OPENAI_API_KEY
     else
-        if [[ "$api" == "OPENAI_RESPONSES" || "$api" == "AUTODETECT" ]]; then
-            response_file="${canned_responses[responses_success]}"
-	fi
 	export OPENAI_API_KEY="mockedapikey"
 	unset AWS_ACCESS_KEY_ID
 	unset AWS_SECRET_ACCESS_KEY
