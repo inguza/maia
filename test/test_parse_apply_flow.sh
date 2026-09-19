@@ -64,6 +64,8 @@ run_cat_cmd() {
     run_and_check "cat_${test_id}" cat "$file_path"
 }
 
+$MAIA config api_type "OPENAI_CHAT_COMPLETIONS"
+
 # Step 1: Add file 1
 encode_response_to_json "$FIXTURE_DIR/1-filenameknown.txt" "$FIXTURE_DIR/response_1.json"
 export MOCK_CURL_RESPONSE_FILE="$FIXTURE_DIR/response_1.json"

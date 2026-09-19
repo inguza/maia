@@ -67,4 +67,8 @@ Then we also have direct tests of the internal tools to extend the coverage:
 - history hide
 - history unhide
 
+## Areas that test with legacy OPENAI_CHAT_COMPLETIONS
+- parse_apply_flow
+- send_history
+
 Chat and interative would require to write some wrapper which is a little tricky.

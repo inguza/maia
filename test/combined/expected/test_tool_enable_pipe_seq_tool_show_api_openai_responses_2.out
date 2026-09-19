@@ -1,0 +1,90 @@
+Allowed tools:
+--------------
+core-pipe
+core-sequence
+Tool definitions:
+-----------------
+[
+  {
+    "name": "core-pipe",
+    "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
+    "command": "core-pipe.sh",
+    "instructions": [
+      "basics.txt",
+      "core-pipe.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the function/tool to use."
+              },
+              "arguments": {
+                "type": "object",
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "name",
+              "arguments"
+            ]
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pipeline"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "core-sequence",
+    "description": "Execute multiple tools in sequence order.",
+    "command": "core-sequence.sh",
+    "instructions": [
+      "basics.txt",
+      "sequence.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the function/tool to use."
+              },
+              "arguments": {
+                "type": "object",
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "name",
+              "arguments"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "sequence"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
+  }
+]

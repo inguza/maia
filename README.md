@@ -246,6 +246,8 @@ is set as environment variables, preferrbly in a ~/.bashrc file.
 export OPENAI_API_KEY='your_api_key_here'
 ```
 
+Responses API is used by default but also chat completions API is supported.
+
 #### AWS Bedrock
 
 ```bash

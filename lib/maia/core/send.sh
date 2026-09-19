@@ -175,11 +175,14 @@ build_messages_json() {
 
     # Determine effective file handling mode
     if [[ "${mode^^}" == "DEFAULT" ]] ; then
-        if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
-	    mode="AUTOTOOL"
-	else
-	    mode="FIRST"
-	fi
+	case "$api_type" in
+	    OPENAI_CHAT_COMPLETIONS|OPENAI_RESPONSES)
+		mode="AUTOTOOL"
+		;;
+	    *)
+		mode="FIRST"
+		;;
+	esac
     fi
 
     # 3) Build messages based on mode
@@ -477,14 +480,14 @@ handle_send_command() {
 	    api_type="AWS_BEDROCK_CONVERSE"
 	else
 	    # Default
-	    api_type="OPENAI_CHAT_COMPLETIONS"
+	    api_type="OPENAI_RESPONSES"
 	fi
     fi
     if [[ -s "$send_hook" ]] ; then
 	. "$send_hook"
     fi
     # Check that API credentials are presented
-    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
+    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" || "$api_type" == "OPENAI_RESPONSES" ]] ; then
 	# Ensure API key is set
 	if [[ -z "$OPENAI_API_KEY" ]]; then
             die "OPENAI_API_KEY environment variable is not set."
@@ -517,14 +520,20 @@ handle_send_command() {
     local tools_json=""
     local toolSpecs_json=""
     local etools=false
-    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
+    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" || "$api_type" == "OPENAI_RESPONSES" ]] ; then
 	# Ensure API key is set
 	if [[ -z "$OPENAI_API_KEY" ]]; then
             die "OPENAI_API_KEY environment variable is not set."
 	fi
-        url="${maia_api_base_url}/v1/chat/completions"
+        if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
+            url="${maia_api_base_url}/v1/chat/completions"
+        else
+            url="${maia_api_base_url}/v1/responses"
+        fi
 	local max_t_name="max_tokens"
-	if [[ "$model" == "gpt-5"* ]] ; then
+	if [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
+	    max_t_name="max_output_tokens"
+	elif [[ "$model" == "gpt-5"* ]] ; then
 	    max_t_name="max_completion_tokens"
 	fi
 
@@ -547,6 +556,26 @@ handle_send_command() {
                                }
 			       | if .parameters == null then del(.parameters) else . end
 			     )
+                           }
+                       else
+                           error("Invalid json")
+                       end
+		   ]
+		   ' <<<"$enabled_tools_json"); then
+		    warn "Invalid tool definition. Tools not shown to the AI." >&2
+		    tools_json="[]"
+		    etools=false
+		fi
+            elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
+		etools=true
+		if ! tools_json=$(jq '
+		   [.[] |
+                       if (.name and .description) then
+                           {
+                             type: "function",
+                             name,
+                             description,
+                             parameters: (.inputSchema // .parameters)
                            }
                        else
                            error("Invalid json")
@@ -633,7 +662,6 @@ handle_send_command() {
 	    release_lock "$session_lock"
 	    die "Internal error. Empty message json."
 	fi
-
 	if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
 	    local tmpmf="$(mktemp)"
 	    printf '%s' "$messages_json" > "$tmpmf"
@@ -666,6 +694,33 @@ handle_send_command() {
 		   > "$tmp_payload"
 	    fi
 	    rm -f "$tmpmf"
+	elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
+            local tmpmf="$(mktemp)"
+	    local messages_json_resp=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-messages.jq" <<<"$messages_json")
+            printf '%s' "$messages_json_resp" > "$tmpmf"
+            if [[ -n "$tools_json" ]] ; then
+		jq -n \
+		   --arg model "$model" \
+		   --argjson temperature "$temperature" \
+		   --argjson max_tokens "$max_output_tokens" \
+		   --argjson top_p "$top_p" \
+		   --argjson stream "$stream" \
+		   --argjson tools "$tools_json" \
+		   --slurpfile messages "$tmpmf" \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0], tools: $tools}' \
+		   > "$tmp_payload"
+            else
+		jq -n \
+		   --arg model "$model" \
+		   --argjson temperature "$temperature" \
+		   --argjson max_tokens "$max_output_tokens" \
+		   --argjson top_p "$top_p" \
+		   --argjson stream "$stream" \
+		   --slurpfile messages "$tmpmf" \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0]}' \
+		   > "$tmp_payload"
+            fi
+            rm -f "$tmpmf"
 	elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 	    # Build Bedrock converse payload:
 	    # - Add parameters object with maxTokensToSample, temperature, stopSequences
@@ -785,18 +840,35 @@ handle_send_command() {
 			    tools_call_json=""
 			fi
 		    fi
+		elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
+		    errormsg=$(jq -r '.error.message // empty' <<<"$response")
+		    if [[ ! -n "$errormsg" ]]; then
+			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
+			# We ignore status field since we do not handle streaming events
+			tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
+			if [[ "$tools_call_json" == "null" ]] ; then
+			    tools_call_json=""
+			fi
+		    else
+			errormsg+=" param="
+			errormsg+=$(jq -r '.error.param // empty' <<<"$response")
+		    fi
 		elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 		    reply=$(jq -r '.output.message.content[0].text // empty' <<<"$response")
 		    errormsg=$(jq -r '.message // empty' <<<"$response")
 		    if [[ -z "$errormsg" ]] ; then
 			errormsg=$(jq -r '.Message // empty' <<<"$response")
 		    fi
+		    # TODO implement tools functionality
 		fi
             else
 		errormsg="API returned empty or null response."
             fi
 	fi
 	rm -f "$tmp_payload"
+	if [[ -z "$reply" && -z "$errormsg" && -z "$tools_call_json" ]] ; then
+	    errormsg="Empty response."
+	fi
 	if [[ -n "$errormsg" ]] ; then
 	    release_lock "$session_lock"
 	    die "$errormsg"
@@ -1015,7 +1087,7 @@ handle_send_command() {
 	    trap - INT TERM
 	    rm -rf "$tool_tmp_dir"
 	fi
-	if [[ -n "$function_call_json" || "$tools_call_json" ]] ; then
+	if [[ "$tools_call_json" ]] ; then
 	    # Tool call continue looping
 	    ((allowed_iterations_left--))
 	else

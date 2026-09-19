@@ -44,6 +44,7 @@ setup_mock_curl
 # Predefine canned response files for tests
 declare -A canned_responses=(
     ["default"]="$TEST_ROOT/send/responses/openai_success.json"
+    ["responses_success"]="$TEST_ROOT/send/responses/openai_responses_success.json"
     ["aws_success"]="$TEST_ROOT/send/responses/aws_success_bedrock.json"
     ["openai_auth_error"]="$TEST_ROOT/send/responses/openai_error_auth.json"
     ["openai_rate_limit_error"]="$TEST_ROOT/send/responses/openai_error_rate_limit.json"
@@ -59,6 +60,7 @@ declare -A canned_responses=(
 # The API types to test, using config to set API type
 api_types_and_configs=(
     "AUTODETECT"
+    "OPENAI_RESPONSES"
     "OPENAI_CHAT_COMPLETIONS"
     "AWS_BEDROCK_CONVERSE"
 )
@@ -83,6 +85,9 @@ for api in "${api_types_and_configs[@]}"; do
 	export AWS_SESSION_TOKEN="mockedtoken"
 	unset OPENAI_API_KEY
     else
+        if [[ "$api" == "OPENAI_RESPONSES" || "$api" == "AUTODETECT" ]]; then
+            response_file="${canned_responses[responses_success]}"
+	fi
 	export OPENAI_API_KEY="mockedapikey"
 	unset AWS_ACCESS_KEY_ID
 	unset AWS_SECRET_ACCESS_KEY
@@ -144,7 +149,9 @@ for api in "${api_types_and_configs[@]}"; do
     # Clear canned response override after iteration
     unset MOCK_CURL_RESPONSE_FILE
 
-    # Specific error cases for OPENAI
+    # TODO tool cases
+    # TODO error cases for OPENAI RESPONSES
+    # Specific error cases for OPENAI CHAT COMPLETIONS
     if [[ "api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
 	# Test error handling for OpenAI errors
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_auth_error]}"

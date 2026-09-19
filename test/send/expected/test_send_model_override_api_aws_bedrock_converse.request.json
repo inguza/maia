@@ -12,6 +12,38 @@
       "role": "user",
       "content": [
         {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
           "text": "Test model override"
         }
       ]

@@ -66,6 +66,8 @@ run_history_cmd "top_2_before_anything" top 2
 # Add 4 different entries to the history
 # Each send adds a user and assistant entry, so 4 sends mean 8 entries total.
 
+$MAIA config api_type "OPENAI_CHAT_COMPLETIONS"
+
 # Entry 1: Some sample text (user message)
 export MOCK_CURL_RESPONSE_FILE="$FIXTURE_DIR/response_1.json"
 run_send_cmd 1 "Some sample text"

@@ -87,10 +87,12 @@ setup_mock_curl
 
 declare -A canned_responses=(
     ["default"]="$TEST_ROOT/send/responses/openai_success.json"
+    ["responses_success"]="$TEST_ROOT/send/responses/openai_responses_success.json"
     ["aws_success"]="$TEST_ROOT/send/responses/aws_success_bedrock.json"
     )
 api_types_and_configs=(
     "AUTODETECT"
+    "OPENAI_RESPONSES"
     "OPENAI_CHAT_COMPLETIONS"
     "AWS_BEDROCK_CONVERSE"
 )
@@ -118,6 +120,9 @@ for api in "${api_types_and_configs[@]}"; do
 	export AWS_SESSION_TOKEN="mockedtoken"
 	unset OPENAI_API_KEY
     else
+        if [[ "$api" == "OPENAI_RESPONSES" || "$api" == "AUTODETECT" ]]; then
+            response_file="${canned_responses[responses_success]}"
+	fi
 	export OPENAI_API_KEY="mockedapikey"
 	unset AWS_ACCESS_KEY_ID
 	unset AWS_SECRET_ACCESS_KEY
