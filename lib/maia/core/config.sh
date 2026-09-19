@@ -488,16 +488,9 @@ config_file_for_scope() {
 	return
     fi
     # Look up the directory for this scope
+    validate_scope "$scope"
     local dir=${SCOPE_DIRS[$scope]}
-    if [[ -z "$dir" ]]; then
-	if [[ ! -v SCOPE_DIRS[$scope] ]] ; then
-	    die "Unknown scope: $scope"
-	else
-	    die "Scope '$scope' is valid but not available."
-	fi
-    else
-	echo "$dir/config.json"
-    fi
+    echo "$dir/config.json"
 }
 
 config_exists() {

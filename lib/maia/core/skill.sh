@@ -383,11 +383,7 @@ handle_skill_command() {
         scope="session"
     fi
 
-    if [[ -v SCOPE_DIRS[$scope] ]]; then
-	die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-    elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
-        die "Scope '$scope' is valid but not available."
-    fi
+    validate_scope "$scope"
 	
     local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
     local skillset_context_file="${SCOPE_DIRS[$scope]}/skillsetcontext.txt"

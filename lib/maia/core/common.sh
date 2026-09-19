@@ -132,6 +132,15 @@ init_scope_dirs() {
     )
 }
 
+validate_scope() {
+    local scope="$1"
+    if [[ ! -v SCOPE_DIRS[$scope] ]]; then
+	die "Unknown scope: $scope. Valid scopes: ${SCOPE_ORDER[@]}"
+    elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+        die "Scope '$scope' is valid but not available."
+    fi
+}
+
 # Initialize the map of all known tool paths
 # Only call when needed since the jq lookup is a little slow
 init_tool_search_dirs() {

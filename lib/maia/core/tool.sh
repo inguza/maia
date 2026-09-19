@@ -299,11 +299,7 @@ handle_tool_command() {
 	scope="session"
     fi
 
-    if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
-        die "Unknown scope '$scope'. Valid scopes: ${!SCOPE_DIRS[*]}"
-    elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
-        die "Scope '$scope' is valid but not available."
-    fi
+    validate_scope "$scope"
 
     # compute filename & path
     local filename="${prompt_type}.txt"

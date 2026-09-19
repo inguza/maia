@@ -158,11 +158,7 @@ handle_system_command() {
 	scope="session"
     fi
 
-    if [[ ! -v SCOPE_DIRS[$scope] ]] ; then
-	die "Unknown scope: $scope"
-    else
-	die "Scope '$scope' is valid but not available."
-    fi
+    validate_scope "$scope"
 
     # compute filename & path
     local filename="${prompt_type}.txt"
