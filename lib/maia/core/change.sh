@@ -38,6 +38,12 @@ COMMANDS
   apply [--dry-run] [--keep-history] [--update-history] [<ID> [<ID>...]]
     Apply changes (patch files) for a change set.
 
+  run [<ID> [<ID>...]]
+    Apply cahges by running the shell commands.
+
+  do [<ID> [<ID>...]]
+    Do the proposed actions.
+
   adjust [<ID> [<ID>...]]
     Adjust the body of the change by opening it up in an editor.
     Can be useful to remove whice-space, comments or similar that made
@@ -715,6 +721,7 @@ showfiles() {
     local text=$(match_single_file "$prefix" .txt)
     local snippet=$(match_single_file "$prefix" .snippet)
     local shell=$(match_single_file "$prefix" .shell)
+    local action=$(match_single_file "$prefix" .action)
     if [ -n "$patch" ] ; then
 	echo "Suggested patch below:"
 	echo "======================"
@@ -737,6 +744,26 @@ showfiles() {
 	    echo "Suggested commands below:"
 	    echo "========================="
 	    read_file_by_line "$shell" cr
+	    echo
+	fi
+    elif [ -n "$action" ] ; then
+	local actionout=$(match_single_file "$prefix" .output)
+	local actionstat=$(match_single_file "$prefix" .exit_status)
+	if [ -n "$actionout" ] ; then
+	    echo "Command output below:"
+	    echo "====================="
+	    read_file_by_line "$actionout" cr
+	    echo
+	    echo "Exit status below:"
+	    echo "=================="
+	    if [ -n "$actionstat" ] ; then
+		read_file_by_line "$actionstat" cr
+	    fi
+	    echo
+	else
+	    echo "Suggested commands below:"
+	    echo "========================="
+	    read_file_by_line "$action" cr
 	    echo
 	fi
     elif [ -n "$text" ] ; then
@@ -902,7 +929,7 @@ handle_change_command() {
 	    done
 	    ;;
 
-	run)
+	run|"do")
 	    local ws_meta="$(resolve_workspace_meta)"
 	    # Global root
 	    local workspace_root="$(resolve_workspace_root "$ws_name")"
@@ -917,11 +944,11 @@ handle_change_command() {
 		    local status=$(get_status "$jsonf")                 # => "pending"
 		    local type=$(jq -r '.type'   "$jsonf")
 		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
-		    [[ "$type"   == "shell"  ]] || die "Cannot auto-apply non-shell '$id'"
+		    [[ "$type"   == "shell"  || "$type" == "action" ]] || die "Cannot auto-apply non-shell '$id'"
 		    change_state_for_jsons "running" "$jsonf"
 		    # OBSERVE! Files are changed now to running!!!
 		    jsonf=$(match_single_file "$prefix" ".json")
-		    local shellfile="${changes_dir}/$session/${id}-running.shell"
+		    local shellfile="${changes_dir}/$session/${id}-running.${type}"
 		    [[ -e "${shellfile}" ]] || { warn "Skipping change '$id' since it is missing a shell command file."; continue; }
 		    local outputfile="${changes_dir}/$session/${id}-running.output"
 		    cd "$workspace_root"

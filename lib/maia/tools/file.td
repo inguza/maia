@@ -81,6 +81,27 @@
     }
   },
   {
+    "name":"file-rm",
+    "description": "Remove files. Always creates a change proposal.",
+    "command": "file-rm.sh",
+    "instructions": [ "file.txt" ],
+    "effects":["limited-write"],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to remove. Only paths relative to the current directory allowed."
+        }
+      },
+      "required": ["pathspecs"],
+      "additionalProperties": false
+    }
+  },
+  {
     "name":"context-file-remember",
     "description": "Add a files to the known context",
     "command": "file-remember.sh",

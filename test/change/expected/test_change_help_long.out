@@ -29,6 +29,12 @@ COMMANDS
   apply [--dry-run] [--keep-history] [--update-history] [<ID> [<ID>...]]
     Apply changes (patch files) for a change set.
 
+  run [<ID> [<ID>...]]
+    Apply cahges by running the shell commands.
+
+  do [<ID> [<ID>...]]
+    Do the proposed actions.
+
   adjust [<ID> [<ID>...]]
     Adjust the body of the change by opening it up in an editor.
     Can be useful to remove whice-space, comments or similar that made

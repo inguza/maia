@@ -26,6 +26,12 @@ write_file_name() {
     printf '%s' "$change_dir/${id}-pending.file"
 }
 
+action_file_name() {
+    local change_dir="$1"
+    local id="$2"
+    printf '%s' "$change_dir/${id}-pending.action"
+}
+
 shell_file_name() {
     local change_dir="$1"
     local id="$2"
@@ -78,6 +84,8 @@ write_meta() {
 	type="manual"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.shell" ]] ; then
 	type="shell"
+    elif [[ -e "$change_dir/${baseid}-${index}-pending.action" ]] ; then
+	type="action"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.file" ]] ; then
 	type="file"
     elif [[ -e "$change_dir/${baseid}-${index}-pending.snippet" ]] ; then
