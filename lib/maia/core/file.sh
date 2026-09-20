@@ -47,6 +47,9 @@ OPTIONS
   --all
     Operate on every .fileset under the session's workspace directory.
 
+  --raw
+    Print the file context without any space or workspace directory.
+
   --filesets fs1[,fs2]
     Comma-separated override of which workspace filesets to use.
 
@@ -177,10 +180,15 @@ handle_file_command() {
     # Parse global flags: --all and --filesets
     local all_flag=false
     local override_fs_csv=""
+    local raw=false
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --all)
                 all_flag=true
+                shift
+                ;;
+            --raw)
+                raw=true
                 shift
                 ;;
             --filesets)
@@ -243,10 +251,12 @@ handle_file_command() {
                     seen["$line"]=1
                 done < "$fs"
             done
-            echo "$workspace_root:"
-            for file in "${!seen[@]}"; do
-                printf '   %s\n' "$file"
-            done
+	    if [[ "$raw" == false ]] ; then
+		echo "$workspace_root:"
+                printf '   %s\n' "${!seen[@]}"
+	    else
+                printf '%s\n' "${!seen[@]}"
+	    fi
             ;;
 
 	verify|clean)
