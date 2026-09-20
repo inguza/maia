@@ -35,6 +35,8 @@ COMMANDS
   do [<ID> [<ID>...]]
     Do the proposed actions.
 
+  save <filename> <ID>
+
   adjust [<ID> [<ID>...]]
     Adjust the body of the change by opening it up in an editor.
     Can be useful to remove whice-space, comments or similar that made

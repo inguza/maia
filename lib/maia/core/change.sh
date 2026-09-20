@@ -44,6 +44,8 @@ COMMANDS
   do [<ID> [<ID>...]]
     Do the proposed actions.
 
+  save <filename> <ID>
+
   adjust [<ID> [<ID>...]]
     Adjust the body of the change by opening it up in an editor.
     Can be useful to remove whice-space, comments or similar that made
@@ -822,6 +824,46 @@ handle_change_command() {
 	list|ls)
 	    # delegate to list handler; remaining args are status flags (--pending, --applied, --skipped, --all)
 	    change_list "$session" "$@"
+	    ;;
+
+	save)
+	    local filename="$1"
+	    if [[ -z "$filename" ]] ; then
+		die "Filename must be provided."
+	    fi
+	    if [[ -d "$filename" ]] ; then
+		die "Cannot save to a directory."
+	    fi
+	    shift
+	    id="$1"
+	    shift
+	    if [[ -n "$1" ]] ; then
+		die "Can only save one change at a time."
+	    fi
+	    local prefix file
+	    LC_COLLATE=C
+	    shopt -s nullglob
+	    prefix="$changes_dir/$session/$id-+-"
+	    file=$(match_single_file "$prefix" ".json")
+	    if [[ -n "$file" ]]; then
+		# It's a set id; show the set plus its sub-IDs
+		die "Cannot save a change set."
+	    else
+		# Not a set id, fallback to normal single file display
+		prefix="$changes_dir/$session/$id"
+		file=$(match_single_file "$prefix" ".json")
+		if [[ -z "$file" ]] ; then
+		    die "Change '$id' not found."
+		fi
+		local type=$(jq -r ".type" < "$file")
+		local tosave=$(match_single_file "$prefix" ".$type")
+		if [[ -n "$tosave" ]] ; then
+		    notice "Change '$id' saved to '$filename'."
+		    cp "$tosave" "$filename"
+		else
+		    die "No data of type '$type' found for change '$id'."
+		fi
+	    fi
 	    ;;
 
 	show)
