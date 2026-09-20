@@ -311,35 +311,60 @@ build_messages_json() {
 		     ' <<< "$msgs")
 		;;
 	    AUTOTOOL)
-		printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.' > "$tmpf"
-		local call_id="call_$(random_string 24)"
-		if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
-		    msgs=$(jq --rawfile content "$tmpf" --arg callid "$call_id" '
-		        . + [
-			  {
-			    role: "assistant",
-			    content: null,
-			    tool_calls: [{
-			      id: $callid,
-			      type: "function",
-			      function: {
-			        name: "retrieve_relevant_file_context",
-			        arguments: "{}"
-			      }
-			    }]
-			  },
-			  {
-			    role: "tool",
-			    tool_call_id: $callid,
-			    content: $content
-			  }
-			]
-		      ' <<<"$msgs")
-		elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		    # TODO implement
-		    :
-		fi
-		;;
+                printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.' > "$tmpf"
+                local call_id="call_$(random_string 24)"
+		msgs=$(jq --rawfile content "$tmpf" --arg callid "$call_id" '
+		       . + [
+		         {
+			   role: "assistant",
+			   content: null,
+			   tool_calls: [{
+			     id: $callid,
+			     type: "function",
+			     function: {
+			       name: "retrieve_relevant_file_context",
+			       arguments: "{}"
+			       }
+			     }]
+			 },
+			 {
+			   role: "tool",
+			   tool_call_id: $callid,
+			   content: $content
+			 }
+		       ]
+		       ' <<<"$msgs")
+                ;;
+            AUTOTOOLBEFORE)
+                printf '%s\n\n%s\n\n%s' "Files:" "$filesinstr" "$combined" | jq -R -s '.' > "$tmpf"
+                local call_id="call_$(random_string 24)"
+                msgs=$(jq --rawfile content "$tmpf" --arg callid "$call_id" '
+                    . as $m
+                    | ([$m | to_entries[] |
+                        select(.value.role == "user")] | last).key as $position
+                    | $m[:$position]
+                      + [
+                          {
+                            role: "assistant",
+                            content: null,
+                            tool_calls: [{
+                              id: $callid,
+                              type: "function",
+                              function: {
+                                name: "retrieve_relevant_file_context",
+                                arguments: "{}"
+                              }
+                            }]
+                          },
+                          {
+                            role: "tool",
+                            tool_call_id: $callid,
+                            content: $content
+                          }
+                        ]
+                      + $m[$position:]
+                ' <<<"$msgs")
+                ;;
             *)
 		:
 		;;
