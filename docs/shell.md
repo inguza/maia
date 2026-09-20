@@ -74,3 +74,12 @@ whose name match "developer%*" glob pattern.
 
 Multiple commands can therefore be applied consistently to a group of sessions without having to select
 each session manually.
+
+Advanced example:
+
+```bash
+maiaforeachsession "moddev%*" 's=$(maia session); m="${s#moddev%}" ; echo Adding files to $s from $m. ; maia file add $(cat proj/task/module-$m.txt)'
+```
+
+This extracts the session name from `maia session`, extract the subsession from the session name and add the files
+listed in the file with the subsession name.
