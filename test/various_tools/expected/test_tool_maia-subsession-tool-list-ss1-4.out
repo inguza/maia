@@ -4,5 +4,7 @@ core-sequence
 core-sleep
 file-append
 file-change
+file-mv
+file-rm
 file-write
 util-cat

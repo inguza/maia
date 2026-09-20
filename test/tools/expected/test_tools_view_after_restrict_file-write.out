@@ -1,3 +1,5 @@
 core-print
 file-append
 file-change
+file-mv
+file-rm

@@ -85,7 +85,6 @@
     "description": "Remove files. Always creates a change proposal.",
     "command": "file-rm.sh",
     "instructions": [ "file.txt" ],
-    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -96,6 +95,30 @@
           },
           "description": "Glob patterns of files and directories to remove. Only paths relative to the current directory allowed."
         }
+      },
+      "required": ["pathspecs"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name":"file-mv",
+    "description": "Move files. Always creates a change proposal.",
+    "command": "file-mv.sh",
+    "instructions": [ "file.txt" ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to move. Only paths relative to the current directory allowed."
+        },
+	"destination": {
+	  "type": "string",
+	  "description": "Destination file or directory."
+	}
       },
       "required": ["pathspecs"],
       "additionalProperties": false

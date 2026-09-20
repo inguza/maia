@@ -15,6 +15,10 @@ file-append
 file-append:write
 file-change
 file-change:write
+file-mv
+file-mv:write
+file-rm
+file-rm:write
 file-write:write
 git-add:write
 git-branch:write

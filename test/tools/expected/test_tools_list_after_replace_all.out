@@ -7,6 +7,8 @@
 * file-write   (<MAIA_ROOT>/lib/maia/tools/file.td)
 * file-append   (<MAIA_ROOT>/lib/maia/tools/file.td)
 * file-change   (<MAIA_ROOT>/lib/maia/tools/file.td)
+* file-rm   (<MAIA_ROOT>/lib/maia/tools/file.td)
+* file-mv   (<MAIA_ROOT>/lib/maia/tools/file.td)
 * context-file-remember   (<MAIA_ROOT>/lib/maia/tools/file.td)
 * context-file-forget   (<MAIA_ROOT>/lib/maia/tools/file.td)
   change-apply   (<MAIA_ROOT>/lib/maia/tools/file.td)
