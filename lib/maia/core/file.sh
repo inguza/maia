@@ -121,11 +121,15 @@ forget_entries() {
             for pat in "${patterns[@]}"; do
 		# A pattern must have # in it to remove a resource
 		[[ "$pat" != *'#'* && "$line" == *'#'* ]] && continue
-                if [[ "$line" == $pat ]]; then
-                    keep=false
-		    matched_patterns["$pat"]=true
-                    break
-                fi
+		if [[ "$pat" == *'|'* || "$pat" == *:* ]]; then
+		    [[ "$line" == $pat ]] || continue
+		else
+		    line_file="${line%%[|:]*}"
+		    [[ "$line_file" == $pat ]] || continue
+		fi
+                keep=false
+		matched_patterns["$pat"]=true
+                break
             done
             $keep && echo "$line" >> "$tmp"
         done < "$fs"
