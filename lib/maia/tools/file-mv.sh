@@ -53,6 +53,40 @@ wpath="$(action_file_name "$ws_changes" "$id")"
 printf '%s' "mv -f --" > "$wpath"
 printf ' %q' "${paths[@]}" "$destination" >> "$wpath"
 printf '\n' >> "$wpath"
+printf '%s' "maia file forget" >> "$wpath"
+printf ' %q' "${paths[@]}" >> "$wpath"
+printf '\n' >> "$wpath"
+# Now to the complicated part, to determine what remembered files are changed
+mapfile_from_command file_context maia file --raw list
+move_into_destination=false
+if [[ -d "$destination" || ${#paths[@]} -gt 1 ]]; then
+    move_into_destination=true
+fi
+declare -a remember=()
+for source in "${paths[@]}"; do
+    source="${source%/}"
+    for remembered in "${file_context[@]}"; do
+	rfile="${remembered%%[|:]*}"
+	rsuffix="${remembered:${#rfile}}"
+	if [[ -d "$source" ]] ; then
+	    [[ "$rfile" == "$source/"* ]] || continue
+	    rfile="${rfile#"$source"}"
+	else
+	    [[ "$rfile" == "$source" ]] || continue
+	    rfile=""
+	fi
+	if [[ "$move_into_destination" == true ]]; then
+            remember+=("${destination%/}/$(basename "$source")${rfile}$rsuffix")
+	else
+	    remember+=("$destination$rsuffix")
+	fi
+    done
+done
+
+printf '%s' "maia file remember" >> "$wpath"
+printf ' %q' "${remember[@]}" >> "$wpath"
+printf '\n' >> "$wpath"
+#
 write_meta "$ws_changes" "$baseid" "$index" "${paths[@]}"
 printf '%b' "[NOTICE] Direct file modification was not possible.\n\nChange proposal created for manual resolution:\n$id\n"
 exit 0
