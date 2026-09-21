@@ -257,9 +257,13 @@ handle_file_command() {
             done
 	    if [[ "$raw" == false ]] ; then
 		echo "$workspace_root:"
-                printf '   %s\n' "${!seen[@]}"
+		if ((${#seen[@]})); then
+                    printf '   %s\n' "${!seen[@]}"
+		fi
 	    else
-                printf '%s\n' "${!seen[@]}"
+		if ((${#seen[@]})); then
+                    printf '%s\n' "${!seen[@]}"
+		fi
 	    fi
             ;;
 
