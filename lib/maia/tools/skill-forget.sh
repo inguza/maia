@@ -32,10 +32,9 @@ if [[ -n ${param[skills]:-} ]]; then
 fi
 
 if [[ "$TOOL_NAME" == "subsession-skill-forget" ]] ; then
-    thissession="$(resolve_session_name)"
     subsession="${param[subsession]:-}"
     set_subsession "$subsession"
-    "$MAIA_BIN" skill --scope "$scope" forget "${skills[@]}" | session_filter "$thissession"
+    "$MAIA_BIN" skill --scope "$scope" forget "${skills[@]}" | session_filter
 else
     "$MAIA_BIN" skill --scope "$scope" forget "${skills[@]}"
 fi

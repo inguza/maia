@@ -10,8 +10,13 @@
 
 resolve_subsession_name() {
     local session="$1"
-    local thissession="$(resolve_session_name)"
-    echo "${thissession}%${session}"
+    local prefix="$(resolve_subsession_prefix)"
+    echo "${prefix}${session}"
+}
+
+resolve_subsession_prefix() {
+    local this="$(resolve_session_name)"
+    printf '%s%%' "$this"
 }
 
 validate_subsession() {
@@ -36,7 +41,25 @@ set_subsession() {
     export MAIA_SESSION="${subsession}"
 }
 
+# Used by the below functions. Yes a little ugly solution but it works.
+# We need to set this before someone alter MAIA_SESSION
+subsession_prefix="$(resolve_subsession_prefix)"
+
+subsession_list() {
+    "$MAIA_BIN" session list 2>&1 \
+	| grep "^[[:space:]]*${subsession_prefix}" \
+	| sed 's/^[[:space:]]*//;' | \
+	session_filter
+}
+
 session_filter() {
-    local parent="$1"
-    sed "s/$parent%//g;"
+    if [[ -n "${subsession_prefix}" && "$subsession_prefix" =~ [^a-zA-Z0-9]$ ]] ; then
+	# To do filtering we need the prefix to end with with a non-alphanumeric character.
+	# We intentionally do not put a requirement on the session name after because
+	# that could result in information leak. Not a big one because it only reveals
+	# the identity of the prefix, but anyway.
+	sed "s/${subsession_prefix}//;"
+    else
+	sed "s/\r\n/\n/g;"
+    fi
 }

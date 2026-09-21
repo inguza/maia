@@ -23,17 +23,16 @@ if [[ -v param["subsession"] ]] ; then
 fi
 validate_subsession "${param[$paramkey]}"
 
-thissession="$(resolve_session_name)"
 actualsession="$(resolve_subsession_name "${param[$paramkey]}")"
 # We do not want to unset here, because we want to have workspace and profile copied from the current session
 # unset MAIA_SESSION
 
 # Create blank subsession (do not copy from parent)
 if [[ -v param["profile"] ]] ; then
-    "$MAIA_BIN" session create "$actualsession" --profile "${param[profile]}" 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" session create "$actualsession" --profile "${param[profile]}" 2>&1 | session_filter
     status=$?
 else
-    "$MAIA_BIN" session create "$actualsession" 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" session create "$actualsession" 2>&1 | session_filter
     status=$?
 fi
 
@@ -72,6 +71,7 @@ apply_config_param() {
     fi
 }
 
+thissession="$(resolve_session_name)"
 # Make sure to reset, just in case there is defaults from session create
 export MAIA_SESSION="$actualsession"
 "$MAIA_BIN" tool --scope session clearnonotice

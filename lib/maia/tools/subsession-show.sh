@@ -23,7 +23,6 @@ if [[ -v param["subsession"] ]] ; then
 fi
 validate_subsession "${param[$paramkey]}"
 
-thissession="$(resolve_session_name)"
 actualsession="$(resolve_subsession_name "${param[$paramkey]}")"
 unset MAIA_SESSION
-"$MAIA_BIN" session show "$actualsession" 2>&1 | session_filter "$thissession"
+"$MAIA_BIN" session show "$actualsession" 2>&1 | session_filter

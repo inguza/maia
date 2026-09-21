@@ -15,15 +15,14 @@ set -eo pipefail
 declare -A param
 parseparam
 
-thissession="$(resolve_session_name)"
 subsession="${param[subsession]}"
 # TODO check subsession that it does not contain any unknown characters
 
 set_subsession "$subsession"
 if [[ -v "param[content]" ]] ; then
-    printf "%b" "${param[content]}" | "$MAIA_BIN" send --output-mode "final" +read 2>&1 | session_filter "$thissession"
+    printf "%b" "${param[content]}" | "$MAIA_BIN" send --output-mode "final" +read 2>&1 | session_filter
 else
-    "$MAIA_BIN" send --output-mode "final" +read 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" send --output-mode "final" +read 2>&1 | session_filter
 fi
 
 exit 0

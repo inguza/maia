@@ -36,9 +36,8 @@ done
 if [[ "$TOOL_NAME" == "subsession-resource-forget" ]] ; then
     subsession="${param[subsession]:-}"
     validate_subsession "$subsession"
-    thissession="$(resolve_session_name)"
     set_subsession "$subsession"
-    "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1 | session_filter "$thissession"
+    "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1 | session_filter
 else
     "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1
 fi

@@ -15,5 +15,4 @@ set -eo pipefail
 declare -A param
 parseparam
 
-thissession="$(resolve_session_name)"
-"$MAIA_BIN" session list 2>&1 | grep "[[:space:]]$thissession%" | session_filter "$thissession"
+subsession_list
