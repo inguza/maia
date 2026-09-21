@@ -1,9 +1,10 @@
+----------------- Tool output manual start ------------------------------------
 [NOTICE] Direct file modification was not possible.
 
 File x/1.txt already exists.
 
 Change proposal created:
-<dateandtime>-68e33e97-4
+<dateandtime>-6a83bd8c-1
 
 The content of the proposed change is the following:
 ```patch
@@ -14,3 +15,4 @@ The content of the proposed change is the following:
 +Rewritten content 1
  Append it 1
 ```
+----------------- Tool output manual end --------------------------------------

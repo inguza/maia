@@ -1,4 +1,5 @@
-======== [1] subsession-create {"subsession":"review-xcommon"} ========
+----------------- Tool output manual start ------------------------------------
+======== [1] session-create {"session":"review-xcommon"} ========
 [NOTICE] Bootstrapped session 'review-xcommon'
 [NOTICE] Created session 'review-xcommon' with workspace 'default' (resolved from current session) and with no profile (from default_profile configuration).
 
@@ -7,11 +8,12 @@
 [WARN] File 'x/x.info.yml' not found, skipping.
 
 -> 0
-======== [3] subsession-file-remember {"files":["xcommon/tests/src/Functional/TestBase.php"],"subse... ========
+======== [3] session-file-remember {"files":["xcommon/tests/src/Functional/TestBase.php"],"sessi... ========
 [WARN] File 'xcommon/tests/src/Functional/TestBase.php' not found, skipping.
 
 -> 0
-======== [4] subsession-send {"subsession":"review-xcommon","content":"Sub-session name: r... ========
+======== [4] session-send {"session":"review-xcommon","content":"Sub-session name: revi... ========
 [ERROR] OPENAI_API_KEY environment variable is not set.
 
 -> 1
+----------------- Tool output manual end --------------------------------------

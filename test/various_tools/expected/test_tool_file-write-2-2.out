@@ -1,9 +1,10 @@
+----------------- Tool output manual start ------------------------------------
 [NOTICE] Direct file modification was not possible.
 
 File pathx/2.txt already exists.
 
 Change proposal created:
-<dateandtime>-68e33e97-2
+<dateandtime>-28c581f9-1
 
 The content of the proposed change is the following:
 ```patch
@@ -13,3 +14,4 @@ The content of the proposed change is the following:
  First write content 2
 +Second write
 ```
+----------------- Tool output manual end --------------------------------------

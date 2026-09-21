@@ -1,1 +1,6 @@
+----------------- Tool output manual start ------------------------------------
+Tool exited with code 2.
+
+
 [ERROR] Path must not contain '..': ../x/1.txt
+----------------- Tool output manual end --------------------------------------

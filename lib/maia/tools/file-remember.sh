@@ -58,9 +58,8 @@ for filepattern in "${filepatterns[@]}" ; do
     done
 done
 
-if [[ "$TOOL_NAME" == "subsession-file-remember" ]] ; then
-    subsession="${param[subsession]:-}"
-    set_subsession "$subsession"
+if [[ "$TOOL_NAME" == "session-file-remember" ]] ; then
+    set_subsession "${param[session]:-}"
     "$MAIA_BIN" file remember "${filedefs[@]}" 2>&1 | session_filter
 else
     "$MAIA_BIN" file remember "${filedefs[@]}"

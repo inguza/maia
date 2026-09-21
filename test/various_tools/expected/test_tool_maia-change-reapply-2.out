@@ -1,4 +1,8 @@
+----------------- Tool output manual start ------------------------------------
 checking file x/1.txt
 patching file x/1.txt
+[NOTICE] Applied change '<dateandtime>-58059449-1'
 checking file pathx/2.txt
 patching file pathx/2.txt
+[NOTICE] Applied change '<dateandtime>-28c581f9-1'
+----------------- Tool output manual end --------------------------------------

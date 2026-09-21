@@ -1,2 +1,5 @@
+----------------- Tool output manual start ------------------------------------
 checking file x/1.txt
 patching file x/1.txt
+[NOTICE] Applied change '<dateandtime>-6a83bd8c-1'
+----------------- Tool output manual end --------------------------------------

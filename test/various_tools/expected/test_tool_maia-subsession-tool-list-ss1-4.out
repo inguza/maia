@@ -1,3 +1,10 @@
+----------------- Tool output manual start ------------------------------------
+context-file-forget
+context-file-remember
+context-resource-forget
+context-resource-remember
+context-skill-forget
+context-skill-remember
 core-pipe
 core-print
 core-sequence
@@ -8,3 +15,5 @@ file-mv
 file-rm
 file-write
 util-cat
+session-create
+----------------- Tool output manual end --------------------------------------

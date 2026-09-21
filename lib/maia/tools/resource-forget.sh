@@ -33,10 +33,8 @@ for resourcepattern in "${resourcepatterns[@]}" ; do
     resourcedefs+=("$resourcepattern")
 done
 
-if [[ "$TOOL_NAME" == "subsession-resource-forget" ]] ; then
-    subsession="${param[subsession]:-}"
-    validate_subsession "$subsession"
-    set_subsession "$subsession"
+if [[ "$TOOL_NAME" == "session-resource-forget" ]] ; then
+    set_subsession "${param[session]:-}"
     "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1 | session_filter
 else
     "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1

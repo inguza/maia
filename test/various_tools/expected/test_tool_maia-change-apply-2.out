@@ -1,2 +1,6 @@
+----------------- Tool output manual start ------------------------------------
+[NOTICE] Sub-change '<dateandtime>-58059449-1' already in status applied
 checking file pathx/2.txt
 patching file pathx/2.txt
+[NOTICE] Applied change '<dateandtime>-28c581f9-1'
+----------------- Tool output manual end --------------------------------------

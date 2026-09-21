@@ -2,6 +2,8 @@ CONFIG NAME                    SCOPE      VALUE
 ----------------------------------------------------------------------------
 additional_skill_paths         default    ""
 additional_tool_paths          default    ""
+agent_session_allowed          default    "*"
+agent_session_prefix           default    "__SESSION_NAME__%"
 allowed_profiles               default    "*"
 api_base_url                   default    "https://api.openai.com"
 api_type                       default    "AUTODETECT"
@@ -19,17 +21,17 @@ cost_output_gpt_4_1_nano       default    0.4
 cost_output_gpt_5_4            default    15
 cost_output_gpt_5_4_mini       default    4.5
 cost_output_gpt_5_4_nano       default    1.25
+default_agent_skill_allow      default    "*"
+default_agent_skill_forget     default    ""
+default_agent_skill_remember   default    "*"
+default_agent_skill_restrict   default    "session"
+default_agent_tool_allow       default    "*"
+default_agent_tool_restrict    default    "session-*"
 default_allowed_tool_effects   default    "[\"limited-write\"]"
 default_filter                 default    ""
 default_profile                default    ""
 default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
-default_subsession_skill_allow default    "*"
-default_subsession_skill_forget default    ""
-default_subsession_skill_remember default    "*"
-default_subsession_skill_restrict default    "subsession"
-default_subsession_tool_allow  default    "*"
-default_subsession_tool_restrict default    "subsession-*"
 default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
 file_handling_mode_mistral_24b default    "APPEND"

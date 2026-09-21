@@ -1,3 +1,10 @@
+----------------- Tool output manual start ------------------------------------
+context-file-forget
+context-file-remember
+context-resource-forget
+context-resource-remember
+context-skill-forget
+context-skill-remember
 core-pipe
 core-print
 core-sequence
@@ -21,3 +28,4 @@ util-sort
 util-tail
 util-uniq
 util-wc
+----------------- Tool output manual end --------------------------------------

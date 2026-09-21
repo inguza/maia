@@ -1,3 +1,4 @@
+----------------- Tool output manual start ------------------------------------
 {
   "pid": <pid>
   "starttime": "<starttime>",
@@ -11,3 +12,4 @@
   "toolcallid": "<datetime>-<pid>-<starttime>",
   "status": "Completed(0)"
 }
+----------------- Tool output manual end --------------------------------------

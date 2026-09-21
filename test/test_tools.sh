@@ -138,7 +138,7 @@ run_tools_cmd "allow_all_allow" allow "*:write"
 run_tools_cmd "list_after_allow_all_allow" list
 run_tools_cmd "show_after_allow_all_allow" show
 
-run_tools_cmd "restrict_subsession" restrict "subsession-*"
+run_tools_cmd "restrict_subsession" restrict "session-*"
 run_tools_cmd "list_after_restrict_subsession" list
 run_tools_cmd "show_after_restrict_subsession" show
 run_tools_cmd "view_after_restrict_subsession" view
@@ -183,7 +183,7 @@ run_skills_cmd "show_after_allow_all_allow" show
 run_skills_cmd "view_after_allow_all_allow" view
 
 run_skills_cmd "allow_all_2" allow "*"
-run_skills_cmd "restrict_subsession" restrict "subsession"
+run_skills_cmd "restrict_subsession" restrict "session"
 run_skills_cmd "list_after_restrict_subsession" list
 run_skills_cmd "show_after_restrict_subsession" show
 run_skills_cmd "view_after_restrict_subsession" view

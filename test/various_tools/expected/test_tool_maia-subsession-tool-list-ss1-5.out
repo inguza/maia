@@ -1,3 +1,4 @@
+----------------- Tool output manual start ------------------------------------
 core-pipe
 core-print
 core-sequence
@@ -7,3 +8,4 @@ file-change
 file-mv
 file-rm
 file-write
+----------------- Tool output manual end --------------------------------------
