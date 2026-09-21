@@ -8,6 +8,8 @@
 #
 #
 
+. "$MAIA_CORE_LIB_DIR/common.sh"
+
 resolve_subsession_name() {
     local session="$1"
     local prefix="$(resolve_subsession_prefix)"

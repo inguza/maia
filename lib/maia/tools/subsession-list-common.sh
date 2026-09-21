@@ -9,11 +9,8 @@
 #
 set -eo pipefail
 
-. "$MAIA_CORE_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 . "$MAIA_TOOLS_LIB_DIR/session-common.sh"
-
-# Parse parameters
 
 declare -A param
 parseparam
