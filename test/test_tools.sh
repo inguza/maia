@@ -24,7 +24,7 @@ setup_maia_home
 run_tools_cmd() {
     local test_id="$1"
     shift
-    run_and_check "test_tools_${test_id}" $MAIA tools "$@"
+    run_and_check "test_tools_${test_id}" $MAIA tool "$@"
 }
 
 # Helper to run a skill command and check output

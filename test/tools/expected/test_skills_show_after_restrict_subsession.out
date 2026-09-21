@@ -1,7 +1,6 @@
 Allowed skills:
 ---------------
 file
-session
 
 Memorized skills:
 -----------------
@@ -9,7 +8,6 @@ Memorized skills:
 Allowed skill list:
 -------------------
 - file - How to manipulate files using file and change tools
-- session - How to delegate work using subsessions
 
 Memorized skill information:
 ----------------------------
