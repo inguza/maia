@@ -55,10 +55,10 @@ list_tools() {
     if [[ -s "$allowed_tools_list_file" ]]; then
         jq -r --slurpfile allowed "$allowed_tools_list_file" '
             ($allowed[0] | map(.name)) as $allowed_names |
-            .[] as $tool |
-            if ($allowed_names | index($tool.name))
-            then "* " + $tool.name + "   (" + $tool.source + ")"
-            else "  " + $tool.name + "   (" + $tool.source + ")"
+            .[] |
+            if (.name | IN($allowed_names[]))
+            then "* " + .name + "   (" + .source + ")"
+            else "  " + .name + "   (" + .source + ")"
             end
         ' <<<"$all_tools_json"
     else
