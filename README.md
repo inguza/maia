@@ -69,7 +69,7 @@ The directory where MAIA is installed is referred to as $MAIA_ROOT in the rest o
 
 MAIA requires the following software:
 
-- `jq` 1.5 or later
+- `jq` 1.6 or later
 - `curl`
 - `perl`
 - `bash`
