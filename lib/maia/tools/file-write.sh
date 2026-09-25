@@ -52,6 +52,7 @@ if [[ "$path" != "$wpath" ]] ; then
     pfile="$ws_changes/$id-pending.patch"
     if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
 	rm -f "$pfile" "$wpath"
+	clean_meta "$ws_changes" "$baseid" "$index"
 	echo "$contentstr identical to the content in $path. Consider it written."
     else
 	write_meta "$ws_changes" "$baseid" "$index" "$path"

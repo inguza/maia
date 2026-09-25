@@ -72,6 +72,17 @@ make_patch() {
     diff -u --label $slbl --label b/$fname "$src" "$wname" 2>/dev/null > "$fpatch" || true
 }
 
+clean_meta() {
+    local change_dir="$1"
+    local baseid="$2"
+    local index="$3"
+    local file="$change_dir/${baseid}-${index}-pending.json"
+    if [[ -e "$file" && ! -s "$file" ]] ; then
+	# If it exists and is not larger than zero (meaning zero) remove it
+	rm -f "$file"
+    fi
+}
+
 write_meta() {
     local change_dir="$1"
     local baseid="$2"

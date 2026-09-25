@@ -61,6 +61,7 @@ else
     if [[ ! -e "$xpath" && ! -e "$pfile" ]] ; then
 	rm -f "$wpath"
 	rm -f "$cpath"
+	clean_meta "$ws_changes" "$baseid" "$index"
         printf '%b' "[NOTICE] File already contains the requested content. No change made.\n"
     elif [[ -e "$xpath" && ! -e "$pfile" ]] ; then
 	rm -f "$wpath"
