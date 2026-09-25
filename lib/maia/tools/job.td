@@ -22,7 +22,12 @@
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
-    "inputSchema": null
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
   },
   {
     "name": "job-show",

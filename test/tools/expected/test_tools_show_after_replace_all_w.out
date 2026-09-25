@@ -1508,7 +1508,12 @@ Tool definitions:
     "name": "job-list",
     "description": "List all background jobs. Returns their job ids.",
     "command": "job-list.sh",
-    "inputSchema": null,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
     "source": "<MAIA_ROOT>/lib/maia/tools/job.td"
   },
   {
@@ -1712,7 +1717,7 @@ Tool definitions:
     "command": "resource-discover.sh",
     "inputSchema": {
       "type": "object",
-      "properties": null,
+      "properties": {},
       "required": [],
       "additionalProperties": false
     },
@@ -1936,7 +1941,12 @@ Tool definitions:
     "instructions": [
       "session.txt"
     ],
-    "inputSchema": null,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
     "source": "<MAIA_ROOT>/lib/maia/tools/session.td"
   },
   {

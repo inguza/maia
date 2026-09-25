@@ -5,7 +5,7 @@
     "command": "resource-discover.sh",
     "inputSchema": {
       "type": "object",
-      "properties": null,
+      "properties": {},
       "required": [],
       "additionalProperties": false
     }

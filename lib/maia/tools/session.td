@@ -59,7 +59,12 @@
     "description": "List all AI interaction sessions.",
     "command": "session-list.sh",
     "instructions": [ "session.txt" ],
-    "inputSchema": null
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
   },
   {
     "name": "session-tool-list",
