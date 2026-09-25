@@ -8,7 +8,7 @@
   "input": [
     {
       "type": "message",
-      "role": "user",
+      "role": "system",
       "content": [
         {
           "type": "input_text",
@@ -276,7 +276,7 @@
   "input": [
     {
       "type": "message",
-      "role": "user",
+      "role": "system",
       "content": [
         {
           "type": "input_text",

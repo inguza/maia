@@ -5,6 +5,7 @@ map(
   )
   | if .role == "system" then
       .role = "user"
+      | .content = [{text: .content}]
     elif .role == "assistant" and .tool_calls then
       .content = [
         .tool_calls[] |

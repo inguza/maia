@@ -95,21 +95,7 @@ EOF
     exit 0
 }
 
-# parse_session_options [<args>…]
-# Returns:
-#   PARSED_WS          — string or empty
-#   PARSED_FILESETS    — JSON array string (or empty)
-# Leaves leftover flags in REMAINING_ARGS[@]
-# parse_session_options [<args>…]
-# Returns:
-#   PARSED_WS          — string or empty
-#   PARSED_FILESETS    — JSON array string (or empty)
-# Leaves leftover flags in REMAINING_ARGS[@]
 parse_session_options() {
-    PARSED_WS=""
-    PARSED_PROFILE=""
-    PARSED_FILESETS=""
-    PARSED_EXTRA_SEND_FILESETS=""
     REMAINING_ARGS=()
 
     while [[ $# -gt 0 ]]; do
@@ -249,66 +235,66 @@ handle_session_command() {
 		    src_extra_fs=$(jq -c '.extra_send_filesets // []' < "$src_meta")
 
 		    # Use source session workspace/filesets as defaults if not overridden by options
-		    if [[ -z "$PARSED_WS" && -n "$src_ws" ]]; then
+		    if [[ ! -v PARSED_WS && -n "$src_ws" ]]; then
 			ws_source=" (from source session)"
 			workspace="$src_ws"
-		    elif [[ -n "$PARSED_WS" ]]; then
+		    elif [[ -v PARSED_WS ]]; then
 			ws_source=" (from --workspace)"
 			workspace="$PARSED_WS"
 		    fi
 
-		    if [[ -z "$PARSED_PROFILE" && -n "$src_profile" ]]; then
+		    if [[ ! -v PARSED_PROFILE && -n "$src_profile" ]]; then
 			profile_source=" (from source session)"
 			profile="$src_profile"
-		    elif [[ -n "$PARSED_PROFILE" ]]; then
+		    elif [[ -v PARSED_PROFILE ]]; then
 			profile_source=" (from --profile)"
 			profile="$PARSED_PROFILE"
 		    fi
 
-		    if [[ -z "$PARSED_FILESETS" && "$src_fs" != "null" && "$src_fs" != "[]" ]]; then
+		    if [[ ! -v PARSED_FILESETS && "$src_fs" != "null" && "$src_fs" != "[]" ]]; then
 			filesets_json="$src_fs"
-		    elif [[ -n "$PARSED_FILESETS" ]]; then
+		    elif [[ -v PARSED_FILESETS ]]; then
 			filesets_json="$PARSED_FILESETS"
 		    fi
 
-		    if [[ -z "$PARSED_EXTRA_SEND_FILESETS" && "$src_extra_fs" != "null" && "$src_extra_fs" != "[]" ]]; then
+		    if [[ ! -v PARSED_EXTRA_SEND_FILESETS && "$src_extra_fs" != "null" && "$src_extra_fs" != "[]" ]]; then
 			extra_send_filesets_json="$src_extra_fs"
-                    elif [[ -n "$PARSED_EXTRA_SEND_FILESETS" ]]; then
+                    elif [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
 			extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
                     fi
 		else
 		    # fallback if no metadata in source session
-		    if [[ -n "$PARSED_WS" ]]; then
+		    if [[ -v PARSED_WS ]]; then
 			ws_source=" (from --workspace)"
 			workspace="$PARSED_WS"
 		    fi
-		    if [[ -n "$PARSED_PROFILE" ]]; then
+		    if [[ -v PARSED_PROFILE ]]; then
 			profile_source=" (from --profile)"
 			profile="$PARSED_PROFILE"
 		    fi
-		    if [[ -n "$PARSED_FILESETS" ]]; then
+		    if [[ -v PARSED_FILESETS ]]; then
 			filesets_json="$PARSED_FILESETS"
 		    fi
-		    if [[ -n "$PARSED_EXTRA_SEND_FILESETS" ]]; then
+		    if [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
 			extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
                     fi
 		fi
 	    else
 		# No source session, use options or defaults
-		if [[ -n "$PARSED_WS" ]] ; then
+		if [[ -v PARSED_WS ]] ; then
 		    ws_source=" (from --workspace)"
 		    workspace="$PARSED_WS"
 		fi
-		if [[ -n "$PARSED_PROFILE" ]] ; then
+		if [[ -v PARSED_PROFILE ]] ; then
 		    profile_source=" (from --profile)"
 		    profile="$PARSED_PROFILE"
 		fi
-		if [[ -n "$PARSED_FILESETS" ]]; then
+		if [[ -v PARSED_FILESETS ]]; then
 		    filesets_json="$PARSED_FILESETS"
 		else
 		    filesets_json=$(get_config default_session_filesets)
 		fi
-		if [[ -n "$PARSED_EXTRA_SEND_FILESETS" ]]; then
+		if [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
                     extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
 		else
 		    extra_send_filesets_json=$(get_config default_session_extra_send_filesets)
@@ -565,16 +551,16 @@ handle_session_command() {
 	    RESOLVE_FILESETS=false
 	    parse_session_options "$@"
 	    # Fallback to current if flags omitted
-	    local ws="${PARSED_WS:-$current_ws}"
+	    local ws="${PARSED_WS-$current_ws}"
             if [[ -n "$ws" ]]; then
 		validate_workspace_exists "$ws"
             fi
-	    local profile="${PARSED_PROFILE:-$current_profile}"
+	    local profile="${PARSED_PROFILE-$current_profile}"
             if [[ -n "$profile" ]]; then
 		validate_profile_exists "$profile"
             fi
-	    local filesets_json="${PARSED_FILESETS:-$current_fs}"
-	    local extra_send_filesets_json="${PARSED_EXTRA_SEND_FILESETS:-$current_extra_fs}"
+	    local filesets_json="${PARSED_FILESETS-$current_fs}"
+	    local extra_send_filesets_json="${PARSED_EXTRA_SEND_FILESETS-$current_extra_fs}"
 
             if [[ "$RESOLVE_FILESETS" == "true" ]]; then
                 # Expand filesets markers (__WORKSPACE_FILESETS__, __SESSION_NAME__)

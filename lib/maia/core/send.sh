@@ -186,11 +186,6 @@ build_messages_json() {
     fi
 
     # 3) Build messages based on mode
-    # Set systemrole for system messages depending on API type
-    local systemrole="system"
-    if [[ "$api_type" != "OPENAI_CHAT_COMPLETIONS" ]] ; then
-	systemrole="user"
-    fi
     local skill_list="$(prompt_for_scope "session" "skillset" "gen")"
     local skill_memory="$(prompt_for_scope "session" "skillsetcontext" "gen")"
     if [[ "$no_skills" == true ]]; then
@@ -252,7 +247,7 @@ build_messages_json() {
         esac
     fi
     if [[ -n "$sys" ]]; then
-	append_message msgs "$systemrole" "$sys"
+	append_message msgs "system" "$sys"
     fi
     # History messages
     if [[ -f "$history_file" ]]; then

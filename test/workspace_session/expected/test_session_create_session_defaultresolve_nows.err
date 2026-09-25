@@ -1,2 +1,2 @@
 [NOTICE] Bootstrapped session 'newsessionnows'
-[NOTICE] Created session 'newsessionnows' with no workspace (resolved from current session) and with no profile (from default_profile configuration).
+[NOTICE] Created session 'newsessionnows' with no workspace (from --workspace) and with no profile (from default_profile configuration).
