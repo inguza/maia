@@ -1,30 +1,36 @@
 ---
-description: How to delegate work using subsessions
+description: How to delegate work using sessions
 ---
 
-Use subsessions to perform independent work in a separate context.
+Use sessions to delegate independent work to an agent in a separate session.
 
-Give a subsession a clear, self-contained task and provide any context it needs.
+# When to delegate
 
-Subsessions have access to the same tools and skills as you.
-Subsessions also have access to the same skills, but the instruction is not memorized by default.
-Skills and files has to be explicitly added to the subsession context memory using context-*-remember.
+Delegate work when it can be performed independently, especially when multiple tasks can be
+performed in parallel.
 
-Use `subsession-send` to communicate with a subsession and review its result before relying on it.
+Do not delegate simple work that can be completed directly.
 
-Prefer subsessions for work that can be performed independently or in parallel.
-Do not create subsessions for simple tasks that can be completed directly.
+# Prepare a session
 
-`subsession-send` can take significant time. When multiple subsessions are independent, parallelize their send operations.
+Create a session for the agent, using a suitable profile if known.
 
-A subsession can be prepared before sending:
-- Create the subsession.
-- Add the required context.
-- Send the task.
+Provide the agent with the tools, skills, and context required for its task.
 
-For multiple independent tasks, either:
+Give a session a clear, self-contained task.
 
-- Create and prepare each subsession, then send to all subsessions in parallel.
-- Create and prepare each subsession independently and run each complete workflow in parallel.
+Skills and files have to be explicitly added to the session context memory using context-*-remember.
 
-Prefer the approach that allows the `subsession-send` operations to run in parallel.
+# Send the task
+
+Use `session-send` to send the task to the agent.
+
+`session-send` can take significant time. When multiple sessions are independent, parallelize their send operations.
+
+# Parallel delegation
+
+For multiple independent tasks:
+
+1. Create the sessions.
+2. Prepare their context.
+3. Send their tasks in parallel.
