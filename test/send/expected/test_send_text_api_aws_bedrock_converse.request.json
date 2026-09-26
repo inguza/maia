@@ -1,13 +1,10 @@
 {
-  "messages": [
+  "system": [
     {
-      "role": "user",
-      "content": [
-        {
-          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
-        }
-      ]
-    },
+      "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
+    }
+  ],
+  "messages": [
     {
       "role": "user",
       "content": [

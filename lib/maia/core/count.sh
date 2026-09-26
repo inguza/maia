@@ -129,7 +129,10 @@ handle_count_command() {
 
     # Build the shared messages payload
     # Assume tools are always disabled
-    local messages_json=$(build_messages_json "$outbox_file" "$model" "false" "$file_handling_mode_raw" "false" "false" "false")
+    local api_type=$(get_config api_type)
+    local mode="$(determine_file_handling_mode "$model" "$api_type" "$file_handling_mode_raw")"
+    local sys="$(build_system_text "$mode" "false" "false" "false" "false")"
+    local messages_json=$(build_messages_json "$outbox_file" "$sys" "$model" "false" "$file_handling_mode_raw" "false" "false" "false")
 
     # Iterate messages via jq and estimate tokens by role
     local count idx role content len tokens
