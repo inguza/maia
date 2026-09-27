@@ -529,8 +529,7 @@ handle_send_command() {
     # Use --slurpfile to avoid argument list too long problem
     local tmp_payload=$(mktemp)
     local url=""
-    local tools_json=""
-    local toolSpecs_json=""
+    local tools_json=null
     local tools_enabled=false
     if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" || "$api_type" == "OPENAI_RESPONSES" ]] ; then
 	# Ensure API key is set
@@ -575,7 +574,7 @@ handle_send_command() {
 		   ]
 		   ' <<<"$enabled_tools_json"); then
 		    warn "Invalid tool definition. Tools not shown to the AI." >&2
-		    tools_json="[]"
+		    tools_json=false
 		    tools_enabled=false
 		fi
             elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
@@ -595,7 +594,7 @@ handle_send_command() {
 		   ]
 		   ' <<<"$enabled_tools_json"); then
 		    warn "Invalid tool definition. Tools not shown to the AI." >&2
-		    tools_json="[]"
+		    tools_json=false
 		    tools_enabled=false
 		fi
             fi
@@ -610,7 +609,7 @@ handle_send_command() {
 	    # .parameters is kept for backwards compatibility with pre 1.0 release software
 	    # It can be removed eventually keeping only .inputSchema
 	    tools_enabled=true
-	    if ! toolSpecs_json=$(jq '
+	    if ! tools_json=$(jq '
 	      [ .[] |
 	        if (.name and .description) then
 		  {
@@ -632,7 +631,7 @@ handle_send_command() {
 	      ]
 	      ' <<<"$enabled_tools_json"); then
 		warn "Invalid tool definition. Tools not shown to the AI." >&2
-		toolSpecs_json=""
+		tools_json=false
 		tools_enabled=false
 	    fi
 	fi
@@ -697,62 +696,35 @@ handle_send_command() {
 	    OPENAI_CHAT_COMPLETIONS)
 		local tmpmf="$(mktemp)"
 		printf '%s' "$messages_json" > "$tmpmf"
-		if [[ -n "$tools_json" ]] ; then
-		    jq -n \
-		       --arg model "$model" \
-		       --argjson temperature "$temperature" \
-		       --argjson max_tokens "$max_output_tokens" \
-		       --argjson top_p "$top_p" \
-		       --argjson frequency_penalty "$frequency_penalty" \
-		       --argjson presence_penalty "$presence_penalty" \
-		       --argjson n "$n" \
-		       --argjson stream "$stream" \
-		       --argjson tools "$tools_json" \
-		       --slurpfile messages "$tmpmf" \
-		       '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0], tools: $tools}' \
-		       > "$tmp_payload"
-		else
-		    jq -n \
-		       --arg model "$model" \
-		       --argjson temperature "$temperature" \
-		       --argjson max_tokens "$max_output_tokens" \
-		       --argjson top_p "$top_p" \
-		       --argjson frequency_penalty "$frequency_penalty" \
-		       --argjson presence_penalty "$presence_penalty" \
-		       --argjson n "$n" \
-		       --argjson stream "$stream" \
-		       --slurpfile messages "$tmpmf" \
-		       '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]}' \
-		       > "$tmp_payload"
-		fi
+		jq -n \
+		   --arg model "$model" \
+		   --argjson temperature "$temperature" \
+		   --argjson max_tokens "$max_output_tokens" \
+		   --argjson top_p "$top_p" \
+		   --argjson frequency_penalty "$frequency_penalty" \
+		   --argjson presence_penalty "$presence_penalty" \
+		   --argjson n "$n" \
+		   --argjson stream "$stream" \
+		   --argjson tools "$tools_json" \
+		   --slurpfile messages "$tmpmf" \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]} + (if $tools != null then {tools: $tools} else {} end)' \
+		   > "$tmp_payload"
 		rm -f "$tmpmf"
 		;;
 	    OPENAI_RESPONSES)
 		local tmpmf="$(mktemp)"
 		local messages_json_resp=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-messages.jq" <<<"$messages_json")
 		printf '%s' "$messages_json_resp" > "$tmpmf"
-		if [[ -n "$tools_json" ]] ; then
-		    jq -n \
-		       --arg model "$model" \
-		       --argjson temperature "$temperature" \
-		       --argjson max_tokens "$max_output_tokens" \
-		       --argjson top_p "$top_p" \
-		       --argjson stream "$stream" \
-		       --argjson tools "$tools_json" \
-		       --slurpfile messages "$tmpmf" \
-		       '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0], tools: $tools}' \
-		       > "$tmp_payload"
-		else
-		    jq -n \
-		       --arg model "$model" \
-		       --argjson temperature "$temperature" \
-		       --argjson max_tokens "$max_output_tokens" \
-		       --argjson top_p "$top_p" \
-		       --argjson stream "$stream" \
-		       --slurpfile messages "$tmpmf" \
-		       '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0]}' \
-		       > "$tmp_payload"
-		fi
+		jq -n \
+		   --arg model "$model" \
+		   --argjson temperature "$temperature" \
+		   --argjson max_tokens "$max_output_tokens" \
+		   --argjson top_p "$top_p" \
+		   --argjson stream "$stream" \
+		   --argjson tools "$tools_json" \
+		   --slurpfile messages "$tmpmf" \
+		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0]} + (if $tools != null then {tools: $tools} else {} end)' \
+		   > "$tmp_payload"
 		rm -f "$tmpmf"
 		;;
 	    AWS_BEDROCK_CONVERSE)
@@ -763,44 +735,24 @@ handle_send_command() {
 		# - Convert system roles to user role
 		# - Add toolSpecs separately from messages if any enabled tools exist
 		local messages_json_aws=$(jq -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-messages.jq" <<<"$messages_json")
-		# Compose payload JSON with toolSpecs if available
-		if [[ -n "$toolSpecs_json" ]]; then
-		    jq -n \
-		       --argjson maxTokensToSample "$max_output_tokens" \
-		       --argjson temperature "$temperature" \
-		       --argjson stopSequences "$(jq -nc '["\n\n"]')" \
-		       --arg system "$sys" \
-		       --argjson messages "$messages_json_aws" \
-		       --argjson toolSpecs "$toolSpecs_json" \
+		jq -n \
+		   --argjson maxTokensToSample "$max_output_tokens" \
+		   --argjson temperature "$temperature" \
+		   --argjson stopSequences "$(jq -nc '["\n\n"]')" \
+		   --arg system "$sys" \
+		   --argjson messages "$messages_json_aws" \
+		   --argjson toolSpecs "$tools_json" \
 		   '{
 		     system: [{text: $system}],
-	             messages: $messages,
-	             parameters: {
-	               maxTokens: $maxTokensToSample,
-	               temperature: $temperature,
-	               stopSequences: $stopSequences
-	             },
-		     toolConfig: {
-		       tools: $toolSpecs
+		     messages: $messages,
+		     parameters: {
+		       maxTokens: $maxTokensToSample,
+		       temperature: $temperature,
+		       stopSequences: $stopSequences
 		     }
-		   }' > "$tmp_payload"
-		else
-		    jq -n \
-		       --argjson maxTokensToSample "$max_output_tokens" \
-		       --argjson temperature "$temperature" \
-		       --argjson stopSequences "$(jq -nc '["\n\n"]')" \
-		       --arg system "$sys" \
-		       --argjson messages "$messages_json_aws" \
-		   '{
-		     system: [{text: $system}],
-	             messages: $messages,
-	             parameters: {
-	               maxTokens: $maxTokensToSample,
-	               temperature: $temperature,
-	               stopSequences: $stopSequences
-	             }
-		   }' > "$tmp_payload"
-		fi
+		   }
+		   + (if $toolSpecs != null then {toolConfig: {tools: $toolSpecs}} else {} end)' \
+		> "$tmp_payload"
 		;;
 	    *)
 		:
