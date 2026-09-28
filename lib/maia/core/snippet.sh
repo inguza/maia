@@ -83,7 +83,7 @@ list_all_snippet() {
 
     for s in "${SCOPE_ORDER[@]}"; do
 	[[ "$s" == "default" ]] && continue
-        local dir="${SCOPE_DIRS[$s]}/snippets"
+        local dir="${SCOPE_DIR[$s]}/snippets"
         if [[ -d "$dir" ]]; then
             for f in "$dir"/*.txt; do
                 [[ -f "$f" ]] || continue
@@ -105,9 +105,9 @@ list_all_snippet() {
 # Determine default writable scope for adding/replacing snippet
 # Prefer workspace if exists and writable, else user scope
 default_writable_scope() {
-    if [[ -d "${SCOPE_DIRS[home]}" && -w "${SCOPE_DIRS[home]}" ]]; then
+    if [[ -d "${SCOPE_DIR[home]}" && -w "${SCOPE_DIR[home]}" ]]; then
         echo "home"
-    elif [[ -d "${SCOPE_DIRS[user]}" && -w "${SCOPE_DIRS[user]}" ]]; then
+    elif [[ -d "${SCOPE_DIR[user]}" && -w "${SCOPE_DIR[user]}" ]]; then
         echo "user"
     else
         # fallback to user anyway

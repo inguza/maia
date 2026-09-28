@@ -19,8 +19,8 @@ COMMANDS
   create [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
-      • "default" if <workspace_path>/.maia matches MAIA_HOME
-      • basename("<workspace_path>") otherwise.
+      * "default" if <workspace_path>/.maia matches $MAIA_HOME
+      * basename("<workspace_path>") otherwise.
 
   set [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
     Change the workspace properties.

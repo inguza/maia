@@ -1329,6 +1329,28 @@ Tool definitions:
     "source": "<MAIA_ROOT>/lib/maia/tools/session.td"
   },
   {
+    "name": "session-profile-list",
+    "description": "List allowed profiles for a session.",
+    "command": "session-list-common.sh profile",
+    "instructions": [
+      "session.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "description": "Name of the session for which to list the allowed profiles."
+        }
+      },
+      "required": [
+        "session"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/session.td"
+  },
+  {
     "name": "session-tool-restrict",
     "description": "Restrict tools for a session. If a tool is both allowed and restricted, the most recent operation takes precedence.",
     "command": "session-restrict-common.sh tool",
@@ -1383,6 +1405,33 @@ Tool definitions:
       "required": [
         "session",
         "restrictions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/session.td"
+  },
+  {
+    "name": "session-update-profile",
+    "description": "Update the profile for a session.",
+    "command": "session-update-profile.sh",
+    "instructions": [
+      "session.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "description": "Name of the session to update."
+        },
+        "profile": {
+          "type": "string",
+          "description": "The profile to set. Use the exact profile name; never invent, guess, or derive a profile name. If set to the empty string, no profile is used."
+        }
+      },
+      "required": [
+        "session",
+        "profile"
       ],
       "additionalProperties": false
     },

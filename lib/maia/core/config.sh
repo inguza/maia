@@ -119,11 +119,15 @@ find_highest_scope_with_key() {
     local s
     for s in "${SCOPE_ORDER[@]}"; do
 	[[ "$s" == "default" ]] && continue
-	local file=$(file_in_scope "$s" "config.json")
-	if [[ -n "$file" && -f "$file" ]] && jq -e --arg k "$name" '.[$k]' "$file" >/dev/null 2>&1; then
-	    echo "$s"
-	    return 0
-	fi
+	local -a files
+        local file
+        mapfile_from_command files files_in_scope "$s" "config.json"
+        for file in "${files[@]}"; do
+            if jq -e --arg k "$name" '.[$k]' "$file" >/dev/null 2>&1; then
+                echo "$s"
+                return 0
+            fi
+        done
     done
     echo ""
     return 1
@@ -302,8 +306,7 @@ handle_config_command() {
 	    # Determine effective target scope for set
 	    local target_scope="$write_scope"
 	    if [[ "$effective_flag" -eq 1 ]]; then
-		local highest
-		highest=$(find_highest_scope_with_key "$name")
+		local highest=$(find_highest_scope_with_key "$name")
 		if [[ -n "$highest" ]]; then
 		    target_scope="$highest"
 		else
@@ -313,8 +316,7 @@ handle_config_command() {
 
 	    # If there exists a higher-priority scope that defines this key than the target,
 	    # warn the user that changing target_scope will not affect the effective value.
-	    local highest_now
-	    highest_now=$(find_highest_scope_with_key "$name")
+	    local highest_now=$(find_highest_scope_with_key "$name")
 	    if [[ -n "$highest_now" ]] && is_scope_higher "$highest_now" "$target_scope" ; then
 		warn "Note: Effective value for '$name' comes from scope '$highest_now'. Changing '$name' in scope '$target_scope' will not affect the effective value."
 	    fi
@@ -439,11 +441,16 @@ show_config() {
 		    start=true
 		fi
 		[[ "$start" != true ]] && continue
-		local file=$(file_in_scope "$s" "config.json")
-		if [[ -n "$file" && -f "$file" ]] && jq -e --arg k "$key" '.[$k]' "$file" >/dev/null; then
-		    found=$s
-		    break
-		fi
+		local filelist="$(files_in_scope "$s" "config.json")"
+		local -a files
+		local file
+		mapfile_from_command files files_in_scope "$s" "config.json"
+		for file in "${files[@]}" ; do
+		    if jq -e --arg k "$key" '.[$k]' "$file" >/dev/null; then
+			found=$s
+			break 2
+		    fi
+		done
 	    done
 	fi
 	local value="$(echo "$merged" | jq -c --arg key "$key" '.[$key]')"
@@ -456,6 +463,7 @@ show_config() {
     local env_vars=(
         "MAIA_EDITOR"
         "MAIA_SESSION"
+	"MAIA_HOME"
         "EDITOR"
         "AWS_ACCESS_KEY_ID"
         "AWS_SECRET_ACCESS_KEY"
@@ -479,7 +487,7 @@ show_config() {
     done
 }
 
-# Determine the path to config.json for a given scope using SCOPE_DIRS
+# Determine the path to config.json for a given scope using SCOPE_DIR
 config_file_for_scope() {
     local scope=$1
     # The pseudo‐scope “default” has no on-disk file
@@ -489,7 +497,7 @@ config_file_for_scope() {
     fi
     # Look up the directory for this scope
     validate_scope "$scope"
-    local dir=${SCOPE_DIRS[$scope]}
+    local dir="${SCOPE_DIR[$scope]}"
     echo "$dir/config.json"
 }
 
@@ -533,8 +541,7 @@ set_config() {
     config_exists "$name"
     local value=$2
     local scope=$3
-    local file
-    file=$(config_file_for_scope "$scope") || exit 1
+    local file=$(config_file_for_scope "$scope") || exit 1
 
     mkdir -p "$(dirname "$file")"
 

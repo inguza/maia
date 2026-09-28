@@ -1,12 +1,12 @@
 USAGE
 
-  maia profile <command> [options]
+  maia profile [--scope <scope>] <command> [options]
 
 Manage profile manifests and their filesets.
 
 COMMANDS
 
-  create <name>
+  create <name> [<description>]
 
   list|ls
     List all available profiles.

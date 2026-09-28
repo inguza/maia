@@ -151,8 +151,6 @@ resolve_profile_name() {
     echo "$profile"
 }
 
-resolve_profile_path() { resolve_x_path "profile" "$1"; }
-
 resolve_profile_meta() {
     echo -n ""
 }

@@ -52,6 +52,24 @@ run_profile_cmd "list_after_create" list
 run_profile_cmd "delete_baz_nouse" delete baz
 run_profile_cmd "list_after_delete_baz" list
 
+# Different scopes
+run_profile_cmd "create_h1" --scope home create h_1 "Test profile for home scope level 1"
+run_profile_cmd "create_h1_2" --scope home create h_1%h_2 "Test profile for home scope level 2"
+run_profile_cmd "create_h1_2_x" --scope home create h_1%h_2%xx "Test profile for home scope level 3"
+run_profile_cmd "create_h1_3" --scope home create h_1%h_3
+run_profile_cmd "create_h2" --scope home create h_2 "Test profile 2 for home scope level 1"
+run_profile_cmd "create_h2_4" --scope home create h_2%h_4
+run_profile_cmd "create_h2_4_x" --scope home create h_2%h_4%xx
+
+run_profile_cmd "create_s1" create s_1
+run_profile_cmd "create_s1_2" create s_1%s_2
+run_profile_cmd "create_s1_2_x" create s_1%s_2%xx
+run_profile_cmd "create_s1_2_y" create s_1%s_2%yy
+run_profile_cmd "create_s1_3" create s_1%s_3
+run_profile_cmd "create_s2" create s_2
+
+run_profile_cmd "list_after_create_various_scopes" list
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

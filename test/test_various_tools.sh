@@ -140,6 +140,7 @@ run_tool_cmd "maia-subsession-show-ss1-1_acreate" "session-show" '{"session":"'$
 # restrictions
 run_tool_cmd "maia-subsession-tool-list-ss1-1" "session-tool-list" '{"session":"'$subsession1'"}'
 run_tool_cmd "maia-subsession-skill-list-ss1-1" "session-skill-list" '{"session":"'$subsession1'"}'
+run_tool_cmd "maia-subsession-profile-list-ss1-1" "session-profile-list" '{"session":"'$subsession1'"}'
 
 run_tool_cmd "maia-subsession-tool-restrict-ss1-1" "session-tool-restrict"  '{"session":"'$subsession1'", "restrictions": ["util-*"]}'
 run_tool_cmd "maia-subsession-skill-restrict-ss1-1" "session-skill-restrict"  '{"session":"'$subsession1'", "restrictions": ["file"]}'

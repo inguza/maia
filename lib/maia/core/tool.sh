@@ -303,8 +303,8 @@ handle_tool_command() {
 
     # compute filename & path
     local filename="${prompt_type}.txt"
-    local filepath="${SCOPE_DIRS[$scope]}/${prompt_type}.txt"
-    local filegenpath="${SCOPE_DIRS[$scope]}/${prompt_type}.json"
+    local filepath="${SCOPE_DIR[$scope]}/${prompt_type}.txt"
+    local filegenpath="${SCOPE_DIR[$scope]}/${prompt_type}.json"
 
     case "$subcmd" in
         list)
@@ -312,7 +312,7 @@ handle_tool_command() {
             ;;
         restrict)
 	    # In case there is no file in this scope, copy it over
-	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    if [[ ! -f "$filepath" ]]; then
 		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
 		if [[ -z "$msg" ]] ; then
@@ -446,7 +446,7 @@ handle_tool_command() {
 	    ;;
 	append|enable|allow)
 	    # seed on first append
-	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    if [[ ! -f "$filepath" ]]; then
 		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
 		if [[ -z "$msg" ]] ; then
@@ -462,7 +462,7 @@ handle_tool_command() {
 	    refresh_allowed_toolset_files "$scope" "$filepath"
 	    ;;
         edit|replace|clear|delete|clearnonotice)
-	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
             ;;

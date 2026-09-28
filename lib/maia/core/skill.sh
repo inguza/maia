@@ -385,8 +385,8 @@ handle_skill_command() {
 
     validate_scope "$scope"
 	
-    local skillset_file="${SCOPE_DIRS[$scope]}/skillset.txt"
-    local skillset_context_file="${SCOPE_DIRS[$scope]}/skillsetcontext.txt"
+    local skillset_file="${SCOPE_DIR[$scope]}/skillset.txt"
+    local skillset_context_file="${SCOPE_DIR[$scope]}/skillsetcontext.txt"
 
     local filepath=""
     
@@ -415,7 +415,7 @@ handle_skill_command() {
 		remember=("$@")
             fi
 	    if [[ "$subcmd" != "replace" ]] ; then
-		mkdir -p "${SCOPE_DIRS[$scope]}"
+		mkdir -p "${SCOPE_DIR[$scope]}"
 		copy_over "$implicit_scope" "prompt_type" "$filepath"
 	    fi
 	    if [[ "$subcmd" == "allow" ]] ; then

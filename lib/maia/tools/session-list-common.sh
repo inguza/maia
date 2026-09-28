@@ -23,5 +23,15 @@ actualsession="$(resolve_subsession_name "$session")"
 # Determine tool or skill command based on script name
 export MAIA_SESSION="$actualsession"
 
-# Call maia tool|skill view --expand
-"$MAIA_BIN" "$1" view --expand
+case "$1" in
+    tool|skill)
+	# Call maia tool|skill view --expand
+	"$MAIA_BIN" "$1" view --expand
+	;;
+    profile)
+	"$MAIA_BIN" "$1" list
+	;;
+    *)
+	:
+    ;;
+esac

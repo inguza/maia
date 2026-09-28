@@ -103,35 +103,45 @@ declare -A LOG_PRIORITIES=(
 )
 
 # Scope handling
+declare -A SCOPE_DIR
 declare -A SCOPE_DIRS
 declare -a SCOPE_ORDER=(session profile workspace home user system default)
 declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session extra)
 declare -A TOOL_DIRS
 declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session extra)
 declare -A SKILL_DIRS
+declare -a PROFILE_SEARCH_ORDER=(install system user home workspace session extra)
+declare -A PROFILE_DIRS
 
 # Initialize the map of all known scopes to their directories.
-# Populates the global associative array SCOPE_DIRS with keys:
+# Populates the global associative array SCOPE_DIR with keys:
 #   history, project, home, user, system
-# Usage: call init_scope_dirs; then access "${SCOPE_DIRS[$scope]}"
+# Usage: call init_scope_dirs; then access "${SCOPE_DIR[$scope]}"
 init_scope_dirs() {
-    local data_dir="$(resolve_home_dir)"
-
-    local user_dir
-    if [[ -n "$MAIA_HOME" ]]; then
-	user_dir="$MAIA_HOME/.maia"
-    else
-	user_dir="$HOME/.maia"
+    local data_dir="$MAIA_HOME"
+    if [[ -z "$data_dir" ]] ; then
+	data_dir="$(resolve_home_dir)"
     fi
 
-    SCOPE_DIRS=(
+    local user_dir="$HOME/.maia"
+    SCOPE_DIR=(
 	[session]="$(resolve_session_path)"
-	[profile]="$(resolve_profile_path)"
 	[workspace]="$(resolve_workspace_path)"
 	[home]="$data_dir"
 	[user]="$user_dir"
 	[system]="/etc/maia"
     )
+    SCOPE_DIRS=(
+	[session]="${SCOPE_DIR[session]}"
+	[workspace]="${SCOPE_DIR[workspace]}"
+	[home]="${SCOPE_DIR[home]}"
+	[user]="${SCOPE_DIR[user]}"
+	[system]="${SCOPE_DIR[system]}"
+    )
+    # Must be done last
+    init_profile_search_dirs
+    SCOPE_DIR[profile]="$(resolve_profile_path "path")"
+    SCOPE_DIRS[profile]="$(resolve_profile_path "paths")"
 }
 
 validate_scope() {
@@ -139,38 +149,56 @@ validate_scope() {
     if [[ "$scope" == "default" ]] ; then
 	return
     fi
-    if [[ ! -v SCOPE_DIRS[$scope] ]]; then
+    if [[ ! -v SCOPE_DIR[$scope] ]]; then
 	die "Unknown scope: $scope. Valid scopes: ${SCOPE_ORDER[@]}"
-    elif [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+    elif [[ -z "${SCOPE_DIR[$scope]}" ]]; then
         die "Scope '$scope' is valid but not available."
     fi
 }
 
 # Initialize the map of all known tool paths
 # Only call when needed since the jq lookup is a little slow
+
+init_profile_search_dirs() {
+    [[ ${PROFILE_SEARCH_DIRS_INITIALIZED:-} ]] && return
+    local wsroot="$(resolve_workspace_root)"
+    PROFILE_DIRS=(
+	[session]="${SCOPE_DIR[session]}/profiles"
+	[workspace]="$wsroot/.maia/profiles:${SCOPE_DIR[workspace]}/profiles"
+	[home]="${SCOPE_DIR[home]}/profiles"
+	[user]="${SCOPE_DIR[user]}/profiles"
+	[system]="${SCOPE_DIR[system]}/profiles"
+	[install]="${MAIA_PROFILES_LIB_DIR}"
+	[extra]="$(get_config additional_profile_paths)"
+    )
+    PROFILE_SEARCH_DIRS_INITIALIZED=1
+}
+
 init_tool_search_dirs() {
+    init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
     TOOL_DIRS=(
-	[session]="${SCOPE_DIRS[session]}/tools"
-	[profile]="${SCOPE_DIRS[profile]}/tools"
-	[workspace]="$wsroot/.maia/tools:${SCOPE_DIRS[workspace]}/tools"
-	[home]="${SCOPE_DIRS[home]}/tools"
-	[user]="${SCOPE_DIRS[user]}/tools"
-	[system]="${SCOPE_DIRS[system]}/tools"
+	[session]="${SCOPE_DIR[session]}/tools"
+	[profile]="$(resolve_profile_path "tools")"
+	[workspace]="$wsroot/.maia/tools:${SCOPE_DIR[workspace]}/tools"
+	[home]="${SCOPE_DIR[home]}/tools"
+	[user]="${SCOPE_DIR[user]}/tools"
+	[system]="${SCOPE_DIR[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
 	[extra]="$(get_config additional_tool_paths)"
     )
 }
 
 init_skill_search_dirs() {
+    init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
     SKILL_DIRS=(
-	[session]="${SCOPE_DIRS[session]}/skills"
-	[profile]="${SCOPE_DIRS[profile]}/skills"
-	[workspace]="${SCOPE_DIRS[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
-	[home]="${SCOPE_DIRS[home]}/skills"
-	[user]="${SCOPE_DIRS[user]}/skills"
-	[system]="${SCOPE_DIRS[system]}/skills"
+	[session]="${SCOPE_DIR[session]}/skills"
+	[profile]="$(resolve_profile_path "tools")"
+	[workspace]="${SCOPE_DIR[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
+	[home]="${SCOPE_DIR[home]}/skills"
+	[user]="${SCOPE_DIR[user]}/skills"
+	[system]="${SCOPE_DIR[system]}/skills"
 	[install]="${MAIA_SKILLS_LIB_DIR}"
 	[extra]="$(get_config additional_skill_paths)"
     )
@@ -237,7 +265,7 @@ determine_implicit_scope() {
     # look in order, but stop before “default” since it has no directory
     for s in "${SCOPE_ORDER[@]}"; do
 	[[ "$s" == "default" ]] && break
-	if [[ -f "${SCOPE_DIRS[$s]}/${type}.${ext}" ]]; then
+	if [[ -f "${SCOPE_DIR[$s]}/${type}.${ext}" ]]; then
 	    implicit_scope="$s"
 	    return
 	fi
@@ -414,6 +442,7 @@ resolve_session_workspace() {
     fi
     echo "$sess_ws_raw"
 }
+
 resolve_session_profile() {
     local sess_name="$1"
     local sess_profile_raw="$(read_session_profile_raw "$sess_name")"
@@ -487,9 +516,93 @@ validate_workspace_exists() {
     fi
 }
 
+resolve_profile_path() {
+    local type="$1"
+    local name="$2"
+    if [[ -z "$name" ]] ; then
+	name="$(resolve_profile_name)"
+    fi
+    local this="${name%%\%*}"
+    for sc in "${PROFILE_SEARCH_ORDER[@]}"; do
+        local dir_list="${PROFILE_DIRS[$sc]}" dir=""
+        IFS=':' read -ra dirs <<< "$dir_list"
+        for dir in "${dirs[@]}"; do
+            [[ -d "$dir" ]] || continue
+	    local d
+            for d in "$dir"/*; do
+                [[ -d "$d" ]] || continue
+                if [[ -f "$d/profile.json" ]]; then
+                    local profilename=$(basename "$d")
+		    profilename="${profilename%$'\r'}"
+		    if [[ "$this" == "$profilename" ]] ; then
+			# We have found the profile directory base
+			case "$type" in
+			    path)
+				local path="$(dirname $d)/$name"
+				path="${path//%/\/profiles\/}"
+				printf '%s' "$path"
+				;;
+			    paths)
+				local paths=
+				local path="$(dirname $d)"
+				IFS='%' read -ra parts <<< "$name"
+				for part in "${parts[@]}"; do
+				    path+="/${part}"
+				    if [[ -f "$path/profile.json" ]] ; then
+					paths+="${paths:+:}$path"
+				    fi
+				    path+="/profiles"
+				done
+				printf '%s' "$paths"
+				;;
+			    tools|skills)
+				local paths=
+				local path="(dirname $d)"
+				IFS='%' read -ra parts <<< "$name"
+				for part in "${parts[@]}"; do
+				    path+="/${part}"
+				    if [[ -d "$path/$type" ]] ; then
+					paths+="${paths:+:}$path/$type"
+				    fi
+				    path+="/profiles"
+				done
+				printf '%s' "$paths"
+				;;
+			    *)
+				:
+				;;
+			esac
+			return 0
+		    fi
+		fi
+	    done
+	done
+    done
+    return 0
+}
+
+profile_allowed_raw() {
+    local profile=$1
+    shift
+    for pattern in "$@" ; do
+        [[ "$profile" == $pattern ]] && return 0
+    done
+    return 1
+}
+
+profile_allowed() {
+    local profile=$1
+    local pattern
+    local -a patterns
+
+    read -ra patterns <<< "$(get_config allowed_profiles)"
+    profile_allowed_raw "$pattern" "${patterns[@]}"
+    return $?
+}
+
 validate_profile_exists() {
     local profile_name="$1"
-    local profile_dir="$(resolve_profile_path "$profile_name")"
+    local profile_dir="$(resolve_profile_path "path" "$profile_name")"
     if [[ ! -d "$profile_dir" ]]; then
 	if [[ -n "$profile_name" ]] ; then
             die "Profile '$profile_name' does not exist. Create it with 'maia profile create $profile_name' first."
@@ -928,10 +1041,10 @@ read_text_from_editor() {
 snippet_file_path() {
     local scope="$1"
     local name="$2"
-    if [[ -z "${SCOPE_DIRS[$scope]}" ]]; then
+    if [[ -z "${SCOPE_DIR[$scope]}" ]]; then
 	return
     fi
-    echo "${SCOPE_DIRS[$scope]}/snippets/${name}.txt"
+    echo "${SCOPE_DIR[$scope]}/snippets/${name}.txt"
 }
 
 # Find the snippet file and scope for a given snippet name and optional scope
@@ -1254,12 +1367,15 @@ file_for_scope() {
 
 	# skip the pseudo-scope “default”
 	[[ "$s" == "default" ]] && break
-
-	local f="${SCOPE_DIRS[$s]}/$filename"
-	if [[ -f "$f" ]]; then
-	    echo "$f"
-	    return 0
-	fi
+	local -a dirs
+	IFS=: read -ra dirs <<< "${SCOPE_DIRS[$s]}"
+	for ((i=${#dirs[@]}-1; i>=0; i--)); do
+	    local f="${dirs[i]}/$filename"
+	    if [[ -f "$f" ]]; then
+		echo "$f"
+		return 0
+	    fi
+	done
     done
 
     # nothing found
@@ -1267,20 +1383,18 @@ file_for_scope() {
     return 1
 }
 
-file_in_scope() {
+files_in_scope() {
     local target="$1"
     local filename="$2"
-
-    # skip the pseudo-scope “default”
-    if [[ "$target" != "default" ]] ; then
-	local f="${SCOPE_DIRS[$target]}/$filename"
+    local dir
+    [[ "$target" == "default" ]] && return
+    IFS=: read -ra dirs <<< "${SCOPE_DIRS[$target]}"
+    for dir in "${dirs[@]}"; do
+	local f="$dir/$filename"
 	if [[ -f "$f" ]]; then
 	    echo "$f"
-	    return
 	fi
-    fi
-    # nothing found
-    echo ""
+    done
 }
 
 load_merged_config() {
@@ -1309,10 +1423,12 @@ load_merged_config() {
     for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
 	local s=${SCOPE_ORDER[idx]}
 	[[ "$s" == "default" ]] && continue
-	local cfg=$(file_in_scope "$s" "config.json")
-	if [[ -n "$cfg" ]]; then
-	    config_files+=("$cfg")
-	fi
+	local -a files
+	local file
+	mapfile_from_command files files_in_scope "$s" "config.json"
+	for file in "${files[@]}" ; do
+	    config_files+=("$file")
+	done
 	[[ "$s" == "$target_scope" ]] && break
     done
 
@@ -1321,7 +1437,7 @@ load_merged_config() {
 	jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }"
         return
     fi
-
+    
     # 5) Emit the merged config
     jq -s \
         "${jq_args[@]}" \

@@ -165,20 +165,6 @@ parse_session_options() {
     done
 }
 
-profile_allowed() {
-    local profile=$1
-    local pattern
-    local -a patterns
-
-    read -ra patterns <<< "$(get_config allowed_profiles)"
-
-    for pattern in "${patterns[@]}"; do
-        [[ "$profile" == $pattern ]] && return 0
-    done
-
-    return 1
-}
-
 handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 

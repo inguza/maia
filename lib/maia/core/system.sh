@@ -162,7 +162,7 @@ handle_system_command() {
 
     # compute filename & path
     local filename="${prompt_type}.txt"
-    local filepath="${SCOPE_DIRS[$scope]}/$filename"
+    local filepath="${SCOPE_DIR[$scope]}/$filename"
     case "$subcmd" in
 	show|"")
 	    # just fetch via our common helper
@@ -170,7 +170,7 @@ handle_system_command() {
 	    ;;
 	append)
 	    # seed on first append
-	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    if [[ ! -f "$filepath" ]]; then
 		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
 		if [[ -z "$msg" ]] ; then
@@ -183,7 +183,7 @@ handle_system_command() {
 	    ;;
 
 	edit|replace|clear|delete)
-	    mkdir -p "${SCOPE_DIRS[$scope]}"
+	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    handle_text_file_command "$filepath" "$@"
 	    ;;
 
