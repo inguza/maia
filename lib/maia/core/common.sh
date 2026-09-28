@@ -106,12 +106,36 @@ declare -A LOG_PRIORITIES=(
 declare -A SCOPE_DIR
 declare -A SCOPE_DIRS
 declare -a SCOPE_ORDER=(session profile workspace home user system default)
-declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session extra)
+declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
 declare -A TOOL_DIRS
-declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session extra)
+declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
 declare -A SKILL_DIRS
-declare -a PROFILE_SEARCH_ORDER=(install system user home workspace session extra)
+declare -a PROFILE_SEARCH_ORDER=(install system user home workspace session plugins extra)
 declare -A PROFILE_DIRS
+
+resolve_plugin_paths() {
+    local type="$1"
+    local toscan="$MAIA_PLUGIN_PATH"
+    if [[ -z "$toscan" ]] ; then
+        toscan="/etc/maia:$MAIA_PLUGINS_LIB_DIR"
+    fi
+
+    local dirs=()
+    local path dir
+
+    IFS=: read -ra paths <<< "$toscan"
+    for path in "${paths[@]}" ; do
+        [[ -d "$path" ]] || continue
+        for dir in "$path"/*/ ; do
+	    dir="${dir%/}/$type"
+            [[ -d "$dir" ]] || continue
+            dirs+=("${dir}")
+        done
+    done
+
+    local IFS=:
+    printf '%s' "${dirs[*]}"
+}
 
 # Initialize the map of all known scopes to their directories.
 # Populates the global associative array SCOPE_DIR with keys:
@@ -169,6 +193,7 @@ init_profile_search_dirs() {
 	[user]="${SCOPE_DIR[user]}/profiles"
 	[system]="${SCOPE_DIR[system]}/profiles"
 	[install]="${MAIA_PROFILES_LIB_DIR}"
+	[plugins]="$(resolve_plugin_paths "profiles")"
 	[extra]="$(get_config additional_profile_paths)"
     )
     PROFILE_SEARCH_DIRS_INITIALIZED=1
@@ -185,6 +210,7 @@ init_tool_search_dirs() {
 	[user]="${SCOPE_DIR[user]}/tools"
 	[system]="${SCOPE_DIR[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
+	[plugins]="$(resolve_plugin_paths "tools")"
 	[extra]="$(get_config additional_tool_paths)"
     )
 }
@@ -200,6 +226,7 @@ init_skill_search_dirs() {
 	[user]="${SCOPE_DIR[user]}/skills"
 	[system]="${SCOPE_DIR[system]}/skills"
 	[install]="${MAIA_SKILLS_LIB_DIR}"
+	[plugins]="$(resolve_plugin_paths "skills")"
 	[extra]="$(get_config additional_skill_paths)"
     )
 }
@@ -2044,21 +2071,6 @@ trigger_event() {
 	    hook_execute "$hook_exec_dir/$hook_exec" "$event" "$tool_search_path" "${data[@]}"
 	fi
     done
-    # And then skills
-#    local skill_search_path="$(build_skill_search_path)"
-#    local skillset_file="$(file_for_scope "session" "skillset.txt")"
-#    local allowed_glob="$(make_glob_from_file "$skillset_file")"
-#    if [[ -n $allowed_glob ]] ; then
-#	while IFS= read -r execpath ; do
-#	    local skill_path="${execpath%/hooks/$event/*.hook}"
-#	    local skill="${skill_path##*/}"
-#	    # check that the skill is allowed
-#	    if [[ $skill == $allowed_glob ]]; then
-#		hook_execute "$execpath" "$event" "$skill_search_path" "${data[@]}"
-#	    fi
-#	    # TODO!!! This line is not complete
-#	done < FRAGILE!!!<(all_command_exec "*/hooks/${event}/*.hook???" "$skill_search_path")
-#    fi
 }
 
 init_scope_dirs

@@ -32,6 +32,7 @@ export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
 export MAIA_SKILLS_LIB_DIR="$MAIA_ROOT/lib/maia/skills"
 export MAIA_HOOKS_LIB_DIR="$MAIA_ROOT/lib/maia/hooks"
 export MAIA_PROFILES_LIB_DIR="$MAIA_ROOT/lib/maia/profiles"
+export MAIA_PLUGINS_LIB_DIR="$MAIA_ROOT/lib/maia/plugins"
 #
 # Fast handling of session and workspace query
 #

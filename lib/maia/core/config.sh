@@ -464,6 +464,7 @@ show_config() {
         "MAIA_EDITOR"
         "MAIA_SESSION"
 	"MAIA_HOME"
+	"MAIA_PLUGIN_PATH"
         "EDITOR"
         "AWS_ACCESS_KEY_ID"
         "AWS_SECRET_ACCESS_KEY"

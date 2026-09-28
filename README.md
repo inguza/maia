@@ -356,6 +356,10 @@ A persistent conversation with an AI, including its history and context.
 
 A configuration context that can be selected by a session.
 
+## [Plugins](docs/plugins.md)
+
+A configuration context that can be selected by a session.
+
 ## Filesets and Files
 
 Filesets define which files are available as context for a session, allowing the user to control what the AI can see.
