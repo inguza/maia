@@ -194,7 +194,6 @@ verify_skillset_files() {
 
 # Expand wildcards
 expand_skill_wildcards() {
-    # To implement using make_glob and 
     local skillsdata="$(get_all_ordered_skill_names "name")"
     local glob="$(make_glob_from_var "$@")"
     
@@ -401,7 +400,7 @@ handle_skill_command() {
             fi
 	    if [[ "$subcmd" != "replace" ]] ; then
 		mkdir -p "${SCOPE_DIR[$scope]}"
-		copy_over "$implicit_scope" "prompt_type" "$filepath"
+		copy_over "$implicit_scope" "$prompt_type" "$filepath"
 	    fi
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"
