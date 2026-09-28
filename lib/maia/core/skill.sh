@@ -7,21 +7,6 @@
 # Commercial licensing is available separately.
 #
 
-# Read description from SKILL.md header description field
-read_skill_description() {
-    local skill_md="$1"
-    if [[ ! -f "$skill_md" ]]; then
-        echo ""
-        return
-    fi
-    awk '
-    BEGIN {desc="" ; inheader=0}
-    /^---/ {if (inheader==0) {inheader=1; next} else {inheader=0; exit}}
-    inheader && /^description:[ \t]*(.*)[ \t]*\.?[ \t]*/ {desc=substr($0, index($0,$2))}
-    END {print desc}
-    ' "$skill_md"
-}
-
 get_all_ordered_skill_names() {
     local type="$1"
     declare -A seen=()
@@ -88,7 +73,7 @@ generate_skillset_gen() {
 	: > "$skillset_gen_file"
 	while IFS=' ' read -r skill skillfile; do
             if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
-		desc=$(read_skill_description "$skillfile")
+		desc=$(read_md_description "$skillfile")
 		echo "- $skill - $desc" >> "$skillset_gen_file"
 	    fi
 	done <<< "$skillsdata"
@@ -108,7 +93,7 @@ generate_skillset_context_gen() {
 	: > "$skillset_context_gen_file"
 	while IFS=' ' read -r skill skillfile; do
             if [[ -n $memory_glob && $skill == $memory_glob ]]; then
-		desc=$(read_skill_description "$skillfile")
+		desc=$(read_md_description "$skillfile")
 		content=$(sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$skillfile")
 		{
 		    echo

@@ -1513,6 +1513,21 @@ make_glob_from_var() {
     [[ -n $result ]] && printf '@(%s)' "$result"
 }
 
+# Read description from SKILL.md header description field
+read_md_description() {
+    local md="$1"
+    if [[ ! -f "$md" ]]; then
+        echo ""
+        return
+    fi
+    awk '
+    BEGIN {desc="" ; inheader=0}
+    /^---/ {if (inheader==0) {inheader=1; next} else {inheader=0; exit}}
+    inheader && /^description:[ \t]*(.*)[ \t]*\.?[ \t]*/ {desc=substr($0, index($0,$2))}
+    END {print desc}
+    ' "$md"
+}
+
 # Limitation, do not handle arguments with a newline
 expand_glob_files() {
     local patterns=("$@")
