@@ -526,7 +526,6 @@ handle_skill_command() {
 	    subcmd=append
             ;;
         forget)
-	    # TODO
             if [[ $# -lt 1 ]]; then
                 die "Usage: maia skill forget <skillname>..."
             fi
