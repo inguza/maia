@@ -250,8 +250,8 @@ COMMANDS
   verify
       Verify consistency of skill definitions and caches.
 
-  delete <skillname|wildcard>...
-      Remove skill(s) from allowed list. Wildcards supported.
+  delete
+      Remove allowed skill list.
 
 OPTIONS
 
