@@ -314,11 +314,9 @@ handle_file_command() {
 		    for line in "${tokeep[@]}" ; do
 			printf '%s\n' "$line" >> "$fs"
 		    done
+		    trigger_event "file-context-updated"
 		fi
             done
-	    ;;
-
-	clean)
 	    ;;
 
 	content)
@@ -393,12 +391,14 @@ handle_file_command() {
 		    add_file_to_fileset_file "$rel_path" "$fs"
                 done
             done
+	    trigger_event "file-context-updated"
             ;;
 
         delete|forget|remove|rm)
             shift
             local workspace_root=$(resolve_workspace_root "$session_ws")
             forget_entries "$workspace_root" "$@"
+	    trigger_event "file-context-updated"
             ;;
 
 	cache-clear|clear-cache)

@@ -182,6 +182,7 @@ handle_session_command() {
 	    if [[ -d "$path" ]] ; then
 		die "Session '$name' already exists."
 	    fi
+	    trigger_event "pre-session-create $name"
             # Parse options first to get workspace, filesets and extra_send_filesets
 	    RESOLVE_FILESETS=false
             parse_session_options "$@"
@@ -389,13 +390,16 @@ handle_session_command() {
                     "$workspace" \
                     "$extra_send_filesets_json"
 	    fi
+	    trigger_event "post-session-create"
 	    ;;
 
 	edit)
 	    shift
-            local name="$1"
+            local name="${1:-$(resolve_session_name)}"
+	    trigger_event "pre-session-update $name"
 	    ensure_session_exists "$name"
-            handle_x_edit "session" "session" "$name" # Handles optional name
+            handle_x_edit "session" "session" "$name" # Handles optional name, but we resolve it
+	    trigger_event "post-session-update" "$name"
             ;;
 
 	exist)
@@ -503,14 +507,12 @@ handle_session_command() {
 
 	files|file)
 	    shift
-	    # Show session.json
             local name="${1:-$(resolve_session_name)}"
 	    session_content_extract --list "$name"
 	    ;;
 
         contents|content)
 	    shift
-            # Show session.json
             local name="${1:-$(resolve_session_name)}"
 	    session_content_extract "$name"
             ;;
@@ -525,6 +527,7 @@ handle_session_command() {
 		name_arg="$(resolve_session_name)"
 	    fi
 	    local name="$name_arg"
+	    trigger_event "pre-session-update $name"
 	    # Load current values
 	    local meta="$(resolve_session_meta "$name")"
             [[ -f "$meta" ]] || die "Session '${name:-$(resolve_session_name)}' does not exist"
@@ -570,13 +573,20 @@ handle_session_command() {
 	    fi
 	    update_session "$name" "false" "$ws" "$profile" "$filesets_json" "$extra_send_filesets_json"
 	    info "Updated session '$name' workspace='$ws' profile='$profile' filesets=$filesets_json extra_send_filesets=$extra_send_filesets_json"
+	    trigger_event "post-session-update $name"
 	    ;;
 	
 	delete)
 	    shift
 	    local session
 	    for session in "$@" ; do
+		trigger_event "pre-session-delete $session"
+	    done
+	    for session in "$@" ; do
 		handle_x_delete session "$session" # Handles empty name
+	    done
+	    for session in "$@" ; do
+		trigger_event "post-session-delete $session"
 	    done
             ;;
 

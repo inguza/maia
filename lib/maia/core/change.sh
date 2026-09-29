@@ -565,6 +565,7 @@ change_state_for_jsons() {
             info "Marked change $id as $new_state"
 	fi
     done
+    trigger_event "post-change-state-${new_state}" "$@"
 }
 
 make_patch() {
@@ -1197,20 +1198,20 @@ handle_change_command() {
 	    fi
 	    for id in "$@"; do
 		# Gather relevant json files
-		local json_files=( "$changes_dir/$session/$id"*".json" )
+		local files=("$changes_dir/$session/$id-"*.json)
 		# Delete base and sub-entry files accordingly, including .txt files
+		trigger_event "pre-change-delete" "${files[@]}"
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
-		    trigger_event "pre-change-delete" "$changes_dir/$session/$id-"*.json
 		    rm -f "$changes_dir/$session/$id-"*.* 2>/dev/null
 		    rm -f "$changes_dir/$session/$id.txt" 2>/dev/null
 		    rm -f "$changes_dir/$session/$id"-[0-9]*.txt 2>/dev/null
 		    notice "Deleted base change $id and all its sub-entries"
 		else
-		    trigger_event "pre-change-delete" "$changes_dir/$session/$id-"*.json
 		    rm -f "$changes_dir/$session/$id-"*.* 2>/dev/null
 		    rm -f "$changes_dir/$session/$id".txt 2>/dev/null
 		    notice "Deleted change $id"
 		fi
+		trigger_event "post-change-delete" "${files[@]}"
 	    done
 	    ;;
 

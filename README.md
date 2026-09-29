@@ -368,7 +368,7 @@ Filesets define which files are available as context for a session, allowing the
 
 Proposed changes to files that can be reviewed and explicitly applied by the user.
 
-## [Tools](docs/tools.md)
+## [Tools](docs/tools.md) and [Hooks](docs/hooks.md)
 
 Optional external capabilities that can be made available to the AI to perform actions beyond conversation.
 
