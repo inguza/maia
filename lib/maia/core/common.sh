@@ -712,7 +712,7 @@ ensure_session_exists() {
 	    fi
 	fi
 	if [[ -n "$profile" ]] ; then
-	    validate_prifile_exists "$profile"
+	    validate_profile_exists "$profile"
 	fi
 	local filesets_json="$(get_config default_session_filesets)"
 	update_session "default" "true" "$workspace" "$profile" "$filesets_json"
