@@ -48,8 +48,9 @@ OPTIONS
     Which prompt to manage:
       - system (default)
       - tools
-      - tools
-      - toolscontext
+      - skills
+      - skillscontext
+      - instructions
 
 SCOPES
 

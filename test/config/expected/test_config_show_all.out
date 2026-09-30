@@ -1,5 +1,6 @@
 CONFIG NAME                    SCOPE      VALUE
 ----------------------------------------------------------------------------
+additional_instruction_paths   default    ""
 additional_skill_paths         default    ""
 additional_tool_paths          default    ""
 agent_session_allowed          default    "*"
@@ -21,6 +22,8 @@ cost_output_gpt_4_1_nano       default    0.4
 cost_output_gpt_5_4            default    15
 cost_output_gpt_5_4_mini       default    4.5
 cost_output_gpt_5_4_nano       default    1.25
+default_agent_instruction_forget default    ""
+default_agent_instruction_remember default    "*"
 default_agent_skill_allow      default    "*"
 default_agent_skill_forget     default    ""
 default_agent_skill_remember   default    "*"
@@ -62,6 +65,7 @@ ENVIRONMENT NAME               VALUE
 MAIA_EDITOR                    ""
 MAIA_SESSION                   ""
 MAIA_HOME                      ""
+MAIA_PLUGIN_PATH               ""
 EDITOR                         ""
 AWS_ACCESS_KEY_ID              ********************************
 AWS_SECRET_ACCESS_KEY          ********************************

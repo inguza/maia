@@ -46,6 +46,9 @@ OPTIONS
   --no-skills
     Do not include enabled skills in the request.
 
+  --no-instructions
+    Do not include instructions in the request.
+
 EXAMPLES
 
     maia send "Hello, AI!"

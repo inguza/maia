@@ -18,10 +18,12 @@ DEFAULT_SKILLS_PROMPT_TXT="# Available skills\n\n"
 DEFAULT_SKILLSCONTEXT_PROMPT_TXT="# Skills\n\n"
 DEFAULT_SKILLSET_PROMPT_TXT=""
 DEFAULT_SKILLSETCONTEXT_PROMPT_TXT=""
-# TODO: Get rid of this and instead expand from the default tools prompt
-DEFAULT_TOOLSET_PROMPT_JSON="[]"
 DEFAULT_SKILLSET_PROMPT_GEN=""
 DEFAULT_SKILLSETCONTEXT_PROMPT_GEN=""
+DEFAULT_INSTRUCTIONS_PROMPT_TXT="# Available instructions\n\n"
+DEFAULT_INSTRUCTIONSCONTEXT_PROMPT_TXT="# Instructions\n\n"
+# TODO: Get rid of this and instead expand from the default tools prompt
+DEFAULT_TOOLSET_PROMPT_JSON="[]"
 
 # Constants related to tools
 TOOLS_DIRNAME="tools"
@@ -47,6 +49,7 @@ declare -A DEFAULT_CONFIG=(
     [additional_tool_paths]=""
     [default_allowed_tool_effects]='["limited-write"]'
     [additional_skill_paths]=""
+    [additional_instruction_paths]=""
     [auto_add_new_files_on_apply]=true
     [api_type]="AUTODETECT"
     [api_base_url]="https://api.openai.com"
@@ -69,6 +72,8 @@ declare -A DEFAULT_CONFIG=(
     [default_agent_skill_restrict]="session"
     [default_agent_skill_remember]="*"
     [default_agent_skill_forget]=""
+    [default_agent_instruction_remember]="*"
+    [default_agent_instruction_forget]=""
     [mcp_servers]='[]'
     [tool_loop_prevent]="file-write file-change"
     # Default cost configuration (flat keys with cost_ prefix)
@@ -110,6 +115,8 @@ declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session
 declare -A TOOL_DIRS
 declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
 declare -A SKILL_DIRS
+declare -a INSTRUCTION_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
+declare -A INSTRUCTION_DIRS
 declare -a PROFILE_SEARCH_ORDER=(install system user home workspace session plugins extra)
 declare -A PROFILE_DIRS
 
@@ -228,6 +235,22 @@ init_skill_search_dirs() {
 	[install]="${MAIA_SKILLS_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "skills")"
 	[extra]="$(get_config additional_skill_paths)"
+    )
+}
+
+init_instruction_search_dirs() {
+    init_profile_search_dirs
+    local wsroot="$(resolve_workspace_root)"
+    INSTRUCTION_DIRS=(
+	[session]="${SCOPE_DIR[session]}/instructions"
+	[profile]="$(resolve_profile_path "tools")"
+	[workspace]="${SCOPE_DIR[workspace]}/instructions:$wsroot/instructions:$wsroot/.maia/instructions"
+	[home]="${SCOPE_DIR[home]}/instructions"
+	[user]="${SCOPE_DIR[user]}/instructions"
+	[system]="${SCOPE_DIR[system]}/instructions"
+	[install]="${MAIA_INSTRUCTIONS_LIB_DIR}"
+	[plugins]="$(resolve_plugin_paths "instructions")"
+	[extra]="$(get_config additional_instruction_paths)"
     )
 }
 
@@ -582,7 +605,7 @@ resolve_profile_path() {
 				done
 				printf '%s' "$paths"
 				;;
-			    tools|skills)
+			    tools|skills|instructions)
 				local paths=
 				local path="(dirname $d)"
 				IFS='%' read -ra parts <<< "$name"
@@ -716,6 +739,7 @@ ensure_session_exists() {
 	fi
 	local filesets_json="$(get_config default_session_filesets)"
 	update_session "default" "true" "$workspace" "$profile" "$filesets_json"
+	trigger_event "post-session-create" "default"
     fi
     # For non-default sessions, we now do nothing (no error)
 }
@@ -829,10 +853,38 @@ apply_default_filter_to_spec() {
     fi
 }
 
+session_instruction_extract() {
+    local instr_file="$(file_for_scope "session" "instructionset.txt")"
+    local tmplist="$(mktemp)"
+    local tmpmem="$(mktemp)"
+    generate_instructionset_gen "session" "$instr_file" "$tmplist" "$tmpmem"
+    echo "# Available instructions"
+    if [[ ! -s "$tmplist" ]] ; then
+	echo ""
+	echo "No available instructions."
+	echo ""
+    else
+	read_file "$tmplist" cr
+    fi
+    rm -f "$tmplist"
+    echo "# Instructions"
+    if [[ ! -s "$tmpmem" ]] ; then
+	echo ""
+	echo "No instructions."
+	echo ""	
+    else
+	read_file "$tmpmem" cr
+    fi
+    rm -f "$tmpmem"
+}
+
 session_content_extract() {
     local action="content"
     if [[ "$1" == "--list" ]] ; then
 	action="list"
+	shift
+    elif [[ "$1" == "--listraw" ]] ; then
+	action="listraw"
 	shift
     fi
 
@@ -903,6 +955,15 @@ fileset_content_extract() {
     done
 
     case "$action" in
+	listraw)
+	    if [[ -z "$workspace_root" ]]; then
+		return
+	    fi
+	    local spec
+	    for spec in "${specs[@]}" ; do
+		printf '%s\n' "$spec"
+	    done
+	    ;;
 	list)
 	    if [[ -z "$workspace_root" ]]; then
 		echo "(no workspace root)"
@@ -1119,8 +1180,8 @@ deduplicate_files() {
     local file
     for file in $@ ; do
 	if [[ -e "$file" ]] ; then
-	    read_file "$file" cr > "${file}.tmp"
-	    read_file "${file}.tmp" cr | uniq > "$file"
+	    read_file "$file" cr | sed '/^[[:space:]]*$/d' | uniq > "${file}.tmp"
+	    read_file "${file}.tmp" cr > "$file"
 	    rm -f "${file}.tmp"
 	fi
     done
@@ -1513,17 +1574,59 @@ make_glob_from_var() {
     [[ -n $result ]] && printf '@(%s)' "$result"
 }
 
-# Read description from SKILL.md header description field
-read_md_description() {
+read_md_fields() {
     local md="$1"
+    shift
+    if [[ $# -eq 0 ]]; then
+        die "Software error: field missing."
+    fi
     if [[ ! -f "$md" ]]; then
-        echo ""
+        return
+    fi
+
+    awk -v fields="$*" '
+        BEGIN {
+            n = split(fields, wanted, " ")
+            inheader = 0
+        }
+        /^---[[:space:]]*$/ {
+            if (!inheader) {
+                inheader = 1
+            } else {
+                exit
+            }
+            next
+        }
+        inheader {
+            for (i = 1; i <= n; i++) {
+                if ($0 ~ "^" wanted[i] ":[ \t]*") {
+                    value = $0
+                    sub("^[^:]*:[ \t]*", "", value)
+                    result[i] = value
+                    break
+                }
+            }
+        }
+        END {
+            for (i = 1; i <= n; i++)
+                print result[i]
+        }
+    ' "$md"
+}
+
+read_md_field() {
+    local md="$1"
+    local field="$2"
+    if [[ -z "$field" ]] ; then
+	die "Software error: field missing."
+    fi
+    if [[ ! -f "$md" ]]; then
         return
     fi
     awk '
     BEGIN {desc="" ; inheader=0}
     /^---/ {if (inheader==0) {inheader=1; next} else {inheader=0; exit}}
-    inheader && /^description:[ \t]*(.*)[ \t]*\.?[ \t]*/ {desc=substr($0, index($0,$2))}
+    inheader && /^'"$field"':[ \t]*(.*)[ \t]*\.?[ \t]*/ {desc=substr($0, index($0,$2))}
     END {print desc}
     ' "$md"
 }
@@ -1574,7 +1677,7 @@ skill_execute_no_glob_expansion() {
     local scriptname="$3"
     shift 3
     local status=1
-    local ws_root="$(printf '%q' "$(resolve_workspace_root)")"
+    local ws_root="$(resolve_workspace_root)"
     # If there is no workspace defined, fallback to current directory
     if [[ -z "$ws_root" ]] ; then
 	ws_root="."
@@ -2004,6 +2107,177 @@ mcp_content() {
 	    '
 }
 
+### Instruction handling
+get_all_ordered_instruction_names() {
+    local type="$1"
+    declare -A seen=()
+    local sc
+    for sc in "${INSTRUCTION_SEARCH_ORDER[@]}"; do
+        local dir_list="${INSTRUCTION_DIRS[$sc]}" dir=""
+        IFS=':' read -ra dirs <<< "$dir_list"
+        for dir in "${dirs[@]}"; do
+            [[ -d "$dir" ]] || continue
+	    local d
+            for d in "$dir"/*; do
+                [[ -d "$d" ]] || continue
+                if [[ -f "$d/INSTRUCTION.md" ]]; then
+                    local instructionname=$(basename "$d")
+		    instructionname="${instructionname%$'\r'}"
+                    if [[ -z "${seen[$instructionname]}" ]]; then
+                        seen["$instructionname"]=1
+			if [[ "$type" == "file" ]] ; then
+			    echo "$instructionname $d/INSTRUCTION.md"
+			else
+			    echo "$instructionname"
+			fi
+                    fi
+                fi
+            done
+        done
+    done
+}
+
+md_content_convert() {
+    local name="$1"
+    local desc="$2"
+    local file="$3"
+    echo
+    printf "## %s\n" "$instruction - $desc"
+    sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$instructionfile"
+    echo
+}
+
+pattern_found_in_list() {
+    local pattern="$1"
+    shift
+    local item
+    for item in "$@" ; do
+	[[ $item == $pattern ]] && return 0
+    done
+    return 1
+}
+
+any_patterns_found_in_list() {
+    local patterns="$1"
+    shift
+    local glob
+    local -a patterns_array
+    read -r -a patterns_array <<< "$patterns"
+    glob="$(make_glob_from_var "${patterns_array[@]}")"
+    pattern_found_in_list "$glob" "$@"
+}
+
+all_patterns_found_in_list() {
+    local patterns="$1"
+    shift
+    local pattern
+    local -a patterns_array
+    read -r -a patterns_array <<< "$patterns"
+
+    for pattern in "${patterns_array[@]}"; do
+        pattern_found_in_list "$pattern" "$@" || return 1
+    done
+    return 0
+}
+
+generate_instructionset_gen() {
+    local scope="$1"
+    local instructionset_file="$2"
+    local avail_file="$3"
+    local loaded_file="$4"
+
+    local ws_root="$(resolve_workspace_root)"
+    local sessionname="$(resolve_session_name)"
+    local instructionsdata="$(get_all_ordered_instruction_names "file")"
+    local memory_glob=$(make_glob_from_file "$instructionset_file")
+    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+    local -a tools
+    mapfile_from_command tools jq -r '.[].name' <<< "$enabled_tools_json"
+
+    # file -> true
+    local -A loaded_instructions
+    local -a files
+    if [[ -n "$ws_root" ]]; then
+	local filespecs
+	mapfile_from_command filespecs session_content_extract --listraw "$sessionname"
+	local file
+	for file in "${filespecs[@]}" ; do
+	    [[ -z "$file" ]] && continue
+	    file="${file%%[:|]*}"
+	    files+=("$file")
+	done
+    fi
+
+    rm -f "$loaded_file" "$avail_file"
+    : > "$loaded_file"
+    : > "$avail_file"
+    while IFS=' ' read -r instruction instructionfile; do
+	local fields
+	mapfile_from_command fields read_md_fields "$instructionfile" description any-path any-tool all-path all-tool loadable
+	local desc="${fields[0]}"
+	local any_path="${fields[1]}"
+	local any_tool="${fields[2]}"
+	local all_path="${fields[3]}"
+	local all_tool="${fields[4]}"
+	local loadable="${fields[5]}"
+
+        if [[ -n $memory_glob && $instruction == $memory_glob ]]; then
+	    md_content_convert "$instruction" "$desc" "$instructionfile" >> "$loaded_file"
+	    loaded_instructions["$instructionfile"]=1
+	else
+	    local remember=true
+	    if [[ "$remember" == true && -n "$any_path" ]] ; then
+		if ! any_patterns_found_in_list "$any_path" "${files[@]}" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true && -n "$any_tool" ]] ; then
+		if ! any_patterns_found_in_list "$any_tool" "${tools[@]}" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true && -n "$all_path" ]] ; then
+		if ! all_patterns_found_in_list "$all_path" "${files[@]}" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true && -n "$all_tool" ]] ; then
+		if ! all_patterns_found_in_list "$all_tool" "${tools[@]}" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true ]] ; then
+		md_content_convert "$instruction" "$desc" "$instructionfile" >> "$loaded_file"
+		loaded_instructions["$instructionfile"]=1
+	    else
+		if [[ -z "$loadable" || "$loadable" == true ]] ; then
+		    printf '* %s - %s\n' "$instruction" "$desc" >> "$avail_file"
+		fi
+	    fi
+	fi
+    done <<< "$instructionsdata"
+    if [[ -z "$ws_root" ]] ; then
+	return
+    fi
+    for file in "${files[@]}" ; do
+	# TODO, search also the ws root folder, even if there are no files
+	# Find MAIA.md files for this path
+	local parts
+	IFS=/ read -ra parts <<< "$file"
+	local part
+	local rpath=""
+	for part in "${parts[@]}" ; do
+	    rpath="${rpath:+$rpath/}$part"
+	    [[ -v "loaded_instructions[$rpath/]" ]] && continue
+	    local instructionfile="$ws_root/$rpath/MAIA.md"
+	    if [[ -s "$instructionfile" ]] ; then
+		loaded_instructions["$rpath/"]=1
+		desc=$(read_md_field "$instructionfile" "description")
+		md_content_convert "$rpath/" "$desc" "$instructionfile" >> "$loaded_file"
+	    fi
+	done
+    done
+}
 
 ### 120-10*2-25-10=65
 shorten_args() {

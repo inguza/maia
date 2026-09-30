@@ -1,6 +1,8 @@
 ----------------- Tool output manual start ------------------------------------
 context-file-forget
 context-file-remember
+context-instruction-forget
+context-instruction-remember
 context-resource-forget
 context-resource-remember
 context-skill-forget

@@ -1,6 +1,8 @@
 {
   "cost_output_gpt_4_1": 8,
   "default_agent_skill_restrict": "session",
+  "default_agent_instruction_forget": "",
+  "additional_instruction_paths": "",
   "default_allowed_tool_effects": "[\"limited-write\"]",
   "http_logging": true,
   "cost_input_gpt_5_4_mini": 0.75,
@@ -23,6 +25,7 @@
   "n": 1,
   "file_handling_mode_mistral_24b": "APPEND",
   "cost_input_gpt_5_4": 2.5,
+  "default_agent_instruction_remember": "*",
   "cost_output_gpt_5_4": 15,
   "send_hook": "",
   "cost_output_gpt_5_4_mini": 4.5,

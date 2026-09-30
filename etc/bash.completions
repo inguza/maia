@@ -21,7 +21,7 @@ _maia()
     fi
 
     # top-level commands (collated from bin/maia and lib/maia/core)
-    local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill snippet session job history workspace shell edit compose run"
+    local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill instruction snippet session job history workspace shell edit compose run"
 
     # flags: top-level vs per-subcommand
     local top_level_flags="--version -h --help"
@@ -67,7 +67,7 @@ _maia()
 
     # helper: common scopes and types
     local scopes="session workspace home user system default"
-    local prompt_types="system files tools skills skillset skillsetcontext"
+    local prompt_types="system files tools skills skillset skillsetcontext skillsetcontext"
 
     # Helper: complete @snippet names by scanning common snippet directories
     _maia_complete_snippets() {
@@ -299,7 +299,7 @@ _maia()
             fi
             ;;
         skill|skills)
-            local subcmds="list show append replace edit clear refresh verify remember add forget test"
+            local subcmds="list show append replace edit clear refresh verify remember add forget run"
             if [[ $COMP_CWORD -eq 2 ]]; then
                 COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope --type" -- "$cur") )
                 return 0
@@ -310,6 +310,18 @@ _maia()
             fi
             # For skill names and append/allow/replace actions complete as text-or-file
             if [[ "$prev" == "append" || "$prev" == "allow" || "$prev" == "replace" || "$prev" == "remember" || "$prev" == "add" ]]; then
+                _maia_complete_text_or_file
+                return 0
+            fi
+            ;;
+        instruction|instructions)
+            local subcmds="list show append replace edit clear remember add forget"
+            if [[ $COMP_CWORD -eq 2 ]]; then
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope" -- "$cur") )
+                return 0
+            fi
+            # For instruction names and append/allow/replace actions complete as text-or-file
+            if [[ "$prev" == "append" || "$prev" == "replace" || "$prev" == "remember" || "$prev" == "add" ]]; then
                 _maia_complete_text_or_file
                 return 0
             fi

@@ -1,4 +1,6 @@
 default_agent_skill_restrict
+default_agent_instruction_forget
+additional_instruction_paths
 default_allowed_tool_effects
 http_logging
 splice_allowed_files
@@ -14,6 +16,7 @@ term_loglevel
 tool_iteration_limit
 stream
 n
+default_agent_instruction_remember
 send_hook
 api_type
 presence_penalty

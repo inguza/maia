@@ -9,6 +9,8 @@
 . "$MAIA_CORE_LIB_DIR/user.sh"
 # Load parse handler for auto-parse invocation
 . "$MAIA_CORE_LIB_DIR/parse.sh"
+# Important to be able to see the instructions
+init_instruction_search_dirs
 
 send_usage() {
     cat <<'EOF'
@@ -59,6 +61,9 @@ OPTIONS
 
   --no-skills
     Do not include enabled skills in the request.
+
+  --no-instructions
+    Do not include instructions in the request.
 
 EXAMPLES
 
@@ -173,12 +178,24 @@ build_system_text() {
     local no_files="$3"
     local no_tools="$4"
     local no_skills="$5"
+    local no_instructions="$6"
     # 3) Build messages based on mode
     local skill_list="$(prompt_for_scope "session" "skillset" "gen")"
     local skill_memory="$(prompt_for_scope "session" "skillsetcontext" "gen")"
     if [[ "$no_skills" == true ]]; then
 	skill_list=""
 	skill_memory=""
+    fi
+    local instruction_list=""
+    local instruction_memory=""
+    if [[ "$no_instructions" == false ]]; then
+	local instr_file="$(file_for_scope "session" "instructionset")"
+	local tmplist="$(mktemp)"
+	local tmpmem="$(mktemp)"
+	generate_instructionset_gen "session" "$instr_file" "$tmplist" "$tmpmem"
+	instruction_list="$(read_file "$tmplist" cr)"
+	instruction_memory="$(read_file "$tmpmem" cr)"
+	rm -f "$tmplist" "$tmpmem"
     fi
     # System prompt (and “Files:” instructions if any)
     local sys="$(prompt_for_scope "session" system)"
@@ -200,6 +217,16 @@ build_system_text() {
 	local smemh="$(prompt_for_scope "session" "skillscontext")"
 	sys+=$'\n\n'"$smemh"$'\n'
 	sys+="$skill_memory"
+    fi
+    if [[ -n "$instruction_list" ]] ; then
+	local slisth="$(prompt_for_scope "session" "instructions")"
+	sys+=$'\n\n'"$slisth"$'\n'
+	sys+="$instruction_list"
+    fi
+    if [[ -n "$instruction_memory" ]] ; then
+	local smemh="$(prompt_for_scope "session" "instructionscontext")"
+	sys+=$'\n\n'"$smemh"$'\n'
+	sys+="$instruction_memory"
     fi
     case "${mode^^}" in
         BEFORE|FIRST|APPEND|AUTOTOOL)
@@ -238,9 +265,7 @@ build_messages_json() {
     local tools_enabled="$4"
     local mode="$5"
     local no_files="$6"
-    local no_tools="$7"
-    local no_skills="$8"
-    local api_type="${9:-OPENAI_CHAT_COMPLETIONS}"
+    local api_type="${7:-OPENAI_CHAT_COMPLETIONS}"
 
     local session=$(resolve_session_name)
     local history_file=$(resolve_history_meta "$session")
@@ -411,6 +436,7 @@ handle_send_command() {
     local no_files=false
     local no_tools=false
     local no_skills=false
+    local no_instructions=false
 
     local dry_run=false
     local response_file=""
@@ -448,6 +474,9 @@ handle_send_command() {
                 ;;
             --no-skills)
                 no_skills=true
+                ;;
+            --no-instructions)
+                no_instructions=true
                 ;;
             --file-handling-mode|--file-handling)
                 shift
@@ -656,7 +685,7 @@ handle_send_command() {
 
     local mode="$(determine_file_handling_mode "$model" "$api_type" "$file_handling_mode_raw")"
     local sys
-    if ! sys="$(build_system_text "$mode" "$tools_enabled" "$no_files" "$no_tools" "$no_skills")" ; then
+    if ! sys="$(build_system_text "$mode" "$tools_enabled" "$no_files" "$no_tools" "$no_skills" "$no_instructions")" ; then
 	# Here we silently fail because this will only happen at die
 	exit 1
     fi
@@ -684,7 +713,7 @@ handle_send_command() {
     while (( allowed_iterations_left > 0 )); do
 	((iteration++))
 	local messages_json
-	if ! messages_json=$(build_messages_json "$outbox_file" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$no_tools" "$no_skills" "$api_type") ; then
+	if ! messages_json=$(build_messages_json "$outbox_file" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$api_type") ; then
 	    # Here we silently fail because this will only happen at die
 	    exit 1
 	fi

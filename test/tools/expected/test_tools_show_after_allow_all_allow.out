@@ -1487,6 +1487,50 @@ Tool definitions:
     "source": "<MAIA_ROOT>/lib/maia/tools/history.td"
   },
   {
+    "name": "context-instruction-remember",
+    "description": "Remember a instruction instruction in the current context.",
+    "command": "instruction-remember.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the instruction to remember."
+          }
+        }
+      },
+      "required": [
+        "instructions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/instruction.td"
+  },
+  {
+    "name": "context-instruction-forget",
+    "description": "Forget a instruction instruction from the current context.",
+    "command": "instruction-forget.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the instruction to forget."
+          }
+        }
+      },
+      "required": [
+        "instructions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/instruction.td"
+  },
+  {
     "name": "job-start",
     "description": "Start a background job. A job id will be the output..",
     "command": "job-start.sh",

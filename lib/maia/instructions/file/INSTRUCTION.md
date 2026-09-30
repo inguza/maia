@@ -1,5 +1,8 @@
 ---
 description: How to manipulate files using file and change tools
+any-path: *[a-zA-Z0-9]*
+all-tool: file-*
+loadable: false
 ---
 
 A normal file modification flow consists of:

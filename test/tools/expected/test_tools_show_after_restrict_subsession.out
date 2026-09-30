@@ -5,6 +5,8 @@ change-revert:write
 change-skip:write
 context-file-forget:write
 context-file-remember:write
+context-instruction-forget:write
+context-instruction-remember:write
 context-resource-forget:write
 context-resource-remember:write
 context-skill-forget:write
@@ -1554,6 +1556,50 @@ Tool definitions:
       "additionalProperties": false
     },
     "source": "<MAIA_ROOT>/lib/maia/tools/history.td"
+  },
+  {
+    "name": "context-instruction-remember",
+    "description": "Remember a instruction instruction in the current context.",
+    "command": "instruction-remember.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the instruction to remember."
+          }
+        }
+      },
+      "required": [
+        "instructions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/instruction.td"
+  },
+  {
+    "name": "context-instruction-forget",
+    "description": "Forget a instruction instruction from the current context.",
+    "command": "instruction-forget.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Name of the instruction to forget."
+          }
+        }
+      },
+      "required": [
+        "instructions"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/instruction.td"
   },
   {
     "name": "job-start",

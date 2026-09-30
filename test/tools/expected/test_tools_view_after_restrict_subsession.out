@@ -3,6 +3,8 @@ change-revert:write
 change-skip:write
 context-file-forget:write
 context-file-remember:write
+context-instruction-forget:write
+context-instruction-remember:write
 context-resource-forget:write
 context-resource-remember:write
 context-skill-forget:write

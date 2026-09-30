@@ -1,5 +1,7 @@
 cost_output_gpt_4_1
 default_agent_skill_restrict
+default_agent_instruction_forget
+additional_instruction_paths
 default_allowed_tool_effects
 http_logging
 cost_input_gpt_5_4_mini
@@ -22,6 +24,7 @@ stream
 n
 file_handling_mode_mistral_24b
 cost_input_gpt_5_4
+default_agent_instruction_remember
 cost_output_gpt_5_4
 send_hook
 cost_output_gpt_5_4_mini

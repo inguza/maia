@@ -30,6 +30,7 @@ export MAIA_BIN="$maia_real_path"
 export MAIA_CORE_LIB_DIR="$MAIA_ROOT/lib/maia/core"
 export MAIA_TOOLS_LIB_DIR="$MAIA_ROOT/lib/maia/tools"
 export MAIA_SKILLS_LIB_DIR="$MAIA_ROOT/lib/maia/skills"
+export MAIA_INSTRUCTIONS_LIB_DIR="$MAIA_ROOT/lib/maia/instructions"
 export MAIA_HOOKS_LIB_DIR="$MAIA_ROOT/lib/maia/hooks"
 export MAIA_PROFILES_LIB_DIR="$MAIA_ROOT/lib/maia/profiles"
 export MAIA_PLUGINS_LIB_DIR="$MAIA_ROOT/lib/maia/plugins"
@@ -130,8 +131,9 @@ COMMANDS:
     history|h        History operations (show, pop, top, delete, summarize, search, clear, export)
     filesets|fileset Fileset management (list, create, delete, show, clear)
     files|file|f     File management (add, forget, remove)
-    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, delete)
-    skill	     Skill management (list, show, remember, append, replace, clear, test, refresh, verify, delete)
+    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, run, refresh, verify, delete)
+    skill	     Skill management (list, show, remember, append, replace, clear, run, refresh, verify, delete)
+    instruction	     Instruction management (list, show, remember, append, replace, clear, delete)
 
   Workspace and change handling
     workspace|w      Workspace management (create, use, show, list, clear, delete)
@@ -288,6 +290,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/skill.sh"
 	handle_skill_command "$@"
+	;;
+    instructions|instruction)
+	shift
+	. "$MAIA_CORE_LIB_DIR/instruction.sh"
+	handle_instruction_command "$@"
 	;;
     shell)
 	shift

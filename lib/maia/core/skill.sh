@@ -73,7 +73,7 @@ generate_skillset_gen() {
 	: > "$skillset_gen_file"
 	while IFS=' ' read -r skill skillfile; do
             if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
-		desc=$(read_md_description "$skillfile")
+		desc=$(read_md_field "$skillfile" "description")
 		echo "- $skill - $desc" >> "$skillset_gen_file"
 	    fi
 	done <<< "$skillsdata"
@@ -93,7 +93,7 @@ generate_skillset_context_gen() {
 	: > "$skillset_context_gen_file"
 	while IFS=' ' read -r skill skillfile; do
             if [[ -n $memory_glob && $skill == $memory_glob ]]; then
-		desc=$(read_md_description "$skillfile")
+		desc=$(read_md_field "$skillfile" "description")
 		content=$(sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$skillfile")
 		{
 		    echo

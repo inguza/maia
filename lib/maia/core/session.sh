@@ -37,6 +37,9 @@ COMMANDS
   content [<name>]
     Show the file content in this session.
 
+  instructions [<name>]
+    Show the instruction content in this session.
+
   files [<name>]
     Show a list of files in this session.
 
@@ -515,6 +518,13 @@ handle_session_command() {
 	    shift
             local name="${1:-$(resolve_session_name)}"
 	    session_content_extract "$name"
+            ;;
+
+        instructions|instruction)
+	    shift
+	    init_instruction_search_dirs
+            local name="${1:-$(resolve_session_name)}"
+	    session_instruction_extract "$name"
             ;;
 
 	set)
