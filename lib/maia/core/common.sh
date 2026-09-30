@@ -2142,7 +2142,7 @@ md_content_convert() {
     local desc="$2"
     local file="$3"
     echo
-    printf "## %s\n" "$instruction - $desc"
+    printf "## %s\n" "$name - $desc"
     sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$instructionfile"
     echo
 }
