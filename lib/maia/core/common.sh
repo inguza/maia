@@ -2141,9 +2141,10 @@ md_content_convert() {
     local name="$1"
     local desc="$2"
     local file="$3"
+    local extralevel="$4"
     echo
-    printf "## %s\n" "$name - $desc"
-    sed -n '/^---$/,/^---$/d; s/^#/###/g; p' "$instructionfile"
+    printf "##${extralevel} %s\n" "$name - $desc"
+    sed -n '/^---$/,/^---$/d; s/^#/###'"$extralevel}"'/g; p' "$instructionfile"
     echo
 }
 
@@ -2178,6 +2179,16 @@ all_patterns_found_in_list() {
         pattern_found_in_list "$pattern" "$@" || return 1
     done
     return 0
+}
+
+generate_path_instructions_header() {
+    # Important globally declared
+    if [[ -n "${path_instructions_header}" ]] ; then
+	echo ""
+	echo "${path_instructions_header}"
+	echo ""
+	path_instructions_header=""
+    fi
 }
 
 generate_instructionset_gen() {
@@ -2259,6 +2270,17 @@ generate_instructionset_gen() {
     if [[ -z "$ws_root" ]] ; then
 	return
     fi
+    
+    # Important globally declared
+    path_instructions_header='## Path-based instructions'
+
+    local instructionfile="$ws_root/MAIA.md"
+    if [[ -s "$instructionfile" ]] ; then
+	loaded_instructions["/"]=1
+	desc=$(read_md_field "$instructionfile" "description")
+	generate_path_instructions_header >> "$loaded_file"
+	md_content_convert "/" "$desc" "$instructionfile" "#" >> "$loaded_file"
+    fi
     for file in "${files[@]}" ; do
 	# TODO, search also the ws root folder, even if there are no files
 	# Find MAIA.md files for this path
@@ -2269,11 +2291,12 @@ generate_instructionset_gen() {
 	for part in "${parts[@]}" ; do
 	    rpath="${rpath:+$rpath/}$part"
 	    [[ -v "loaded_instructions[$rpath/]" ]] && continue
-	    local instructionfile="$ws_root/$rpath/MAIA.md"
+	    instructionfile="$ws_root/$rpath/MAIA.md"
 	    if [[ -s "$instructionfile" ]] ; then
 		loaded_instructions["$rpath/"]=1
 		desc=$(read_md_field "$instructionfile" "description")
-		md_content_convert "$rpath/" "$desc" "$instructionfile" >> "$loaded_file"
+		generate_path_instructions_header >> "$loaded_file"
+		md_content_convert "$rpath/" "$desc" "$instructionfile" "#" >> "$loaded_file"
 	    fi
 	done
     done
