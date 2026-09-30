@@ -1,0 +1,53 @@
+USAGE
+
+  maia instruction [--scope <scope>] <command> [<args>...]
+     Manage instructions
+  maia instruction --scope
+     Show the scope for the current instruction definitions
+
+Manage LLM instructions.
+
+COMMANDS
+
+  list
+      List all discovered instructions, marking loaded instructions.
+
+  show
+      Show loaded instructions and their descriptions.
+
+  append|remember|add <instructionname>...
+      Append instruction(s) to the loaded list. Wildcards supported.
+
+  replace <instructionname>...
+      Replace loaded instructions with specified ones. Wildcards supported.
+
+  forget <instructionname>...
+      Remove instruction(s) from the loaded context.
+
+  clear
+      Clear loaded instructions list.
+
+  delete
+      Remove the loaded instruction list.
+
+OPTIONS
+
+  --scope <scope>
+      Specify the scope to operate on. Valid: session, workspace, home, user, system, extra.
+
+  -h, --help
+      Show this help message and exit.
+
+NOTE
+
+  <instructionname> is handled as <text-or-file>:
+    - a word
+    - a "quoted text"
+    - +command (compose, read, edit)
+    - =filename (content of a file)
+    - ++word (litteral +word)
+    - ==word (litteral =word)
+    - @snippet
+  If multiple are provided they are appended as new lines (except for edit
+  which opens the editor inline).
+

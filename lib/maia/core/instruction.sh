@@ -55,7 +55,7 @@ instruction_usage() {
     cat <<EOF
 USAGE
 
-  maia instruction [--scope <scope>] [--type <type>] <command> [<args>...]
+  maia instruction [--scope <scope>] <command> [<args>...]
      Manage instructions
   maia instruction --scope
      Show the scope for the current instruction definitions
