@@ -1,11 +1,7 @@
 {
   "model": "gpt-4",
   "store": false,
-  "temperature": 0.7,
-  "max_tokens": 32000,
-  "top_p": 1,
-  "frequency_penalty": 0,
-  "presence_penalty": 0,
+  "max_completion_tokens": 32000,
   "n": 1,
   "stream": false,
   "messages": [

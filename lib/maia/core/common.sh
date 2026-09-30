@@ -31,39 +31,44 @@ TOOLSET_DEF_EXT=".td"
 
 # Default configuration values
 declare -A DEFAULT_CONFIG=(
+    [api_type]="AUTODETECT"
+    [api_base_url]="https://api.openai.com"
     [model]="gpt-5.4-mini"
-    [temperature]=0.7
     [max_output_tokens]=32000
     [max_input_tokens]=64000
-    [top_p]=1
-    [frequency_penalty]=0
-    [presence_penalty]=0
-    [n]=1
-    [stream]=false
+    # Model related parameters
+    [temperature]=null
+    [top_p]=null
+    # Logging control
     [http_logging]=true
     [term_loglevel]=NOTICE
+    # Interaction controls
     [tool_iteration_limit]=20
+    [file_handling_mode]=DEFAULT
+    [default_filter]=''
+    [send_hook]=''
+    [tool_loop_prevent]="file-write file-change"
+    # Deprecated parsing parameters
     [prune_mode]=reduce
     [prune_when_applied]=true
     [prune_when_skipped]=true
-    [additional_tool_paths]=""
-    [default_allowed_tool_effects]='["limited-write"]'
-    [additional_skill_paths]=""
-    [additional_instruction_paths]=""
     [auto_add_new_files_on_apply]=true
-    [api_type]="AUTODETECT"
-    [api_base_url]="https://api.openai.com"
     [tab_width]=8
     [splice_allowed_files]='\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$'
-    [file_handling_mode]=DEFAULT
     [auto_parse]=false
-    [default_filter]=''
+    # Additional functionality
+    [additional_tool_paths]=""
+    [additional_skill_paths]=""
+    [additional_instruction_paths]=""
+    # Some defaults
+    [default_profile]=''
+    [default_workspace]='__SESSION_WORKSPACE__'
     [default_session_filesets]='["__SESSION_NAME__"]'
     [default_session_extra_send_filesets]='[]'
-    [default_workspace]='__SESSION_WORKSPACE__'
-    [default_profile]=''
+    # Tool control
+    [mcp_servers]='[]'
+    [default_allowed_tool_effects]='["limited-write"]'
     [allowed_profiles]='*'
-    [send_hook]=''
     [agent_session_prefix]='__SESSION_NAME__%'
     [agent_session_allowed]='*'
     [default_agent_tool_allow]="*"
@@ -74,8 +79,6 @@ declare -A DEFAULT_CONFIG=(
     [default_agent_skill_forget]=""
     [default_agent_instruction_remember]="*"
     [default_agent_instruction_forget]=""
-    [mcp_servers]='[]'
-    [tool_loop_prevent]="file-write file-change"
     # Default cost configuration (flat keys with cost_ prefix)
     [cost_input_gpt_5_4]=2.5
     [cost_output_gpt_5_4]=15
@@ -296,9 +299,6 @@ get_config() {
     fi
     # Git Bash workaround
     var="${var%$'\r'}"
-    if [[ "$var" == null ]] ; then
-	var=""
-    fi
     printf '%s' "$var"
     return 0
 }

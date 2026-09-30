@@ -64,9 +64,9 @@
   ],
   "parameters": {
     "maxTokens": 32000,
-    "temperature": 0.1,
     "stopSequences": [
       "\n\n"
-    ]
+    ],
+    "temperature": 0.1
   }
 }

@@ -4,7 +4,6 @@
 
 * `api_base_url` — Base URL of the API endpoint.
 * `api_type` — API type to use. `AUTODETECT` automatically determines the API type.
-* `model` — Model to use for requests.
 * `file_handling_mode` — Controls how file content is handled when constructing model requests.
 * `max_input_tokens` — Maximum number of input tokens for a session. The token count is estimated to the number of characters/4. This is a client side limit.
 * `max_output_tokens` — Maximum number of output tokens requested. This is a limit sent to the API provider.
@@ -14,12 +13,9 @@
 
 ### API parameters
 
+* `model` — Model to use for requests.
 * `temperature` — Controls randomness in model output.
-* `top_p` — Nucleus-sampling parameter.
-* `frequency_penalty` — Penalizes tokens according to their frequency in the generated output.
-* `presence_penalty` — Penalizes tokens that have already appeared in the generated output.
-* `n` — Number of completions requested.
-* `stream` — Whether model responses are streamed.
+* `top_p` — Nucleus-sampling parameter (not supported by AWS Bedrock Completions API).
 
 ## Sessions
 

@@ -11,15 +11,11 @@ tool_loop_prevent
 max_output_tokens
 tab_width
 default_workspace
-frequency_penalty
 term_loglevel
 tool_iteration_limit
-stream
-n
 default_agent_instruction_remember
 send_hook
 api_type
-presence_penalty
 api_base_url
 mcp_servers
 default_session_filesets

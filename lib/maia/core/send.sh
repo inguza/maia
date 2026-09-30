@@ -421,13 +421,9 @@ handle_send_command() {
     local max_output_tokens=$(get_config max_output_tokens)
     local max_input_tokens=$(get_config max_input_tokens)
     local top_p=$(get_config top_p)
-    local frequency_penalty=$(get_config frequency_penalty)
-    local presence_penalty=$(get_config presence_penalty)
     local tool_loop_prevent
     read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg" | read_file "" cr)"
     local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
-    local n=$(get_config n)
-    local stream=$(get_config stream)
     local api_type=$(get_config api_type)
     local http_logging=$(get_config http_logging)
     local send_hook=$(get_config send_hook)
@@ -502,7 +498,7 @@ handle_send_command() {
 	    ;;
     esac
 
-    if [[ -n "$temperature" ]]; then
+    if [[ -n "$temperature" && "$temperature" != null ]]; then
 	# Validate temperature is numeric and between 0 and 1
         if ! [[ "$temperature" =~ ^[0-9]*\.?[0-9]+$ ]]; then
             die "Invalid temperature value '$temperature'. Must be a number between 0 and 1."
@@ -570,12 +566,6 @@ handle_send_command() {
         else
             url="${maia_api_base_url}/v1/responses"
         fi
-	local max_t_name="max_tokens"
-	if [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
-	    max_t_name="max_output_tokens"
-	elif [[ "$model" == "gpt-5"* ]] ; then
-	    max_t_name="max_completion_tokens"
-	fi
 
 	# Add enabled tools definitions to messages for the LLM if any enabled tools exist
 	if (( tools_count > 0 )); then
@@ -728,15 +718,11 @@ handle_send_command() {
 		jq -n \
 		   --arg model "$model" \
 		   --argjson temperature "$temperature" \
-		   --argjson max_tokens "$max_output_tokens" \
 		   --argjson top_p "$top_p" \
-		   --argjson frequency_penalty "$frequency_penalty" \
-		   --argjson presence_penalty "$presence_penalty" \
-		   --argjson n "$n" \
-		   --argjson stream "$stream" \
+		   --argjson max_tokens "$max_output_tokens" \
 		   --argjson tools "$tools_json" \
 		   --slurpfile messages "$tmpmf" \
-		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, frequency_penalty: $frequency_penalty, presence_penalty: $presence_penalty, n: $n, stream: $stream, messages: $messages[0]} + (if $tools != null then {tools: $tools} else {} end)' \
+		   -f "$MAIA_CORE_LIB_DIR/send-openai-chat-completions-request.jq" \
 		   > "$tmp_payload"
 		rm -f "$tmpmf"
 		;;
@@ -747,22 +733,15 @@ handle_send_command() {
 		jq -n \
 		   --arg model "$model" \
 		   --argjson temperature "$temperature" \
-		   --argjson max_tokens "$max_output_tokens" \
 		   --argjson top_p "$top_p" \
-		   --argjson stream "$stream" \
+		   --argjson max_tokens "$max_output_tokens" \
 		   --argjson tools "$tools_json" \
 		   --slurpfile messages "$tmpmf" \
-		   '{model: $model, store: false, temperature: $temperature, '$max_t_name': $max_tokens, top_p: $top_p, stream: $stream, input: $messages[0]} + (if $tools != null then {tools: $tools} else {} end)' \
+		   -f "$MAIA_CORE_LIB_DIR/send-openai-responses-request.jq" \
 		   > "$tmp_payload"
 		rm -f "$tmpmf"
 		;;
 	    AWS_BEDROCK_CONVERSE)
-		# Build Bedrock converse payload:
-		# - Add parameters object with maxTokensToSample, temperature, stopSequences
-		# - Convert content to content objects
-		# - Remove empty messages (not allowed by AWS API)
-		# - Convert system roles to user role
-		# - Add toolSpecs separately from messages if any enabled tools exist
 		local messages_json_aws=$(jq -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-messages.jq" <<<"$messages_json")
 		jq -n \
 		   --argjson maxTokensToSample "$max_output_tokens" \
@@ -770,17 +749,8 @@ handle_send_command() {
 		   --argjson stopSequences "$(jq -nc '["\n\n"]')" \
 		   --arg system "$sys" \
 		   --argjson messages "$messages_json_aws" \
-		   --argjson toolSpecs "$tools_json" \
-		   '{
-		     system: [{text: $system}],
-		     messages: $messages,
-		     parameters: {
-		       maxTokens: $maxTokensToSample,
-		       temperature: $temperature,
-		       stopSequences: $stopSequences
-		     }
-		   }
-		   + (if $toolSpecs != null then {toolConfig: {tools: $toolSpecs}} else {} end)' \
+		   --argjson tools "$tools_json" \
+		   -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-request.jq" \
 		> "$tmp_payload"
 		;;
 	    *)

@@ -25,26 +25,22 @@ default_session_extra_send_filesets default    "[]"
 default_session_filesets       default    "[\"__SESSION_NAME__\"]"
 default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
-frequency_penalty              default    0
 http_logging                   default    true
 max_input_tokens               default    64000
 max_output_tokens              default    32000
 mcp_servers                    default    "[]"
 model                          default    "gpt-5.4-mini"
-n                              default    1
-presence_penalty               default    0
 prune_mode                     default    "reduce"
 prune_when_applied             default    true
 prune_when_skipped             default    true
 send_hook                      default    ""
 splice_allowed_files           default    "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$"
-stream                         default    false
 tab_width                      default    8
-temperature                    default    0.7
+temperature                    default    "null"
 term_loglevel                  home       "NOTICE"
 tool_iteration_limit           default    20
 tool_loop_prevent              default    "file-write file-change"
-top_p                          default    1
+top_p                          default    "null"
 
 ENVIRONMENT NAME               VALUE
 ----------------------------------------------------------------------------
