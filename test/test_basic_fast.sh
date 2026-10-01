@@ -55,6 +55,12 @@ run_function "showp2" myl_pretty 2.txt
 
 run_function "myl_merge" myl_merge notexistingfile.txt 1.txt 2.txt
 
+run_function "myl_update1" myl_update 1.txt "more1" "This is a single line replacement"
+run_function "myl_update2" myl_update 1.txt "more2" "This is a multi line replacement" "Yes it is."
+run_function "show1update" cat 1.txt
+run_function "myl_append1" myl_append 1.txt "more1" "The single line just became a multiline"
+run_function "show1append" cat 1.txt
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

@@ -80,6 +80,38 @@ find_task_index() {
     echo "$index"
 }
 
+find_task_file() {
+    local task="$1"
+    local type
+    local tname
+    local index
+    if [[ "$task" =~ ^task-([a-z]+)-([a-zA-Z0-9_]+)-([0-9]+)$ ]] ; then
+	type="shared"
+	scope="${BASH_REMATCH[1]}"
+	tname="${BASH_REMATCH[2]}"
+	index="${BASH_REMATCH[3]}"
+    elif [[ "$task" =~ ^task-([0-9]+)$ ]] ; then
+	type="private"
+	scope="session"
+	tname="$(resolve_session_name)"
+	index="${BASH_REMATCH[1]}"
+    else
+	die "Unknown task type."
+    fi
+    if [[ ! -v TASK_DIR["$scope"] ]] ; then
+	die "Scope '$scope' not allowed for task '$task'."
+    fi
+    local path="${TASK_DIR[$scope]}"
+    if [[ -z "$path" ]] ; then
+	die "Scope '$scope' not available for task '$task'."
+    fi
+    local ppath="$(dirname "$path")"
+    if [[ ! -d "$ppath" ]] ; then
+	die "Scope '$scope' not available for task '$task'."
+    fi
+    local file="$path/${type}-$index.myl"
+    printf '%s' "$file"
+}
 
 task_usage() {
     cat <<EOF
@@ -87,15 +119,23 @@ USAGE
 
   maia task [--scope <scope>] <command> [<args>...]
      Manage tasks
-  maia task --scope
-     Show the scope for the current task definitions
 
-Manage LLM tasks.
+Manage tasks.
 
 COMMANDS
 
   create [--private|--shared] <description line 1> [<...>]
-      Create a task and remember it.
+      Create a task. Not remembered immediately since tasks are by
+      default for work to be done later.
+
+  remove <taskname>...
+      Delete and forget the task.
+
+  mark <taskname> <status> <version>
+      Set the status of a task to <status>.
+
+  report <taskname> <report> <version>
+      Report progress for <taskname>.
 
   list
       List all tasks, marking loaded tasks.
@@ -112,9 +152,6 @@ COMMANDS
   forget <taskname>...
       Remove task(s) from the loaded context.
 
-  remove <taskname>...
-      Delete and forget the task.
-
   clear
       Clear loaded tasks list.
 
@@ -124,8 +161,8 @@ COMMANDS
 OPTIONS
 
   --scope <scope>
-      Specify the scope to operate on. Valid: session, workspace, home, user, system, extra.
-      NOTE! Memory is always session scope.
+      Specify the scope to operate on. Valid: session, workspace, profile.
+      Applicable to create and remove only.
 
   -h, --help
       Show this help message and exit.
@@ -238,7 +275,7 @@ handle_task_command() {
 		name="task-${scope}-${tname}-${index}"
 	    fi
 	    myl_add "$file" 'task' "$name"
-	    myl_add "$file" 'state' 'new'
+	    myl_add "$file" 'status' 'new'
 	    myl_add "$file" 'version' '1'
 	    myl_add "$file" 'description' "$@"
 	    echo "" >> "$file"
@@ -250,42 +287,60 @@ handle_task_command() {
 	remove)
 	    local task
 	    for task in "$@" ; do
-		local type
-		local tname
-		local index
-		if [[ "$task" =~ ^task-([a-z]+)-([a-zA-Z0-9_]+)-([0-9]+)$ ]] ; then
-		    type="shared"
-		    scope="${BASH_REMATCH[1]}"
-		    tname="${BASH_REMATCH[2]}"
-		    index="${BASH_REMATCH[3]}"
-		elif [[ "$task" =~ ^task-([0-9]+)$ ]] ; then
-		    type="private"
-		    scope="session"
-		    tname="$(resolve_session_name)"
-		    index="${BASH_REMATCH[1]}"
-		else
-		    die "Unknown task type."
-		fi
-		if [[ ! -v TASK_DIR["$scope"] ]] ; then
-		    die "Scope '$scope' not allowed for task '$task'."
-		fi
-		local path="${TASK_DIR[$scope]}"
-		if [[ -z "$path" ]] ; then
-		    die "Scope '$scope' not available for task '$task'."
-		fi
-		local ppath="$(dirname "$path")"
-		if [[ ! -d "$ppath" ]] ; then
-		    die "Scope '$scope' not available for task '$task'."
-		fi
-		local file="$path/${type}-$index.myl"
+		local file="$(find_task_file "$task")"
 		rm -f "$file"
 		notice "Task $task removed."
 		handle_task_command forget "$name"
 	    done
 	    ;;
+	mark)
+	    if [[ -z "$1" ]] ; then
+		die "Empty task id."
+	    fi
+	    local task="$1"
+	    if [[ -z "$2" ]] ; then
+		die "Empty task status."
+	    fi
+	    if [[ -z "$3" ]] ; then
+		die "Empty version."
+	    fi
+	    local file="$(find_task_file "$task")"
+	    if [[ -z "$file" || ! -f "$file" ]] ; then
+		die "Task '$task' not found."
+	    fi
+	    local version="$(myl_get "$file" "version")"
+	    if [[ "$version" != "$3" ]] ; then
+		die "Task version mismatch. The provided version '$3' is not the same as the required version '$version'."
+	    fi
+	    myl_update "$file" "status" "$2"
+	    myl_update "$file" "version" "$((version + 1))"
+	    ;;
+	report)
+	    if [[ -z "$1" ]] ; then
+		die "Empty task id."
+	    fi
+	    local task="$1"
+	    if [[ -z "$2" ]] ; then
+		die "Empty task status."
+	    fi
+	    if [[ -z "$3" ]] ; then
+		die "Empty version."
+	    fi
+	    local file="$(find_task_file "$task")"
+	    if [[ -z "$file" || ! -f "$file" ]] ; then
+		die "Task '$task' not found."
+	    fi
+	    local version="$(myl_get "$file" "version")"
+	    if [[ "$version" != "$3" ]] ; then
+		die "Task version mismatch. The provided version '$3' is not the same as the required version '$version'."
+	    fi
+	    myl_append "$file" "progress" "$2"
+	    myl_update "$file" "version" "$((version + 1))"
+	    ;;
         list)
 	    list_tasks "$scope" "$filepath"
             ;;
+	
 	view|"")
 	    # Expand allowed wildcards to explicit allowed tasks
 	    if [[ "$1" == "--expand" ]]; then

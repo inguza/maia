@@ -297,6 +297,123 @@ myl_add() {
     fi
 }
 
+myl_update() {
+    local file="$1"
+    local field="$2"
+    shift 2
+
+    if [[ ! -f "$file" ]]; then
+        myl_add "$file" "$field" "$@"
+        return
+    fi
+
+    local tmpfile="${file}.tmp.$$"
+    local line remainder found=0 skip=0 prefix="$field:"
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if (( skip )); then
+            if [[ "${line:0:2}" == "  " ]]; then
+                continue
+            fi
+            skip=0
+        fi
+
+        if (( ! found )) && [[ "${line:0:${#prefix}}" == "$prefix" ]]; then
+            remainder="${line:${#prefix}}"
+            if [[ -z "$remainder" || "${remainder:0:1}" == " " ]]; then
+                if (( $# == 0 )); then
+                    printf '%s:\n' "$field"
+                elif (( $# == 1 )); then
+                    printf '%s: %s\n' "$field" "$1"
+                else
+                    printf '%s:\n' "$field"
+                    printf '  %s\n' "$@"
+                fi
+                found=1
+                [[ -z "$remainder" ]] && skip=1
+                continue
+            fi
+        fi
+
+        printf '%s\n' "$line"
+    done < "$file" > "$tmpfile" || {
+        rm -f "$tmpfile"
+        return 1
+    }
+
+    if (( ! found )); then
+        myl_add "$tmpfile" "$field" "$@"
+    fi
+
+    mv "$tmpfile" "$file"
+}
+
+myl_append() {
+    local file="$1"
+    local field="$2"
+    shift 2
+
+    if [[ ! -f "$file" ]]; then
+        myl_add "$file" "$field" "$@"
+        return
+    fi
+
+    local tmpfile="${file}.tmp.$$"
+    local line remainder value found=0 in_block=0 prefix="$field:"
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if (( in_block )); then
+            if [[ "${line:0:2}" == "  " ]]; then
+                printf '%s\n' "$line"
+                continue
+            fi
+            for value in "$@"; do
+                printf '  %s\n' "$value"
+            done
+            in_block=0
+        fi
+
+        if (( ! found )) && [[ "${line:0:${#prefix}}" == "$prefix" ]]; then
+            remainder="${line:${#prefix}}"
+            if [[ -z "$remainder" || "${remainder:0:1}" == " " ]]; then
+                printf '%s:\n' "$field"
+                while [[ "${remainder:0:1}" == " " ]]; do
+                    remainder="${remainder:1}"
+                done
+                if [[ -n "$remainder" ]]; then
+                    printf '  %s\n' "$remainder"
+                fi
+                if [[ -z "$remainder" ]]; then
+                    in_block=1
+                else
+                    for value in "$@"; do
+                        printf '  %s\n' "$value"
+                    done
+                fi
+                found=1
+                continue
+            fi
+        fi
+
+        printf '%s\n' "$line"
+    done < "$file" > "$tmpfile" || {
+        rm -f "$tmpfile"
+        return 1
+    }
+
+    if (( in_block )); then
+        for value in "$@"; do
+            printf '  %s\n' "$value"
+        done >> "$tmpfile"
+    fi
+
+    if (( ! found )); then
+        myl_add "$tmpfile" "$field" "$@"
+    fi
+
+    mv "$tmpfile" "$file"
+}
+
 myl_get() {
     local file="$1"
     local field="$2"

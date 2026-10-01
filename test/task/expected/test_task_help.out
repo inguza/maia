@@ -2,15 +2,23 @@ USAGE
 
   maia task [--scope <scope>] <command> [<args>...]
      Manage tasks
-  maia task --scope
-     Show the scope for the current task definitions
 
-Manage LLM tasks.
+Manage tasks.
 
 COMMANDS
 
   create [--private|--shared] <description line 1> [<...>]
-      Create a task and remember it.
+      Create a task. Not remembered immediately since tasks are by
+      default for work to be done later.
+
+  remove <taskname>...
+      Delete and forget the task.
+
+  mark <taskname> <status> <version>
+      Set the status of a task to <status>.
+
+  report <taskname> <report> <version>
+      Report progress for <taskname>.
 
   list
       List all tasks, marking loaded tasks.
@@ -27,9 +35,6 @@ COMMANDS
   forget <taskname>...
       Remove task(s) from the loaded context.
 
-  remove <taskname>...
-      Delete and forget the task.
-
   clear
       Clear loaded tasks list.
 
@@ -39,8 +44,8 @@ COMMANDS
 OPTIONS
 
   --scope <scope>
-      Specify the scope to operate on. Valid: session, workspace, home, user, system, extra.
-      NOTE! Memory is always session scope.
+      Specify the scope to operate on. Valid: session, workspace, profile.
+      Applicable to create and remove only.
 
   -h, --help
       Show this help message and exit.
