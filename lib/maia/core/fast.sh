@@ -207,7 +207,7 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
-mq_merge() {
+myl_merge() {
     local -A values=() multiline=() seen=()
     local -a order=()
     local file line key value current="" is_multiline=0
@@ -254,7 +254,7 @@ mq_merge() {
     done
 }
 
-mq_pretty() {
+myl_pretty() {
     local file="$1"
     local heading="$2"
     local heading_extra="$3"
@@ -282,7 +282,7 @@ mq_pretty() {
     done < "$file"
 }
 
-mq_add() {
+myl_add() {
     local file="$1"
     local field="$2"
     shift 2
@@ -297,7 +297,7 @@ mq_add() {
     fi
 }
 
-mq_get() {
+myl_get() {
     local file="$1"
     local field="$2"
     if [[ ! -f "$file" ]] ; then
