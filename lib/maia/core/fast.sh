@@ -207,6 +207,53 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
+mq_merge() {
+    local -A values=() multiline=() seen=()
+    local -a order=()
+    local file line key value current="" is_multiline=0
+
+    for file in "$@"; do
+        [[ -f "$file" ]] || continue
+        current=""
+        is_multiline=0
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            if (( is_multiline )) && [[ "${line:0:2}" == "  " ]]; then
+                values["$current"]+="${line}"$'\n'
+                continue
+            fi
+
+            if (( is_multiline )); then
+                is_multiline=0
+                current=""
+            fi
+
+            if [[ "$line" =~ ^([^:[:space:]]+):[[:space:]]?(.*)$ ]]; then
+                key="${BASH_REMATCH[1]}"
+                value="${BASH_REMATCH[2]}"
+                if [[ ! -v seen[$key] ]]; then
+                    seen["$key"]=1
+                    order+=("$key")
+                fi
+                values["$key"]="$value"
+                multiline["$key"]=0
+                current="$key"
+                if [[ -z "$value" ]]; then
+                    is_multiline=1
+                    multiline["$key"]=1
+                fi
+            fi
+        done < "$file"
+    done
+
+    for key in "${order[@]}"; do
+        if [[ "${multiline[$key]}" == 1 ]]; then
+            printf '%s:\n%s' "$key" "${values[$key]}"
+        else
+            printf '%s: %s\n' "$key" "${values[$key]}"
+        fi
+    done
+}
+
 mq_add() {
     local file="$1"
     local field="$2"

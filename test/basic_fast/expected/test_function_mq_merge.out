@@ -1,0 +1,11 @@
+description:
+  Version 2 is multiline
+  yes it is
+more1:
+  Something here
+  and here
+more2: Version 2 is single-line
+more3:
+  Something here3
+  and here3
+    to be included: yes
