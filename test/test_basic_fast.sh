@@ -37,6 +37,8 @@ echo "" >> 1.txt
 run_function "mq_add_m2" mq_add 1.txt "more2" "Something here2" "and here2"
 run_function "mq_add_m3" mq_add 1.txt "more3" "Something here3" "and here3" "  to be included: yes"
 run_function "show1" cat 1.txt
+run_function "showp1" mq_pretty 1.txt
+run_function "showp1h" mq_pretty 1.txt description
 
 run_function "mq_get_description" mq_get 1.txt "description"
 run_function "mq_get_more1" mq_get 1.txt "more1"
@@ -49,6 +51,7 @@ touch 2.txt
 run_function "w2_description" mq_add 2.txt "description" "Version 2 is multiline" "yes it is"
 run_function "w2_more2" mq_add 2.txt "more2" "Version 2 is single-line"
 run_function "show2" cat 2.txt
+run_function "showp2" mq_pretty 2.txt
 
 run_function "mq_merge" mq_merge notexistingfile.txt 1.txt 2.txt
 

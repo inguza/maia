@@ -254,14 +254,44 @@ mq_merge() {
     done
 }
 
+mq_pretty() {
+    local file="$1"
+    local heading="$2"
+    local heading_extra="$3"
+    local line key value current="" multiline=0 pretty_key
+
+    [[ -f "$file" ]] || return 1
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if (( multiline )) && [[ "${line:0:2}" == "  " ]]; then
+            printf '%s\n' "$line"
+            continue
+        fi
+        multiline=0
+
+        if [[ "$line" =~ ^([^:[:space:]]+):[[:space:]]?(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+            pretty_key="${key^}"
+            if [[ "$key" == "$heading" ]]; then
+                printf '%s# %s: %s\n\n' "$heading_extra" "$pretty_key" "$value"
+            else
+                printf '%s: %s\n' "$pretty_key" "$value"
+            fi
+            [[ -n "$value" ]] || multiline=1
+        fi
+    done < "$file"
+}
+
 mq_add() {
     local file="$1"
     local field="$2"
     shift 2
 
-    if (( $# == 1 )); then
+    if (( $# == 0 )); then
+	printf '%s:\n' "$field" >> "$file"
+    elif (( $# == 1 )); then
 	printf '%s: %s\n' "$field" "$1" >> "$file"
-    elif (( $# > 1 )); then
+    else
 	printf '%s:\n' "$field" >> "$file"
 	printf '  %s\n' "$@" >> "$file"
     fi
