@@ -421,6 +421,7 @@ handle_send_command() {
     local max_output_tokens=$(get_config max_output_tokens)
     local max_input_tokens=$(get_config max_input_tokens)
     local top_p=$(get_config top_p)
+    local max_tool_calls=$(get_config max_tool_calls)
     local tool_loop_prevent
     read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg" | read_file "" cr)"
     local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
@@ -734,6 +735,7 @@ handle_send_command() {
 		   --arg model "$model" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
+		   --argjson max_tool_calls "$max_tool_calls" \
 		   --argjson max_tokens "$max_output_tokens" \
 		   --argjson tools "$tools_json" \
 		   --slurpfile messages "$tmpmf" \

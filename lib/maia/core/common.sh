@@ -39,6 +39,7 @@ declare -A DEFAULT_CONFIG=(
     # Model related parameters
     [temperature]=null
     [top_p]=null
+    [max_tool_calls]=null
     # Logging control
     [http_logging]=true
     [term_loglevel]=NOTICE

@@ -1,4 +1,5 @@
 {
+  "max_tool_calls": "null",
   "cost_output_gpt_4_1": 8,
   "default_agent_skill_restrict": "session",
   "default_agent_instruction_forget": "",

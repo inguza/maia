@@ -9,6 +9,7 @@
 * `max_output_tokens` — Maximum number of output tokens requested. This is a limit sent to the API provider.
 * `tool_iteration_limit` — Maximum number of tool iterations in a model interaction.
 * `tool_loop_prevent` — Tools for which repeated tool-loop execution is prevented.
+* `max_tool_calls` — The maximum number of total calls to built-in tools that can be processed in a response. Only for OpenAI Responses API.
 * `send_hook` — Optional hook executed when preparing or sending a request. This can be used, for example, to read the API credentials.
 
 ### API parameters

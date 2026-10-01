@@ -28,6 +28,7 @@ file_handling_mode             default    "DEFAULT"
 http_logging                   default    true
 max_input_tokens               default    64000
 max_output_tokens              default    32000
+max_tool_calls                 default    "null"
 mcp_servers                    default    "[]"
 model                          default    "gpt-5.6-luna"
 prune_mode                     default    "reduce"

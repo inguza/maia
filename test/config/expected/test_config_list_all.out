@@ -1,3 +1,4 @@
+max_tool_calls
 cost_output_gpt_4_1
 default_agent_skill_restrict
 default_agent_instruction_forget
