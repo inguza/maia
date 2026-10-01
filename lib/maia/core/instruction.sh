@@ -130,7 +130,7 @@ handle_instruction_command() {
 
     local scope=""
     local scopearg=""
-    local prompt_type="instructionsetcontext"
+    local prompt_type="instructionset"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help)
@@ -210,7 +210,7 @@ handle_instruction_command() {
         show)
 	    echo "Memorized instructions:"
 	    echo "-----------------"
-	    prompt_for_scope "$scope" "instructionsetcontext"
+	    prompt_for_scope "$scope" "instructionset"
             ;;
         append|remember|add|edit|replace|clear|clearnonotice|delete)
 	    # seed on first append
