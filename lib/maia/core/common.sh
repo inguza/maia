@@ -126,6 +126,8 @@ declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile sessio
 declare -A SKILL_DIRS
 declare -a INSTRUCTION_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
 declare -A INSTRUCTION_DIRS
+declare -a TASK_SEARCH_ORDER=(workspace profile session)
+declare -A TASK_DIR
 declare -a PROFILE_SEARCH_ORDER=(install system user home workspace session plugins extra)
 declare -A PROFILE_DIRS
 
@@ -260,6 +262,16 @@ init_instruction_search_dirs() {
 	[install]="${MAIA_INSTRUCTIONS_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "instructions")"
 	[extra]="$(get_config additional_instruction_paths)"
+    )
+}
+
+init_task_search_dirs() {
+    init_profile_search_dirs
+    local wsroot="$(resolve_workspace_root)"
+    TASK_DIR=(
+	[session]="${SCOPE_DIR[session]}/tasks"
+	[profile]="$(resolve_profile_path "tasks")"
+	[workspace]="${SCOPE_DIR[workspace]}/tasks"
     )
 }
 
@@ -2111,6 +2123,33 @@ mcp_content() {
             | select(.text != null)
             | .text
 	    '
+}
+
+### Task handling
+get_all_ordered_task_names() {
+    local type="$1"
+    declare -A seen=()
+    local sc
+    for sc in "${TASK_SEARCH_ORDER[@]}"; do
+        local dir_list="${TASK_DIR[$sc]}" dir=""
+	local dirs
+        IFS=':' read -ra dirs <<< "$dir_list"
+        for dir in "${dirs[@]}"; do
+            [[ -d "$dir" ]] || continue
+            local d
+            for d in "$dir"/private-*.myl "$dir"/shared-*.myl; do
+                [[ -f "$d" ]] || continue
+                local task="$(myl_get "$d" "task")"
+                [[ -n "$task" && ! -v seen[$task] ]] || continue
+                seen["$task"]=1
+                if [[ "$type" == "file" ]]; then
+                    echo "$task $d"
+                else
+                    echo "$task"
+                fi
+            done
+        done
+    done
 }
 
 ### Instruction handling

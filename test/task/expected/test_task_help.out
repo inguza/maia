@@ -1,0 +1,60 @@
+USAGE
+
+  maia task [--scope <scope>] <command> [<args>...]
+     Manage tasks
+  maia task --scope
+     Show the scope for the current task definitions
+
+Manage LLM tasks.
+
+COMMANDS
+
+  create [--private|--shared] <description line 1> [<...>]
+      Create a task and remember it.
+
+  list
+      List all tasks, marking loaded tasks.
+
+  show
+      Show loaded tasks and their descriptions.
+
+  append|remember|add <taskname>...
+      Append task(s) to the loaded list. Wildcards supported.
+
+  replace <taskname>...
+      Replace loaded tasks with specified ones. Wildcards supported.
+
+  forget <taskname>...
+      Remove task(s) from the loaded context.
+
+  remove <taskname>...
+      Delete and forget the task.
+
+  clear
+      Clear loaded tasks list.
+
+  delete
+      Remove the loaded task list.
+
+OPTIONS
+
+  --scope <scope>
+      Specify the scope to operate on. Valid: session, workspace, home, user, system, extra.
+      NOTE! Memory is always session scope.
+
+  -h, --help
+      Show this help message and exit.
+
+NOTE
+
+  <taskname> is handled as <text-or-file>:
+    - a word
+    - a "quoted text"
+    - +command (compose, read, edit)
+    - =filename (content of a file)
+    - ++word (litteral +word)
+    - ==word (litteral =word)
+    - @snippet
+  If multiple are provided they are appended as new lines (except for edit
+  which opens the editor inline).
+

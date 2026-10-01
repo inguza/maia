@@ -131,9 +131,10 @@ COMMANDS:
     history|h        History operations (show, pop, top, delete, summarize, search, clear, export)
     filesets|fileset Fileset management (list, create, delete, show, clear)
     files|file|f     File management (add, forget, remove)
-    toolset|tools|tool Tool management (list, enable/append, replace, disable, clear, run, refresh, verify, delete)
-    skill	     Skill management (list, show, remember, append, replace, clear, run, refresh, verify, delete)
-    instruction	     Instruction management (list, show, remember, append, replace, clear, delete)
+    tools|tool	     Tool management (list, enable/append, replace, disable, clear, run, refresh, verify, delete)
+    skill	     Skill management (list, show, remember, append, replace, forget, clear, run, refresh, verify, delete)
+    instruction	     Instruction management (list, show, remember, append, replace, forget, clear, delete)
+    task	     Task management (create, list, show, remember, append, replace, forget, clear, remove, delete)
 
   Workspace and change handling
     workspace|w      Workspace management (create, use, show, list, clear, delete)
@@ -295,6 +296,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/instruction.sh"
 	handle_instruction_command "$@"
+	;;
+    tasks|task)
+	shift
+	. "$MAIA_CORE_LIB_DIR/task.sh"
+	handle_task_command "$@"
 	;;
     shell)
 	shift
