@@ -6,6 +6,7 @@
   "default_allowed_tool_effects": "[\"limited-write\"]",
   "http_logging": true,
   "cost_input_gpt_5_4_mini": 0.75,
+  "cost_output_gpt_5_6_luna": 1.2,
   "splice_allowed_files": "\\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$",
   "default_agent_skill_remember": "*",
   "cost_input_gpt_4_1_mini": 0.4,
@@ -22,11 +23,13 @@
   "tool_iteration_limit": 20,
   "file_handling_mode_mistral_24b": "APPEND",
   "cost_input_gpt_5_4": 2.5,
+  "cost_input_gpt_5_6_luna": 0.2,
   "default_agent_instruction_remember": "*",
   "cost_output_gpt_5_4": 15,
   "send_hook": "",
   "cost_output_gpt_5_4_mini": 4.5,
   "api_type": "AUTODETECT",
+  "cost_input_gpt_5_6_terra": 2,
   "api_base_url": "https://api.openai.com",
   "mcp_servers": "[]",
   "default_session_filesets": "[\"__SESSION_NAME__\"]",
@@ -42,7 +45,7 @@
   "additional_tool_paths": "",
   "cost_output_gpt_4_1_nano": 0.4,
   "prune_mode": "reduce",
-  "model": "gpt-5.4-mini",
+  "model": "gpt-5.6-luna",
   "cost_output_gpt_4_1_mini": 1.6,
   "file_handling_mode": "DEFAULT",
   "additional_skill_paths": "",
@@ -53,5 +56,6 @@
   "default_agent_tool_allow": "*",
   "default_session_extra_send_filesets": "[]",
   "auto_add_new_files_on_apply": true,
-  "temperature": "null"
+  "temperature": "null",
+  "cost_output_gpt_5_6_terra": 12
 }

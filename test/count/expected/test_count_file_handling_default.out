@@ -1,18 +1,18 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
 0    SYSTEM       ->   36 tokens (chars: 141)
-0    USER[0]      ->   88 tokens (chars: 351)
+0    USER[0]      ->   98 tokens (chars: 390)
 ──────────────────────────────
-APPROXIMATE TOKENS for model 'gpt-5.4-mini':
-Total:         124
-  Input:        88
+APPROXIMATE TOKENS for model 'gpt-5.6-luna':
+Total:         134
+  Input:        98
   Output:        0
 ──────────────────────────────
-  User:         88
+  User:         98
   Assistant:     0
-APPROXIMATE COST (USD) for model 'gpt-5.4-mini':
-  Total:      $0.000066
-  Input:      $0.000066
+APPROXIMATE COST (USD) for model 'gpt-5.6-luna':
+  Total:      $0.000020
+  Input:      $0.000020
   Output:     $0.000000
 The input cost is a prediction of what will be sent.
 The output cost is based on last request.

@@ -1,5 +1,5 @@
 {
-  "model": "gpt-5.4-mini",
+  "model": "gpt-5.6-luna",
   "store": false,
   "max_completion_tokens": 32000,
   "n": 1,
@@ -124,7 +124,7 @@
   ]
 }
 {
-  "model": "gpt-5.4-mini",
+  "model": "gpt-5.6-luna",
   "store": false,
   "max_completion_tokens": 32000,
   "n": 1,

@@ -33,7 +33,7 @@ TOOLSET_DEF_EXT=".td"
 declare -A DEFAULT_CONFIG=(
     [api_type]="AUTODETECT"
     [api_base_url]="https://api.openai.com"
-    [model]="gpt-5.4-mini"
+    [model]="gpt-5.6-luna"
     [max_output_tokens]=32000
     [max_input_tokens]=64000
     # Model related parameters
@@ -80,6 +80,11 @@ declare -A DEFAULT_CONFIG=(
     [default_agent_instruction_remember]="*"
     [default_agent_instruction_forget]=""
     # Default cost configuration (flat keys with cost_ prefix)
+    [cost_input_gpt_5_6_terra]=2.0
+    [cost_output_gpt_5_6_terra]=12.0
+    [cost_input_gpt_5_6_luna]=0.20
+    [cost_output_gpt_5_6_luna]=1.2
+    #
     [cost_input_gpt_5_4]=2.5
     [cost_output_gpt_5_4]=15
     [cost_input_gpt_5_4_mini]=0.75
