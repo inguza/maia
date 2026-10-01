@@ -207,6 +207,40 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
+yq_get() {
+    local field="$1"
+    local file="$2"
+    if [[ ! -f "$file" ]] ; then
+	return 1
+    fi
+    local prefix="$field:"
+    local line value found=0
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+	if (( ! found )); then
+	    [[ "${line:0:${#prefix}}" == "$prefix" ]] || continue
+	    value="${line:${#prefix}}"
+	    [[ -z "$value" || "${value:0:1}" == " " ]] || continue
+	    while [[ "${value:0:1}" == " " ]]; do
+		value="${value:1}"
+	    done
+	    if [[ -n "$value" ]]; then
+		printf '%s' "$value"
+		return 0
+	    fi
+	    found=1
+	    continue
+	fi
+
+	if [[ "${line:0:2}" == "  " ]]; then
+	    printf '%s\n' "${line:2}"
+	else
+	    return 0
+	fi
+    done < "$file"
+    return 0
+}
+
 # Git Bash workaround
 normalize_lf() {
     local -n _xdst="$1"
