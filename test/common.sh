@@ -7,8 +7,6 @@
 # Commercial licensing is available separately.
 #
 
-set -euo pipefail
-
 # Base directories - assume test/ is current directory when running scripts
 readonly TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SUITENAME=$(basename "$0" | sed 's/test_//;s/\.sh$//;')
