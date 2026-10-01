@@ -163,7 +163,7 @@ handle_instruction_command() {
 	list)
 	    scope="$implicit_scope"
 	    ;;
-        refresh|verify|edit)
+        edit)
 	    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
 		scope="$implicit_scope"
 	    fi
