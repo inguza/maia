@@ -207,9 +207,22 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
-yq_get() {
-    local field="$1"
-    local file="$2"
+mq_add() {
+    local file="$1"
+    local field="$2"
+    shift 2
+
+    if (( $# == 1 )); then
+	printf '%s: %s\n' "$field" "$1" >> "$file"
+    elif (( $# > 1 )); then
+	printf '%s:\n' "$field" >> "$file"
+	printf '  %s\n' "$@" >> "$file"
+    fi
+}
+
+mq_get() {
+    local file="$1"
+    local field="$2"
     if [[ ! -f "$file" ]] ; then
 	return 1
     fi
