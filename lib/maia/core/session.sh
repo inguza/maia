@@ -37,11 +37,14 @@ COMMANDS
   content [<name>]
     Show the file content in this session.
 
-  instructions [<name>]
-    Show the instruction content in this session.
-
   files [<name>]
     Show a list of files in this session.
+
+  instructions
+    Show the instruction content in this session.
+
+  tasks
+    Show the task content in this session.
 
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
@@ -523,8 +526,13 @@ handle_session_command() {
         instructions|instruction)
 	    shift
 	    init_instruction_search_dirs
-            local name="${1:-$(resolve_session_name)}"
-	    session_instruction_extract "$name"
+	    session_instruction_extract
+            ;;
+
+        tasks|task)
+	    shift
+	    init_task_search_dirs
+	    session_task_extract
             ;;
 
 	set)

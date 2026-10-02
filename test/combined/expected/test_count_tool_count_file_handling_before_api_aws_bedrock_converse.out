@@ -1,7 +1,7 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
-0    SYSTEM       ->  396 tokens (chars: 1584)
-0    USER[0]      ->   29 tokens (chars: 114)
+0    SYSTEM       ->  397 tokens (chars: 1588)
+0    USER[0]      ->   29 tokens (chars: 115)
 1    USER[1]      ->    3 tokens (chars: 10)
 2    ASSISTANT[0] ->    7 tokens (chars: 27)
 3    USER[2]      ->    4 tokens (chars: 16)
@@ -12,28 +12,32 @@ Approximate token counts per message (chars/4 ≈ tokens):
 8    ASSISTANT[3] ->    7 tokens (chars: 27)
 9    USER[5]      ->   10 tokens (chars: 39)
 10   ASSISTANT[4] ->    7 tokens (chars: 27)
-11   USER[6]      ->    7 tokens (chars: 26)
+11   USER[6]      ->   12 tokens (chars: 45)
 12   ASSISTANT[5] ->    7 tokens (chars: 27)
-13   USER[7]      ->    7 tokens (chars: 25)
+13   USER[7]      ->   14 tokens (chars: 55)
 14   ASSISTANT[6] ->    7 tokens (chars: 27)
-15   USER[8]      ->    7 tokens (chars: 25)
+15   USER[8]      ->    7 tokens (chars: 26)
 16   ASSISTANT[7] ->    7 tokens (chars: 27)
-17   USER[9]      ->    9 tokens (chars: 35)
+17   USER[9]      ->    7 tokens (chars: 25)
 18   ASSISTANT[8] ->    7 tokens (chars: 27)
-19   USER[10]     ->    9 tokens (chars: 34)
+19   USER[10]     ->    7 tokens (chars: 25)
 20   ASSISTANT[9] ->    7 tokens (chars: 27)
-21   USER[11]     ->   15 tokens (chars: 57)
+21   USER[11]     ->    9 tokens (chars: 35)
+22   ASSISTANT[10] ->    7 tokens (chars: 27)
+23   USER[12]     ->    9 tokens (chars: 34)
+24   ASSISTANT[11] ->    7 tokens (chars: 27)
+25   USER[13]     ->   15 tokens (chars: 57)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'gpt-5.6-luna':
-Total:         581
-  Input:       178
+Total:         622
+  Input:       218
   Output:        7
 ──────────────────────────────
-  User:        115
-  Assistant:    70
+  User:        141
+  Assistant:    84
 APPROXIMATE COST (USD) for model 'gpt-5.6-luna':
-  Total:      $0.000044
-  Input:      $0.000036
+  Total:      $0.000052
+  Input:      $0.000044
   Output:     $0.000008
 The input cost is a prediction of what will be sent.
 The output cost is based on last request.

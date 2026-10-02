@@ -131,10 +131,13 @@ COMMANDS
   remove <taskname>...
       Delete and forget the task.
 
-  mark <taskname> <status> <version>
+  update <taskname> <version> <description line 1> [<...>]
+      Update the description of a task.
+
+  mark <taskname> <version> <status>
       Set the status of a task to <status>.
 
-  report <taskname> <report> <version>
+  report <taskname> <version> <report>
       Report progress for <taskname>.
 
   list
@@ -293,26 +296,50 @@ handle_task_command() {
 		handle_task_command forget "$name"
 	    done
 	    ;;
+	update)
+	    if [[ -z "$1" ]] ; then
+		die "Empty task id."
+	    fi
+	    local task="$1"
+	    if [[ -z "$2" ]] ; then
+		die "Empty version."
+	    fi
+	    local ver="$2"
+	    if [[ -z "$3" ]] ; then
+		die "Empty task description."
+	    fi
+	    shift 2
+	    local file="$(find_task_file "$task")"
+	    if [[ -z "$file" || ! -f "$file" ]] ; then
+		die "Task '$task' not found."
+	    fi
+	    local version="$(myl_get "$file" "version")"
+	    if [[ "$version" != "$ver" ]] ; then
+		die "Task version mismatch. The provided version '$ver' is not the same as the required version '$version'."
+	    fi
+	    myl_update "$file" "description" "$@"
+	    myl_update "$file" "version" "$((version + 1))"
+	    ;;
 	mark)
 	    if [[ -z "$1" ]] ; then
 		die "Empty task id."
 	    fi
 	    local task="$1"
 	    if [[ -z "$2" ]] ; then
-		die "Empty task status."
+		die "Empty version."
 	    fi
 	    if [[ -z "$3" ]] ; then
-		die "Empty version."
+		die "Empty task status."
 	    fi
 	    local file="$(find_task_file "$task")"
 	    if [[ -z "$file" || ! -f "$file" ]] ; then
 		die "Task '$task' not found."
 	    fi
 	    local version="$(myl_get "$file" "version")"
-	    if [[ "$version" != "$3" ]] ; then
-		die "Task version mismatch. The provided version '$3' is not the same as the required version '$version'."
+	    if [[ "$version" != "$2" ]] ; then
+		die "Task version mismatch. The provided version '$2' is not the same as the required version '$version'."
 	    fi
-	    myl_update "$file" "status" "$2"
+	    myl_update "$file" "status" "$3"
 	    myl_update "$file" "version" "$((version + 1))"
 	    ;;
 	report)
@@ -321,20 +348,20 @@ handle_task_command() {
 	    fi
 	    local task="$1"
 	    if [[ -z "$2" ]] ; then
-		die "Empty task status."
+		die "Empty version."
 	    fi
 	    if [[ -z "$3" ]] ; then
-		die "Empty version."
+		die "Empty task status."
 	    fi
 	    local file="$(find_task_file "$task")"
 	    if [[ -z "$file" || ! -f "$file" ]] ; then
 		die "Task '$task' not found."
 	    fi
 	    local version="$(myl_get "$file" "version")"
-	    if [[ "$version" != "$3" ]] ; then
-		die "Task version mismatch. The provided version '$3' is not the same as the required version '$version'."
+	    if [[ "$version" != "$2" ]] ; then
+		die "Task version mismatch. The provided version '$2' is not the same as the required version '$version'."
 	    fi
-	    myl_append "$file" "progress" "$2"
+	    myl_append "$file" "progress" "$3"
 	    myl_update "$file" "version" "$((version + 1))"
 	    ;;
         list)

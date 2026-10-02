@@ -22,6 +22,8 @@ DEFAULT_SKILLSET_PROMPT_GEN=""
 DEFAULT_SKILLSETCONTEXT_PROMPT_GEN=""
 DEFAULT_INSTRUCTIONS_PROMPT_TXT="# Available instructions\n\n"
 DEFAULT_INSTRUCTIONSCONTEXT_PROMPT_TXT="# Instructions\n\n"
+DEFAULT_TASKS_PROMPT_TXT="# Available tasks\n\n"
+DEFAULT_TASKSCONTEXT_PROMPT_TXT="# Tasks\n\n"
 # TODO: Get rid of this and instead expand from the default tools prompt
 DEFAULT_TOOLSET_PROMPT_JSON="[]"
 
@@ -869,6 +871,31 @@ apply_default_filter_to_spec() {
     else
         echo "$spec"
     fi
+}
+
+session_task_extract() {
+    local task_file="$(file_for_scope "session" "taskset.txt")"
+    local tmplist="$(mktemp)"
+    local tmpmem="$(mktemp)"
+    generate_taskset_gen "$task_file" "$tmplist" "$tmpmem"
+    echo "# Available tasks"
+    if [[ ! -s "$tmplist" ]] ; then
+	echo ""
+	echo "No available tasks."
+	echo ""
+    else
+	read_file "$tmplist" cr
+    fi
+    rm -f "$tmplist"
+    echo "# Tasks"
+    if [[ ! -s "$tmpmem" ]] ; then
+	echo ""
+	echo "No tasks."
+	echo ""
+    else
+	read_file "$tmpmem" cr
+    fi
+    rm -f "$tmpmem"
 }
 
 session_instruction_extract() {
@@ -2268,6 +2295,8 @@ generate_instructionset_gen() {
     : > "$loaded_file"
     : > "$avail_file"
     while IFS=' ' read -r instruction instructionfile; do
+	# In case of empty data
+	[[ -n "$instruction" ]] || continue
 	local fields
 	mapfile_from_command fields read_md_fields "$instructionfile" description any-path any-tool all-path all-tool loadable
 	local desc="${fields[0]}"
@@ -2277,7 +2306,7 @@ generate_instructionset_gen() {
 	local all_tool="${fields[4]}"
 	local loadable="${fields[5]}"
 
-        if [[ -n $memory_glob && $instruction == $memory_glob ]]; then
+        if [[ -n "$memory_glob" && $instruction == $memory_glob ]]; then
 	    md_content_convert "$instruction" "$desc" "$instructionfile" >> "$loaded_file"
 	    loaded_instructions["$instructionfile"]=1
 	else
@@ -2327,7 +2356,6 @@ generate_instructionset_gen() {
 	md_content_convert "/" "$desc" "$instructionfile" "#" >> "$loaded_file"
     fi
     for file in "${files[@]}" ; do
-	# TODO, search also the ws root folder, even if there are no files
 	# Find MAIA.md files for this path
 	local parts
 	IFS=/ read -ra parts <<< "$file"
@@ -2345,6 +2373,29 @@ generate_instructionset_gen() {
 	    fi
 	done
     done
+}
+
+generate_taskset_gen() {
+    local taskset_file="$1"
+    local avail_file="$2"
+    local loaded_file="$3"
+
+    local tasksdata="$(get_all_ordered_task_names "file")"
+    local memory_glob=$(make_glob_from_file "$taskset_file")
+
+    rm -f "$loaded_file" "$avail_file"
+    : > "$loaded_file"
+    : > "$avail_file"
+    while IFS=' ' read -r task taskfile; do
+	# In case of empty data
+	[[ -n "$task" ]] || continue
+        if [[ -n "$memory_glob" && $task == $memory_glob ]]; then
+	    myl_pretty "$taskfile" "task" "#" >> "$loaded_file"
+	    echo "" >> "$loaded_file"
+	else
+	    printf '* %s\n' "$task" >> "$avail_file"
+	fi
+    done <<< "$tasksdata"
 }
 
 ### 120-10*2-25-10=65

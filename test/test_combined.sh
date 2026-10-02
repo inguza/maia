@@ -82,6 +82,12 @@ run_instruction_cmd() {
     run_and_check "test_instruction_${test_id}" $MAIA instruction "$@"
 }
 
+run_task_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_task_${test_id}" $MAIA task "$@"
+}
+
 run_history_cmd() {
     local test_id="$1"
     shift
@@ -169,6 +175,12 @@ for api in "${api_types_and_configs[@]}"; do
     run_send_cmd "skill_remember_text${suffix}" "Hello with skills memory, AI!"
     run_tool_cmd "enable_pipe_seq_tool${suffix}_2" enable core-pipe core-sequence
     run_send_cmd "skill_remember_pipe_text${suffix}" "Hello with skills memory and tools, AI!"
+    run_task_cmd "create-task-1${suffix}" create "This is a task"
+    run_task_cmd "remember-task-1${suffix}" remember task-1
+    run_send_cmd "skill_remember_task_text${suffix}" "Hello with task, skills memory and tools, AI!"
+    run_task_cmd "forget-task-1${suffix}" forget task-1
+    run_send_cmd "skill_forget_task_text${suffix}" "Hello with forgotten task, skills memory and tools, AI!"
+    run_task_cmd "remove-task-1${suffix}" remove task-1
     run_tool_cmd "delete_pipe_seq_tool${suffix}_2" delete
     run_skill_cmd "skill_delete_seq_tool${suffix}_1" delete
 

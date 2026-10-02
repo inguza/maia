@@ -1,2 +1,2 @@
-- Before calling `file-change`, make sure the requested file's content is available in the `Files:` section.
+- Before calling `file-change`, make sure the requested file's content is available in the `# Files` section.
   If it is not available, do not call `file-change` and tell the user that you are lacking the file content.

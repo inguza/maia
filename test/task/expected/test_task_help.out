@@ -14,10 +14,13 @@ COMMANDS
   remove <taskname>...
       Delete and forget the task.
 
-  mark <taskname> <status> <version>
+  update <taskname> <version> <description line 1> [<...>]
+      Update the description of a task.
+
+  mark <taskname> <version> <status>
       Set the status of a task to <status>.
 
-  report <taskname> <report> <version>
+  report <taskname> <version> <report>
       Report progress for <taskname>.
 
   list

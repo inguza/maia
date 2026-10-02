@@ -11,6 +11,7 @@
 . "$MAIA_CORE_LIB_DIR/send.sh"  # for build_messages_json
 # Important to be able to see the instructions
 init_instruction_search_dirs
+init_task_search_dirs
 
 count_usage() {
     cat <<'EOF'
@@ -133,7 +134,7 @@ handle_count_command() {
     local api_type=$(get_config api_type)
     local mode="$(determine_file_handling_mode "$model" "$api_type" "$file_handling_mode_raw")"
     local sys="$(build_system_text "$mode" "false" "false" "false" "false" "false")"
-    local messages_json=$(build_messages_json "$outbox_file" "$sys" "$model" "false" "$mode" "false" "$api_type")
+    local messages_json=$(build_messages_json "$outbox_file" "$sys" "$model" "false" "$mode" "false" "false" "$api_type")
 
     # Iterate messages via jq and estimate tokens by role
     local count idx role content len tokens

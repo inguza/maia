@@ -58,6 +58,13 @@ pandoc:write
 resource-discover:write
 shell-exec:write
 skill-exec:write
+task-create-private:write
+task-create-shared:write
+task-forget:write
+task-mark:write
+task-remember:write
+task-report:write
+task-update:write
 util-cat:write
 util-diff:write
 util-file:write

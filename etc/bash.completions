@@ -21,7 +21,7 @@ _maia()
     fi
 
     # top-level commands (collated from bin/maia and lib/maia/core)
-    local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill instruction snippet session job history workspace shell edit compose run"
+    local cmds="config home api session send user outbox system snippet snip count change parse file fileset tool skill instruction snippet session job history workspace shell task tasks edit compose run"
 
     # flags: top-level vs per-subcommand
     local top_level_flags="--version -h --help"
@@ -325,6 +325,35 @@ _maia()
                 _maia_complete_text_or_file
                 return 0
             fi
+            ;;
+        task|tasks)
+            local subcmds="create remove update mark report list show append remember add replace forget clear delete view"
+            local task_names=() task_line task_name
+            while IFS= read -r task_line; do
+                task_line="${task_line# }"
+                task_line="${task_line# }"
+                [[ "$task_line" == "* "* ]] && task_line="${task_line#\* }"
+                task_name="${task_line%% *}"
+                [[ -n "$task_name" ]] && task_names+=("$task_name")
+            done < <(maia task list 2>/dev/null)
+            if [[ $COMP_CWORD -eq 2 ]]; then
+                COMPREPLY=( $(compgen -W "$subcmds $subcmd_help_flags --scope" -- "$cur") )
+                return 0
+            fi
+            if [[ "$prev" == "--scope" ]]; then
+                COMPREPLY=( $(compgen -W "session workspace profile" -- "$cur") )
+                return 0
+            fi
+            if [[ "${COMP_WORDS[2]}" == "create" && "$cur" == --* ]]; then
+                COMPREPLY=( $(compgen -W "--private --shared $subcmd_help_flags" -- "$cur") )
+                return 0
+            fi
+            case "${COMP_WORDS[2]}" in
+                remove|update|mark|report|append|remember|add|replace|forget)
+                    COMPREPLY=( $(compgen -W "${task_names[*]}" -- "$cur") )
+                    return 0
+                    ;;
+            esac
             ;;
         snippet|snippets)
             local subcmds="list show append add replace edit delete"

@@ -49,6 +49,9 @@ OPTIONS
   --no-instructions
     Do not include instructions in the request.
 
+  --no-tasks
+    Do not include tasks in the request.
+
 EXAMPLES
 
     maia send "Hello, AI!"

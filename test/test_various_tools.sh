@@ -263,6 +263,14 @@ run_tool_cmd "job-cancel" "job-cancel" '{"id":"'$ID'"}'
 run_tool_cmd "job-delete" "job-delete" '{"id":"'$ID'"}'
 run_tool_cmd "job-exist" "job-exist" '{"id":"'$ID'"}'
 
+# Task management
+$MAIA tool allow "task-*" "task-create-shared:shared-context"
+run_tool_cmd "task-create-private" "task-create-private" '{"description": ["Line 1", "Line 2"]}'
+run_tool_cmd "task-create-shared" "task-create-shared" '{"description": ["Line 1", "Line 2"]}'
+run_tool_cmd "task-mark" "task-mark" '{"task":"task-1","status":"done","version":"1"}'
+run_tool_cmd "task-report" "task-report" '{"task":"task-1","progress":"The work has been completed","version":"2"}'
+run_tool_cmd "task-update" "task-update" '{"task":"task-1", "description":["Updated description"],"version":"3"}'
+
 # Lynx
 # not tested
 
