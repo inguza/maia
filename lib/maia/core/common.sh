@@ -1406,7 +1406,7 @@ prompt_for_scope() {
     local f="$(file_for_scope "$target" "${type}.${ext}")"
     if [[ -n "$f" ]]; then
 	# Git Bash workaround to use sed instead of cat
-	sed 's/\r$//' "$f"
+	read_file "$f" cr
     else
 	local T="${type^^}"
 	local E="${ext^^}"
