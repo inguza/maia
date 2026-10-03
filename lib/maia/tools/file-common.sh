@@ -12,11 +12,11 @@ find_index() {
     local index=1
     # Match any file with this pattern
     # TODO: This has a race condition between check and touch
-    while compgen -G "$change_dir/${baseid}-${index}-*.json" > /dev/null; do
+    while compgen -G "$change_dir/${baseid}-${index}-*.myl" > /dev/null; do
         ((index++))
     done
     mkdir -p "$change_dir"
-    touch "$change_dir/${baseid}-${index}-pending.json"
+    touch "$change_dir/${baseid}-${index}-pending.myl"
     echo "$index"
 }
 
@@ -76,7 +76,7 @@ clean_meta() {
     local change_dir="$1"
     local baseid="$2"
     local index="$3"
-    local file="$change_dir/${baseid}-${index}-pending.json"
+    local file="$change_dir/${baseid}-${index}-pending.myl"
     if [[ -e "$file" && ! -s "$file" ]] ; then
 	# If it exists and is not larger than zero (meaning zero) remove it
 	rm -f "$file"
@@ -110,12 +110,12 @@ write_meta() {
     if [[ -n "${TOOL_CALL_ID}" ]] ; then
 	source="${TOOL_CALL_ID}"
     fi
-    jq -n --arg type "$type" --arg filename "$fname" --arg source "$source" \
-       '{type: $type, filename: $filename, source: $source}' > \
-       "$change_dir/${baseid}-${index}-pending.json"
-    if [[ ! -e "$change_dir/${baseid}-+-pending.json" ]] ; then
-	jq -n --arg type "set" --arg filename "$fname" \
-	   '{type: $type}' > \
-	   "$change_dir/${baseid}-+-pending.json"
+
+    # Write directly in myl format. Easy enough.
+    printf 'type: %s\nfilename: %s\nsource: %s\n' \
+	   "$type" "$fname" "$source" > \
+       "$change_dir/${baseid}-${index}-pending.myl"
+    if [[ ! -e "$change_dir/${baseid}-+-pending.myl" ]] ; then
+	printf 'type: set\n' > "$change_dir/${baseid}-+-pending.myl"
     fi
 }

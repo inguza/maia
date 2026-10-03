@@ -49,15 +49,10 @@ DEBUG=true test/test_<suitename>.sh
 - send
 - history
 - change
-- parse
 - count
 
 The following internal tools are partially covered by indirect tests.
 - extract.pl (session, file and combined)
-- parse.pl (parse_apply_flow)
-
-Then we also have direct tests of the internal tools to extend the coverage:
-- parse.pl
 
 ## Areas lacking coverage
 
@@ -65,6 +60,7 @@ Then we also have direct tests of the internal tools to extend the coverage:
 - history compact
 - history hide
 - history unhide
+- file-change followed by apply (it is however the most common thing so it will be catched very quickly)
 
 ## Areas that test with legacy OPENAI_CHAT_COMPLETIONS
 - parse_apply_flow

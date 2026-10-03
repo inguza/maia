@@ -14,9 +14,9 @@ change_state_change_common() {
 	[[ "$changef" == *+* ]] && continue
 
 	local prune_id="$(basename "$changef")"
-	prune_id="${prune_id%-*.json}"
+	prune_id="${prune_id%-*.myl}"
 	prune_id="${prune_id%-*}"
-	local source=$(jq -r '.source' "$changef") || continue
+	local source=$(myl_get "$changef" 'source') || continue
 	if [[ "$source" == call_* ]]; then
 	    # Prune the history in the followning way:
 	    # - Look up role=tool entries with tool_call_id=$source and prune the patch content part

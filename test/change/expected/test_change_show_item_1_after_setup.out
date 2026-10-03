@@ -1,7 +1,5 @@
-{
-  "type": "patch",
-  "filename": "src/file1.txt"
-}
+Type: patch
+Filename: src/file1.txt
 
 Suggested patch below:
 ======================

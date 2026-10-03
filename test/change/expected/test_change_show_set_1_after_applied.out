@@ -1,16 +1,13 @@
-{
-  "type": "set"
-}
+Type: set
 
 Assistant response text below:
 ==============================
 Instruction text for the change set
 
 Sub-change: <dateandtime>-abcd1234-1
-{
-  "type": "patch",
-  "filename": "src/file1.txt"
-}
+Type: patch
+Filename: src/file1.txt
+
 Suggested patch below:
 ======================
 Patch content for file1

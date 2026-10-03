@@ -46,18 +46,6 @@ COMMANDS
 
   save <filename> <ID>
 
-  adjust [<ID> [<ID>...]]
-    Adjust the body of the change by opening it up in an editor.
-    Can be useful to remove whice-space, comments or similar that made
-    further processing complicated.
-
-  process [<ID> [<ID>...]]
-    Process the body of the change similar to the 'maia parse' would have done.
-
-  convert <ID> [--type snippet|file|shell|diff|manual] [filename]
-    Change the type and/or filename of a change. Assign filename if provided.
-    Automatically generates or removes patch files as needed.
-
   applied [--update-history] [<ID> [<ID>...]]
     Mark a change status as applied.
 
@@ -136,7 +124,7 @@ prune_history() {
     esac
 
     # Locate root metadata file
-    local root_meta="$changes_dir/$session/${idbase}-+-${state_suffix}.json"
+    local root_meta="$changes_dir/$session/${idbase}-+-${state_suffix}.myl"
     if [[ ! -f "$root_meta" ]]; then
         notice "Root metadata file $root_meta not found; skipping history pruning for change $idbase"
         return
@@ -195,16 +183,16 @@ find_last_set_change_id() {
     local session="$1"
     shopt -s nullglob
     local last_id=""
-    local files=( "$changes_dir"/$session/*-+-*.json )
+    local files=( "$changes_dir"/$session/*-+-*.myl )
     if (( ${#files[@]} == 0 )); then
         echo ""
         return
     fi
-    # Extract IDs by stripping directory and trailing '-+.json'
+    # Extract IDs by stripping directory and trailing '-+.myl'
     local ids=()
     for f in "${files[@]}"; do
         local fname=$(basename -- "$f")
-        local id="${fname%-+-*.json}"
+        local id="${fname%-+-*.myl}"
         ids+=( "$id" )
     done
     # Sort lexically and pick last
@@ -224,7 +212,7 @@ pre_check() {
     shopt -s nullglob
 
     # Look at every sub-entry JSON (index "+" or digits)
-    for f in "$changes_dir/$session/${base}-"*".json"; do
+    for f in "$changes_dir/$session/${base}-"*".myl"; do
 	[[ -f "$f" ]] || continue
 	if [[ "$(get_status "$f")" == "pending" ]]; then
 	    pending=true
@@ -243,7 +231,7 @@ post_check() {
     local all_match=true
     shopt -s nullglob
     # Verify every sub-entry JSON now has .status != pending
-    for f in "$changes_dir/$session/${base}-"*".json"; do
+    for f in "$changes_dir/$session/${base}-"*".myl"; do
 	if [[ "$(get_status "$f")" == "pending" ]]; then
 	    all_match=false
 	    break
@@ -335,7 +323,7 @@ change_list() {
 	# We do not need to check that $scdir is a directory, because this
 	# for look will do that anyway
 	shopt -s extglob
-	for file in "$scdir"/*-${status_filter}.json; do
+	for file in "$scdir"/*-${status_filter}.myl; do
 	    local fname base status index id type filename
 	    if [[ $scprinted -eq 0 ]] ; then
 		if [[ $print_sessname -eq 1 ]] ; then
@@ -346,7 +334,7 @@ change_list() {
 		fi
 	    fi
 	    fname=$(basename $file)
-	    base="${fname%.json}"                # => "...-+-pending" or "...-0-pending"
+	    base="${fname%.myl}"                # => "...-+-pending" or "...-0-pending"
 	    status=$(get_status "$file")
 	    # 3) Extract the “index” field (either "+" or a digit)
 	    tmp="${base%-*}"                     # => "...-+-" or "...-0"
@@ -354,8 +342,8 @@ change_list() {
 	    # 4) Compute filebase = everything up to (and including) the index
 	    filebase="$tmp"                      # => "2025-05-17T19:10:54-81610843-+"
             #    or "…-81610843-0"
-	    type=$(jq -r '.type' "$file")
-	    filename=$(jq -r '.filename' "$file")
+	    type=$(myl_get "$file" 'type')
+	    filename=$(myl_get "$file" 'filename')
 	    # 5) Compute id: drop the “-+” for a set file, keep “-0” for numbered
 	    if [[ "$index" == "+" ]]; then
 		# remove the trailing “-+”
@@ -373,64 +361,6 @@ change_list() {
 	done
     done
 }
-
-change_adjust() {
-    local ids=("$@")
-    if (( ${#ids[@]} == 0 )); then
-        local last_id=$(find_last_set_change_id "$session")
-        if [[ -z "$last_id" ]]; then
-            die "No change ID found."
-        fi
-        ids=("$last_id")
-    fi
-
-    local changes_dir="$(resolve_changes_path)"
-
-    for id in "${ids[@]}"; do
-        local body_file="$changes_dir/$session/${id}-pending.body"
-        if [[ ! -f "$body_file" ]]; then
-            die "Change body file not found for ID '$id' ($body_file)"
-        fi
-        info "Opening body file for editing: $body_file"
-        "${EDITOR:-vi}" "$body_file"
-    done
-}
-
-change_process() {
-    local ids=("$@")
-    if (( ${#ids[@]} == 0 )); then
-        local last_id
-        last_id=$(find_last_set_change_id "$session")
-        if [[ -z "$last_id" ]]; then
-            die "No change ID found."
-        fi
-        ids=("$last_id")
-    fi
-
-    local changes_dir="$(resolve_changes_path)"
-
-    local ws_name=$(resolve_workspace_name)
-    local ws_root=$(resolve_workspace_root "$ws_name")
-    [[ -n "$ws_root" && -d "$ws_root" ]] || die "Workspace root '$ws_root' not found or invalid"
-
-    # Pass along options for parse.pl from config
-    local tab_width=$(get_config tab_width)
-    local splice_allowed_files=$(get_config splice_allowed_files)
-    local session_name=$(resolve_session_name)
-
-    for id in "${ids[@]}"; do
-        local body_file="$changes_dir/$session/${id}-pending.body"
-        if [[ ! -f "$body_file" ]]; then
-            die "Change body file not found for ID '$id' ($body_file)"
-        fi
-
-        notice "Processing change ID $id"
-        "$MAIA_CORE_LIB_DIR/parse.pl" process --loglevel "$TERM_LOGLEVEL" --session "$session_name" \
-            --tab-width "$tab_width" --allowed-files "$splice_allowed_files" \
-            "$body_file" "$ws_root"
-    done
-}
-
 
 get_status() {
     local file="$1" fname base status
@@ -492,12 +422,12 @@ apply_patch() {
     for pf in "$@"; do
 	if [[ "$revert" == false ]] ; then
 	    pid=$(basename -- "$pf" -pending.patch)
-	    local jsonf="$changes_dir/$session/${pid}-pending.json"
+	    local metaf="$changes_dir/$session/${pid}-pending.myl"
 	    patch -p1 < "$pf" || die "Apply failed on $pid"
 	    notice "Applied change '$pid'"
 	else
 	    pid=$(basename -- "$pf" -applied.patch)
-	    local jsonf="$changes_dir/$session/${pid}-applied.json"
+	    local metaf="$changes_dir/$session/${pid}-applied.myl"
 	    patch -R -p1 < "$pf" || die "Revert failed on $pid"
 	    notice "Revert change '$pid'"
 	fi
@@ -505,7 +435,7 @@ apply_patch() {
 	if [[ "$AUTO_ADD" == true ]]; then
 	    # Check if it is a new file
 	    if grep -q '^--- /dev/null' "$pf"; then
-		local file_to_add="$(jq -r '.filename' "$jsonf")"
+		local file_to_add="$(myl_get "$metaf" 'filename')"
 		if [[ -n "$file_to_add" ]]; then
 		    add_file_to_session_filesets "$file_to_add" "$session"
 		    notice "Added new file '$file_to_add' to active session filesets."
@@ -513,19 +443,19 @@ apply_patch() {
             fi
         fi
 	if [[ "$revert" == false ]] ; then
-	    change_state_for_jsons applied "$jsonf"
+	    change_state_for_meta applied "$metaf"
 	else
-	    change_state_for_jsons pending "$jsonf"
+	    change_state_for_meta pending "$metaf"
 	fi
     done
     popd >/dev/null
 }
 
-# change_state_for_jsons <new_state> <json_file> [<json_file>...]
+# change_state_for_meta <new_state> <json_file> [<json_file>...]
 #   For each given JSON metadata file, extract its ID (timestamp–sha–index),
 #   detect its old_state (pending|applied|skipped), and then rename ALL
 #   artifacts for that ID from old_state → new_state.
-change_state_for_jsons() {
+change_state_for_meta() {
     local new_state=$1
     shift
     (( $# >= 1 )) || die "Usage: maia change <new-state> id [...]"
@@ -533,13 +463,13 @@ change_state_for_jsons() {
     shopt -s nullglob
 
     trigger_event "pre-change-state-${new_state}" "$@"
-    for jsonf in "$@"; do
-	[[ -f "$jsonf" ]] || die "File not found: $jsonf"
+    for metaf in "$@"; do
+	[[ -f "$metaf" ]] || die "File not found: $metaf"
 	# basename + strip extension → e.g. 20250517T191054-81610843-+-pending
-	local fname=$(basename -- "$jsonf")
-	local base="${fname%.json}"
+	local fname=$(basename -- "$metaf")
+	local base="${fname%.myl}"
 	# old_state is the last dash-segment
-	local old_state="$(get_status $jsonf)"
+	local old_state="$(get_status $metaf)"
 	# id_with_index_state is everything before the last dash + state
 	local id_with_index_state="${base%-*}"
 	local id_with_index="${id_with_index_state%-${old_state}}"
@@ -598,124 +528,6 @@ make_patch() {
         notice "No differences detected; patch file removed"
         return 1
     fi
-}
-
-handle_change_convert() {
-    local new_type=""
-    local args=()
-
-    # Parse arguments: first is ID, then options and optional filename
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --type)
-                shift
-                [[ -z "$1" ]] && die "Missing argument for --type"
-                new_type="$1"
-                shift
-                ;;
-            *)
-                args+=("$1")
-                shift
-                ;;
-        esac
-    done
-
-    # Extract ID and optional filename from remaining args
-    local id="${args[0]}"
-    local filename="${args[1]:-}"
-
-    [[ -n "$id" ]] || die "Change ID required for convert"
-
-    local ws_name=$(resolve_workspace_name)
-    ws_root=$(resolve_workspace_root "$ws_name")
-    [[ -n "$ws_root" && -d "$ws_root" ]] || die "Workspace root '$ws_root' not found or invalid"
-    local changes_dir="$(resolve_changes_path)"
-
-    # Locate metadata JSON (numbered assumed, set cannot be converted)
-    local meta_path=$(find "$changes_dir/$session" -maxdepth 1 -type f -name "${id}-[a-z]*.json" | head -n1)
-    [[ -n "$meta_path" && -f "$meta_path" ]] || die "Metadata JSON for ID '$id' not found"
-
-    # If filename provided, update metadata now
-    if [[ -n "$filename" ]]; then
-        jq --arg fn "$filename" '.filename = $fn' "$meta_path" > "${meta_path}.tmp" && mv "${meta_path}.tmp" "$meta_path"
-        notice "Assigned filename '$filename' to change '$id'"
-    fi
-
-    # Reload metadata to get current type and filename
-    local curr_type=$(jq -r '.type // empty' "$meta_path")
-    local curr_filename=$(jq -r '.filename // empty' "$meta_path")
-
-    [[ -n "$curr_type" ]] || die "Change '$id' has no type in metadata"
-    [[ -n "$curr_filename" ]] || die "Change '$id' has no filename assigned"
-
-    # Determine target type if not specified
-    if [[ -z "$new_type" ]]; then
-        if [[ "$curr_type" == "file" || "$curr_type" == "patch" ]]; then
-            new_type="snippet"
-        elif [[ "$curr_type" == "snippet" ]]; then
-            new_type="file"
-        else
-            new_type="$curr_type"
-        fi
-        notice "No --type specified; defaulting to '$new_type'"
-    fi
-
-    # Define suffixes for current and new types
-    declare -A type_suffix=(
-        [file]="file"
-        [patch]="file"
-        [snippet]="snippet"
-        [shell]="sh"
-        [diff]="diff"
-        [manual]="txt"
-    )
-    local curr_suffix="${type_suffix[$curr_type]}"
-    local new_suffix="${type_suffix[$new_type]}"
-
-    # Possible numbered suffix from meta file name (e.g. -+ or -0)
-    local idx_suffix
-    if [[ "$meta_path" =~ ([^/]+)\.json$ ]]; then
-        idx_suffix="${BASH_REMATCH[1]}"
-    else
-	die "Cannot convert a set type change."
-    fi
-
-    local body_file="${changes_dir}/$session/${idx_suffix}.body"
-    # Paths to current files
-    local curr_content_file="${changes_dir}/$session/$session/${idx_suffix}.${curr_suffix}"
-    local curr_patch_file="${changes_dir}/$session/${idx_suffix}.patch"
-
-    # Paths to new files
-    local new_content_file="${changes_dir}/$session/${idx_suffix}.${new_suffix}"
-    local new_patch_file="${changes_dir}/$session/${idx_suffix}.patch"
-
-    # Validate content file exists
-    if [[ ! -f "$curr_content_file" ]]; then
-        die "Content file '$curr_content_file' not found for change '$id'"
-    fi
-
-    # Handle conversion
-
-    # If new type is 'file', generate patch from content and workspace file
-    rm -f "$curr_content_file"
-    cp "$body_file" "$new_content_file"
-    if [[ "$new_type" == "file" ]]; then
-        # Generate patch file
-        if make_patch "$curr_filename" "$new_content_file" "$new_patch_file"; then
-	    new_type="patch"
-	fi
-    else
-        if [[ -f "$curr_patch_file" ]]; then
-            rm -f "$curr_patch_file"
-            debug "Removed patch file '$curr_patch_file'"
-        fi
-    fi
-
-    # Update metadata JSON with new type and filename
-    jq --arg t "$new_type" --arg fn "$curr_filename" \
-       '.type = $t | .filename = $fn' "$meta_path" > "${meta_path}.tmp" && mv "${meta_path}.tmp" "$meta_path"
-
-    info "Converted change '$id' to type '$new_type' with filename '$curr_filename'"
 }
 
 showfiles() {
@@ -786,7 +598,6 @@ handle_change_command() {
     [[ "$1" =~ ^-h|--help$ ]] && change_usage
     [[ "$2" =~ ^-h|--help$ ]] && change_usage
     cmd=$1; shift
-
     # Determine active session and ensure it exists
     local session=$(resolve_session_name)
     ensure_session_exists "$session"
@@ -845,18 +656,18 @@ handle_change_command() {
 	    LC_COLLATE=C
 	    shopt -s nullglob
 	    prefix="$changes_dir/$session/$id-+-"
-	    file=$(match_single_file "$prefix" ".json")
+	    file=$(match_single_file "$prefix" ".myl")
 	    if [[ -n "$file" ]]; then
 		# It's a set id; show the set plus its sub-IDs
 		die "Cannot save a change set."
 	    else
 		# Not a set id, fallback to normal single file display
 		prefix="$changes_dir/$session/$id"
-		file=$(match_single_file "$prefix" ".json")
+		file=$(match_single_file "$prefix" ".myl")
 		if [[ -z "$file" ]] ; then
 		    die "Change '$id' not found."
 		fi
-		local type=$(jq -r ".type" < "$file")
+		local type=$(myl_get "$file" "type")
 		local tosave=$(match_single_file "$prefix" ".$type")
 		if [[ -n "$tosave" ]] ; then
 		    notice "Change '$id' saved to '$filename'."
@@ -884,7 +695,7 @@ handle_change_command() {
 	    LC_COLLATE=C
 	    shopt -s nullglob
 	    prefix="$changes_dir/$session/$id-+-"
-	    file=$(match_single_file "$prefix" ".json")
+	    file=$(match_single_file "$prefix" ".myl")
 	    if [[ -n "$file" ]]; then
 		# It's a set id; show the set plus its sub-IDs
 		if $raw; then
@@ -894,7 +705,8 @@ handle_change_command() {
 			read_file_by_line "$changes_dir/$session/$id.txt" cr
 		    fi
 		else
-		    jq . "$file"; echo
+		    myl_pretty "$file"
+		    echo
 		    showfiles "$prefix"
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
 			echo "Assistant response text below:"
@@ -905,13 +717,14 @@ handle_change_command() {
 
 		# Now show all sub-IDs
 		shopt -s nullglob
-		local files=( "$changes_dir/$session/${id}-"[0-9]*".json" )
-		for subjson in "${files[@]}"; do
-		    local subbase=$(basename "$subjson" .json)
+		local files=( "$changes_dir/$session/${id}-"[0-9]*".myl" )
+		for subchange in "${files[@]}"; do
+		    local subbase=$(basename "$subchange" .myl)
 		    local subid="${subbase%-*}"
 		    echo
 		    echo "Sub-change: $subid"
-		    jq . "$subjson"
+		    myl_pretty "$subchange"
+		    echo
 		    if [[ "$raw" == false ]]; then
 			local subprefix="${changes_dir}/$session/${subbase}"
 			showfiles "$subprefix"
@@ -920,7 +733,7 @@ handle_change_command() {
 	    else
 		# Not a set id, fallback to normal single file display
 		prefix="$changes_dir/$session/$id"
-		file=$(match_single_file "$prefix" ".json")
+		file=$(match_single_file "$prefix" ".myl")
 		if $raw; then
 		    cat "$prefix"*.* 2>/dev/null || die "No files for ID $id"
 		    echo
@@ -929,7 +742,7 @@ handle_change_command() {
 		    fi
 		else
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"
-		    jq . "$file"; echo
+		    myl_pretty "$file"; echo
 		    showfiles "$prefix"
 		fi
 	    fi
@@ -953,17 +766,17 @@ handle_change_command() {
 	    for id in "$@"; do
 		# 1) Try to find the “set” JSON (index = +)
 		prefix="$changes_dir/$session/$id-+-"
-		file=$(match_single_file "$prefix" ".json")
+		file=$(match_single_file "$prefix" ".myl")
 		# 2) Fallback to numbered JSON if no set file
 		if [[ -z "$file" ]]; then
 		    prefix="$changes_dir/$session/$id-"
-		    file=$(match_single_file "$prefix" ".json")
+		    file=$(match_single_file "$prefix" ".myl")
 		fi
-		[[ -f "$file" ]] || die "Change '$id' not found (tried '$prefix*.json')"
+		[[ -f "$file" ]] || die "Change '$id' not found (tried '$prefix*.myl')"
 
 		# 3) Optionally reassign path
 		if [[ -n "$assign_path" ]]; then
-		    jq --arg p "$assign_path" '.path = $p' "$file" > tmp.$$ && mv tmp.$$ "$file"
+		    myl_update "$file" "path" "$assign_path"
 		    notice "Reassigned path for $id -> $assign_path"
 		fi
 
@@ -979,18 +792,18 @@ handle_change_command() {
 	    for id in "$@"; do
 		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    local prefix="$changes_dir/$session/$id-"
-		    local jsonf=$(match_single_file "$prefix" ".json")
-		    if [[ ! -e "$jsonf" ]] ; then
+		    local metaf=$(match_single_file "$prefix" ".myl")
+		    if [[ ! -e "$metaf" ]] ; then
 			warn "Metadata for sub-change $id not found, skipping."
 			continue
 		    fi
-		    local status=$(get_status "$jsonf")                 # => "pending"
-		    local type=$(jq -r '.type'   "$jsonf")
+		    local status=$(get_status "$metaf")                 # => "pending"
+		    local type=$(myl_get "$metaf" "type")
 		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
 		    [[ "$type"   == "shell"  || "$type" == "action" ]] || die "Cannot auto-apply non-shell '$id'"
-		    change_state_for_jsons "running" "$jsonf"
+		    change_state_for_meta "running" "$metaf"
 		    # OBSERVE! Files are changed now to running!!!
-		    jsonf=$(match_single_file "$prefix" ".json")
+		    metaf=$(match_single_file "$prefix" ".myl")
 		    local shellfile="${changes_dir}/$session/${id}-running.${type}"
 		    [[ -e "${shellfile}" ]] || { warn "Skipping change '$id' since it is missing a shell command file."; continue; }
 		    local outputfile="${changes_dir}/$session/${id}-running.output"
@@ -1007,14 +820,14 @@ handle_change_command() {
 		    fi
 		    echo $exit_status > "${changes_dir}/$session/${id}-running.exit_status"
 		    if [[ $exit_status == 0 ]] ; then
-			change_state_for_jsons "finished" "$jsonf"
+			change_state_for_meta "finished" "$metaf"
 			post_check "$session" "${id%-*}" finished
 		    else
-			change_state_for_jsons "failed" "$jsonf"
+			change_state_for_meta "failed" "$metaf"
 			post_check "$session" "${id%-*}" failed
 		    fi
 		    # OBSERVE! Files are changed now to finished or failed!!!
-		    jsonf=$(match_single_file "$prefix" ".json")
+		    metaf=$(match_single_file "$prefix" ".myl")
 		else
 		    # While change set
 		    notice "$id is a change set. Execute individually instead."
@@ -1046,13 +859,13 @@ handle_change_command() {
 		    # --- single sub-entry ---
 		    # Find its JSON metadata
 		    prefix="$changes_dir/$session/$id-"
-		    jsonf=$(match_single_file "$prefix" ".json")
-		    if [[ ! -e "$jsonf" ]] ; then
+		    metaf=$(match_single_file "$prefix" ".myl")
+		    if [[ ! -e "$metaf" ]] ; then
 			warn "Metadata for sub-change $id not found, skipping."
 			continue
 		    fi
-		    status=$(get_status "$jsonf")                 # => "pending"
-		    type=$(jq -r '.type'   "$jsonf")
+		    status=$(get_status "$metaf")                 # => "pending"
+		    type=$(myl_get "$metaf" "type")
 		    if [[ "$cmd" == "apply" ]] ; then
 			[[ "$status" == "pending" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
 			[[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
@@ -1070,7 +883,7 @@ handle_change_command() {
 		    # Collect all pending patches
 		    shopt -s nullglob
 		    export LC_COLLATE=C
-		    local subs=( "$changes_dir/$session/${id}-"*[0-9]"-"*".json" )
+		    local subs=( "$changes_dir/$session/${id}-"*[0-9]"-"*".myl" )
 		    if (( ${#subs[@]} == 0 )); then
 			notice "No sub-entries found for $id"
 			continue
@@ -1079,16 +892,16 @@ handle_change_command() {
 		    bad=false
 		    for jf in "${subs[@]}"; do
 			status=$(get_status "$jf")
-			type=$(jq -r '.type' "$jf")
+			type=$(myl_get "$jf" 'type')
 			if [[ "$type" != "patch" ]] ; then
 			    if [[ "$status" == "pending" && "$cmd" == "apply" ]]; then
-				local subid=$(basename -- "$jf" .json)
+				local subid=$(basename -- "$jf" .myl)
 				subid=${subid%-pending}
 				error "Cannot auto-apply: $subid is of type $type."
 				bad=true
 			    fi
 			    if [[ "$status" == "applied" && "$cmd" == "revert" ]]; then
-				local subid=$(basename -- "$jf" .json)
+				local subid=$(basename -- "$jf" .myl)
 				subid=${subid%-applied}
 				error "Cannot auto-revert: $subid is of type $type."
 				bad=true
@@ -1104,7 +917,7 @@ handle_change_command() {
 			    continue
 			fi
 			apply_patch "$workspace_root" "${patches[@]}"
-			change_state_for_jsons applied $(match_single_file "$changes_dir/$session/${id}-+-pending.json")
+			change_state_for_meta applied $(match_single_file "$changes_dir/$session/${id}-+-pending.myl")
 			# Change the state
 			notice "Applied all patches for change set $id"
 			post_check "$session" "$id" applied
@@ -1115,25 +928,13 @@ handle_change_command() {
 			    continue
 			fi
 			apply_patch -R "$workspace_root" "${patches[@]}"
-			change_state_for_jsons pending $(match_single_file "$changes_dir/$session/${id}-+-applied.json")
+			change_state_for_meta pending $(match_single_file "$changes_dir/$session/${id}-+-applied.myl")
 			# Change the state
 			notice "Reverted all patches for change set $id"
 			# No post check, because this is a revert: post_check "$session" "$id" pending
 		    fi
 		fi
 	    done
-	    ;;
-
-	convert)
-	    handle_change_convert "$@"
-	    ;;
-
-	adjust)
-	    change_adjust "$@"
-	    ;;
-
-	process)
-	    change_process "$@"
 	    ;;
 
 	applied|skipped|pending|finished|failed|running)
@@ -1152,11 +953,13 @@ handle_change_command() {
 		    if [[ "$action" != "pending" ]]; then
 			pre_check "$session" "$id"
 		    fi
-		    change_state_for_jsons "$action" "$changes_dir/$session/${id}-"*[0-9]"-"*".json" $(match_single_file "$changes_dir/$session/$id-+-" ".json")
+		    change_state_for_meta "$action" \
+					  "$changes_dir/$session/${id}-"*[0-9]"-"*".myl" \
+					  $(match_single_file "$changes_dir/$session/$id-+-" ".myl")
 		    notice "Updated to state '$action' for change set $id and all sub-entries."
 		else
 		    # --- single sub-entry ---
-		    change_state_for_jsons "$action" "$changes_dir/$session/${id}-"*".json"
+		    change_state_for_meta "$action" "$changes_dir/$session/${id}-"*".myl"
 		    notice "Updated to state '$action' for change $id."
 		fi
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ && "$action" != "pending" ]]; then
@@ -1170,7 +973,7 @@ handle_change_command() {
 	    # Parse options before IDs
 	    while [[ $# -gt 0 && "$1" == --* ]]; do
 		case "$1" in
-		    --all) shift; MATCH="*-+-*.json" ;;
+		    --all) shift; MATCH="*-+-*.myl" ;;
 		    *) break ;;
 		esac
 	    done
@@ -1198,7 +1001,7 @@ handle_change_command() {
 	    fi
 	    for id in "$@"; do
 		# Gather relevant json files
-		local files=("$changes_dir/$session/$id-"*.json)
+		local files=("$changes_dir/$session/$id-"*.myl)
 		# Delete base and sub-entry files accordingly, including .txt files
 		trigger_event "pre-change-delete" "${files[@]}"
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then

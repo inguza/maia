@@ -37,18 +37,6 @@ COMMANDS
 
   save <filename> <ID>
 
-  adjust [<ID> [<ID>...]]
-    Adjust the body of the change by opening it up in an editor.
-    Can be useful to remove whice-space, comments or similar that made
-    further processing complicated.
-
-  process [<ID> [<ID>...]]
-    Process the body of the change similar to the 'maia parse' would have done.
-
-  convert <ID> [--type snippet|file|shell|diff|manual] [filename]
-    Change the type and/or filename of a change. Assign filename if provided.
-    Automatically generates or removes patch files as needed.
-
   applied [--update-history] [<ID> [<ID>...]]
     Mark a change status as applied.
 

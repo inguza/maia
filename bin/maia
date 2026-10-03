@@ -113,6 +113,7 @@ COMMANDS:
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
     api              AI introspection (models, model, fine-tunes, fine-tune, usage)
+    update	     Update data to latest software and refresh skills and tools.
 
   Session and prompt handling
     session          Session management (create, list, show, delete)
@@ -138,7 +139,6 @@ COMMANDS:
 
   Workspace and change handling
     workspace|w      Workspace management (create, use, show, list, clear, delete)
-    parse            Parse assistant response and produce change suggestions [DEPRECATED]
     change|c         Change management (list, show, edit, gen, apply, applied, delete, skip)
 
   Shell and execution handling
@@ -242,6 +242,11 @@ case "$COMMAND" in
 	;;
     debug)
 	;;
+    update)
+	shift
+	. "$MAIA_CORE_LIB_DIR/update.sh"
+	handle_update_command "$@"
+	;;
     user|u|outbox)
 	shift
 	. "$MAIA_CORE_LIB_DIR/user.sh"
@@ -311,11 +316,6 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/file.sh"
 	handle_file_command "$@"
-	;;
-    parse)
-	shift
-	. "$MAIA_CORE_LIB_DIR/parse.sh"
-	handle_parse_command "$@"
 	;;
     filesets|fileset)
 	shift

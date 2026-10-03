@@ -1,13 +1,10 @@
-{
-  "type": "set"
-}
+Type: set
 
 
 Sub-change: <dateandtime>-abcd1235-1
-{
-  "type": "shell",
-  "filename": ""
-}
+Type: shell
+Filename: 
+
 Suggested commands below:
 =========================
 sleep 3
