@@ -9,7 +9,7 @@
 #
 
 . "$MAIA_CORE_LIB_DIR/common.sh"
-_cfg=$(load_merged_config session)
+load_config session CONFIG
 
 resolve_subsession_name() {
     local session="$1"

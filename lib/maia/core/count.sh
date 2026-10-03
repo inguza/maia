@@ -111,8 +111,8 @@ handle_count_command() {
     local cost_input_key="cost_input_${model_key}"
     local cost_output_key="cost_output_${model_key}"
 
-    local cost_input=$(get_config "$cost_input_key" empty)
-    local cost_output=$(get_config "$cost_output_key" empty)
+    local cost_input=$(get_config "$cost_input_key")
+    local cost_output=$(get_config "$cost_output_key")
 
     # Determine history and outbox
     local history_dir=$(resolve_session_path)
@@ -187,7 +187,7 @@ handle_count_command() {
     printf "  User:       %4d\n" "$total_user_tokens"
     printf "  Assistant:  %4d\n" "$total_assistant_tokens"
 
-    if [[ ! $cost_input || ! $cost_output ]] ; then
+    if [[ -z "$cost_input" || -z "$cost_output" ]] ; then
 	warn "Cost configuration missing for model '$model'"
 	return
     fi

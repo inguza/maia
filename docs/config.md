@@ -43,6 +43,7 @@ gent_session_allowed` and all `default_agent_*` allow, forget, remember, and res
 * `default_session_filesets` — Filesets automatically associated with a session.
 * `default_session_extra_send_filesets` — Additional filesets automatically sent with session requests.
 * `default_filter` — Default file context filter.
+* `auto_add_new_files_on_apply` — Automatically adds newly created files to the relevant file context when a change is applied.
 
 ## Skills and tools
 
@@ -55,13 +56,9 @@ gent_session_allowed` and all `default_agent_*` allow, forget, remember, and res
 * `http_logging` — Enables HTTP request/response logging.
 * `term_loglevel` — Minimum terminal log level.
 
-## Legacy parse handling (deprecated)
+## Additional control
 
-* `auto_add_new_files_on_apply` — Automatically adds newly created files to the relevant file context when a change is applied.
-* `auto_parse` — Automatically parses files when they are added or processed.
 * `prune_mode` — Strategy used when pruning context/history.
 * `prune_when_applied` — Whether context is pruned after an applied change.
 * `prune_when_skipped` — Whether context is pruned after a skipped change.
-* `splice_allowed_files` — Regular expression specifying which files may be spliced into context.
-* `tab_width` — Tab width used when parsing the proposed files.
 

@@ -40,7 +40,7 @@ apply_config_param() {
     local param_name="$1"
     local maia_cmd1="$2"
     local maia_cmd2="$3"
-    local value=$(jq -r --arg key "$param_name" '.[$key] // ""' <<< "$_cfg")
+    local value="$(get_config "$param_name")"
     # Git Bash workaround
     value="${value%$'\r'}"
     read -ra patterns <<< "$value"

@@ -116,14 +116,26 @@ FILTER_CONFIG_KEYS=()
 # Echoes scope name or empty string if not present in any on-disk scope.
 find_highest_scope_with_key() {
     local name="$1"
+    local view_scope="$2"
+    local start=false
+    if [[ -z "$start" ]] ; then
+	start="session"
+    fi
+    local start=false
     local s
     for s in "${SCOPE_ORDER[@]}"; do
+	if [[ "$s" == "$view_scope" ]]; then
+	    start=true
+	fi
+	[[ "$start" != true ]] && continue
 	[[ "$s" == "default" ]] && continue
 	local -a files
         local file
-        mapfile_from_command files files_in_scope "$s" "config.json"
+        mapfile_from_command files files_in_scope "$s" "config.myl"
         for file in "${files[@]}"; do
-            if jq -e --arg k "$name" '.[$k]' "$file" >/dev/null 2>&1; then
+	    local -A tmpconfig=()
+	    myl_load "$file" tmpconfig
+	    if [[ -v tmpconfig["$name"] ]] ; then
                 echo "$s"
                 return 0
             fi
@@ -298,6 +310,7 @@ handle_config_command() {
 		die "Invalid configuration key name '$name'. It cannot start with '--'."
 	    fi
 	    # Special handling for default_session_filesets to convert CSV to JSON array
+	    # TODO change
 	    if [[ "$name" == "default_session_filesets" ]]; then
 		IFS=',' read -r -a fs_array <<< "$value"
 		value=$(printf '%s\n' "${fs_array[@]}" | jq -R . | jq -s .)
@@ -371,8 +384,8 @@ handle_config_command() {
 		debug "Get config"
 		get_scope_config "$name" "$view_scope"
 	    else
-		debug "Set config '$name' '$value' '$write_scope'"
 		# Special handling for default_session_filesets to convert CSV to JSON array
+		# TODO change
 		if [[ "$name" == "default_session_filesets" ]]; then
 		    IFS=',' read -r -a fs_array <<< "$value"
 		    value=$(printf '%s\n' "${fs_array[@]}" | jq -R . | jq -s .)
@@ -417,7 +430,8 @@ show_config() {
     local view_scope="${3:-session}"
     printf "%-30s %-10s %s\n" "CONFIG NAME" "SCOPE" "VALUE"
     echo "----------------------------------------------------------------------------"
-    local merged=$(load_merged_config "$view_scope")
+    local -A tmpconfig
+    load_config "$view_scope" tmpconfig
     local keys
     if [[ -n "$name" ]]; then
         keys=($name)
@@ -428,33 +442,23 @@ show_config() {
     fi
     local key
     for key in "${keys[@]}"; do
-	local found="default"
-	# If view_scope is "default", do not inspect on-disk files; everything is default.
-	if [[ "$view_scope" != "default" ]]; then
-	    local start=false
-	    local s
-	    # Iterate scopes in priority order but only consider scopes from view_scope
-	    # downward (i.e., less specific). This prevents reporting a defining scope
-	    # that is more specific than the requested view scope.
-	    for s in "${SCOPE_ORDER[@]}"; do
-		if [[ "$s" == "$view_scope" ]]; then
-		    start=true
-		fi
-		[[ "$start" != true ]] && continue
-		local filelist="$(files_in_scope "$s" "config.json")"
-		local -a files
-		local file
-		mapfile_from_command files files_in_scope "$s" "config.json"
-		for file in "${files[@]}" ; do
-		    if jq -e --arg k "$key" '.[$k]' "$file" >/dev/null; then
-			found=$s
-			break 2
-		    fi
-		done
-	    done
+	local found="$(find_highest_scope_with_key "$key" "$view_scope")"
+	if [[ -z "$found" ]] ; then
+	    found="default"
 	fi
-	local value="$(echo "$merged" | jq -c --arg key "$key" '.[$key]')"
-	printf "%-30s %-10s %s\n" "$key" "$found" "$value"
+	local value="${tmpconfig[$key]}"
+	case "$value" in
+	    true|false)
+		printf '%-30s %-10s %s\n' "$key" "$found" "$value"
+		;;
+	    *)
+		if [[ "$value" =~ ^[0-9\.]+$ ]]; then
+		    printf '%-30s %-10s %s\n' "$key" "$found" "$value"
+		else
+		    printf '%-30s %-10s "%s"\n' "$key" "$found" "$value"
+		fi
+		;;
+	esac
     done
     echo
     printf "%-30s %s\n" "ENVIRONMENT NAME" "VALUE"
@@ -499,7 +503,7 @@ config_file_for_scope() {
     # Look up the directory for this scope
     validate_scope "$scope"
     local dir="${SCOPE_DIR[$scope]}"
-    echo "$dir/config.json"
+    echo "$dir/config.myl"
 }
 
 config_exists() {
@@ -528,39 +532,27 @@ get_scope_config() {
 	config_exists "$name"
     fi
     local scope="${2:-session}"
-    local merged=$(load_merged_config "$scope")
+    local -A tmpconfig
+    load_config "$scope" tmpconfig
     if [[ -n "$name" ]]; then
-	echo "$merged" | jq -r --arg key "$name" '.[$key]'
+	echo "${tmpconfig[$name]}"
     else
-	echo "$merged" | jq .
+	for key in "${!tmpconfig[@]}"; do
+	    printf '%s=%s\n' "$key" "${tmpconfig[$key]}"
+	done
     fi
 }
 
 # Set config name to value in given scope
 set_config() {
-    local name=$1
+    local name="$1"
     config_exists "$name"
-    local value=$2
-    local scope=$3
-    local file=$(config_file_for_scope "$scope") || exit 1
+    local value="$2"
+    local scope="$3"
+    local file="$(config_file_for_scope "$scope")" || exit 1
 
     mkdir -p "$(dirname "$file")"
-
-    # Detect if value looks like JSON (starts with [ or {)
-    if [[ "$value" =~ ^\s*[\[\{] ]]; then
-        # Assume valid JSON, use directly
-        local json_val="$value"
-    else
-        # Otherwise convert to JSON string literal
-        local json_val=$(coerce_to_json "$value")
-    fi
-
-    if [[ -f "$file" ]]; then
-        local tmp=$(mktemp)
-        jq --arg key "$name" --argjson val "$json_val" '.[$key]=$val' "$file" > "$tmp" && mv "$tmp" "$file"
-    else
-        echo "{ \"$name\": $json_val }" > "$file"
-    fi
+    myl_update "$file" "$name" "$value"
 }
 
 # Unset a configuration key in the given scope
@@ -569,8 +561,8 @@ unset_config() {
     config_exists "$name"
     local scope=$2
 
-    # Determine the path to the scope’s config.json
-    local file=$(config_file_for_scope "$scope")
+    # Determine the path to the scope’s config.myl
+    local file="$(config_file_for_scope "$scope")"
 
     # If there's no config file at all, nothing to unset
     if [[ ! -e "$file" ]]; then
@@ -578,15 +570,15 @@ unset_config() {
 	return 0
     fi
 
+    local -A tmpconfig
+    myl_load "$file" tmpconfig
     # If the key isn't present in that file, nothing to remove
-    if ! jq -e --arg k "$name" 'has($k)' "$file" >/dev/null; then
+    if [[ ! -v tmpconfig["$name"] ]] ; then
 	warn "Key '$name' not set in scope '$scope' (nothing to unset)"
 	return 0
     fi
 
     # Otherwise delete the key and overwrite the file
-    local tmp; tmp=$(mktemp)
-    jq --arg key "$name" 'del(.[$key])' "$file" > "$tmp" \
-	&& mv "$tmp" "$file" \
-	&& info "Unset '$name' in scope '$scope'"
+    myl_delete "$file" "$name"
+    info "Unset '$name' in scope '$scope'"
 }

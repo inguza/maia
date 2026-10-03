@@ -4,13 +4,11 @@ default_agent_instruction_forget
 additional_instruction_paths
 default_allowed_tool_effects
 http_logging
-splice_allowed_files
 default_agent_skill_remember
 allowed_profiles
 agent_session_prefix
 tool_loop_prevent
 max_output_tokens
-tab_width
 default_workspace
 term_loglevel
 tool_iteration_limit
@@ -34,7 +32,6 @@ file_handling_mode
 additional_skill_paths
 top_p
 prune_when_skipped
-auto_parse
 default_filter
 default_agent_tool_allow
 default_session_extra_send_filesets

@@ -1,4 +1,4 @@
-# We do NOT use package concept because then we have to update parse.pl too much
+# We do NOT use package concept because then we have to update change.pl too much
 # package common;
 
 use strict;

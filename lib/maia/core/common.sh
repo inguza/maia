@@ -51,14 +51,10 @@ declare -A DEFAULT_CONFIG=(
     [default_filter]=''
     [send_hook]=''
     [tool_loop_prevent]="file-write file-change"
-    # Deprecated parsing parameters
+    [auto_add_new_files_on_apply]=true
     [prune_mode]=reduce
     [prune_when_applied]=true
     [prune_when_skipped]=true
-    [auto_add_new_files_on_apply]=true
-    [tab_width]=8
-    [splice_allowed_files]='\.(?:py|c|cpp|php|js|pl|pm|sh|txt)$'
-    [auto_parse]=false
     # Additional functionality
     [additional_tool_paths]=""
     [additional_skill_paths]=""
@@ -107,6 +103,7 @@ declare -A DEFAULT_CONFIG=(
 )
 CONFIG_KEYS=( "${!DEFAULT_CONFIG[@]}" )
 readonly CONFIG_KEYS
+declare -A CONFIG=()
 
 # Map log levels to numeric priorities
 declare -A LOG_PRIORITIES=(
@@ -312,13 +309,11 @@ get_config() {
     local param="$1"
     local default="$2"
     local var
-    if [[ -z "$default" ]] ; then
-	var=$(jq -r ".$param" <<<"$_cfg")
+    if [[ ! -v CONFIG["$param"] ]] ; then
+	var="$default"
     else
-	var=$(jq -r ".$param // $default" <<<"$_cfg")
+	var="${CONFIG[$param]}"
     fi
-    # Git Bash workaround
-    var="${var%$'\r'}"
     printf '%s' "$var"
     return 0
 }
@@ -1530,52 +1525,22 @@ files_in_scope() {
     done
 }
 
-load_merged_config() {
-    local target_scope="${1:-session}"
-
-    # 1) Seed from DEFAULT_CONFIG
-    local jq_args=() jq_fields=()
-    for key in "${CONFIG_KEYS[@]}"; do
-	local val=${DEFAULT_CONFIG[$key]}
-	if [[ "$val" =~ ^(true|false|[0-9]+(\.[0-9]+)?)$ ]]; then
-	    jq_args+=(--argjson "$key" "$val")
-	else
-	    jq_args+=(--arg "$key" "$val")
-	fi
-	jq_fields+=( "\"$key\": \$$key" )
-    done
-
-    # If the target is the pseudo-scope "default", just return defaults (no disk merges).
-    if [[ "$target_scope" == "default" ]]; then
-	jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }"
-        return
-    fi
-
-    local config_files=()
+load_config() {
+    local target_scope="$1"
+    local -n _dst="$2"
+    copya DEFAULT_CONFIG _dst
     # 2) Derive merge order by reversing SCOPE_ORDER, skipping "default"
     for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
 	local s=${SCOPE_ORDER[idx]}
 	[[ "$s" == "default" ]] && continue
 	local -a files
 	local file
-	mapfile_from_command files files_in_scope "$s" "config.json"
+	mapfile_from_command files files_in_scope "$s" "config.myl"
 	for file in "${files[@]}" ; do
-	    config_files+=("$file")
+	    myl_load "$file" _dst
 	done
 	[[ "$s" == "$target_scope" ]] && break
     done
-
-    # Avoid jq hanging if there are no config files
-    if [[ ${#config_files[@]} -eq 0 ]] ; then
-	jq -n "${jq_args[@]}" "{ $(IFS=,; echo "${jq_fields[*]}") }"
-        return
-    fi
-    
-    # 5) Emit the merged config
-    jq -s \
-        "${jq_args[@]}" \
-        "([ { $(IFS=,; echo "${jq_fields[*]}") } ] + . | reduce .[] as \$item ({}; . * \$item))" \
-        "${config_files[@]}"
 }
 
 # Helper to convert environment variable MAIA_CURL_EXTRA_HEADERS into curl -H arguments.

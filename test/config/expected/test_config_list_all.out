@@ -7,7 +7,6 @@ default_allowed_tool_effects
 http_logging
 cost_input_gpt_5_4_mini
 cost_output_gpt_5_6_luna
-splice_allowed_files
 default_agent_skill_remember
 cost_input_gpt_4_1_mini
 allowed_profiles
@@ -15,7 +14,6 @@ agent_session_prefix
 cost_input_gpt_4_1
 tool_loop_prevent
 max_output_tokens
-tab_width
 file_handling_mode_qwen2_5_14b
 cost_input_gpt_4_1_nano
 default_workspace
@@ -51,7 +49,6 @@ file_handling_mode
 additional_skill_paths
 top_p
 prune_when_skipped
-auto_parse
 default_filter
 default_agent_tool_allow
 default_session_extra_send_filesets

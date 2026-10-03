@@ -7,8 +7,6 @@
 # Commercial licensing is available separately.
 #
 . "$MAIA_CORE_LIB_DIR/user.sh"
-# Load parse handler for auto-parse invocation
-. "$MAIA_CORE_LIB_DIR/parse.sh"
 # Important to be able to see the instructions
 init_instruction_search_dirs
 init_task_search_dirs
@@ -155,7 +153,7 @@ determine_file_handling_mode() {
     model_key="${model_key//-/_}"
     # Extract cost per token for user and assistant from config or fallback to defaults
     local file_handling_key="file_handling_mode_${model_key}"
-    local mode=$(jq -r --arg key "$file_handling_key" '.[ $key ] // empty' <<<"$_cfg" | read_file "" cr)
+    local mode="$(get_config "$file_handling_key")"
     if [[ ! $mode ]] ; then
 	mode=$(get_config file_handling_mode)
     fi
@@ -439,7 +437,7 @@ handle_send_command() {
     local top_p=$(get_config top_p)
     local max_tool_calls=$(get_config max_tool_calls)
     local tool_loop_prevent
-    read -ra tool_loop_prevent <<< "$(jq -r '.tool_loop_prevent' <<<"$_cfg" | read_file "" cr)"
+    read -ra tool_loop_prevent <<< "$(get_config 'tool_loop_prevent')"
     local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
     local api_type=$(get_config api_type)
     local http_logging=$(get_config http_logging)
@@ -929,16 +927,6 @@ handle_send_command() {
 		  }
 		  + (if ($tools | length) > 0 then {tool_calls: $tools} else {} end)
 	     ]'
-	fi
-	if [[ -n "$reply" ]] ; then
-            # Auto-parse feature: if auto_parse is yes or true (case-insensitive)
-            local auto_parse=$(get_config auto_parse)
-            local auto_parse_lc="${auto_parse,,}"
-            if [[ "$auto_parse_lc" == "yes" || "$auto_parse_lc" == "true" ]]; then
-		# Call parse on the last assistant message, with --auto-parse option
-		# This skips generic fenced snippets without filename headers to avoid empty sets
-		handle_parse_command last --auto-parse || true
-            fi
 	fi
 	if [[ -n "$tools_call_json" ]] ; then
 	    local tool_tmp_dir="$(mktemp -d)"

@@ -207,6 +207,70 @@ fast_jq() {
 
 # Not fully needed in this file but does not hurt the performance
 
+copya() {
+    local -n _src="$1"
+    local -n _dest="$2"
+    for key in "${!_src[@]}"; do
+	_dest["$key"]="${_src[$key]}"
+    done
+}
+
+# Load a MYL file into an associative array.
+# Usage: myl_load <associative-array-name> <file>
+#
+# A MYL entry has the form:
+#
+#   key: value
+#
+# or, for a multiline value:
+#
+#   key:
+#     first line
+#     second line
+#
+# The two-space indentation is removed from multiline values.  Existing
+# entries in the destination array are replaced when the same key occurs in
+# the file; keys not present in the file are left untouched.
+myl_load() {
+    local file="$1"
+    local -n _dest="$2"
+
+    [[ -n "$file" ]] || return 2
+    [[ -f "$file" ]] || return 1
+
+    local line key value current="" first_continuation=1
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Be tolerant of files created on Windows.
+        line="${line%$'\\r'}"
+
+        # A line beginning with two spaces belongs to the preceding key.
+        if [[ "$line" == "  "* && -n "$current" ]]; then
+            value="${line:2}"
+            if (( first_continuation )); then
+                _dest["$current"]="$value"
+                first_continuation=0
+            else
+                _dest["$current"]+=$'\\n'"$value"
+            fi
+            continue
+        fi
+
+        # A non-indented line ends the preceding multiline value.
+        current=""
+        first_continuation=1
+
+        # Keys cannot contain whitespace or a colon.  Permit an empty value;
+        # it is useful for fields such as `description:`.
+        if [[ "$line" =~ ^([^:[:space:]]+):[[:space:]]?(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+            _dest["$key"]="$value"
+            current="$key"
+        fi
+    done < "$file"
+}
+
 myl_merge() {
     local -A values=() multiline=() seen=()
     local -a order=()
@@ -346,6 +410,51 @@ myl_update() {
     fi
 
     mv "$tmpfile" "$file"
+}
+
+# Delete a key and its value from a MYL file.
+# Usage: myl_delete <file> <key>
+#
+# A key with an indented multiline value removes the complete block.  The
+# original file is replaced atomically only after the rewrite succeeds.
+myl_delete() {
+    local file="$1"
+    local field="$2"
+
+    [[ -n "$file" && -n "$field" ]] || return 2
+    [[ -f "$file" ]] || return 1
+
+    local tmpfile="${file}.tmp.$$"
+    local line remainder prefix="${field}:" found=0 skip=0
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if (( skip )); then
+            if [[ "${line:0:2}" == "  " ]]; then
+                continue
+            fi
+            skip=0
+        fi
+
+        if (( ! found )) && [[ "${line:0:${#prefix}}" == "$prefix" ]]; then
+            remainder="${line:${#prefix}}"
+            # Match the complete key, not similarly prefixed keys such as
+            # `status` when deleting `state`.
+            if [[ -z "$remainder" || "${remainder:0:1}" == " " ]]; then
+                found=1
+                if [[ -z "$remainder" ]]; then
+                    skip=1
+                fi
+                continue
+            fi
+        fi
+
+        printf '%s\n' "$line"
+    done < "$file" > "$tmpfile" || {
+        rm -f "$tmpfile"
+        return 1
+    }
+
+    mv -- "$tmpfile" "$file"
 }
 
 myl_append() {

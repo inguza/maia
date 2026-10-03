@@ -66,6 +66,10 @@ convert_change_json_files() {
     convert_x_json_files "change" '*/changes/*/*.json'
 }
 
+convert_config_json_files() {
+    convert_x_json_files "change" '*/config.json'
+}
+
 convert_x_json_files() {
     local type="$1"
     shift
@@ -120,6 +124,7 @@ handle_update_command() {
 	    ;;
         upgrade)
             convert_change_json_files
+            convert_config_json_files
             ;;
         refresh)
             :

@@ -82,8 +82,8 @@ fi
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
 # Load merged config up to history scope
-_cfg=$(load_merged_config session)
-export TERM_LOGLEVEL=$(echo "$_cfg" | jq -r '.term_loglevel')
+load_config session CONFIG
+export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
 
 # Check for required tools
 require_command curl
