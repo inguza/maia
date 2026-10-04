@@ -13,12 +13,6 @@ COMMANDS
   create <name> [<src>]
     Create a new fileset named <name>, optionally copying from <src>.
 
-  use [<name>[,<name2>...]]
-    Make <name>(s) the fileset(s) for the current workspace or session.
-    If no name is provided print the fileset(s) currently in use.
-    The workspace use is updated if the session filesets is defined
-    as __WORKSPACE_FILESETS__. If not the session filesets list is updated.
-
   select - an alias of use
 
   show [<name>] [--all] [--workspace]

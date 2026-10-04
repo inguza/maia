@@ -211,7 +211,7 @@ pre_check() {
     # Make sure unmatched globs vanish
     shopt -s nullglob
 
-    # Look at every sub-entry JSON (index "+" or digits)
+    # Look at every sub-entry (index "+" or digits)
     for f in "$changes_dir/$session/${base}-"*".myl"; do
 	[[ -f "$f" ]] || continue
 	if [[ "$(get_status "$f")" == "pending" ]]; then
@@ -230,7 +230,7 @@ post_check() {
     local status="$3"
     local all_match=true
     shopt -s nullglob
-    # Verify every sub-entry JSON now has .status != pending
+    # Verify every sub-entry now has .status != pending
     for f in "$changes_dir/$session/${base}-"*".myl"; do
 	if [[ "$(get_status "$f")" == "pending" ]]; then
 	    all_match=false
@@ -374,9 +374,9 @@ add_file_to_session_filesets() {
     local file="$1"
     local session="$2"
     local ws_name=$(resolve_session_workspace "$session")
-    local expanded_filesets_json=$(get_session_expanded_filesets "$session")
-    local sess_fs
-    mapfile_from_json sess_fs "$expanded_filesets_json"
+    local expanded_filesets=$(get_session_expanded_filesets "$session")
+    local -a sess_fs
+    read -ra sess_fs <<< "$expanded_filesets"
     local workspace_root="$(resolve_workspace_root "$ws_name")"
     local ws_root=$(resolve_workspace_path "$ws_name")
     if [[ ! -e "$workspace_root/$file" ]] ; then
@@ -451,10 +451,6 @@ apply_patch() {
     popd >/dev/null
 }
 
-# change_state_for_meta <new_state> <json_file> [<json_file>...]
-#   For each given JSON metadata file, extract its ID (timestamp–sha–index),
-#   detect its old_state (pending|applied|skipped), and then rename ALL
-#   artifacts for that ID from old_state → new_state.
 change_state_for_meta() {
     local new_state=$1
     shift
@@ -764,10 +760,10 @@ handle_change_command() {
 	    fi
 
 	    for id in "$@"; do
-		# 1) Try to find the “set” JSON (index = +)
+		# 1) Try to find the “set” (index = +)
 		prefix="$changes_dir/$session/$id-+-"
 		file=$(match_single_file "$prefix" ".myl")
-		# 2) Fallback to numbered JSON if no set file
+		# 2) Fallback to numbered if no set file
 		if [[ -z "$file" ]]; then
 		    prefix="$changes_dir/$session/$id-"
 		    file=$(match_single_file "$prefix" ".myl")
@@ -857,7 +853,7 @@ handle_change_command() {
 		# We can handle up to 999 changes
 		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    # --- single sub-entry ---
-		    # Find its JSON metadata
+		    # Find its metadata
 		    prefix="$changes_dir/$session/$id-"
 		    metaf=$(match_single_file "$prefix" ".myl")
 		    if [[ ! -e "$metaf" ]] ; then
@@ -1000,7 +996,7 @@ handle_change_command() {
 		set -- "$xid"
 	    fi
 	    for id in "$@"; do
-		# Gather relevant json files
+		# Gather relevant files
 		local files=("$changes_dir/$session/$id-"*.myl)
 		# Delete base and sub-entry files accordingly, including .txt files
 		trigger_event "pre-change-delete" "${files[@]}"

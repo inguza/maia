@@ -79,7 +79,9 @@ generate_allowed_toolset_def_file() {
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
-    local default_allowed_effects="$(get_config default_allowed_tool_effects '[]')"
+    local -a _arr
+    mapfile_from_command _arr get_config default_allowed_tool_effects
+    local default_allowed_effects="$(printf '%s\n' "${_arr[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')"
     # We match the names against the regexp and then for the matched ones we keep only the last if there are
     # several with the same name.
     # This uses the object index method that overwrites earlier entries

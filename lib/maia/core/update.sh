@@ -48,10 +48,12 @@ json_to_myl(){
         error("change metadata must be a JSON object")
       else
         to_entries[] |
-        if (.value | type) == "string" and (.value | contains("\n")) then
-          "\\(.key):\\n  " + (.value | gsub("\\n"; "\\n  "))
+        if (.value | type) == "array" then
+          "\(.key): \(.value | map(tostring) | join(" "))"
+        elif (.value | type) == "string" and (.value | contains("\n")) then
+          "\(.key):\\n  " + (.value | gsub("\\n"; "\\n  "))
         else
-          "\\(.key): \\(.value)"
+          "\(.key): \(.value)"
         end
       end
     ' "$jsonfile" > "$tmpfile"; then
@@ -67,7 +69,19 @@ convert_change_json_files() {
 }
 
 convert_config_json_files() {
-    convert_x_json_files "change" '*/config.json'
+    convert_x_json_files "config" '*/config.json'
+}
+
+convert_session_json_files() {
+    convert_x_json_files "session" '*/session.json'
+}
+
+convert_profile_json_files() {
+    convert_x_json_files "profile" '*/profile.json'
+}
+
+convert_workspace_json_files() {
+    convert_x_json_files "workspace" '*/workspace.json'
 }
 
 convert_x_json_files() {
@@ -81,9 +95,6 @@ convert_x_json_files() {
         return 0
     }
 
-    # Change files live below .../changes/<session>.  Restricting the search
-    # to this path is important: history.json and other API/config JSON files
-    # must remain JSON.
     while IFS= read -r -d '' jsonfile; do
         mylfile="${jsonfile%.json}.myl"
 
@@ -99,13 +110,13 @@ convert_x_json_files() {
             continue
         fi
 
-        # Remove the source only after the MYL file was written successfully.
-        #rm -- "$jsonfile"
+        # Move away the converted files
+        #rm -f -- "$jsonfile"
         info "Converted $type metadata '$jsonfile' to '$mylfile'."
         converted=$((converted + 1))
     done < <(find "$maia_home" -path "$@" -type f -print0)
 
-    notice "Change metadata upgrade complete: $converted converted, $skipped skipped, $failed failed."
+    notice "Change $type metadata upgrade complete: $converted converted, $skipped skipped, $failed failed."
     (( failed == 0 ))
 }
 
@@ -125,6 +136,9 @@ handle_update_command() {
         upgrade)
             convert_change_json_files
             convert_config_json_files
+            convert_session_json_files
+            convert_profile_json_files
+            convert_workspace_json_files
             ;;
         refresh)
             :

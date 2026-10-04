@@ -62,11 +62,11 @@ declare -A DEFAULT_CONFIG=(
     # Some defaults
     [default_profile]=''
     [default_workspace]='__SESSION_WORKSPACE__'
-    [default_session_filesets]='["__SESSION_NAME__"]'
-    [default_session_extra_send_filesets]='[]'
+    [default_session_filesets]='__SESSION_NAME__'
+    [default_session_extra_send_filesets]=''
     # Tool control
     [mcp_servers]='[]'
-    [default_allowed_tool_effects]='["limited-write"]'
+    [default_allowed_tool_effects]='limited-write'
     [allowed_profiles]='*'
     [agent_session_prefix]='__SESSION_NAME__%'
     [agent_session_allowed]='*'
@@ -460,15 +460,18 @@ resolve_shell_base() { resolve_x_base "shell" ; }
 
 resolve_changes_path() { echo "$(resolve_workspace_path "$1")/changes"; }
 # resolve_workspace_root from fast.sh
+
 resolve_workspace_filesets() {
     local ws_name=$1
     local ws_meta="$(resolve_workspace_meta "$ws_name")"
     if [[ -f "$ws_meta" ]] ; then
-	echo "$(jq -r '.filesets[]' < "$ws_meta")"
+	notice "DEBUG get '$ws_meta'"
+	myl_get "$ws_meta" 'filesets'
     fi
+    notice "DEBUG else"
 }
 
-# Write workspace.json with the given path and defaults array
+# Write workspace.myl with the given path and defaults array
 # Arguments:
 #   $1 = workspace directory (full path to the workspace folder)
 #   $2 = filesystem path for the "path" field
@@ -477,15 +480,10 @@ write_workspace_meta() {
     local ws_dir="$1"
     local fs_path="$2"
     local filesets_json="$3"
-    local meta="$ws_dir/workspace.json"
+    local meta="$ws_dir/workspace.myl"
 
-    # Git Bash Workaround on next line, the jq after is normal
-    MSYS_NO_PATHCONV=1 \
-	jq -n \
-       --arg path "$fs_path" \
-       --argjson filesets "$filesets_json" \
-       '{ path: $path, filesets: $filesets }' \
-       > "$meta"
+    myl_update "$meta" path "$fs_path"
+    myl_update "$meta" filesets "$filesets_json"
 }
 
 resolve_logs_dir() {
@@ -521,22 +519,14 @@ resolve_session_profile() {
 # Fileset handling
 #
 
-resolve_workspace_filesets_json() {
-    local meta="$(resolve_workspace_meta "$1")"
-    if [[ -e "$meta" ]] ; then
-	echo "$(jq -r '.filesets' "$meta")"
-    else
-	echo "[]"
-    fi
-}
 resolve_workspace_filesets() {
     local meta="$(resolve_workspace_meta "$1")"
-    echo "$(jq -r '.filesets[]' "$meta")"
+    echo "$(myl_get "$meta" 'filesets')"
 }
 resolve_workspace_default_session_filesets() {
     local ws_name="$1"
     local ws_meta="$(resolve_workspace_meta "$ws_name")"
-    echo "$(jq -c '.default_session_filesets' < "$ws_meta")"
+    echo "$(myl_get "$ws_meta" 'default_session_filesets')"
 }
 # Echoes a newline-separated list of basenames (no “.fileset”) for all existing .fileset files.
 # consume as: mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$ws_name"
@@ -596,7 +586,7 @@ resolve_profile_path() {
 	    local d
             for d in "$dir"/*; do
                 [[ -d "$d" ]] || continue
-                if [[ -f "$d/profile.json" ]]; then
+                if [[ -f "$d/profile.myl" ]]; then
                     local profilename=$(basename "$d")
 		    profilename="${profilename%$'\r'}"
 		    if [[ "$this" == "$profilename" ]] ; then
@@ -613,7 +603,7 @@ resolve_profile_path() {
 				IFS='%' read -ra parts <<< "$name"
 				for part in "${parts[@]}"; do
 				    path+="/${part}"
-				    if [[ -f "$path/profile.json" ]] ; then
+				    if [[ -f "$path/profile.myl" ]] ; then
 					paths+="${paths:+:}$path"
 				    fi
 				    path+="/profiles"
@@ -677,10 +667,6 @@ validate_profile_exists() {
     fi
 }
 
-list_to_json() {
-    printf '%s\n' $* | jq -R . | jq -s .
-}
-
 # update_session <name> <bootstrap?> <workspace> <profile> <filesets_json>
 # - name: session name
 # - bootstrap?: "true" to initialize dir+files, "false" to assume exists
@@ -712,13 +698,8 @@ update_session() {
 	fi
     fi
     local meta="$(resolve_session_meta "$name")"
-    jq -n \
-       --arg workspace "$ws" \
-       --arg profile "$profile" \
-       --argjson filesets "$filesets" \
-       --argjson extra_send_filesets "$extra_send_filesets" \
-       '{workspace: $workspace, profile: $profile, filesets: $filesets, extra_send_filesets: $extra_send_filesets}' \
-       > "$meta"
+    printf 'workspace: %s\nprofile: %s\nfilesets: %s\nextra_send_filesets: %s\n' \
+	   "$ws" "$profile" "$filesets" "$extra_send_filesets" > "$meta"
 }
 
 #
@@ -780,14 +761,14 @@ ensure_file_exists() {
 ensure_filesets_exists() {
     local sess_name="$1"
     local workspace="$2"
-    local filesets_json="$3"
+    local filesets="$3"
     local ws_dir="$(resolve_workspace_path "$workspace")"
 
     # Expand filesets_json to replace markers like __SESSION_NAME__
-    local expanded_json=$(expand_filesets "$sess_name" "$workspace" "$filesets_json")
+    local expanded=$(expand_filesets "$sess_name" "$workspace" "$filesets")
     # Iterate over each fileset in the expanded JSON array and ensure the file exists
     local fs
-    for fs in $(jq -r '.[]' <<<"$expanded_json"); do
+    for fs in $expanded; do
         ensure_file_exists "$ws_dir/${fs}.fileset"
     done
 }
@@ -797,33 +778,12 @@ ensure_filesets_exists() {
 expand_filesets() {
     local sess_name="$(resolve_session_name "$1")"
     local ws_name="$(resolve_workspace_name "$2")"
-    local input_json="$3"
-    input_json="${input_json/__SESSION_NAME__/${sess_name}}"
-    local marker="__WORKSPACE_FILESETS__"
-
+    local input="$3"
+    input="${input/__SESSION_NAME__/${sess_name}}"
     # Get workspace filesets as JSON array string
-    local ws_json="$(resolve_workspace_filesets_json "$ws_name")"
-
-    # Parse the input_json array, separate out marker and others
-    # jq filter explanation:
-    #  - . as $in | inside input array
-    #  - if element == marker, replace by empty array (to remove marker)
-    #  - else keep element
-    # Then combine with workspace filesets if marker found.
-    local contains_marker=$(jq --arg m "$marker" 'index($m) != null' <<<"$input_json")
-    if [[ "$contains_marker" == "true" ]]; then
-        # Remove marker from input array, keep others
-        local filtered=$(jq --arg m "$marker" '[.[] | select(. != $m)]' <<<"$input_json")
-        # Combine workspace filesets and filtered others, then uniq
-        # jq command: add arrays and get unique values preserving order
-        # (jq 1.6 trick for unique by sorting and filtering)
-        jq -n --argjson ws "$ws_json" --argjson filtered "$filtered" '
-            ($ws + $filtered) | unique
-        '
-    else
-        # No marker, output input as-is
-        echo "$input_json"
-    fi
+    local ws_filesets="$(resolve_workspace_filesets "$ws_name")"
+    input="${input/__WORKSPACE_FILESETS__/${ws_filesets}}"
+    echo "$input"
 }
 
 #
@@ -835,7 +795,7 @@ get_session_expanded_filesets() {
     if [[ -e "$session_meta" ]] ; then
 	local ws_name=$(resolve_session_workspace "$name")
 	local ws_meta="$(resolve_workspace_meta "$ws_name")"
-	local sess_fs_raw=$(jq -c '.filesets // []' "$session_meta")
+	local sess_fs_raw="$(myl_get "$session_meta" 'filesets')"
 	local ef="$(expand_filesets "$name" "$ws_name" "$sess_fs_raw")"
 	echo "$ef"
     fi
@@ -847,7 +807,7 @@ get_session_expanded_extra_send_filesets() {
     if [[ -e "$session_meta" ]] ; then
 	local ws_name=$(resolve_session_workspace "$name")
 	local ws_meta="$(resolve_workspace_meta "$ws_name")"
-	local e_s_sess_fs_raw=$(jq -c '.extra_send_filesets // []' "$session_meta")
+	local e_s_sess_fs_raw="$(myl_get "$session_meta" 'extra_send_filesets')"
 	local esef="$(expand_filesets "$name" "$ws_name" "$e_s_sess_fs_raw")"
 	echo "$esef"
     fi
@@ -935,10 +895,8 @@ session_content_extract() {
     # Extract workspace data
     local ws_name=$(resolve_session_workspace "$session")
     # Extract array of fileset names from session meta
-    local expanded_filesets=$(get_session_expanded_filesets "$session")
-    local filesets=$(jq -r '.[]' <<<"$expanded_filesets")
-    local expanded_extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
-    local extra_send_filesets=$(jq -r '.[]' <<<"$expanded_extra_send_filesets")
+    local filesets=$(get_session_expanded_filesets "$session")
+    local extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
     fileset_content_extract "$action" "$ws_name" $filesets $extra_send_filesets
 }
 
@@ -961,7 +919,8 @@ fileset_content_extract() {
     local default_filter="$(get_config default_filter)"
     # MCP support
     local serverscfg="$(get_config mcp_servers empty)"
-    mapfile_from_json servers "$serverscfg"
+    local -a servers
+    read -ra servers <<< "$serverscfg"
     declare -A services
     for server in "${servers[@]}" ; do
 	local name="${server%%=*}"
@@ -1122,11 +1081,6 @@ require_command() {
 	exit 1
     fi
 }
-
-# JSON helpers (require jq)
-json_get()   { jq -r "$1" "$2"; }
-json_pretty() { jq . "$1"; }
-json_write() { jq . > "$1"; }
 
 ########################################
 # CLI Command Recognition
@@ -1465,20 +1419,6 @@ build_skill_search_path() {
 }
 
 ## Config handling
-# coerce_to_json: turn a shell string into a JSON literal
-coerce_to_json() {
-    local raw=$1
-
-    # If it’s literally true/false or a number, emit as-is
-    if [[ "$raw" =~ ^(true|false|[0-9]+(\.[0-9]+)?)$ ]]; then
-	echo "$raw"
-	return
-    fi
-
-    # Otherwise quote it as a JSON string
-    # Use jq -R to read raw text and output a JSON string
-    printf '%s' "$raw" | jq -R .
-}
 
 # file_for_scope — starting at $1, walk through SCOPE_ORDER and return
 # the first existing <scope>/$2, or an empty string if none found.

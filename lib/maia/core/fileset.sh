@@ -23,12 +23,6 @@ COMMANDS
   create <name> [<src>]
     Create a new fileset named <name>, optionally copying from <src>.
 
-  use [<name>[,<name2>...]]
-    Make <name>(s) the fileset(s) for the current workspace or session.
-    If no name is provided print the fileset(s) currently in use.
-    The workspace use is updated if the session filesets is defined
-    as __WORKSPACE_FILESETS__. If not the session filesets list is updated.
-
   select - an alias of use
 
   show [<name>] [--all] [--workspace]
@@ -81,16 +75,18 @@ EOF
     exit 0
 }
 
-declare -A in_ws in_sess in_sess_e_s
+declare -A in_ws=()
+declare -A in_sess=()
+declare -A in_sess_e_s=()
 fileset_marker() {
     name="$1"
-    if [[ ${in_ws[$name]} ]] ; then
+    if [[ -v in_ws["$name"] ]] ; then
 	echo -n "*"
     fi
-    if [[ ${in_sess[$name]} ]]; then
+    if [[ -v in_sess["$name"] ]]; then
 	echo -n "+"
     fi
-    if [[ ${in_sess_e_s[$name]} ]]; then
+    if [[ -v in_sess_e_s["$name"] ]]; then
 	echo -n "^"
     fi
 }
@@ -155,17 +151,27 @@ handle_fileset_command() {
 	list|ls)
 	    shift
             # load workspace filesets
-            mapfile_from_command WS_FSS resolve_workspace_filesets
+	    local wfs="$(resolve_workspace_filesets)"
+            read -ra WS_FSS <<< "$wfs"
             # load session filesets
-	    local expanded_filesets=$(get_session_expanded_filesets "$session")
-	    local expanded_extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
-	    mapfile_from_json SESS_FSS "$expanded_filesets"
-	    mapfile_from_json SESS_E_S_FSS "$expanded_extra_send_filesets"
+	    local efs="$(get_session_expanded_filesets "$session")"
+	    read -ra SESS_FSS <<< "$efs"
+	    local esfs="$(get_session_expanded_extra_send_filesets "$session")"
+	    read -ra SESS_E_S_FSS <<< "$esfs"
             # build quick-lookup maps
 	    local fs
-            for fs in "${WS_FSS[@]}";   do in_ws["$fs"]=1;   done
-            for fs in "${SESS_FSS[@]}"; do in_sess["$fs"]=1; done
-            for fs in "${SESS_E_S_FSS[@]}"; do in_sess_e_s["$fs"]=1; done
+            for fs in "${WS_FSS[@]}" ; do
+		[[ -n "$fs" ]] || continue
+		in_ws["$fs"]=1
+	    done
+            for fs in "${SESS_FSS[@]}" ; do
+		[[ -n "$fs" ]] || continue
+		in_sess["$fs"]=1
+	    done
+            for fs in "${SESS_E_S_FSS[@]}" ; do
+		[[ -n "$fs" ]] || continue
+		in_sess_e_s["$fs"]=1
+	    done
             # iterate over every .fileset on disk
             local ws_dir="$(resolve_workspace_path)"
             for f in "$ws_dir"/*.fileset; do
@@ -204,17 +210,28 @@ handle_fileset_command() {
 		show_workspace=true
 		shift
             fi
-            # Load workspace and session lists
-            mapfile_from_command WS_FSS resolve_workspace_filesets
-	    local expanded_filesets=$(get_session_expanded_filesets "$session")
-	    mapfile_from_json SESS_FSS "$expanded_filesets"
-	    local expanded_extra_send_filesets=$(get_session_expanded_extra_send_filesets "$session")
-	    mapfile_from_json SESS_E_S_FSS "$expanded_extra_send_filesets"
+            # load workspace filesets
+	    local wfs="$(resolve_workspace_filesets)"
+            read -ra WS_FSS <<< "$wfs"
+            # load session filesets
+	    local efs="$(get_session_expanded_filesets "$session")"
+	    read -ra SESS_FSS <<< "$efs"
+	    local esfs="$(get_session_expanded_extra_send_filesets "$session")"
+	    read -ra SESS_E_S_FSS <<< "$esfs"
             # Build lookup maps
 	    local fs
-            for fs in "${WS_FSS[@]}";   do in_ws["$fs"]=1;   done
-            for fs in "${SESS_FSS[@]}"; do in_sess["$fs"]=1; done
-            for fs in "${SESS_E_S_FSS[@]}"; do in_sess_e_s["$fs"]=1; done
+            for fs in "${WS_FSS[@]}"; do
+		[[ -n "$fs" ]] || continue
+		in_ws["$fs"]=1
+	    done
+            for fs in "${SESS_FSS[@]}"; do
+		[[ -n "$fs" ]] || continue
+		in_sess["$fs"]=1
+	    done
+            for fs in "${SESS_E_S_FSS[@]}"; do
+		[[ -n "$fs" ]] || continue
+		in_sess_e_s["$fs"]=1
+	    done
             # Determine which filesets to show
             local to_show=()
             if [[ "$show_all" == true ]]; then
@@ -244,82 +261,11 @@ handle_fileset_command() {
             done
             ;;
 
-	use|select)
-	    shift
-            if [[ -z "$1" ]] ; then
-                # Show current filesets in use, prefer session filesets if session overrides
-		local sess_meta=$(resolve_session_meta "$session")
-		if [[ -f "$sess_meta" ]]; then
-		    local sess_filesets=$(jq -r '.filesets' "$sess_meta")
-		    if [[ -n "$sess_filesets" ]]; then
-			# Expand __SESSION_NAME__ marker in session filesets before printing
-			local expanded=$(expand_filesets "$session" "$(resolve_session_workspace "$session")" "$sess_filesets")
-			# Output as CSV
-			jq -r 'join(",")' <<< "$expanded"
-			exit 0
-		    fi
-		fi
-		resolve_workspace_filesets | paste -sd "," -
-		exit 0
-	    fi
-            local csv="$1"
-	    # Split CSV into array
-            IFS=',' read -r -a new_lst <<< "$csv"
-	    # Validate each exists on disk
-            local ws_dir="$(resolve_workspace_path)"
-            for fs in "${new_lst[@]}"; do
-		if [[ ! -f "$ws_dir/${fs}.fileset" ]]; then
-                    die "Fileset '$fs' does not exist."
-		fi
-            done
-
-            # Detect if session metadata uses __WORKSPACE_FILESETS__ marker in default_session_filesets
-            local session=$(resolve_session_name)
-            local sess_meta=$(resolve_session_meta "$session")
-            local sess_filesets_raw=""
-            if [[ -f "$sess_meta" ]]; then
-                sess_filesets_raw=$(jq -c '.filesets' "$sess_meta" 2>/dev/null || echo "")
-            fi
-            local uses_workspace_marker=false
-            if [[ -n "$sess_filesets_raw" ]]; then
-                uses_workspace_marker=$(jq --arg marker "__WORKSPACE_FILESETS__" 'index($marker) != null' <<<"$sess_filesets_raw")
-            fi
-
-            local jq_arr=()
-            for fs in "${new_lst[@]}"; do
-                jq_arr+=( "\"$fs\"" )
-            done
-	    local IFSS="$IFS"
-	    local IFS=","
-            local filesets_json="[${jq_arr[*]}]"
-	    # Must restore IFS or else everything will start to break
-	    IFS="$IFSS"
-            if [[ "$uses_workspace_marker" == "true" || ! -e "$sess_meta" ]]; then
-                # Update workspace metadata filesets
-                local current_path="$(resolve_workspace_root)"
-                write_workspace_meta \
-                    "$(resolve_workspace_path)" \
-                    "$current_path" \
-                    "$filesets_json"
-                notice "Workspace filesets updated: $filesets_json"
-            else
-                # Update session metadata filesets
-		local ws_name=$(jq -r '.workspace // empty' < "$sess_meta")
-		local profile_name=$(jq -r '.profile // empty' < "$sess_meta")
-		if [ -z "$ws_name" ] ; then
-		    die "Must have a workspace name"
-		fi
-		update_session "$session" "false" "$ws_name" "$profile_name" "$filesets_json"
-                notice "Session filesets updated: $filesets_json"
-            fi
-            ;;
-
 	clear)
 	    shift
             if [[ -z "$1" ]]; then
 		# no name: clear all filesets in use from session expanded filesets
-		local expanded_filesets=$(get_session_expanded_filesets "$session")
-		mapfile_from_json names "$expanded_filesets"
+		mapfile_from_command names get_session_expanded_filesets "$session"
 		for name in "${names[@]}"; do
 		    : > "$(fileset_file "${name}")"
 		    info "Cleared fileset '$name'"
@@ -336,8 +282,7 @@ handle_fileset_command() {
 	    shift
             if [[ -z "$1" ]]; then
 		# no name: clear all filesets in use from session expanded filesets
-		local expanded_filesets=$(get_session_expanded_filesets "$session")
-		mapfile_from_json names "$expanded_filesets"
+		mapfile_from_command names get_session_expanded_filesets "$session"
 		for name in "${names[@]}"; do
 		    rm -f "$(fileset_file "$name")"
 		    info "Deleted fileset '$name'"

@@ -46,8 +46,6 @@ run_fileset_cmd "show_bar" show bar
 run_fileset_cmd "readonly_foo" readonly foo
 run_fileset_cmd "list_after_ro_foo" list
 run_fileset_cmd "show_after_ro_foo" show foo
-run_fileset_cmd "use_two" use foo,bar
-run_workspace_cmd "show_ws_after_use_twoo" show
 
 # Cleanup
 cleanup_maia_home

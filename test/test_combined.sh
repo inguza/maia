@@ -241,11 +241,11 @@ run_session_cmd "show_after_ro_foo" show
 run_fileset_cmd "rw_foo" rw foo
 run_session_cmd "show_after_rw_foo" show
 
-run_fileset_cmd "use_two" use foo,bar
+run_session_cmd "use_two" set --filesets foo,bar
 run_session_cmd "show_after_use_two" show
-run_fileset_cmd "use_foo_again" use foo
+run_session_cmd "use_foo_again" set --filesets foo
 
-run_fileset_cmd "use_session_name_not_allowed" use __SESSION_NAME__
+run_session_cmd "use_session_name_not_allowed" set --filesets __SESSION_NAME__
 
 # Test list filesets initially (likely empty or default)
 run_fileset_cmd "list_empty" list
@@ -259,7 +259,7 @@ run_fileset_cmd "list_all_after_create" list --all
 
 # We only test once, because it is session info that is updated anyway
 # Test use fileset 'myfileset'
-run_fileset_cmd "use_myfileset" use myfileset
+run_session_cmd "use_myfileset" set --filesets myfileset
 run_fileset_cmd "list_all_after_use_myfileset" list --all
 run_workspace_cmd "show_after_use_myfileset" show
 run_session_cmd "show_after_use_myfileset" show
@@ -294,7 +294,7 @@ run_session_cmd "show_after_x2" show
 run_session_cmd "content_after_x2" content
 # Test extra send filesets
 run_fileset_cmd "create_myextrafileset1" create myextrafileset1
-run_fileset_cmd "use_myextra1" use myextrafileset1
+run_session_cmd "use_myextra1" set --filesets myextrafileset1
 run_file_cmd "add_x3" add x/3.txt
 run_session_cmd "set_one_and_extra" set --filesets "myfileset2" --extra "myextrafileset1"
 run_session_cmd "show_after_one_and_extra" show

@@ -57,9 +57,9 @@ list_profiles() {
 show_name_desc() {
     local type="$1"
     local name="$2"
-    local file="$3"
+    local meta="$3"
     if [[ "$type" == "description" ]] ; then
-	local description="$(fast_jq 'description' "$file")"
+	local description="$(myl_get "$meta" 'description')"
 	echo "$name $description"
     else
 	echo "$name"
@@ -73,11 +73,11 @@ get_all_subprofile_names() {
     local d
     for d in "$profiledir"/profiles/*; do
         [[ -d "$d" ]] || continue
-        if [[ -f "$d/profile.json" ]]; then
+        if [[ -f "$d/profile.myl" ]]; then
             local profilename=$(basename "$d")
 	    profilename="${profilename%$'\r'}"
 	    get_all_subprofile_names "$type" "$profile%$profilename" "$d"
-	    show_name_desc "$type" "$profile%$profilename" "$d/profile.json"
+	    show_name_desc "$type" "$profile%$profilename" "$d/profile.myl"
 	fi
     done
 }
@@ -95,12 +95,12 @@ get_all_ordered_profile_names() {
 	    local d
             for d in "$dir"/*; do
                 [[ -d "$d" ]] || continue
-                if [[ -f "$d/profile.json" ]]; then
+                if [[ -f "$d/profile.myl" ]]; then
                     local profilename=$(basename "$d")
 		    profilename="${profilename%$'\r'}"
                     if [[ -z "${seen[$profilename]}" ]]; then
                         seen["$profilename"]=1
-			show_name_desc "$type" "$profilename" "$d/profile.json"
+			show_name_desc "$type" "$profilename" "$d/profile.myl"
                     fi
 		    get_all_subprofile_names "$type" "$profilename" "$d"
                 fi
@@ -178,17 +178,14 @@ handle_profile_command() {
 	    fi
 	    local filedir="${SCOPE_DIR[$scope]}/profiles/$name"
 	    filedir="${filedir//%/\/profiles\/}"
-	    local filepath="$filedir/${prompt_type}.json"
+	    local filepath="$filedir/${prompt_type}.myl"
 	    if [[ -e "$filepath" ]] ; then
 		die "Profile '$name' already exists."
 	    fi
 	    # TODO check that sub-profiles exist
 	    #
 	    mkdir -p "$filedir"
-	    jq -n \
-	       --arg description "$description" \
-	       '{description: $description}' \
-	       > "$filepath"
+	    myl_add "$filepath" description "$description"
 	    notice "Created profile '$name' with description '$description'."
 	    ;;
 
@@ -220,9 +217,9 @@ handle_profile_command() {
 		    shopt -s nullglob
 		    for ses_dir in "$sessions_dir"/*; do
 			[[ -d "$ses_dir" ]] || continue
-			local ses_meta="$ses_dir/session.json"
+			local ses_meta="$ses_dir/session.myl"
 			if [[ -f "$ses_meta" ]]; then
-			    local ses_profile=$(jq -r '.profile // empty' "$ses_meta")
+			    local ses_profile="$(myl_get "$ses_meta" 'profile')"
 			    if [[ "$ses_profile" == "$name" ]]; then
 				die "Cannot delete profile '$name' because session '$(basename "$ses_dir")' is currently using it."
 			    fi

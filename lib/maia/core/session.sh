@@ -119,28 +119,16 @@ parse_session_options() {
             --filesets|--fileset)
                 shift
 		[[ $# -ge 1 ]] || { die "The option --filesets requires a comma-separated list."; }
-		if [[ "$1" == "" ]]; then
-		    PARSED_FILESETS="[]"
-		else
-                    IFS=',' read -r -a _arr <<< "$1"
-                    local _jq=()
-                    for fs in "${_arr[@]}"; do _jq+=( "\"$fs\"" ); done
-		    PARSED_FILESETS="[$(printf '%s\n' "${_jq[@]}" | paste -sd "," -)]"
-		fi
+                IFS=',' read -r -a _arr <<< "$1"
+		PARSED_FILESETS="${_arr[@]}"
                 shift
                 ;;
 	    --extra-send-filesets|--extra)
 		local OPT="$1"
 		shift
                 [[ $# -ge 1 ]] || { die "The option $OPT requires a comma-separated list."; }
-                if [[ "$1" == "" ]]; then
-                    PARSED_EXTRA_SEND_FILESETS="[]"
-                else
-                    IFS=',' read -r -a _arr <<< "$1"
-                    local _jq=()
-                    for fs in "${_arr[@]}"; do _jq+=( "\"$fs\"" ); done
-                    PARSED_EXTRA_SEND_FILESETS="[$(printf '%s\n' "${_jq[@]}" | paste -sd "," -)]"
-                fi
+                IFS=',' read -r -a _arr <<< "$1"
+                PARSED_EXTRA_SEND_FILESETS="${_arr[@]}"
                 shift
 		;;
             --resolve)
@@ -206,8 +194,8 @@ handle_session_command() {
 		ws_source=" (resolved from current session)"
 		workspace="$(resolve_workspace_name)"
 	    fi
-	    local filesets_json="[]"
-	    local extra_send_filesets_json="[]"
+	    local filesets=""
+	    local extra_send_filesets=""
 	    local src_ws
 	    local src_fs
 	    local src_extra_fs
@@ -222,10 +210,10 @@ handle_session_command() {
 		local src_meta="$(resolve_session_meta "$src_session")"
 		if [[ -f "$src_meta" ]]; then
 		    # Read workspace, profile and filesets from source session
-		    src_ws=$(jq -r '.workspace // empty' < "$src_meta")
-		    src_profile=$(jq -r '.profile // empty' < "$src_meta")
-		    src_fs=$(jq -c '.filesets // empty' < "$src_meta")
-		    src_extra_fs=$(jq -c '.extra_send_filesets // []' < "$src_meta")
+		    src_ws="$(myl_get "$src_meta" 'workspace')"
+		    src_profile="$(myl_get "$src_meta" 'profile')"
+		    src_fs="$(myl_get "$src_meta" 'filesets')"
+		    src_extra_fs="$(myl_get "$src_meta" 'extra_send_filesets')"
 
 		    # Use source session workspace/filesets as defaults if not overridden by options
 		    if [[ ! -v PARSED_WS && -n "$src_ws" ]]; then
@@ -244,16 +232,16 @@ handle_session_command() {
 			profile="$PARSED_PROFILE"
 		    fi
 
-		    if [[ ! -v PARSED_FILESETS && "$src_fs" != "null" && "$src_fs" != "[]" ]]; then
-			filesets_json="$src_fs"
+		    if [[ ! -v PARSED_FILESETS && -n "$src_fs" ]]; then
+			filesets="$src_fs"
 		    elif [[ -v PARSED_FILESETS ]]; then
-			filesets_json="$PARSED_FILESETS"
+			filesets="$PARSED_FILESETS"
 		    fi
 
-		    if [[ ! -v PARSED_EXTRA_SEND_FILESETS && "$src_extra_fs" != "null" && "$src_extra_fs" != "[]" ]]; then
-			extra_send_filesets_json="$src_extra_fs"
+		    if [[ ! -v PARSED_EXTRA_SEND_FILESETS && -n "$src_extra_fs" ]]; then
+			extra_send_filesets="$src_extra_fs"
                     elif [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
-			extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
+			extra_send_filesets="$PARSED_EXTRA_SEND_FILESETS"
                     fi
 		else
 		    # fallback if no metadata in source session
@@ -266,10 +254,10 @@ handle_session_command() {
 			profile="$PARSED_PROFILE"
 		    fi
 		    if [[ -v PARSED_FILESETS ]]; then
-			filesets_json="$PARSED_FILESETS"
+			filesets="$PARSED_FILESETS"
 		    fi
 		    if [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
-			extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
+			extra_send_filesets="$PARSED_EXTRA_SEND_FILESETS"
                     fi
 		fi
 	    else
@@ -283,14 +271,14 @@ handle_session_command() {
 		    profile="$PARSED_PROFILE"
 		fi
 		if [[ -v PARSED_FILESETS ]]; then
-		    filesets_json="$PARSED_FILESETS"
+		    filesets="$PARSED_FILESETS"
 		else
-		    filesets_json=$(get_config default_session_filesets)
+		    filesets="$(get_config default_session_filesets)"
 		fi
 		if [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
-                    extra_send_filesets_json="$PARSED_EXTRA_SEND_FILESETS"
+                    extra_send_filesets="$PARSED_EXTRA_SEND_FILESETS"
 		else
-		    extra_send_filesets_json=$(get_config default_session_extra_send_filesets)
+		    extra_send_filesets="$(get_config default_session_extra_send_filesets)"
 		fi
 	    fi
 
@@ -325,7 +313,7 @@ handle_session_command() {
 		if [[ -n "$src_ws" ]] ; then
 		    # Update session metadata file with new workspace and filesets
 		    # If src_fs is exactly ["src_session"], then
-		    if [[ "$src_fs" == "[$(printf '"%s"' "$src_session")]" ]]; then
+		    if [[ "$src_fs" == "$src_session" ]]; then
 			# Fileset file paths
 			local old_ws_dir=$(resolve_workspace_path "$src_ws")
 			local new_ws_dir=$(resolve_workspace_path "$workspace")
@@ -339,16 +327,16 @@ handle_session_command() {
 			    : > "$new_fileset_file"
 			    info "Created empty fileset '$new_fileset_file'"
 			fi
-			filesets_json="[$(printf '"%s"' "$name")]"
+			filesets="$name"
 		    fi
 		fi
 		#
-		update_session "$name" "false" "$workspace" "$profile" "$filesets_json" "$extra_send_filesets_json"
+		update_session "$name" "false" "$workspace" "$profile" "$filesets" "$extra_send_filesets"
 		extracopyinfo=" by copying from session '$src_session'"
 	    else
 		# Normal bootstrap new empty session
 		mkdir -p "$path"
-		update_session "$name" "true" "$workspace" "$profile" "$filesets_json" "$extra_send_filesets_json"
+		update_session "$name" "true" "$workspace" "$profile" "$filesets" "$extra_send_filesets"
 		local extra=""
 		if [[ -n "$workspace" ]] ; then
 		    extra+=" with workspace '$workspace'$ws_source"
@@ -367,13 +355,13 @@ handle_session_command() {
                 # Expand filesets markers (__WORKSPACE_FILESETS__, __SESSION_NAME__)
                 local sess_name="$name"
                 local ws_name="$ws"
-                filesets_json=$(expand_filesets "$sess_name" "$ws_name" "$filesets_json")
-		extra_send_filesets_json=$(expand_filesets "$sess_name" "$ws_name" "$extra_send_filesets_json")
+                filesets=$(expand_filesets "$sess_name" "$ws_name" "$filesets")
+		extra_send_filesets=$(expand_filesets "$sess_name" "$ws_name" "$extra_send_filesets")
             fi
 	    # If filesets include __SESSION_NAME__, copy the old session fileset file to the new session fileset file
 	    if [[ -n "$src_ws" && -n "$src_fs" && \
 		      "$src_fs" == *"__SESSION_NAME__"* && \
-		      "$filesets_json" == *"__SESSION_NAME__"* ]]; then
+		      "$filesets" == *"__SESSION_NAME__"* ]]; then
 		local old_ws_dir=$(resolve_workspace_path "$src_ws")
 		local new_ws_dir=$(resolve_workspace_path "$workspace")
 		local old_fileset_file="$old_ws_dir/${src_session}.fileset"
@@ -389,12 +377,12 @@ handle_session_command() {
 		ensure_filesets_exists \
 		    "$name" \
 		    "$workspace" \
-		    "$filesets_json"
+		    "$filesets"
 		# Also ensure extra_send_filesets exist
 		ensure_filesets_exists \
                     "$name" \
                     "$workspace" \
-                    "$extra_send_filesets_json"
+                    "$extra_send_filesets"
 	    fi
 	    trigger_event "post-session-create"
 	    ;;
@@ -431,19 +419,18 @@ handle_session_command() {
 		    *) break ; ;;
 		esac
 	    done
-            # Show session.json
+            # Show session.myl
             local name="${1:-$(resolve_session_name)}"
 	    ensure_session_exists "$name"
             local meta="$(resolve_session_meta "$name")"
             [[ -f "$meta" ]] || die "Session '${name:-$(resolve_session_name)}' does not exist"
-	    local session_json=$(jq --arg name "$name" '. + {name: $name}' "$meta")
 	    if (( raw_output )); then
-		echo "$session_json" | jq .
+		read_file "$meta" cr
 	    else
-		ws=$(jq -r '.workspace // empty' <<< "$session_json")
-		profile=$(jq -r '.profile // empty' <<< "$session_json")
-		local filesets_json=$(jq -r '.filesets // empty | @json' <<< "$session_json")
-		local extra_send_filesets_json=$(jq -c '.extra_send_filesets // empty' <<< "$session_json")
+		local ws="$(myl_get "$meta" 'workspace')"
+		local profile="$(myl_get "$meta" 'profile')"
+		local filesets="$(myl_get "$meta" 'filesets')"
+		local extra_send_filesets="$(myl_get "$meta" 'extra_send_filesets')"
 		echo "Session:   $name"
 		if [[ -n "$profile" ]] ; then
 		    echo "Profile:   $profile"
@@ -461,10 +448,10 @@ handle_session_command() {
 		    fi
 		    echo "Workspace: $ws$note"
 		    local fileshow=false
-		    if [[ "$filesets_json" != "" && "$filesets_json" != "[]" ]]; then
+		    if [[ -n "$filesets" ]]; then
 			echo "Filesets:"
-			jq -r '.filesets[]' <<< "$session_json" | while IFS= read -r fs; do
-			    fs="${fs%$'\r'}"
+			local fs
+			for fs in $filesets ; do
 			    local note=""
 			    local fsname="$fs"
 			    if [[ "$fs" == "__SESSION_NAME__" ]] ; then
@@ -482,10 +469,10 @@ handle_session_command() {
 		    else
 			echo "Filesets:  (none)"
 		    fi
-		    if [[ "$extra_send_filesets_json" != "" && "$extra_send_filesets_json" != "[]" ]]; then
+		    if [[ -n "$extra_send_filesets" ]] ; then
 			echo "Extra send filesets:"
-			jq -r '.extra_send_filesets[]' <<< "$session_json" | while IFS= read -r fs; do
-			    fs="${fs%$'\r'}"
+			local fs
+			for fs in $extra_send_filesets ; do
 			    local note=""
 			    local fsname="$fs"
 			    if [[ "$fs" == "__SESSION_NAME__" ]] ; then
@@ -549,11 +536,10 @@ handle_session_command() {
 	    # Load current values
 	    local meta="$(resolve_session_meta "$name")"
             [[ -f "$meta" ]] || die "Session '${name:-$(resolve_session_name)}' does not exist"
-	    
-	    local current_ws="$(jq -r '.workspace' < "$meta")"
-	    local current_profile="$(jq -r '.profile // empty' < "$meta")"
-	    local current_fs="$(jq -c '.filesets'  < "$meta")"
-	    local current_extra_fs="$(jq -c '.extra_send_filesets // []' < "$meta")"
+            local current_ws="$(myl_get "$meta" 'workspace')"
+	    local current_profile="$(myl_get "$meta" 'profile')"
+	    local current_fs="$(myl_get "$meta" 'filesets')"
+	    local current_extra_fs="$(myl_get "$meta" 'extra_send_filesets')"
 	    # Parse flags
 	    RESOLVE_FILESETS=false
 	    parse_session_options "$@"
@@ -566,15 +552,15 @@ handle_session_command() {
             if [[ -n "$profile" ]]; then
 		validate_profile_exists "$profile"
             fi
-	    local filesets_json="${PARSED_FILESETS-$current_fs}"
-	    local extra_send_filesets_json="${PARSED_EXTRA_SEND_FILESETS-$current_extra_fs}"
+	    local filesets="${PARSED_FILESETS-$current_fs}"
+	    local extra_send_filesets="${PARSED_EXTRA_SEND_FILESETS-$current_extra_fs}"
 
             if [[ "$RESOLVE_FILESETS" == "true" ]]; then
                 # Expand filesets markers (__WORKSPACE_FILESETS__, __SESSION_NAME__)
                 local sess_name="$name"
                 local ws_name="$ws"
-                filesets_json=$(expand_filesets "$sess_name" "$ws_name" "$filesets_json")
-		extra_send_filesets_json=$(expand_filesets "$sess_name" "$ws_name" "$extra_send_filesets_json")
+                filesets=$(expand_filesets "$sess_name" "$ws_name" "$filesets")
+		extra_send_filesets=$(expand_filesets "$sess_name" "$ws_name" "$extra_send_filesets")
             fi
 
 	    # Ensure that any supplied session filesets exist in the workspace
@@ -583,14 +569,14 @@ handle_session_command() {
 		ensure_filesets_exists \
 		    "$name" \
 		    "$ws" \
-		    "$filesets_json"
+		    "$filesets"
 		ensure_filesets_exists \
                     "$name" \
 		    "$ws" \
-                    "$extra_send_filesets_json"
+                    "$extra_send_filesets"
 	    fi
-	    update_session "$name" "false" "$ws" "$profile" "$filesets_json" "$extra_send_filesets_json"
-	    info "Updated session '$name' workspace='$ws' profile='$profile' filesets=$filesets_json extra_send_filesets=$extra_send_filesets_json"
+	    update_session "$name" "false" "$ws" "$profile" "$filesets" "$extra_send_filesets"
+	    info "Updated session '$name' workspace='$ws' profile='$profile' filesets=$filesets extra_send_filesets=$extra_send_filesets"
 	    trigger_event "post-session-update $name"
 	    ;;
 	

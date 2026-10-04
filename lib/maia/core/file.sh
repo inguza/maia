@@ -175,11 +175,14 @@ handle_file_command() {
     local session_ws=$(resolve_session_workspace "$session_name")
     validate_workspace_exists "$session_ws"
 
-    # Resolve session expanded filesets JSON and parse into array
-    local session_fs_json=$(get_session_expanded_filesets "$session_name")
-    mapfile_from_json session_fs "$session_fs_json"
-    local session_extra_send_fs_json=$(get_session_expanded_extra_send_filesets "$session_name")
-    mapfile_from_json session_extra_send_fs "$session_extra_send_fs_json"
+    # Resolve session expanded filesets and parse into array
+    # Note: We can't use mapfile_from_command here because it split by newline
+    local -a session_fs
+    local expanded_filesets="$(get_session_expanded_filesets "$session_name")"
+    read -ra session_fs <<< "$expanded_filesets"
+    local -a session_extra_send_fs
+    local expanded_extra_send_filesets="$(get_session_expanded_extra_send_filesets "$session_name")"
+    read -ra session_extra_send_fs <<< "$expanded_extra_send_filesets"
 
     # Parse global flags: --all and --filesets
     local all_flag=false
@@ -327,6 +330,7 @@ handle_file_command() {
         add|remember)
             shift
             local workspace_root=$(resolve_workspace_root "$session_ws")
+	    local -a servers
 	    local serverscfg="$(get_config mcp_servers empty)"
 	    mapfile_from_json servers "$serverscfg"
 	    declare -A services
@@ -410,8 +414,8 @@ handle_file_command() {
 
 	discover)
 	    init_tool_search_dirs
-	    local serverscfg="$(get_config mcp_servers empty)"
-	    mapfile_from_json servers "$serverscfg"
+	    local -a servers
+	    mapfile_from_command servrs get_config mcp_servers
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
 		local endpoint="${server#*=}"

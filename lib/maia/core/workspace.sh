@@ -16,13 +16,13 @@ Manage workspace manifests and their filesets.
 
 COMMANDS
 
-  create [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+  create [<name>] [--path <path>] [--filesets <array>] [--default-session-filesets <array>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
       * "default" if <workspace_path>/.maia matches $MAIA_HOME
       * basename("<workspace_path>") otherwise.
 
-  set [<name>] [--path <path>] [--filesets <json-array>] [--default-session-filesets <json-array>]
+  set [<name>] [--path <path>] [--filesets <array>] [--default-session-filesets <array>]
     Change the workspace properties.
 
   list|ls
@@ -31,7 +31,7 @@ COMMANDS
   show [options] [<name>]
     Display the manifest of the specified (or current) workspace.
     Options are:
-      --raw|--json  Output in json format.
+      --raw|--myl  Output in myl format.
 
   edit [<name>]
     Open the workspace meta data file in $EDITOR.
@@ -50,16 +50,16 @@ OPTIONS
   --path <directory>
     Specify the filesystem path for the workspace.
 
-  --filesets <json-array> (create and set)
-    Specify the list of filesets in the workspace as a JSON array of strings.
-    Example: '["default", "tests", "docs"]'
+  --filesets <array> (create and set)
+    Specify the list of filesets in the workspace as a array of strings.
+    Example: 'default,tests,docs'
 
   --default-session-filesets <json-array> (create and set)
     Set the default session filesets as a JSON array of strings.
     Supports the special marker "__WORKSPACE_FILESETS__" to represent all
     current workspace filesets.
-    Example: '["__WORKSPACE_FILESETS__", "extra_fileset"]'
-    If omitted during workspace creation, defaults to ["__WORKSPACE_FILESETS__"].
+    Example: '__WORKSPACE_FILESETS__,extra_fileset'
+    If omitted during workspace creation, defaults to __WORKSPACE_FILESETS__.
 
   --fileset (only with clear)
     Remove all filesets and recreate default fileset.
@@ -85,18 +85,16 @@ EOF
     exit 0
 }
 
-# validate_subset <candidates_json> <allowed_json> <label>
-#   Ensures every element in the first JSON array appears in the second.
+# validate_subset <candidates> <allowed> <label>
+#   Ensures every element in the first list appears in the second.
 #   Exits with an error if any element is missing.
 validate_subset() {
-    local cand_json="$1"; shift
-    local allow_json="$1"; shift
+    local cand="$1"; shift
+    local allow="$1"; shift
     local label="$1";      shift
 
-    # Load allowed values via jq
-    if ! mapfile_from_json allowed_arr "$allow_json" ; then
-	die "Unable to parse the allowed structure."
-    fi
+    # Load allowed values
+    mapfile -ra allowed_arr "$allow"
 
     declare -A allowed_map
     for v in "${allowed_arr[@]}"; do
@@ -105,10 +103,8 @@ validate_subset() {
 	fi
     done
 
-    # Load candidate values via jq
-    if ! mapfile_from_json cand_arr "$cand_json" ; then
-	die "Unable to parse candidate structure."
-    fi
+    # Load candidate values
+    mapfile -ra cand_arr "$cand"
     for v in "${cand_arr[@]}"; do
         if [[ -z "${allowed_map[$v]}" ]]; then
 	    die "${label^} '$v' is not permitted. The permitted are: $(printf '%s ' "${allowed_arr[@]}")"
@@ -117,8 +113,6 @@ validate_subset() {
 }
 
 parse_workspace_options() {
-    PARSED_PATH=""
-    PARSED_FILESETS=""
     REMAINING_ARGS=()
 
     while [[ $# -gt 0 ]]; do
@@ -126,7 +120,8 @@ parse_workspace_options() {
             --path)
                 shift
                 [[ -n "$1" ]] || { echo "Error: --path requires a directory." >&2; workspace_usage; }
-                PARSED_PATH="$(cd "$1" && pwd -P)"; shift
+                PARSED_PATH="$(cd "$1" && pwd -P)"
+		shift
                 ;;
             --filesets)
                 shift
@@ -153,6 +148,11 @@ parse_workspace_options() {
     done
 }
 
+resolve_workspace_filesets_json() {
+    local meta="$(resolve_workspace_meta "$1")"
+    echo "$(myl_get "$meta" 'filesets')" || true
+}
+
 handle_workspace_command() {
     [[ "$1" =~ ^-h|--help$ ]] && workspace_usage
     [[ "$2" =~ ^-h|--help$ ]] && workspace_usage
@@ -169,7 +169,7 @@ handle_workspace_command() {
 	    # 2) Determine name and path
 	    #    First leftover arg is the workspace name, else derive from CWD
 	    local name="${REMAINING_ARGS[0]:-$(basename "$PWD")}"
-	    local path="${PARSED_PATH:-$PWD}"
+	    local path="${PARSED_PATH-$PWD}"
 	    # Git Bash workaround
 	    if command -v cygpath > /dev/null 2>&1 ; then
 		path=$(cygpath -u "$path")
@@ -180,20 +180,21 @@ handle_workspace_command() {
 	    [[ ! -e "$meta" ]] || die "Workspace '$name' already exists"
 	    mkdir -p "$ws_dir/changes"
 	    # 4) Compute arrays (JSON strings)
-	    local filesets_json="${PARSED_FILESETS:-[\"default\"]}"
+	    local filesets="${PARSED_FILESETS-default}"
 	    # 6) Materialize each fileset as an empty file
 	    local fs
 	    # Use jq to extract names robustly
-	    mapfile_from_json cfilesets "$filesets_json" || true
+	    local -a cfilesets
+	    read -ra cfilesets <<< "$filesets"
 	    for fs in "${cfilesets[@]}" ; do
 		: > "$ws_dir/${fs}.fileset"
 	    done
-	    # 7) Write workspace.json with all four keys
+	    # 7) Write workspace meta with all four keys
 	    write_workspace_meta \
 		"$ws_dir" \
 		"$path" \
-		"$filesets_json"
-	    notice "Created workspace '$name' for '$path' with filesets: $(jq -r '.[]|@sh'<<<"$filesets_json")"
+		"$filesets"
+	    notice "Created workspace '$name' for '$path' with filesets: '$filesets'"
 	    ;;
 
 	set)
@@ -207,28 +208,27 @@ handle_workspace_command() {
             [[ -f "$meta" ]] || die "Workspace '$name' does not exist"
             # 3) Load current values
             local current_path="$(resolve_workspace_root "$name")"
-            local current_filesets_json="$(resolve_workspace_filesets_json "$name")"
+            local current_filesets="$(resolve_workspace_filesets "$name")"
             # 4) Parse flags (sets: PARSED_PATH, PARSED_FILESETS
 	    # 5) Compute new values, falling back to current if omitted
             local new_path="${PARSED_PATH:-$current_path}"
-            local filesets_json="${PARSED_FILESETS:-$current_filesets_json}"
-            # Build JSON array of existing fileset names on disk
+            local filesets="${PARSED_FILESETS:-$current_filesets}"
+            # Build array of existing fileset names on disk
             mapfile_from_command EXISTING_FS resolve_all_workspace_filesets "$name" || true
-            local existing_json=$(printf '%s\n' "${EXISTING_FS[@]}" \
-				      | jq -R . | jq -s .)
+            local existing="${EXISTING_FS[@]}"
             # 6a) Validate that any supplied --filesets are a subset of what exists
             if [[ -n "$PARSED_FILESETS" ]]; then
 		# TODO: We should probably auto-create them instead
 		validate_subset \
-                    "$filesets_json" \
-                    "$existing_json" \
+                    "$filesets" \
+                    "$existing" \
                     "filesets"
             fi
-            # 7) Write out updated workspace.json
+            # 7) Write out updated workspace
             write_workspace_meta \
 		"$ws_dir" \
 		"$new_path" \
-		"$filesets_json"
+		"$filesets"
 	    info "Updated workspace '$name'"
             ;;
 	
@@ -249,7 +249,7 @@ handle_workspace_command() {
 	    local raw_output=0
 	    while [[ $# -gt 0 ]]; do
 		case "$1" in
-		    --raw|--json)
+		    --raw|--myl)
 			raw_output=1
 			shift
 			;;
@@ -263,22 +263,23 @@ handle_workspace_command() {
             # Resolve metadata path
             local meta="$(resolve_workspace_meta "$name")"
             # Verify it exists
+            [[ -n "$meta" ]] || die "Workspace '$name' does not exist"
             [[ -f "$meta" ]] || die "Workspace '$name' does not exist"
-	    local workspace_json=$(jq --arg name "$name" '. + {name: $name}' "$meta")
 	    if (( raw_output )); then
-		echo "$workspace_json" | jq .
+		echo "name: $name"
+		read_file "$meta" cr
 	    else
-		local path=$(jq -r '.path // empty' <<< "$workspace_json")
-		local filesets=$(jq -r '.filesets // empty | @json' <<< "$workspace_json")
+		local path="$(myl_get "$meta" 'path')"
+		local filesets="$(myl_get "$meta" 'filesets')"
 		# Get current session name and its expanded filesets
 		local session_name=$(resolve_session_name)
 		# Convert session expanded filesets to a map for quick lookup
 		declare -A session_fs_map=()
-		local session_expanded_filesets=$(get_session_expanded_filesets "$session_name")
+		local session_expanded_filesets="$(get_session_expanded_filesets "$session_name")"
+		local -a sfilesets
+		read -ra sfilesets <<< "$session_expanded_filesets"
 		local fs
-		local filesets
-		mapfile_from_command filesets jq -r '.[]' <<<"$session_expanded_filesets" || true
-		for fs in "${filesets[@]}"; do
+		for fs in "${sfilesets[@]}"; do
 		    session_fs_map["$fs"]=1
 		done
 
@@ -288,10 +289,9 @@ handle_workspace_command() {
 		else
 		    echo "Path:      (none)"
 		fi
-		if [[ "$filesets" != "null" && "$filesets" != "[]" ]]; then
+		if [[ -n "$filesets" ]]; then
 		    echo "Filesets:"
-		    jq -r '.filesets[]' <<< "$workspace_json" | while IFS= read -r fs; do
-			fs="${fs%$'\r'}"
+		    for fs in $filesets ; do
 			if [[ -n "${session_fs_map[$fs]}" ]]; then
 			    echo " *+ $fs"
 			else
@@ -342,9 +342,9 @@ handle_workspace_command() {
 		    shopt -s nullglob
 		    for ses_dir in "$sessions_dir"/*; do
 			[[ -d "$ses_dir" ]] || continue
-			local ses_meta="$ses_dir/session.json"
+			local ses_meta="$ses_dir/session.myl"
 			if [[ -f "$ses_meta" ]]; then
-			    local ses_ws=$(jq -r '.workspace // empty' "$ses_meta")
+			    local ses_ws="$(myl_get "$ses_meta" 'workspace')"
 			    if [[ "$ses_ws" == "$name" ]]; then
 				die "Cannot delete workspace '$name' because session '$(basename "$ses_dir")' is currently using it."
 			    fi

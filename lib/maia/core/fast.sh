@@ -89,9 +89,7 @@ resolve_workspace_root() {
     local ws_name=$1
     local ws_meta="$(resolve_workspace_meta "$ws_name")"
     if [[ -f "$ws_meta" ]] ; then
-	# The below code mimics the behavior of the following command but is much faster
-	#    echo "$(jq -r .path < "$ws_meta")"
-	fast_jq "path" "$ws_meta"
+	myl_get "$ws_meta" 'path'
     fi
 }
 
@@ -121,9 +119,7 @@ read_session_workspace_raw() {
     local sess_name="$1"
     local sess_meta="$(resolve_session_meta "$sess_name")"
     if [[ -e "$sess_meta" ]] ; then
-	# The below code mimics the behavior of the following command but is much faster
-	#    jq -r '.workspace // empty' < "$sess_meta"
-	fast_jq "workspace" "$sess_meta"
+	myl_get "$sess_meta" 'workspace'
     fi
 }
 
@@ -131,9 +127,7 @@ read_session_profile_raw() {
     local sess_name="$1"
     local sess_meta="$(resolve_session_meta "$sess_name")"
     if [[ -e "$sess_meta" ]] ; then
-	# The below code mimics the behavior of the following command but is much faster
-	#    jq -r '.profile // empty' < "$sess_meta"
-	fast_jq "profile" "$sess_meta"
+	myl_get "$sess_meta" 'profile'
     fi
 }
 
@@ -161,12 +155,19 @@ resolve_x_base() {
     echo "$(resolve_home_dir)/${1}s"
 }
 
-# Full path to the metadata file ($2.json)
+# Full path to the metadata file ($2.myl)
 # Accepts an optional name, else uses the active workspace.
 resolve_x_meta() {
     local path="$(resolve_${1}_path "$3")"
     if [[ -n "$path" ]] ; then
-	echo "$path/$2.json"
+	case "$2" in
+	    history)
+		echo "$path/$2.json"
+		;;
+	    *)
+		echo "$path/$2.myl"
+		;;
+	esac
     fi
 }
 
@@ -181,28 +182,6 @@ resolve_x_path() {
     if [[ -n "$name" ]]; then
 	echo "$(resolve_${x}_base)/$name"
     fi
-}
-
-#
-fast_jq() {
-    local param="$1" jsonfile="$2"
-    local line
-    local val=""
-    while IFS= read -r line; do
-	line="${line%$'\r'}"
-	case $line in
-            '  "'$param'": "'*)
-		val=${line#*'"'$param'": "'}
-		val=${val%'",'}
-		val=${val%'"'}
-		break
-		;;
-	esac
-    done < "$jsonfile"
-    if [[ "$val" == "null" ]] ; then
-	val=""
-    fi
-    echo "$val"
 }
 
 # Not fully needed in this file but does not hurt the performance
