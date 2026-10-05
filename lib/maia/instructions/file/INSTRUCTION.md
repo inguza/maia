@@ -21,6 +21,9 @@ When a change proposal is created:
 
    - If the proposal implements the intended file modification and does not
      introduce unrelated changes, immediately apply it with `change-apply`.
+   - If the proposal is created for manual resolution, do not attempt to
+     resolve, replace, or repeat the operation that created the proposal.
+     Manual resolution means that the user is responsible for resolving the change.
    - If the proposal does not implement the intended modification, do not apply
      it. Create a new proposal implementing the intended modification
      correctly.
