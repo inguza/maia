@@ -49,7 +49,8 @@ The command string can have space, and in that case the text after the space is 
 
 The tool executable shall work in the following way:
 
-- Receives its input parameters as JSON on standard input (`stdin`).
+- Receives its input parameters as JSON on file descriptor 3 (`<&3`).
+- Receives data from prior tools on standard input (`stdin`). For a normal standalone invocation, standard input is empty.
 - Output written to standard output (`stdout`).
 - Diagnostic messages can be written to standard error (`stderr`).
 - Exit with code `0` to indicate success; any non-zero exit code indicates failure.
@@ -64,7 +65,7 @@ echo '{"path": "README.md"}' > $args_file
 echo '' | ./file-read.sh 3<$args_file
 ```
 
-The script reads the JSON parameters from `stdin`, processes the request, and writes the output to `stdout`.
+The script reads the JSON parameters from file descriptor 3, processes the request, and writes the output to `stdout`.
 
 ## Tool Discovery and Enabling
 
@@ -72,24 +73,25 @@ The script reads the JSON parameters from `stdin`, processes the request, and wr
 
 1. MAIA built in tools
 2. System (typically /etc/maia/tools)
-3. Home (.maia/tools subfolder of $MAIA_HOME if set or ~/ if not)
-4. User (a .maia dir in any of the sub-directories if any exist)
+3. User (a .maia dir in any of the sub-directories if any exist)
+4. Home (.maia/tools subfolder of $MAIA_HOME if set or ~/ if not)
 5. Workspace directory (.maia/tools subfolder)
 6. Session directory tools subfolder
-7. Additional tool paths (described below)
+7. Plugin tool paths
+8. Additional tool paths (described below)
 
 If multiple `.td` files define a tool with the same name, the last definition takes precedence, allowing overrides.
 
-By default, all tools are **disabled**. Tools must be explicitly enabled in a scope by adding their names or matching patterns to a `tools.txt` file in that scope.
+By default, all tools are **disabled**. Tools must be explicitly.
 
 ## Additional Tool Paths
 
-You can configure additional directories to be scanned for tool definitions using the `additional_tools_path` configuration variable. This variable can be a colon-separated list of directories, allowing you to include custom or third-party tools outside the standard scopes.
+You can configure additional directories to be scanned for tool definitions using the `additional_tool_paths` configuration variable. This variable can be a colon-separated list of directories, allowing you to include custom or third-party tools outside the standard scopes.
 
 Example:
 
 ```bash
-maia config additional_tools_path "/opt/maia-tools:/home/user/custom-tools"
+maia config additional_tool_paths "/opt/maia-tools:/home/user/custom-tools"
 ```
 
 `maia` will then scan these directories for `.td` files and treat them as if they were in an `extra` scope with the lowest priority.

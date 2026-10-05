@@ -27,11 +27,11 @@ Each scope corresponds to a level of specificity and persists in distinct direct
 - **Default**
   Built-in defaults hardcoded within the tool itself. This is the fallback for any configuration or resource not defined in higher scopes.
 
-Home and User scope may concide.
+Home and User scope may coincide.
 
 ## How Scopes Work
 
-When the tool reads configuration or resources, it merges values from these scopes in order of specificity: session overrides workspace, which overrides home, and so forth. This ensures that more specific settings take precedence.
+When the tool reads configuration or resources, it merges values from these scopes in order of specificity: session overrides profile, which overrides workspace, and so forth. This ensures that more specific settings take precedence.
 
 When writing configuration or snippets, the tool allows targeting a specific scope or uses sensible defaults (e.g., writing to the home scope for user configuration).
 

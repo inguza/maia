@@ -35,7 +35,7 @@
 * `default_agent_tool_restrict` — Scope used to restrict agent tool access.
 * `default_allowed_tool_effects` — Tool effects allowed by default. Example: `limited-write write`
 
-gent_session_allowed` and all `default_agent_*` allow, forget, remember, and restrict parameters are space-separated lists of glob patterns.
+`agent_session_allowed` and all `default_agent_*` allow, forget, remember, and restrict parameters are space-separated lists of glob patterns.
 
 ## Workspace and files
 

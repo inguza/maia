@@ -257,7 +257,7 @@ export AWS_SESSION_TOKEN="..."
 maia config api_base_url https://bedrock-runtime.us-east-1.amazonaws.com
 maia config model someavailablemodel
 maia config file_handling_mode APPEND
-maia config send_hook "~/.maia/send-hook.sh"
+maia config send_hook "$HOME/.maia/send-hook.sh"
 ```
 
 For AWS Bedrock a send hook can be useful to automatically set the
@@ -338,33 +338,33 @@ The token is sent as `Authorization: Bearer <token>`.
 
 ## [Scope](docs/scope.md)
 
-Hierarchical levels for defining configuration and resources, allowing settings to be inherited and overridden from system to session.
+Hierarchical levels for defining [configuration](docs/config.md) and resources, allowing settings to be inherited and overridden from system to session.
 
 ## [Shell](docs/shell.md)
 
 The maia shell is a standard bash shell with extra convenience functionality on top.
 
-## Workspace
+## [Workspace](docs/workspace.md)
 
-A project directory that provides the context and resources for one or more sessions.
+A project directory that provides the context and resources for one or more sessions, including its [filesets and files](docs/workspace.md).
 
-## Session
+## [Session](docs/session.md)
 
 A persistent conversation with an AI, including its history and context.
 
-## Profile
+## [Profile](docs/profile.md)
 
 A configuration context that can be selected by a session.
 
 ## [Plugins](docs/plugins.md)
 
-A configuration context that can be selected by a session.
+Installable packages containing tools, skills, profiles, and instructions.
 
 ## Filesets and Files
 
-Filesets define which files are available as context for a session, allowing the user to control what the AI can see.
+Filesets define which files are available as context for a session, allowing the user to control what the AI can see. See the [workspace documentation](docs/workspace.md).
 
-## Change Suggestions
+## [Change Suggestions](docs/changes.md)
 
 Proposed changes to files that can be reviewed and explicitly applied by the user.
 
@@ -372,17 +372,35 @@ Proposed changes to files that can be reviewed and explicitly applied by the use
 
 Optional external capabilities that can be made available to the AI to perform actions beyond conversation.
 
+## [Skills](docs/skills.md)
+
+Named, discoverable capabilities that provide instructions and executable scripts for an AI interaction.
+
+## [Instructions](docs/instructions.md)
+
+Named pieces of guidance that MAIA can include in the model context, including instructions selected explicitly or loaded automatically from workspace paths and enabled tools.
+
+## Snippets
+
+Named reusable text fragments that can be expanded in input with `@name`. See `maia snippet --help` for details.
+
 ---
 
 ## Typical Workflow
 
-1. **Create a workspace**
+1. **Enter the MAIA shell**
+
+   ```bash
+   maia shell
+   ```
+
+2. **Create a workspace**
 
    ```bash
    maia workspace create <workspacename>
    ```
 
-2. **Create and select session**
+3. **Create and select session**
 
    Create the session:
    ```bash
@@ -394,7 +412,7 @@ Optional external capabilities that can be made available to the AI to perform a
    maias <sessionname>
    ```
 
-3. **Allow tools and skills**
+4. **Allow tools and skills**
 
 Allow the tools and skills you think the AI will need to perform the task you want it to do.
 
@@ -405,7 +423,7 @@ Allow the tools and skills you think the AI will need to perform the task you wa
    Allow skills and make sure they are in context.
 
    ```bash
-   maia skill --remember replace "file"
+   maia skill replace --remember "file"
    ```
 
 5. **Manage files**

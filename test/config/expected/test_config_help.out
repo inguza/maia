@@ -85,7 +85,7 @@ NOTES
   The configuration scopes follow a priority order from most specific to least:
     session, workspace, home, user, system, default.
 
-  The default write scope is home.
+  The default write scope is session.
 
   When no command is given it defaults to maia config show to show the
   current active configuration.

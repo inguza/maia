@@ -27,17 +27,17 @@ COMMANDS
   model <model_id>
     Show full metadata for the specified model ID, including permissions
     and availability details.
-    Now implemented for AWS.
+    Not implemented for AWS.
 
   fine-tunes
     List all fine-tune jobs associated with your account, including status,
     training metrics, and resulting model IDs.
-    Now implemented for AWS.
+    Not implemented for AWS.
 
   fine-tune <job_id>
     Show detailed information for the specified fine-tune job, such as
     hyperparameters, dataset size, and completion status.
-    Now implemented for AWS.
+    Not implemented for AWS.
 
 OPTIONS
 

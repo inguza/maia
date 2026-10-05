@@ -7,6 +7,10 @@ The directories within the plugin contain the functionality it provides.
 
 ```text
 <pluginname>/
+├── instructions/
+│   ├── <instruction 1>
+│   ├── ...
+│   └── <instruction N>
 ├── tools/
 │   ├── <tool 1>
 │   ├── ...
