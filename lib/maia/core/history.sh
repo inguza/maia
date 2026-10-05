@@ -109,6 +109,8 @@ NOTES
     last      the last entry
     last-1    the 2 last entries
     all       the entire history
+    prompt    the last user input
+    turn      entries from last user input to the end
 
   Role flags specify which type of entries to prune.
   Pruning modes differ per role (see documentation).
@@ -221,7 +223,7 @@ history_prune() {
     echo "$history_json" > "$tmpfile"
     local range
     for range in "${ranges[@]}"; do
-        local jq_slice=$(range_defaults "$range")
+        local jq_slice=$(range_defaults "$range" "$role")
         # Select entries in range and role
 	local entries=$(jq --arg role "$role" '
 	   map(select(.role == $role)) | .['"$jq_slice"']
@@ -420,7 +422,7 @@ handle_history_command() {
 		    -a|--assistant)  assistant_only=1    ;;
 		    --raw|--json)    raw_output=1 ;;
 		    # detect any range-like token
-		    last|last-*|all) range="$arg" ;;
+		    prompt|turn|last|last-*|all) range="$arg" ;;
 		    -|[0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9]|*-[0-9]*|[0-9]*-[0-9]*|[0-9]*-) range="$arg" ;;
 		    *)
 			die "Unknown argument '$arg'."
@@ -687,12 +689,16 @@ get_history_entries() {
     local user_only="${2:-0}"
     local assistant_only="${3:-0}"
 
-    local slice=$(range_defaults "$range")
-    local role_filter
+    local role=""
     if (( user_only && ! assistant_only )); then
-        role_filter="map(select(.role == \"user\"))"
+	role="user"
     elif (( assistant_only && ! user_only )); then
-        role_filter="map(select(.role == \"assistant\"))"
+	role="assistant"
+    fi
+    local slice=$(range_defaults "$range" "$role")
+    local role_filter
+    if [[ -n "$role" ]] ; then
+        role_filter="map(select(.role == \"${role}\"))"
     else
         role_filter="."
     fi
@@ -757,7 +763,7 @@ print_history_entries() {
 	    pr='[%d] %s#%s %s-%s %s\n'
 	fi
 	if [[ "$hidden" == true ]] ; then
-            printf "(hidden: $pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid")"
+            printf "(hidden: $pr" "$idx" "$role" "$role_idx" "$ts" "$id)"
 	else
 	    printf "$pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid
 	    if [[ -z "$toolid" ]] ; then

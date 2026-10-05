@@ -99,6 +99,8 @@ NOTES
     last      the last entry
     last-1    the 2 last entries
     all       the entire history
+    prompt    the last user input
+    turn      entries from last user input to the end
 
   Role flags specify which type of entries to prune.
   Pruning modes differ per role (see documentation).

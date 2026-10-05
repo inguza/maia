@@ -1022,48 +1022,65 @@ fileset_content_extract() {
 
 range_defaults() {
     local raw="$1"
+    local role="$2"
     # Some aliasing
     if [[ "$raw" =~ ^([0-9]+)$ ]]; then
         raw="$raw-$raw" 
     fi
-    # 1) semantic “last-last” → same as “last”
+    # semantic “last-last” → same as “last”
     if [[ "$raw" == "last-last" ]]; then
         echo "-1:" 
         return
     fi
-    # 2) empty or unset → full history
+    # empty or unset → full history
     if [[ -z "$raw" || "$raw" == "all" ]]; then
         echo "0:" 
         return
     fi
-    # 3) single “-” or “:” → full history
+    # single “-” or “:” → full history
     if [[ "$raw" == "-" || "$raw" == ":" ]]; then
         echo "0:" 
         return
     fi
-    # 4) trailing dash “n-” → open‐ended slice “n:”
+    # trailing dash “n-” → open‐ended slice “n:”
     if [[ "$raw" =~ ^([0-9]+)-$ ]]; then
         echo "${BASH_REMATCH[1]}:" 
         return
     fi
-    # 5) inclusive “n-m” → exclusive upper bound “n:(m+1)”
+    # inclusive “n-m” → exclusive upper bound “n:(m+1)”
     if [[ "$raw" =~ ^([0-9]+)-([0-9]+)$ ]]; then
         local s=${BASH_REMATCH[1]} e=${BASH_REMATCH[2]}
         echo "${s}:$(( e + 1 ))" 
         return
     fi
-    # 6) keyword “last” → just the last element
+    # keyword turn
+    if [[ "$raw" == "turn" ]]; then
+	if [[ -n "$role" ]] ; then
+	    die "Role specifier is not allowed with 'turn'."
+	fi
+	echo '([to_entries[] | select(.value.role == "user") | .key] | last // 0):'
+	return
+    fi
+    # keyword turn
+    if [[ "$raw" == "prompt" ]]; then
+	if [[ -n "$role" ]] ; then
+	    die "Role specifier is not allowed with 'turn'."
+	fi
+	echo '([to_entries[] | select(.value.role == "user") | .key] | last // 0):(([to_entries[] | select(.value.role == "user") | .key] | last // 0) +1)'
+	return
+    fi
+    # keyword “last” → just the last element
     if [[ "$raw" == "last" ]]; then
         echo "-1:" 
         return
     fi
-    # 7) “last-n” → the last (n+1) elements: .[-(n+1):]
+    # “last-n” → the last (n+1) elements: .[-(n+1):]
     if [[ "$raw" =~ ^last-([0-9]+)$ ]]; then
         local n=${BASH_REMATCH[1]}
         echo "-$(( n + 1 )):" 
         return
     fi
-    # 8) lone negative “-n” → first (n+1) entries: “0:(n+1)”
+    # lone negative “-n” → first (n+1) entries: “0:(n+1)”
     if [[ "$raw" =~ ^-([0-9]+)$ ]]; then
         local n=${BASH_REMATCH[1]}
         echo "0:$(( n + 1 ))" 
