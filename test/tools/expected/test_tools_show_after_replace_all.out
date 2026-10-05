@@ -714,11 +714,8 @@ Tool definitions:
   },
   {
     "name": "util-cat",
-    "description": "Print the content of one or more concatenated files",
+    "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
     "command": "allowed-tool.sh cat filespecs --",
-    "instructions": [
-      "util-cat.txt"
-    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -744,7 +741,7 @@ Tool definitions:
   },
   {
     "name": "util-head",
-    "description": "Output the first part of files",
+    "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
     "command": "head-tail.sh head --",
     "inputSchema": {
       "type": "object",
@@ -768,7 +765,7 @@ Tool definitions:
   },
   {
     "name": "util-tail",
-    "description": "Output the last part of files",
+    "description": "Print the last part of one or more files to pipe to the next tool in a core-pipe.",
     "command": "head-tail.sh tail --",
     "inputSchema": {
       "type": "object",
