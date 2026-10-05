@@ -79,6 +79,7 @@ handle_job_command() {
 	    shift 2
 	    mkdir -p "${session_path}/jobs"
 	    local id="$(date +%Y%m%dT%H%M%S)-$$-$(pid_starttime "$$")"
+	    trigger_event "pre-job-start" "$id" "$tool" "$toolargs"
 	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
 	    tool_fork "${session_path}/jobs" \
 		      "$id" \
@@ -87,6 +88,7 @@ handle_job_command() {
 		      "$enabled_tools_json" \
 		      " in background"
 	    notice "Job '$id' started."
+	    trigger_event "post-job-start" "$id" "$tool" "$toolargs"
 	    ;;
 
 	list|ls)
@@ -172,6 +174,8 @@ handle_job_command() {
 
 	    local jpid=$(jq -r '.pid' "$meta")
 
+	    trigger_event "pre-job-cancel" "$id"
+
 	    if ! kill -0 "$jpid" 2>/dev/null; then
 		notice "Job '$id' is no longer running."
 		: > "${session_path}/jobs/${id}.finished"
@@ -188,6 +192,7 @@ handle_job_command() {
 	    kill "$jpid"
 	    #kill -- "-$jpid"
 	    # Check output?
+	    trigger_event "post-job-cancel" "$id"
 	    ;;
 
 	delete)
@@ -197,6 +202,7 @@ handle_job_command() {
 	    if [[ "$1" == "--force" ]] ; then
 		force=true
 	    fi
+	    trigger_event "pre-job-delete" "$id"
 	    if [[ -e "${session_path}/jobs/${id}.finished" ]] ; then
 		remove=true
 	    else
@@ -208,6 +214,7 @@ handle_job_command() {
 	    if [[ "$remove" == true ]] ; then
 		rm -f "${session_path}/jobs/${id}."*
 	    fi
+	    trigger_event "post-job-delete" "$id"
 	    ;;
 
 	exist)

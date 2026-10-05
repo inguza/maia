@@ -558,6 +558,8 @@ handle_send_command() {
 	die "Unknown API type '$api_type'"
     fi
 
+    trigger_event "pre-send" "$api_type"
+
     # Tools preparation
     local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
     local tools_count=$(jq 'length' <<<"$enabled_tools_json")
@@ -727,6 +729,7 @@ handle_send_command() {
 	    release_lock "$session_lock"
 	    die "Internal error. Empty message json."
 	fi
+	trigger_event "pre-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
 	case "$api_type" in
 	    OPENAI_CHAT_COMPLETIONS)
 		local tmpmf="$(mktemp)"
@@ -820,6 +823,7 @@ handle_send_command() {
 	    fi
             curl_extra_headers curl_headers
 
+	    trigger_event "pre-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$tmp_payload"
 	    # Call API chat completions endpoint
 	    # Binary mode is important for AWS but it does not hurt for other APIs
             response=$(curl -s \
@@ -832,6 +836,7 @@ handle_send_command() {
 		echo "$response" > "$log_dir/${timestamp}-${iteration}-response.json"
 		info "Response logged to $log_dir/${timestamp}-${iteration}-response.json"
             fi
+	    trigger_event "post-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$response"
 
 	    # Extract reply or error from response
             if [[ -n "$response" && "$response" != "null" ]]; then
@@ -935,7 +940,9 @@ handle_send_command() {
 	    # Allow tools to be run in parallel
 	    local duplicate="no"
 	    seen_commands_this=()
+	    local tool_call_ids=()
 	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
+	    trigger_event "pre-tool-calls" "$tool_tmp_dir" "${tool_calls[@]}"
 
 	    # Make sure we kill tools in case this is interrupted
 	    trap 'cleanup_tools "$tool_tmp_dir"' INT TERM
@@ -970,6 +977,7 @@ handle_send_command() {
 			local shortargs=$(shorten_args "$func_args")
 			notice "Spawn $tool_start_count [$iteration of $allowed_iterations] $idshort: $func_name $shortargs"
 		    fi
+		    trigger_event "pre-tool-call-fork" "$tool_tmp_dir" "$id" "$status" "$func_name" "$func_args" 
 		    tool_fork \
 			"$tool_tmp_dir" \
 			"$id" \
@@ -981,6 +989,7 @@ handle_send_command() {
 		    unset TOOL_NAME
 		    if [[ $status -eq 0 ]] ; then
 			tool_count=$((tool_count + 1))
+			tool_call_ids+=($id)
 		    else
 			local fork_output=$(read_file "$tool_tmp_dir/$id.start" cr)
 			if [[ "$output_mode" == "full" ]] ; then
@@ -989,6 +998,7 @@ handle_send_command() {
 			errormsg="$fork_output"
 		    fi
 		    rm -f "$tool_tmp_dir/$id.start"
+		    trigger_event "post-tool-call-fork" "$tool_tmp_dir" "$id" "$status" "$func_name" "$func_args" 
 		fi
 		if [[ -n "$tool_loop_prevent_glob" && $func_name == $tool_loop_prevent_glob ]] ; then
 		    seen_commands_this[$toolcallshaid]="$id";
@@ -1013,6 +1023,7 @@ handle_send_command() {
 	    for key in "${!seen_commands_this[@]}"; do
 		seen_commands["$key"]="${seen_commands_this["$key"]}"
 	    done
+	    trigger_event "during-tool-calls" "$tool_tmp_dir" "${tool_call_ids[@]}"
 	    # # Wait for tools and process results as they finish
 	    while (( tool_count > 0 )); do
 		wait -n
@@ -1072,12 +1083,14 @@ handle_send_command() {
 		rm -f "$tool_tmp_dir/$id.output" \
 		   "$tool_tmp_dir/$id.finished"
 		((tool_count--))
+		trigger_event "post-tool-call-finished" "$tool_tmp_dir" "$id"
 	    done
 	    if [[ "$duplicate" == "yes" && $tool_count -eq 0 ]] ; then
 		allowed_iterations_left=0
 	    fi
 	    trap - INT TERM
 	    rm -rf "$tool_tmp_dir"
+	    trigger_event "post-tool-calls" "$tool_tmp_dir" "${tool_call_ids[@]}"
 	fi
 	if [[ "$tools_call_json" ]] ; then
 	    # Tool call continue looping
@@ -1086,6 +1099,8 @@ handle_send_command() {
 	    # No tool call, end looping
 	    allowed_iterations_left=0
 	fi
+	trigger_event "post-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
     done
+    trigger_event "post-send"
     release_lock "$session_lock"
 }

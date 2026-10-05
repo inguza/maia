@@ -1793,6 +1793,7 @@ tool_cmd() {
     bash -c "cd $(printf '%q' $ws_root); echo '' | $(printf '%q' "$tool_exec_dir")/$tool_cmd 3<$(printf '%q' "$args_file")" > "$tool_tmp_dir/$id.output" 2>&1
     status=$?
     printf '%s\n' "$status" > "$tool_tmp_dir/$id.finished"
+    trigger_event "post-job-finish" "$id"
 }
 
 tool_fork()

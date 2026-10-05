@@ -35,6 +35,8 @@ id="${baseid}-${index}"
 wpath="$path"
 if [[ -e "$path" ]] ; then
     wpath="$(write_file_name "$ws_changes" "$id")"
+else
+    trigger_event "pre-file-write" "$path"
 fi
 
 contentstr=""
@@ -43,7 +45,7 @@ if [[ -v "param[content]" ]] ; then
     printf "%b" "${param[content]}" > "$wpath"
     contentstr="Content"
 else
-    read_file > "$wpath"
+    read_file "" cr > "$wpath"
     contentstr="Stdin"
 fi
 
@@ -60,11 +62,13 @@ if [[ "$path" != "$wpath" ]] ; then
 	echo "\`\`\`patch"
 	read_file_by_line "$pfile" cr
 	echo "\`\`\`"
+	trigger_event "post-change-create" "${baseid}-${index}"
     fi
 else
     echo "$contentstr written to $path."
     # If this was a direct write from a tool call, prune arguments in history
     prune_tool_call_arguments
+    trigger_event "post-file-write" "$path"
 fi
 $MAIA_BIN file add "$path" > /dev/null 2>&1
 # Exit with 0 since otherwise you get an error when there is no match
