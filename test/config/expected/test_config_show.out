@@ -37,7 +37,7 @@ send_hook                      default    ""
 temperature                    default    "null"
 term_loglevel                  home       "NOTICE"
 tool_iteration_limit           default    20
-tool_loop_prevent              default    "file-write file-change"
+tool_loop_prevent              default    "file-write file-change file-rm"
 top_p                          default    "null"
 
 ENVIRONMENT NAME               VALUE
