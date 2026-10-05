@@ -132,6 +132,18 @@ run_history_cmd "show_user_range_0_3" show 0-3 --user
 run_history_cmd "show_user_last" show last --user
 run_history_cmd "show_user_last_2" show last-2 --user
 
+run_history_cmd "show_turn" show turn
+run_history_cmd "hide_turn" hide turn
+run_history_cmd "show_hidden_turn" show turn
+run_history_cmd "unhide_turn" unhide turn
+run_history_cmd "show_unhidden_turn" show turn
+
+run_history_cmd "show_prompt" show prompt
+run_history_cmd "hide_prompt" hide prompt
+run_history_cmd "show_hidden_prompt" show prompt
+run_history_cmd "unhide_prompt" hide prompt
+run_history_cmd "show_unhidden_prompt" show prompt
+
 # Show assistant messages only - ranges as well
 run_history_cmd "show_assistant_all" show --assistant
 run_history_cmd "show_assistant_range_2_5" show 2-5 --assistant
