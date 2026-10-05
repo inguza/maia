@@ -1188,13 +1188,24 @@ expand_snippet_name() {
 }
 
 deduplicate_files() {
-    local file
-    for file in $@ ; do
-	if [[ -e "$file" ]] ; then
-	    read_file "$file" cr | sed '/^[[:space:]]*$/d' | uniq > "${file}.tmp"
-	    read_file "${file}.tmp" cr > "$file"
-	    rm -f "${file}.tmp"
-	fi
+    local file line
+    local -A seen
+
+    for file in "$@"; do
+        if [[ -e "$file" ]]; then
+            seen=()
+            mapfile_from_command lines read_file "$file" cr
+
+            for line in "${lines[@]}"; do
+                [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+                [[ -v seen["$line"] ]] && continue
+                seen["$line"]=1
+                printf '%s\n' "$line"
+            done > "${file}.tmp"
+
+            read_file "${file}.tmp" cr > "$file"
+            rm -f "${file}.tmp"
+        fi
     done
 }
 
@@ -2090,7 +2101,7 @@ get_all_ordered_task_names() {
             for d in "$dir"/private-*.myl "$dir"/shared-*.myl; do
                 [[ -f "$d" ]] || continue
                 local task="$(myl_get "$d" "task")"
-                [[ -n "$task" && ! -v seen[$task] ]] || continue
+                [[ -n "$task" && ! -v seen["$task"] ]] || continue
                 seen["$task"]=1
                 if [[ "$type" == "file" ]]; then
                     echo "$task $d"
@@ -2286,7 +2297,7 @@ generate_instructionset_gen() {
 	local rpath=""
 	for part in "${parts[@]}" ; do
 	    rpath="${rpath:+$rpath/}$part"
-	    [[ -v "loaded_instructions[$rpath/]" ]] && continue
+	    [[ -v loaded_instructions["$rpath/"] ]] && continue
 	    instructionfile="$ws_root/$rpath/MAIA.md"
 	    if [[ -s "$instructionfile" ]] ; then
 		loaded_instructions["$rpath/"]=1
