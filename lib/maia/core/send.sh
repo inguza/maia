@@ -47,7 +47,7 @@ OPTIONS
 
   --file-handling <mode>
     Override file handling mode for this send command.
-    Allowed values: DEFAULT, FIRST, BEFORE, APPEND (case-insensitive).
+    Allowed values: DEFAULT, FIRST, BEFORE, APPEND and AUTOTOOL (case-insensitive).
 
   --continue
     Used to continue tool loops.
@@ -162,14 +162,7 @@ determine_file_handling_mode() {
     fi
     # Determine effective file handling mode
     if [[ "${mode^^}" == "DEFAULT" ]] ; then
-	case "$api_type" in
-	    OPENAI_CHAT_COMPLETIONS|OPENAI_RESPONSES)
-		mode="AUTOTOOL"
-		;;
-	    *)
-		mode="FIRST"
-		;;
-	esac
+	mode="AUTOTOOL"
     fi
     printf '%s' "$mode"
 }

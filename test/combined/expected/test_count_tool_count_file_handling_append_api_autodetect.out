@@ -1,45 +1,46 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
-0    SYSTEM       ->  397 tokens (chars: 1588)
-0    USER[0]      ->   29 tokens (chars: 115)
-1    USER[1]      ->    3 tokens (chars: 10)
-2    ASSISTANT[0] ->    4 tokens (chars: 15)
-3    USER[2]      ->    4 tokens (chars: 16)
-4    ASSISTANT[1] ->    4 tokens (chars: 15)
-5    USER[3]      ->    7 tokens (chars: 28)
-6    ASSISTANT[2] ->    4 tokens (chars: 15)
-7    USER[4]      ->    8 tokens (chars: 29)
-8    ASSISTANT[3] ->    4 tokens (chars: 15)
-9    USER[5]      ->   10 tokens (chars: 39)
-10   ASSISTANT[4] ->    4 tokens (chars: 15)
-11   USER[6]      ->   12 tokens (chars: 45)
-12   ASSISTANT[5] ->    4 tokens (chars: 15)
-13   USER[7]      ->   14 tokens (chars: 55)
-14   ASSISTANT[6] ->    4 tokens (chars: 15)
-15   USER[8]      ->    7 tokens (chars: 26)
-16   ASSISTANT[7] ->    4 tokens (chars: 15)
-17   USER[9]      ->    7 tokens (chars: 25)
-18   ASSISTANT[8] ->    4 tokens (chars: 15)
-19   USER[10]     ->    7 tokens (chars: 25)
-20   ASSISTANT[9] ->    4 tokens (chars: 15)
-21   USER[11]     ->    9 tokens (chars: 35)
-22   ASSISTANT[10] ->    4 tokens (chars: 15)
-23   USER[12]     ->    9 tokens (chars: 34)
-24   ASSISTANT[11] ->    4 tokens (chars: 15)
-25   USER[13]     ->    9 tokens (chars: 34)
-26   ASSISTANT[12] ->    4 tokens (chars: 15)
-27   USER[14]     ->   15 tokens (chars: 57)
+0    SYSTEM       ->  399 tokens (chars: 1596)
+0    USER[0]      ->    3 tokens (chars: 10)
+1    ASSISTANT[0] ->    4 tokens (chars: 15)
+2    USER[1]      ->    4 tokens (chars: 16)
+3    ASSISTANT[1] ->    4 tokens (chars: 15)
+4    USER[2]      ->    7 tokens (chars: 28)
+5    ASSISTANT[2] ->    4 tokens (chars: 15)
+6    USER[3]      ->    8 tokens (chars: 29)
+7    ASSISTANT[3] ->    4 tokens (chars: 15)
+8    USER[4]      ->   10 tokens (chars: 39)
+9    ASSISTANT[4] ->    4 tokens (chars: 15)
+10   USER[5]      ->   12 tokens (chars: 45)
+11   ASSISTANT[5] ->    4 tokens (chars: 15)
+12   USER[6]      ->   14 tokens (chars: 55)
+13   ASSISTANT[6] ->    4 tokens (chars: 15)
+14   USER[7]      ->    7 tokens (chars: 26)
+15   ASSISTANT[7] ->    4 tokens (chars: 15)
+16   USER[8]      ->    7 tokens (chars: 25)
+17   ASSISTANT[8] ->    4 tokens (chars: 15)
+18   USER[9]      ->    7 tokens (chars: 25)
+19   ASSISTANT[9] ->    4 tokens (chars: 15)
+20   USER[10]     ->    9 tokens (chars: 35)
+21   ASSISTANT[10] ->    4 tokens (chars: 15)
+22   USER[11]     ->    9 tokens (chars: 34)
+23   ASSISTANT[11] ->    4 tokens (chars: 15)
+24   USER[12]     ->    9 tokens (chars: 34)
+25   ASSISTANT[12] ->    4 tokens (chars: 15)
+26   USER[13]     ->   15 tokens (chars: 57)
+27   ASSISTANT[13] ->    1 tokens (chars: 4)
+28   TOOL         ->   29 tokens (chars: 115)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'gpt-5.6-luna':
-Total:         599
-  Input:       198
-  Output:        4
+Total:         602
+  Input:       173
+  Output:        1
 ──────────────────────────────
-  User:        150
-  Assistant:    52
+  User:        121
+  Assistant:    53
 APPROXIMATE COST (USD) for model 'gpt-5.6-luna':
-  Total:      $0.000044
-  Input:      $0.000040
-  Output:     $0.000005
+  Total:      $0.000036
+  Input:      $0.000035
+  Output:     $0.000001
 The input cost is a prediction of what will be sent.
 The output cost is based on last request.
