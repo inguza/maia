@@ -11,7 +11,7 @@ release: maia-${VERSION}.tar.gz
 maia-${VERSION}.tar.gz: maia-${VERSION}
 	tar czf maia-${VERSION}.tar.gz $^
 
-maia-${VERSION}: bin/maia README.md LICENSE*.txt \
+maia-${VERSION}: bin/maia README.md LICENSE*.txt CONTRIBUTING.md \
 	lib/maia/core/*.sh lib/maia/core/*.p? \
 	lib/maia/tools/*.sh lib/maia/tools/*.td \
 	lib/maia/skills/*/*.md \
@@ -24,6 +24,7 @@ maia-${VERSION}: bin/maia README.md LICENSE*.txt \
 	install -m 644 etc/bash.completions $@/etc
 	mkdir -p $@/share/doc/maia
 	sed 's|docs/||g;' README.md > $@/share/doc/maia/README.md
+	install -m 644 CONTRIBUTING.md $@/share/doc/maia
 	install -m 644 LICENSE*.txt $@/share/doc/maia
 	install -m 644 docs/*.md $@/share/doc/maia
 	mkdir -p $@/lib/maia/core
@@ -31,6 +32,7 @@ maia-${VERSION}: bin/maia README.md LICENSE*.txt \
 	install -m 644 lib/maia/core/*.jq $@/lib/maia/core
 	install -m 755 lib/maia/core/*.pl $@/lib/maia/core
 	install -m 644 lib/maia/core/*.pm $@/lib/maia/core
+	install -m 644 lib/maia/core/*.txt $@/lib/maia/core
 	install -m 644 lib/maia/version $@/lib/maia
 	mkdir -p $@/lib/maia/tools
 	install -m 644 lib/maia/tools/*.td $@/lib/maia/tools
@@ -38,6 +40,10 @@ maia-${VERSION}: bin/maia README.md LICENSE*.txt \
 	cp -a lib/maia/tools/*.sh $@/lib/maia/tools
 	mkdir -p $@/lib/maia/skills
 	cp -a lib/maia/skills/* $@/lib/maia/skills
+	mkdir -p $@/lib/maia/instructions
+	cp -a lib/maia/instructions/* $@/lib/maia/instructions
+	mkdir -p $@/lib/maia/plugins
+	cp -a lib/maia/plugins/* $@/lib/maia/plugins
 	mkdir -p $@/lib/maia/hooks
 	cp -a lib/maia/hooks/* $@/lib/maia/hooks
 

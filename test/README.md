@@ -67,3 +67,11 @@ The following internal tools are partially covered by indirect tests.
 - send_history
 
 Chat and interative would require to write some wrapper which is a little tricky.
+
+## Release packaging testing
+
+cd ..
+maia/test/aux/compare-maia-release.sh maia-<version>
+
+The verdict should be PASS
+
