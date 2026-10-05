@@ -90,7 +90,7 @@
   {
     "name":"util-ls",
     "description": "List files",
-    "command": "allowed-tool.sh ls -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
+    "command": "allowed-tool.sh ls pathspecs -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -116,7 +116,7 @@
   {
     "name":"util-sort",
     "description": "List files",
-    "command": "allowed-tool.sh sort -n -s -v --show-nonprinting --",
+    "command": "allowed-tool.sh sort filespecs -n -s -v --show-nonprinting --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -141,9 +141,8 @@
   },
   {
     "name":"util-cat",
-    "description": "Print the content of one or more concatenated files",
-    "command": "allowed-tool.sh cat --",
-    "instructions": [ "util-cat.txt" ],
+    "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+    "command": "allowed-tool.sh cat filespecs --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -168,7 +167,7 @@
   },
   {
     "name":"util-head",
-    "description": "Output the first part of files",
+    "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
     "command": "head-tail.sh head --",
     "inputSchema": {
       "type": "object",
@@ -191,7 +190,7 @@
   },
   {
     "name":"util-tail",
-    "description": "Output the last part of files",
+    "description": "Print the last part of one or more files to pipe to the next tool in a core-pipe.",
     "command": "head-tail.sh tail --",
     "inputSchema": {
       "type": "object",
@@ -215,7 +214,7 @@
   {
     "name":"util-wc",
     "description": "Count newline, word and bytes for files",
-    "command": "allowed-tool.sh wc -c --bytes -m --chars -l --lines -w --words --",
+    "command": "allowed-tool.sh wc filespecs -c --bytes -m --chars -l --lines -w --words --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -325,7 +324,7 @@
   {
     "name":"util-diff",
     "description": "Compare two files",
-    "command": "allowed-tool.sh diff -c -d -D -i -u --",
+    "command": "allowed-tool.sh diff pathspecs -c -d -D -i -u --",
     "inputSchema": {
       "type": "object",
       "properties": {

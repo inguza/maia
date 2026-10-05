@@ -14,6 +14,7 @@ declare -A param
 parseparam
 
 command="$1"
+xspecparam="$2"
 shift
 
 declare -A allowed
@@ -34,11 +35,11 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspecs="${param[pathspecs]:-}"
+pathspecs="${param[$xspecparam]:-}"
 declare -a paths=()
 if [[ -n "$pathspecs" ]] ; then
     if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error." >&2
+	echo "[ERROR] $xspecparam parse error." >&2
 	exit 2
     fi
 fi

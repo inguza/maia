@@ -34,7 +34,7 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-path="$(printf '%b' "${param[path]:-}")"
+path="${param[path]}"
 if [[ -n "$path" ] ; then
     validate_path "$path"
 fi
