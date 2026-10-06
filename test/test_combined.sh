@@ -208,7 +208,11 @@ for api in "${api_types_and_configs[@]}"; do
     run_tool_cmd "enable_pipe_seq_tool${suffix}_4" delete
     run_history_cmd "history_clear${suffix}" clear
     run_skill_cmd "skill_delete_seq_tool${suffix}_2" delete
-    
+
+    run_tool_cmd "enable_file_tools${suffix}" enable "file-*"
+    run_send_cmd "skill_file_instruction${suffix}" "Hello with file-* tool enabled, AI!"
+    run_tool_cmd "delete_tools_again${suffix}" delete
+
     unset MOCK_CURL_RESPONSE_FILE
 done
 
