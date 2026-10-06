@@ -1,9 +1,29 @@
 ---
-description: How to manipulate files using file and change tools
-any-path: *[a-zA-Z0-9]*
+description: How to read and manipulate files using file and change tools
 all-tool: file-*
 loadable: false
 ---
+
+# File reading
+
+When a file is relevant to the ongoing work, prefer `context-file-remember`
+over other tools like `util-cat` or `util-head`.
+
+`context-file-remember` remembers the file as context rather than inserting
+a snapshot of its contents into the conversation. The latest version of the
+file is then provided as context on each request. This is important because
+you are working together with people and other agents meaning that files
+may change during the work.
+
+Tools like `util-cat` or `util-head` create a snapshot that will become stale,
+requiring the file to be read again. Repeatedly reading files will cause the
+same content to be added to the conversation history multiple times,
+resulting in unnecessary and potentially exponential token growth.
+
+When you no longer need to have the file in your context, you can forget
+it with `context-file-forget` to save tokens.
+
+# File modification
 
 A normal file modification flow consists of:
 

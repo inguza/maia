@@ -11,6 +11,14 @@
     },
     {
       "role": "user",
+      "content": "Hello with file-* tool enabled, AI!"
+    },
+    {
+      "role": "assistant",
+      "content": "Mocked response"
+    },
+    {
+      "role": "user",
       "content": "Hello, AI!"
     },
     {
