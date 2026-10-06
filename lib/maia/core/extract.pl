@@ -9,15 +9,18 @@
 use strict;
 use warnings;
 use File::Spec;
+use Digest::SHA qw(sha256_hex);
 use Getopt::Long;
 
 # Globals
 my $workspace = '.';
+my $mcp_cache = '';
 
 # Parse options
 GetOptions(
-    'workspace=s' => \$workspace,
-    'help'       => sub { usage(); exit(0) },
+    'workspace=s'      => \$workspace,
+    'mcpcache=s'       => \$mcp_cache,
+    'help'             => sub { usage(); exit(0) },
 ) or usage_and_exit();
 
 my @file_specs = @ARGV;
@@ -28,10 +31,21 @@ if (!@file_specs) {
 
 # Main
 foreach my $spec (@file_specs) {
-    # Detect and split pipe filter syntax
-    my ($file_spec, $filter_cmd) = split(/\|/, $spec, 2);
-
-    my ($filepath, $language, $extraction_type, $identifier) = parse_file_spec($file_spec);
+    # MCP specifications are opaque. In particular, ':' and '|' in the URI
+    # are part of the URI, not local extraction or filter syntax.
+    my $is_mcp = index($spec, '#') >= 0;
+    my ($file_spec, $filter_cmd);
+    my ($filepath, $language, $extraction_type, $identifier);
+    if ($is_mcp) {
+        $file_spec = $spec;
+        $filepath = $spec;
+        $extraction_type = 'full';
+        $identifier = 'all';
+	$filter_cmd= '';
+    } else {
+        ($file_spec, $filter_cmd) = split(/\|/, $spec, 2);
+        ($filepath, $language, $extraction_type, $identifier) = parse_file_spec($file_spec);
+    }
 
     # Default values
     $language ||= 'bash';
@@ -46,8 +60,20 @@ foreach my $spec (@file_specs) {
         }
     }
 
-    # Resolve full path
-    my $fullpath = File::Spec->rel2abs($filepath, $workspace);
+    # MCP content has already been materialized by Bash. Its cache identity is
+    # the exact opaque specification, matching common.sh:
+    # printf '%s' "$spec" | sha256sum | cut -c1-16
+    my $fullpath;
+    if ($is_mcp) {
+        if ($mcp_cache eq '') {
+            warn "Warning: No MCP cache directory was supplied for '$spec'. Skipping.\n";
+            next;
+        }
+        my $cache_id = substr(sha256_hex($spec), 0, 16);
+        $fullpath = File::Spec->catfile($mcp_cache, "$cache_id.mcp");
+    } else {
+        $fullpath = File::Spec->rel2abs($filepath, $workspace);
+    }
     if (!-f $fullpath) {
         warn "Warning: File '$fullpath' does not exist or is not a regular file. Skipping.\n";
         next;
@@ -124,11 +150,12 @@ exit(0);
 
 sub usage {
     print <<"EOF";
-Usage: extract.pl [--workspace DIR] <file_spec> [<file_spec> ...]
+Usage: extract.pl [--workspace DIR] [--mcpcache DIR] [--mcp-endpoint NAME=ENDPOINT] <file_spec> [<file_spec> ...]
 
 Each <file_spec> has the format:
   filepath[:language][:extraction_type]:identifier
 
+  - --mcpcache DIR: directory containing cached MCP resources
   - filepath: path to file (relative to workspace or absolute)
   - language: optional, e.g. bash, python (default: bash)
   - extraction_type: optional, one of 'function', 'lines', 'full'

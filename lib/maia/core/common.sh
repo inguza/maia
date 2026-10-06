@@ -912,7 +912,6 @@ fileset_content_extract() {
     local -a fs=( "${filesets[@]}" )
     # Loop over filesets in order
     local -a specs=()
-    local -a filespecs=()
     local -a mcpspecs=()
     local -A seen=()
     local sendset
@@ -944,10 +943,8 @@ fileset_content_extract() {
 	    specs+=("$spec")
 	    local name="${spec%%#*}"
 	    local endpoint="${services[$name]}"
-	    if [[ -n "$endpoint" ]] ; then
+	    if [[ "$spec" == *'#'* && -n "$endpoint" ]] ; then
 		mcpspecs+=("$spec")
-	    else
-		filespecs+=("$spec")
 	    fi
 	    seen[$spec]=1
 	done < "$fs_file"
@@ -975,16 +972,14 @@ fileset_content_extract() {
 	    done
 	    ;;
 	content)
-	    # Output workspace root and file specs
-	    if (( ${#filespecs[@]} > 0 )); then
-		"$MAIA_CORE_LIB_DIR/extract.pl" --workspace "$workspace_root" "${filespecs[@]}"
-	    fi
 	    if (( ${#mcpspecs[@]} > 0 )); then
 		for spec in "${mcpspecs[@]}" ; do
 		    local name="${spec%%#*}"
 		    local endpoint="${services[$name]}"
 		    local uri="${spec#*#}"
-		    local cacheid="$(printf '%s' "$name$endpoint$uri" | sha256sum | cut -c1-16)"
+		    # MCP specifications are opaque. The exact spec is the cache identity;
+		    # URI characters such as ':' and '|' must not be parsed or changed.
+		    local cacheid="$(printf '%s' "$spec" | sha256sum | cut -c1-16)"
 		    local sessionpath="$(resolve_session_path)"
 		    local cache="$sessionpath/cache/$cacheid.mcp"
 		    if [[ -d "$sessionpath" ]] ; then
@@ -1009,6 +1004,10 @@ fileset_content_extract() {
 			read_file "$cache" cr
 		    fi
 		done
+	    fi
+	    # Output workspace root and file specs
+	    if (( ${#specs[@]} > 0 )); then
+		"$MAIA_CORE_LIB_DIR/extract.pl" --workspace "$workspace_root" --mcpcache "$sessionpath/cache" "${specs[@]}"
 	    fi
 	    ;;
 	*)
