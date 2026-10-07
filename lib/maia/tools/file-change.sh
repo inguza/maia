@@ -78,6 +78,9 @@ else
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
 	write_meta "$ws_changes" "$baseid" "$nextindex" "$path"
         printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists, but some of the change(s) could be applied since the original content could not be found exactly.\n\nChange proposal created:\n$id - for the part that could be applied\n$nextid - for the content to apply manually\n"
+	echo "\`\`\`patch"
+	read_file_by_line "$pfile" cr
+	echo "\`\`\`"
 	trigger_event "post-change-create" "${baseid}-${index}"
 	trigger_event "post-change-create" "${baseid}-${nextindex}"
     else
