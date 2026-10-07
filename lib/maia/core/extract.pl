@@ -11,6 +11,8 @@ use warnings;
 use File::Spec;
 use JSON::PP;
 use Digest::SHA qw(sha256_hex);
+use Encode qw(decode FB_CROAK);
+use MIME::Base64 qw(encode_base64);
 use Getopt::Long;
 
 # Globals
@@ -25,130 +27,130 @@ GetOptions(
 ) or usage_and_exit();
 
 my @file_specs = @ARGV;
-if (!@file_specs) {
-    print STDERR "Error: No file specifications provided.\n";
-    usage_and_exit();
-}
 
 my @result = ();
-# Main
+# Main. Process specifications in stages: @ source handling, path resolution,
+# content detection, and only then type-specific selector interpretation.
 foreach my $spec (@file_specs) {
-    # MCP specifications are opaque. In particular, ':' and '|' in the URI
-    # are part of the URI, not local extraction or filter syntax.
-    my $is_mcp = index($spec, '#') >= 0;
-    my ($file_spec, $filter_cmd);
-    my ($filepath, $language, $extraction_type, $identifier);
-    if ($is_mcp) {
-        $file_spec = $spec;
-        $filepath = $spec;
-        $extraction_type = 'full';
-        $identifier = 'all';
-	$filter_cmd= '';
-    } else {
-        ($file_spec, $filter_cmd) = split(/\|/, $spec, 2);
-        ($filepath, $language, $extraction_type, $identifier) = parse_file_spec($file_spec);
-    }
-
-    # Default values
-    $language ||= 'bash';
-    if (!defined $extraction_type) {
-        if (!defined $identifier) {
-            $extraction_type = 'full';
-            $identifier = 'all';
-        } elsif ($identifier =~ /^\d+(-\d+)?$/) {
-            $extraction_type = 'lines';
-        } else {
-            $extraction_type = 'function';
+    if (index($spec, '@') >= 0) {
+        my ($url_spec, $url) = split(/@/, $spec, 2);
+        my $url_record = parse_url_spec($url_spec, $url);
+        if (!defined $url_record) {
+            warn "Warning: Invalid URL file specification '$spec'. Skipping.\n";
+            next;
         }
+        push @result, $url_record;
+        next;
     }
 
-    # MCP content has already been materialized by Bash. Its cache identity is
-    # the exact opaque specification, matching common.sh:
-    # printf '%s' "$spec" | sha256sum | cut -c1-16
-    my $fullpath;
+    my ($file_spec, $filter_cmd) = split(/\|/, $spec, 2);
+    my ($filepath, $fullpath, $rest_spec);
+    my $is_mcp = index($file_spec, '#') >= 0;
+
     if ($is_mcp) {
+        # MCP specifications are opaque. The original spec, including a
+        # possible filter, is the cache identity used by common.sh.
+        $filepath = $file_spec;
         if ($mcp_cache eq '') {
             warn "Warning: No MCP cache directory was supplied for '$spec'. Skipping.\n";
             next;
         }
         my $cache_id = substr(sha256_hex($spec), 0, 16);
         $fullpath = File::Spec->catfile($mcp_cache, "$cache_id.mcp");
+        $rest_spec = undef;
     } else {
+        # Only the path is separated before reading. The remaining colon
+        # fields cannot be interpreted until the file type is known.
+        ($filepath, $rest_spec) = split(/:/, $file_spec, 2);
         $fullpath = File::Spec->rel2abs($filepath, $workspace);
     }
+
     if (!-f $fullpath) {
         warn "Warning: File '$fullpath' does not exist or is not a regular file. Skipping.\n";
         next;
     }
 
-    my $content = '';
-    if ($language eq 'bash') {
-	if ($extraction_type eq 'function') {
-	    $content = extract_bash_function($fullpath, $identifier);
-	    if (!defined $content) {
-		warn "Warning: Function '$identifier' not found in file '$filepath'. Skipping.\n";
-		next;
-	    }
-	} elsif ($extraction_type eq 'lines') {
-	    $content = extract_lines($fullpath, $identifier);
-	    if (!defined $content) {
-		warn "Warning: Invalid line range '$identifier' in file '$filepath'. Skipping.\n";
-		next;
-	    }
-	} elsif ($extraction_type eq 'full') {
-	    $content = extract_full_file($fullpath);
-	} else {
-	    warn "Warning: Unsupported extraction type '$extraction_type' for bash. Skipping.\n";
-	    next;
-	}
-    } else {
-	# Unsupported language fallback: only full file extraction
-	if ($extraction_type eq 'full') {
-	    $content = extract_full_file($fullpath);
-	} else {
-	    warn "Warning: Language '$language' with extraction type '$extraction_type' not supported yet. Skipping.\n";
-	    next;
-	}
+    my $type = "";
+    my $mime;
+    my $content;
+    my $quality;
+    my @items = (!$is_mcp && defined($rest_spec) && length($rest_spec))
+        ? split(/:/, $rest_spec) : ();
+
+    # An explicit type overrides autodetection. Only after this step can the
+    # remaining item be interpreted as a selector or resolution.
+    my $detected_mime;
+    if (@items && $items[0] =~ /^(text|image|document|other)$/i) {
+        $type = lc shift @items;
+        # Explicit binary types still need their MIME type for provider
+        # serializers.  Text does not need a data-URL MIME type here.
+        $detected_mime = detect_mime($fullpath)
+            if $type ne 'text';
     }
-    # | filters are always done after the :filter or full file extraction
-    if (defined $filter_cmd) {
-        # Pipe content through the filter command
-        # Use open3 or open with pipe from command
-        # Use shell to interpret complex commands
-        my $filtered_content = '';
-        {
-            use IPC::Open2;
-            my $pid = open2(my $out, my $in, "sh", "-c", $filter_cmd);
-            print $in $content;
-            close $in;
-            {
-                local $/;
-                $filtered_content = <$out>;
-            }
-            waitpid($pid, 0);
-            my $exit_status = $? >> 8;
-            if ($exit_status != 0) {
-                warn "Warning: Filter command '$filter_cmd' failed with exit code $exit_status. Skipping.\n";
+    else {
+	($type, $detected_mime) = read_and_classify($fullpath);
+    }
+    
+    if ($type eq 'image' || $type eq 'document') {
+	$content = read_binary_file($fullpath);
+        if (@items && $items[0] =~ /^(low|medium|high)$/i) {
+            $quality = lc shift @items;
+        }
+        if (@items) {
+            warn "Warning: Unexpected selector for $type file '$filepath'. Skipping.\n";
+            next;
+        }
+    } elsif ($type eq 'other') {
+	$content = read_binary_file($fullpath);
+        if (@items) {
+            warn "Warning: Unexpected selector for other file '$filepath'. Skipping.\n";
+            next;
+        }
+    } elsif ($type eq 'text') {
+        my $selector = join(':', @items);
+        my ($language, $extraction_type, $identifier) =
+            parse_text_selector($selector);
+        if ($extraction_type eq 'function') {
+            $content = extract_bash_function($fullpath, $identifier)
+                if $language eq 'bash';
+            if (!defined $content || $language ne 'bash') {
+                warn "Warning: Function '$identifier' not supported or not found in '$filepath'. Skipping.\n";
                 next;
             }
+        } elsif ($extraction_type eq 'lines') {
+            $content = extract_lines($fullpath, $identifier);
+            if (!defined $content) {
+                warn "Warning: Invalid line range '$identifier' in file '$filepath'. Skipping.\n";
+                next;
+            }
+        } elsif ($extraction_type ne 'full') {
+            warn "Warning: Unsupported extraction type '$extraction_type'. Skipping.\n";
+            next;
+        }
+	else {
+	    $content = extract_full_file($fullpath);
+	}
+    }
+
+    if (defined $filter_cmd && $filter_cmd ne '') {
+        my ($filtered_content, $filter_status) = run_filter($filter_cmd, $content);
+        if ($filter_status != 0) {
+            warn "Warning: Filter command '$filter_cmd' failed with exit code $filter_status. Skipping.\n";
+            next;
         }
         $content = $filtered_content;
     }
-
-    # Print output with bracket header
-    my $out = "[$filepath $extraction_type $identifier]\n";
-    $out =~ s/ full all//;
-    push @result, {
-	filename => $filepath,
-	type     => 'text',
-	content  => $content,
-    };
-    #print $out;
-    #print '```'."\n"; # Fence the content
-    #print $content;
-    ## Ensure ending with newline
-    #print "\n" unless $content =~ /\n\z/;
-    #print '```'."\n"; # End fence
+    if ($type eq "text") {
+	my %record = (filename => $filepath, type => $type, content => $content);
+	push @result, \%record;
+    }
+    else {
+	$content = encode_base64($content, '');
+	my %record = (filename => $filepath, type => $type, base64 => $content);
+	$record{mime} = $detected_mime if defined $detected_mime && $detected_mime ne '';
+	$record{quality} = $quality if defined $quality;
+	push @result, \%record;
+    }
 }
 print encode_json(\@result);
 print "\n";
@@ -159,32 +161,194 @@ exit(0);
 
 sub usage {
     print <<"EOF";
-Usage: extract.pl [--workspace DIR] [--mcpcache DIR] [--mcp-endpoint NAME=ENDPOINT] <file_spec> [<file_spec> ...]
+Usage: extract.pl [--workspace DIR] [--mcpcache DIR] <file_spec> [<file_spec> ...]
 
-Each <file_spec> has the format:
-  filepath[:language][:extraction_type]:identifier
-
-  - --mcpcache DIR: directory containing cached MCP resources
-  - filepath: path to file (relative to workspace or absolute)
-  - language: optional, e.g. bash, python (default: bash)
-  - extraction_type: optional, one of 'function', 'lines', 'full'
-  - identifier:
-      * For function: function name
-      * For lines: line number or range (e.g. 100, 50-60)
-      * For full: 'all' or omit identifier
-
-Examples:
-  lib/change.sh:change_usage
-  lib/change.sh:bash:function:change_usage
-  lib/change.sh:lines:100-120
-  lib/change.sh:100-120
-  lib/change.sh:full:all
+File spec format is described in docs/filespecs.md
 EOF
 }
 
 sub usage_and_exit {
     usage();
     exit(1);
+}
+
+# Parse a provider URL specification. The URL itself is opaque.
+# The long form is name/path:type:quality@url. The short form
+# name/path:quality@url infers image/document from the filename extension.
+sub parse_url_spec {
+    my ($spec, $url) = @_;
+    return undef unless defined $url && length $url;
+
+    my @parts = split /:/, $spec, 3;
+    my $filename = shift @parts;
+    return undef unless defined $filename && length $filename;
+
+    my ($type, $quality);
+    if (@parts == 2) {
+        ($type, $quality) = @parts;
+    } elsif (@parts == 1) {
+        ($quality) = @parts;
+        if ($filename =~ /\.(?:png|jpe?g|gif|webp|bmp|tiff?)$/i) {
+            $type = 'image';
+        } elsif ($filename =~ /\.(?:pdf|docx?|rtf|odt|epub)$/i) {
+            $type = 'document';
+        } else {
+            return undef;
+        }
+    } else {
+        return undef;
+    }
+
+    return undef unless defined $type && $type =~ /^(image|document)$/i;
+    if (defined $quality && $quality ne '') {
+        return undef unless $quality =~ /^(low|medium|high)$/i;
+        $quality = lc($quality);
+    }
+
+    my %record = (
+        filename => $filename,
+        type     => lc($type),
+        url      => $url,
+    );
+    $record{quality} = $quality if defined $quality && $quality ne '';
+    return \%record;
+}
+
+# Parse a local file specification according to docs/filespecs.md.
+# MCP specifications are handled before this function and are intentionally
+# never passed here, since ':' and '|' are valid URI characters.
+sub parse_local_spec {
+    my ($spec, $workspace) = @_;
+    my @parts = split /:/, $spec, 4;
+    return undef unless @parts && defined $parts[0] && length $parts[0];
+
+    my $filepath = shift @parts;
+    my ($type, $quality, $rest);
+    my $first = shift @parts;
+
+    if (defined $first && $first =~ /^(text|image|document|other)$/i) {
+        $type = lc $first;
+        $rest = join(':', @parts);
+        if (($type eq 'image' || $type eq 'document') && defined $rest && $rest ne '') {
+            ($quality, $rest) = split(/:/, $rest, 2);
+        }
+    } elsif (defined $first) {
+        # Without an explicit type, the remaining selector or resolution is
+        # interpreted after automatic type detection.
+        $rest = join(':', grep { defined } ($first, @parts));
+    }
+
+    if (defined $quality && $quality !~ /^(low|medium|high)$/i) {
+        return undef;
+    }
+    return {
+        filepath => $filepath,
+        type     => $type,
+        quality  => defined($quality) ? lc($quality) : undef,
+        rest     => (defined($rest) && $rest ne '') ? $rest : undef,
+    };
+}
+
+# Classify a file by inspecting only a bounded prefix.  This must not read
+# the complete file: text selectors may later read only a small portion.
+# NUL bytes, invalid UTF-8, or an excessive number of control characters in
+# the sample identify a binary file.  Only binary files are passed to file(1).
+sub read_and_classify {
+    my ($file) = @_;
+    my $sample_size = 65536;
+    open my $fh, '<:raw', $file or do {
+        warn "Failed to open file '$file': $!\n";
+        return 'other';
+    };
+
+    my $bytes = '';
+    my $read = read($fh, $bytes, $sample_size);
+    close $fh;
+    if (!defined $read) {
+        warn "Failed to read file '$file': $!\n";
+        return 'other';
+    }
+
+    my $binary = index($bytes, "\0") >= 0;
+    if (!$binary) {
+        my $text;
+        $binary = 1 unless eval {
+            $text = decode('UTF-8', $bytes, FB_CROAK);
+            1;
+        };
+        if (!$binary) {
+            my $controls = () = $text =~ /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+            $binary = 1 if length($text) && $controls > length($text) / 100;
+        }
+    }
+
+    return classify_binary($file) if $binary;
+    return ('text', 'text/plain');
+}
+
+# Read a file without decoding it. This is used when a binary filter needs
+# the original bytes on stdin.
+sub read_binary_file {
+    my ($file) = @_;
+    open my $fh, '<:raw', $file or return undef;
+    local $/;
+    my $content = <$fh> // '';
+    close $fh;
+    return $content;
+}
+
+sub run_filter {
+    my ($filter_cmd, $content) = @_;
+    my $filtered_content = '';
+    require IPC::Open2;
+    my $pid = IPC::Open2::open2(my $out, my $in, 'sh', '-c', $filter_cmd);
+    print $in $content;
+    close $in;
+    { local $/; $filtered_content = <$out> // ''; }
+    waitpid($pid, 0);
+    return ($filtered_content, $? >> 8);
+}
+
+# Run file only after the inexpensive in-process binary test says that the
+# content is binary.
+sub detect_mime {
+    my ($file) = @_;
+    my $mime = '';
+    if (open my $fh, '-|', 'file', '--brief', '--mime-type', '--', $file) {
+        local $/;
+        $mime = <$fh> // '';
+        close $fh;
+        $mime =~ s/[\r\n]+\z//;
+    }
+    return $mime;
+}
+
+sub classify_binary {
+    my ($file) = @_;
+    my $mime = detect_mime($file);
+    my $type = 'other';
+    $type = 'image' if $mime =~ m{^image/}i;
+    $type = 'document' if $mime =~ m{^(application/pdf|application/(msword|rtf|postscript|epub\+zip|vnd\.)|text/rtf)}i;
+    return ($type, $mime);
+}
+
+# Parse the selector belonging to a text file.
+sub parse_text_selector {
+    my ($selector) = @_;
+    return ('bash', 'full', 'all') if !defined($selector) || $selector eq '' || $selector eq 'full';
+    return ('bash', 'lines', $selector) if $selector =~ /^\d+(?:-\d+)?$/;
+
+    my @parts = split /:/, $selector;
+    my $language = 'bash';
+    if (@parts && $parts[0] =~ /^(bash|c|php|python)$/i) {
+        $language = lc shift @parts;
+    }
+    my $matchtype = 'function';
+    if (@parts && $parts[0] eq 'function') {
+        $matchtype = lc shift @parts;
+    }
+    my $identifier = join(':', @parts);
+    return ($language, $matchtype, $identifier);
 }
 
 # Parse file spec string into parts

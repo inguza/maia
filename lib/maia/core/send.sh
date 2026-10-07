@@ -258,7 +258,8 @@ build_messages_json() {
 
     # 1) Gather file content from session.filesets
     local ws_name=$(resolve_workspace_name)
-    local combined=$(session_content_extract "$session" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
+    local files_json="$(session_content_extract "$session")"
+    local combined=$(printf '%s' "$files_json" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
     local task_list=""
     local task_memory=""
     if [[ "$no_tasks" == false ]]; then
@@ -306,6 +307,7 @@ build_messages_json() {
     if [[ -n "$combined" && "${ws_name}" && "$no_files" == false ]]; then
 	# Avoid argument list too long by using slurpfile
 	local tmpf="$(mktemp)"
+	local tmpb="$(mktemp)"
 	case "${mode^^}" in
             BEFORE|FIRST)
 		printf '%s\n\n%s\n\n%s' "# Files" "$filesinstr" "$combined" >> "$tmpf"
@@ -347,6 +349,7 @@ build_messages_json() {
 		;;
 	    AUTOTOOL|AUTOTOOLBEFORE)
                 printf '%s\n\n%s\n\n%s' "# Files" "$filesinstr" "$combined" > "$tmpf"
+		printf '%s' "$files_json" >> "$tmpb"
                 local call_id="call_$(random_string 24)"
 		local insertpos
 		case "${mode^^}" in
@@ -357,7 +360,7 @@ build_messages_json() {
 			insertpos='($position + 1)'
 			;;
 		esac
-                msgs=$(jq --rawfile content "$tmpf" --arg callid "$call_id" '
+                msgs=$(jq --rawfile content "$tmpf" --rawfile files "$tmpb" --arg callid "$call_id" '
                     . as $m
                     | ([$m | to_entries[] |
                         select(.value.role == "user")] | last).key as $position
@@ -380,6 +383,11 @@ build_messages_json() {
                             tool_call_id: $callid,
                             content: $content
                           }
+                          + (if (($files | fromjson | map(select(.type != "text"))) | length) > 0 then
+                               {files: ($files | fromjson | map(select(.type != "text")))}
+                             else
+                               {}
+                             end)
                         ]
                       + $m['"$insertpos"':]
                 ' <<<"$msgs")
@@ -388,7 +396,7 @@ build_messages_json() {
 		:
 		;;
 	esac
-	rm -f "$tmpf"
+	rm -f "$tmpf" "$tmpb"
     fi
 
     printf '%s' "$msgs"

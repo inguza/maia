@@ -1,42 +1,40 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
 0    SYSTEM       ->  136 tokens (chars: 542)
-0    USER[0]      ->    9 tokens (chars: 35)
+0    USER[0]      ->    3 tokens (chars: 10)
 1    ASSISTANT[0] ->    4 tokens (chars: 15)
-2    USER[1]      ->    3 tokens (chars: 10)
+2    USER[1]      ->    4 tokens (chars: 16)
 3    ASSISTANT[1] ->    4 tokens (chars: 15)
-4    USER[2]      ->    4 tokens (chars: 16)
+4    USER[2]      ->    7 tokens (chars: 28)
 5    ASSISTANT[2] ->    4 tokens (chars: 15)
-6    USER[3]      ->    7 tokens (chars: 28)
+6    USER[3]      ->    8 tokens (chars: 29)
 7    ASSISTANT[3] ->    4 tokens (chars: 15)
-8    USER[4]      ->    8 tokens (chars: 29)
+8    USER[4]      ->   10 tokens (chars: 39)
 9    ASSISTANT[4] ->    4 tokens (chars: 15)
-10   USER[5]      ->   10 tokens (chars: 39)
+10   USER[5]      ->   12 tokens (chars: 45)
 11   ASSISTANT[5] ->    4 tokens (chars: 15)
-12   USER[6]      ->   12 tokens (chars: 45)
+12   USER[6]      ->   14 tokens (chars: 55)
 13   ASSISTANT[6] ->    4 tokens (chars: 15)
-14   USER[7]      ->   14 tokens (chars: 55)
+14   USER[7]      ->    7 tokens (chars: 26)
 15   ASSISTANT[7] ->    4 tokens (chars: 15)
-16   USER[8]      ->    7 tokens (chars: 26)
+16   USER[8]      ->    7 tokens (chars: 25)
 17   ASSISTANT[8] ->    4 tokens (chars: 15)
 18   USER[9]      ->    7 tokens (chars: 25)
 19   ASSISTANT[9] ->    4 tokens (chars: 15)
-20   USER[10]     ->    7 tokens (chars: 25)
-21   ASSISTANT[10] ->    4 tokens (chars: 15)
-22   USER[11]     ->   12 tokens (chars: 48)
-23   ASSISTANT[11] ->    1 tokens (chars: 4)
-24   TOOL         ->   29 tokens (chars: 115)
+20   USER[10]     ->   12 tokens (chars: 48)
+21   ASSISTANT[10] ->    1 tokens (chars: 4)
+22   TOOL         ->   29 tokens (chars: 115)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'gpt-5.6-luna':
-Total:         310
-  Input:       144
+Total:         297
+  Input:       131
   Output:        1
 ──────────────────────────────
-  User:        100
-  Assistant:    45
+  User:         91
+  Assistant:    41
 APPROXIMATE COST (USD) for model 'gpt-5.6-luna':
-  Total:      $0.000030
-  Input:      $0.000029
+  Total:      $0.000027
+  Input:      $0.000026
   Output:     $0.000001
 The input cost is a prediction of what will be sent.
 The output cost is based on last request.

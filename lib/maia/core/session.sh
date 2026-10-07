@@ -507,7 +507,7 @@ handle_session_command() {
         contents|content)
 	    shift
             local name="${1:-$(resolve_session_name)}"
-	    session_content_extract "$name" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq"
+	    session_content_extract "$name" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown-all.jq"
             ;;
 
         instructions|instruction)

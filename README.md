@@ -362,7 +362,7 @@ Installable packages containing tools, skills, profiles, and instructions.
 
 ## Filesets and Files
 
-Filesets define which files are available as context for a session, allowing the user to control what the AI can see. See the [workspace documentation](docs/workspace.md).
+Filesets define which [files](docs/filespecs.md) are available as context for a session, allowing the user to control what the AI can see. See the [workspace documentation](docs/workspace.md).
 
 ## [Change Suggestions](docs/changes.md)
 
@@ -427,11 +427,10 @@ Allow the tools and skills you think the AI will need to perform the task you wa
    ```
 
 5. **Manage files**
-   Add relevant files to provide context for the AI.
+   Add [relevant file content](docs/filespecs.md) to provide context for the AI.
 
    ```bash
    maia file remember pathtofile1
-   maia file forget pathtofile1
    ```
 
 6. **Compose messages**

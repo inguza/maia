@@ -26,6 +26,8 @@ echo "x2" > x/2.txt
 echo "x3" > x/3.txt
 echo "x4" > x/4.txt
 echo "x5" > x/5.txt
+cp $TEST_ROOT/exampledata/example.pdf .
+cp $TEST_ROOT/exampledata/example.png .
 
 # Helper to run a session command and check output
 run_session_cmd() {
@@ -206,12 +208,37 @@ for api in "${api_types_and_configs[@]}"; do
     run_send_cmd "tool_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
     run_count_cmd "tool_count_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
     run_tool_cmd "enable_pipe_seq_tool${suffix}_4" delete
-    run_history_cmd "history_clear${suffix}" clear
+    run_history_cmd "history_clear_1${suffix}" clear
     run_skill_cmd "skill_delete_seq_tool${suffix}_2" delete
 
     run_tool_cmd "enable_file_tools${suffix}" enable "file-*"
     run_send_cmd "skill_file_instruction${suffix}" "Hello with file-* tool enabled, AI!"
     run_tool_cmd "delete_tools_again${suffix}" delete
+
+    run_history_cmd "history_clear_2${suffix}" clear
+    case "$api" in
+	OPENAI_CHAT_COMPLETIONS)
+	    # No support for binary files
+	    :
+	    ;;
+	AUTODETECT|OPENAI_RESPONSES|AWS_BEDROCK_CONVERSE)
+	    run_file_cmd "add_file_x1${suffix}" forget x/1.txt
+	    run_file_cmd "file_add_pdf${suffix}" remember example.pdf
+	    run_file_cmd "file_add_png${suffix}" remember example.png
+	    run_send_cmd "binary_files_only${suffix}" "Test with only binary files"
+	    run_file_cmd "add_file_x1_2${suffix}" remember x/1.txt
+	    run_send_cmd "text_and_binary_files${suffix}" "Test with text and binary files"
+	    run_tool_cmd "enable_file_tools_2${suffix}" enable "file-*"
+	    run_send_cmd "tools_text_and_binary${suffix}" "Hello with test, binary and also file-* tool enabled, AI!"
+	    run_file_cmd "file_f_pdf${suffix}" forget example.pdf
+	    run_file_cmd "file_f_png${suffix}" forget example.png
+	    run_tool_cmd "delete_tools_again_2${suffix}" delete
+	    ;;
+	*)
+	    exit
+	    ;;
+    esac
+    run_history_cmd "history_clear_3${suffix}" clear
 
     unset MOCK_CURL_RESPONSE_FILE
 done
