@@ -324,7 +324,7 @@ handle_file_command() {
 
 	content)
 	    shift
-	    fileset_content_extract "content" "$session_ws" "${active_fs[@]}"
+	    fileset_content_extract "content" "$session_ws" "${active_fs[@]}" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq"
 	    ;;
 
         add|remember)

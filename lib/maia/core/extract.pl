@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use File::Spec;
+use JSON::PP;
 use Digest::SHA qw(sha256_hex);
 use Getopt::Long;
 
@@ -29,6 +30,7 @@ if (!@file_specs) {
     usage_and_exit();
 }
 
+my @result = ();
 # Main
 foreach my $spec (@file_specs) {
     # MCP specifications are opaque. In particular, ':' and '|' in the URI
@@ -136,13 +138,20 @@ foreach my $spec (@file_specs) {
     # Print output with bracket header
     my $out = "[$filepath $extraction_type $identifier]\n";
     $out =~ s/ full all//;
-    print $out;
-    print '```'."\n"; # Fence the content
-    print $content;
-    # Ensure ending with newline
-    print "\n" unless $content =~ /\n\z/;
-    print '```'."\n"; # End fence
+    push @result, {
+	filename => $filepath,
+	type     => 'text',
+	content  => $content,
+    };
+    #print $out;
+    #print '```'."\n"; # Fence the content
+    #print $content;
+    ## Ensure ending with newline
+    #print "\n" unless $content =~ /\n\z/;
+    #print '```'."\n"; # End fence
 }
+print encode_json(\@result);
+print "\n";
 
 exit(0);
 

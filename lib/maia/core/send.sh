@@ -258,7 +258,7 @@ build_messages_json() {
 
     # 1) Gather file content from session.filesets
     local ws_name=$(resolve_workspace_name)
-    local combined=$(session_content_extract "$session")
+    local combined=$(session_content_extract "$session" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
     local task_list=""
     local task_memory=""
     if [[ "$no_tasks" == false ]]; then
