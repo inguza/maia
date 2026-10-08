@@ -81,8 +81,9 @@ For optional functionality:
 
 | Optional functionality | Depends on |
 | --- | --- |
-| `maia shell enter` | script from bsdutils |
-| AWS API | xxd |
+| `maia shell enter` | `script` from bsdutils |
+| AWS API | `xxd` |
+| Binary files | `file` |
 
 Some MAIA tools have additional dependencies:
 
