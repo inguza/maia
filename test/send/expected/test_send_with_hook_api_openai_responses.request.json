@@ -258,7 +258,12 @@
     {
       "type": "function_call_output",
       "call_id": call_<callid>,
-      "output": "Hello"
+      "output": [
+        {
+          "type": "input_text",
+          "text": "Hello"
+        }
+      ]
     },
     {
       "type": "message",
@@ -274,7 +279,12 @@
     {
       "type": "function_call_output",
       "call_id": call_<callid>,
-      "output": "[ERROR] Duplicate tool call\\n\\nTool call already tried:\\ncore-print({\"content\":\"Hello\"})\\n\\nTwo identical tool calls are not allowed without new user input.\\n"
+      "output": [
+        {
+          "type": "input_text",
+          "text": "[ERROR] Duplicate tool call\\n\\nTool call already tried:\\ncore-print({\"content\":\"Hello\"})\\n\\nTwo identical tool calls are not allowed without new user input.\\n"
+        }
+      ]
     },
     {
       "type": "message",

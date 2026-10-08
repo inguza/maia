@@ -524,7 +524,12 @@
     {
       "type": "function_call_output",
       "call_id": call_<callid>,
-      "output": "Hello"
+      "output": [
+        {
+          "type": "input_text",
+          "text": "Hello"
+        }
+      ]
     }
   ],
   "tools": [
