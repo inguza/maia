@@ -320,6 +320,38 @@ sub detect_mime {
         close $fh;
         $mime =~ s/[\r\n]+\z//;
     }
+    if ("$mime" eq "") {
+	# Fallback if mime is not available
+	if (open my $fh, '-|', 'od', '-An', '-N12', '-tx1', $file) {
+	    local $/;
+	    my $hex = <$fh> // '';
+	    close $fh;
+	    if ($hex =~ /^89504e470d0a1a0a89504e470d0a1a0a/) {
+		$mime = "image/png";
+	    }
+	    elsif ($hex =~ /^ffd8ff/) {
+		$mime = "image/png";
+	    }
+	    elsif ($hex =~ /^474946383761/ || $hex =~ /^474946383961/) {
+		$mime = "image/gif";
+	    }
+	    elsif ($hex =~ /^52494646........57454250/) {
+		$mime = "image/webp";
+	    }
+	    elsif ($hex =~ /^255044462d/) {
+		$mime = "image/zip";
+	    }
+	    elsif ($hex =~ /^1f8b/) {
+		$mime = "image/gzip";
+	    }
+	    else {
+		$mime = "application/octet-stream";
+	    }
+	}
+    }
+    if ("$mime" eq "") {
+	$mime = "application/octet-stream";
+    }
     return $mime;
 }
 

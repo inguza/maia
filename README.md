@@ -79,11 +79,11 @@ MAIA requires the following software:
 
 For optional functionality:
 
-| Optional functionality | Depends on |
-| --- | --- |
-| `maia shell enter` | `script` from bsdutils |
-| AWS API | `xxd` |
-| Binary files | `file` |
+| Optional functionality | Depends on | Comment
+| --- | --- | --- |
+| `maia shell enter` | `script` from bsdutils | |
+| AWS API | `xxd` | |
+| Binary files | `file` | If `file` is not available a less precise heuristic based on `od` is used instead |
 
 Some MAIA tools have additional dependencies:
 
