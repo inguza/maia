@@ -1,0 +1,285 @@
+{
+  "system": [
+    {
+      "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test model override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test temperature override"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling default"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling first"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling autotool"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling before"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test file handling append"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test prompt content"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "This is a start\nTest prompt content\nSomething more"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Mocked AWS Bedrock response"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Print something nice"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": call_<callid>,
+            "name": "core-print",
+            "input": {
+              "content": "Hello"
+            }
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": call_<callid>,
+          "type": "function",
+          "function": {
+            "name": "core-print",
+            "arguments": "{\"content\":\"Hello\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": call_<callid>,
+            "content": [
+              {
+                "text": "Hello"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": call_<callid>,
+            "name": "core-print",
+            "input": {
+              "content": "Hello"
+            }
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": call_<callid>,
+          "type": "function",
+          "function": {
+            "name": "core-print",
+            "arguments": "{\"content\":\"Hello\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": call_<callid>,
+            "content": [
+              {
+                "text": "[ERROR] Duplicate tool call\\n\\nTool call already tried:\\ncore-print({\"content\":\"Hello\"})\\n\\nTwo identical tool calls are not allowed without new user input.\\n"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Test AWS throttling error"
+        }
+      ]
+    }
+  ],
+  "parameters": {
+    "maxTokens": 32000,
+    "stopSequences": [
+      "\n\n"
+    ]
+  }
+}

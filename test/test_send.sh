@@ -48,6 +48,8 @@ declare -A canned_responses=(
     ["aws_success"]="$TEST_ROOT/send/responses/aws_success.json"
     ["completions_tooluse"]="$TEST_ROOT/send/responses/openai_completions_tooluse.json"
     ["responses_tooluse"]="$TEST_ROOT/send/responses/openai_responses_tooluse.json"
+    ["responses_imageresult"]="$TEST_ROOT/send/responses/openai_responses_imageresult.json"
+    ["responses_image_tooluse"]="$TEST_ROOT/send/responses/openai_responses_imagetooluse.json"
     ["aws_tooluse"]="$TEST_ROOT/send/responses/aws_tooluse.json"
     ["openai_auth_error"]="$TEST_ROOT/send/responses/openai_error_auth.json"
     ["openai_rate_limit_error"]="$TEST_ROOT/send/responses/openai_error_rate_limit.json"
@@ -176,10 +178,10 @@ for api in "${api_types_and_configs[@]}"; do
     export MOCK_CURL_RESPONSE_FILE="$tool_file"
     run_send_cmd "tool_use${suffix}" "Print something nice"
     $MAIA tool delete
-    
+
     # TODO error cases for OPENAI RESPONSES
     # Specific error cases for OPENAI CHAT COMPLETIONS
-    if [[ "api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
+    if [[ "$api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
 	# Test error handling for OpenAI errors
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_auth_error]}"
 	run_send_cmd "openai_auth_error" "Test auth error"
@@ -193,7 +195,7 @@ for api in "${api_types_and_configs[@]}"; do
 	run_send_cmd "openai_empty_response" "Test empty response"
     fi
     # Specific error cases for AWS
-    if [[ "api" == "AWS_BEDROCK_CONVERSE" ]]; then
+    if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
 	run_send_cmd "aws_tool_use" "Test AWS throttling error"
 	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
