@@ -1,40 +1,4 @@
 [NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [1 of 20] call_1231...: core-print {"content":"Hello"}
+[NOTICE] Spawn 1 [1 of 2] call_1231...: core-print {"content":"Hello"}
 [NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [2 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [3 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [4 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [5 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [6 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [7 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [8 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [9 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [10 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [11 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [12 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [13 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [14 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [15 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [16 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [17 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [18 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [19 of 20] call_1231...: core-print {"content":"Hello"}
-[NOTICE] Tool callback 'image_generation_call'
-[NOTICE] Spawn 1 [20 of 20] call_1231...: core-print {"content":"Hello"}
+[NOTICE] Spawn 1 [2 of 2] call_1231...: core-print {"content":"Hello"}

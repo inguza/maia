@@ -1,0 +1,68 @@
+{
+  "model": "gpt-4",
+  "store": false,
+  "max_output_tokens": 32000,
+  "stream": false,
+  "input": [
+    {
+      "type": "message",
+      "role": "system",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools."
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Mocked response"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Hello, AI!"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Mocked response"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Test model override"
+        }
+      ]
+    }
+  ]
+}

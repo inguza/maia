@@ -111,6 +111,8 @@ api_types_and_configs=(
     "OPENAI_RESPONSES"
     "OPENAI_CHAT_COMPLETIONS"
     "AWS_BEDROCK_CONVERSE"
+    "AWS_BEDROCK_RESPONSES_RUNTIME"
+    "AWS_BEDROCK_RESPONSES_MANTLE"
 )
 
 run_workspace_cmd "create_and_use_workspace" create ws
@@ -139,14 +141,15 @@ for api in "${api_types_and_configs[@]}"; do
 	AUTODETECT)
 	    response_file="${canned_responses[responses_success]}"
 	    ;;
-	OPENAI_RESPONSES)
+	*_RESPONSES*)
 	    response_file="${canned_responses[responses_success]}"
 	    ;;
 	*)
+	    echo "Unknown API type $type"
 	    exit
 	    ;;
     esac
-    if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
+    if [[ "$api" == "AWS_BEDROCK"* ]]; then
 	export AWS_ACCESS_KEY_ID="mockedapikey"
 	export AWS_SECRET_ACCESS_KEY="mockedsecret"
 	export AWS_SESSION_TOKEN="mockedtoken"
@@ -223,7 +226,7 @@ for api in "${api_types_and_configs[@]}"; do
 	    # No support for binary files
 	    :
 	    ;;
-	AUTODETECT|OPENAI_RESPONSES|AWS_BEDROCK_CONVERSE)
+	AUTODETECT|*_RESPONSES*|AWS_BEDROCK_CONVERSE)
 	    run_file_cmd "add_file_x1${suffix}" forget x/1.txt
 	    run_file_cmd "file_add_pdf${suffix}" remember example.pdf
 	    run_file_cmd "file_add_png${suffix}" remember example.png
@@ -237,6 +240,7 @@ for api in "${api_types_and_configs[@]}"; do
 	    run_tool_cmd "delete_tools_again_2${suffix}" delete
 	    ;;
 	*)
+	    echo "Unknown API $api." >&2
 	    exit
 	    ;;
     esac
@@ -244,12 +248,13 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Image generation testing with and without tools
     case "$api" in
-	AWS_BEDROCK_CONVERSE|OPENAI_CHAT_COMPLETIONS)
+	AWS_BEDROCK_*|OPENAI_CHAT_COMPLETIONS)
 	    :
 	    ;;
 	AUTODETECT|OPENAI_RESPONSES)
 	    mkdir "xx${suffix}"
 	    cd "xx${suffix}"
+	    $MAIA config tool_iteration_limit 2
 	    $MAIA tool replace "core-print" "openai-image-generate:cost"
 	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_image_tooluse]}"
 	    run_send_cmd "tool_use_w_img${suffix}" "Print something nice and generate 1x1 image."
@@ -258,9 +263,11 @@ for api in "${api_types_and_configs[@]}"; do
 	    run_send_cmd "w_img${suffix}" "Generate 1x1 image."
 	    run_history_cmd "hist_turn_w_img${suffix}" turn
 	    $MAIA tool delete
+	    $MAIA config unset tool_iteration_limit
 	    cd ..
 	    ;;
 	*)
+	    echo "Unknown API $api." >&2
 	    exit
 	    ;;
     esac

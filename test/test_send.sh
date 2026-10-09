@@ -68,6 +68,8 @@ api_types_and_configs=(
     "OPENAI_RESPONSES"
     "OPENAI_CHAT_COMPLETIONS"
     "AWS_BEDROCK_CONVERSE"
+    "AWS_BEDROCK_RESPONSES_RUNTIME"
+    "AWS_BEDROCK_RESPONSES_MANTLE"
 )
 
 # Test 1: show help for send command (no API type flag) — no request expected
@@ -97,7 +99,7 @@ for api in "${api_types_and_configs[@]}"; do
 	    response_file="${canned_responses[responses_success]}"
 	    tool_file="${canned_responses[responses_tooluse]}"
 	    ;;
-	OPENAI_RESPONSES)
+	*_RESPONSES*)
 	    response_file="${canned_responses[responses_success]}"
 	    tool_file="${canned_responses[responses_tooluse]}"
 	    ;;
@@ -106,7 +108,7 @@ for api in "${api_types_and_configs[@]}"; do
 	    ;;
     esac
 
-    if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
+    if [[ "$api" == "AWS_BEDROCK_"* ]]; then
 	export AWS_ACCESS_KEY_ID="mockedapikey"
 	export AWS_SECRET_ACCESS_KEY="mockedsecret"
 	export AWS_SESSION_TOKEN="mockedtoken"
@@ -181,7 +183,7 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Image generation testing with and without tools
     case "$api" in
-	AWS_BEDROCK_CONVERSE|OPENAI_CHAT_COMPLETIONS)
+	AWS_BEDROCK_CONVERSE|OPENAI_CHAT_COMPLETIONS|AWS_BEDROCK_*)
 	    :
 	    ;;
 	AUTODETECT|OPENAI_RESPONSES)

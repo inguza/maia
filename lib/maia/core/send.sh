@@ -154,7 +154,7 @@ determine_file_handling_mode() {
     # Extract cost per token for user and assistant from config or fallback to defaults
     local file_handling_key="file_handling_mode_${model_key}"
     local mode="$(get_config "$file_handling_key")"
-    if [[ ! $mode ]] ; then
+    if [[ -z "$mode" ]] ; then
 	mode=$(get_config file_handling_mode)
     fi
     if [[ $file_handling_mode_raw ]] ; then
@@ -530,8 +530,11 @@ handle_send_command() {
 
     # Detect API type
     if [[ "$api_type" == "AUTODETECT" || -z "$api_type" ]] ; then
-	if [[ "${maia_api_base_url}" == *"bedrock"*"amazonaws.com"* ]] ; then
+	if [[ "${maia_api_base_url}" == *"bedrock-runtime"*"amazonaws.com"* ]] ; then
 	    api_type="AWS_BEDROCK_CONVERSE"
+	    #api_type="AWS_BEDROCK_RESPONSES_RUNTIME"
+	elif [[ "${maia_api_base_url}" == *"bedrock-mantle"*"amazonaws.com"* ]] ; then
+	    api_type="AWS_BEDROCK_RESPONSES_MANTLE"
 	else
 	    # Default
 	    api_type="OPENAI_RESPONSES"
@@ -541,12 +544,12 @@ handle_send_command() {
 	. "$send_hook"
     fi
     # Check that API credentials are presented
-    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" || "$api_type" == "OPENAI_RESPONSES" ]] ; then
+    if [[ "$api_type" == "OPENAI_"* ]] ; then
 	# Ensure API key is set
 	if [[ -z "$OPENAI_API_KEY" ]]; then
             die "OPENAI_API_KEY environment variable is not set."
 	fi
-    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
+    elif [[ "$api_type" == "AWS_BEDROCK_"* ]] ; then
 	if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
 	    error "Missing AWS credentials in environment:"
 	    echo "          - AWS_ACCESS_KEY_ID" >&2
@@ -555,9 +558,15 @@ handle_send_command() {
 	    echo "          - AWS_SESSION_TOKEN" >&2
 	    exit 1
 	fi
-    else
-	die "Unknown API type '$api_type'"
     fi
+    # Make sure unsupported API types are rejected
+    case "$api_type" in
+	OPENAI_CHAT_COMPLETIONS|OPENAI_RESPONSES|AWS_BEDROCK_CONVERSE|AWS_BEDROCK_RESPONSES_RUNTIME|AWS_BEDROCK_RESPONSES_MANTLE)
+	    :
+	    ;;
+	*)
+	    ;;
+    esac
 
     trigger_event "pre-send" "$api_type"
 
@@ -575,52 +584,52 @@ handle_send_command() {
     local url=""
     local tools_json=null
     local tools_enabled=false
-    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" || "$api_type" == "OPENAI_RESPONSES" ]] ; then
-	# Ensure API key is set
-	if [[ -z "$OPENAI_API_KEY" ]]; then
-            die "OPENAI_API_KEY environment variable is not set."
-	fi
-        if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
+    case "$api_type" in
+	OPENAI_CHAT_COMPLETIONS)
             url="${maia_api_base_url}/v1/chat/completions"
-        else
+	    ;;
+	AWS_BEDROCK_CONVERSE)
+            url="${maia_api_base_url}/model/${model}/converse"
+	    ;;
+	OPENAI_RESPONSES)
             url="${maia_api_base_url}/v1/responses"
-        fi
+	    ;;
+	AWS_BEDROCK_RESPONSES_RUNTIME)
+            url="${maia_api_base_url}/openai/v1/responses"
+	    ;;
+	AWS_BEDROCK_RESPONSES_MANTLE)
+	    url="${maia_api_base_url}/v1/responses"
+	    ;;
+	*)
+	    die "Unknown API type '$api_type'"
+	    ;;
+    esac
 
-	# Add enabled tools definitions to messages for the LLM if any enabled tools exist
-	if (( tools_count > 0 )); then
-            if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
-		tools_enabled=true
-		if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-chat-completions-tools.jq" <<<"$enabled_tools_json"); then
-		    warn "Invalid tool definition. Tools not shown to the AI." >&2
-		    tools_json=false
-		    tools_enabled=false
-		fi
-            elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
-		tools_enabled=true
-		if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tools.jq" <<<"$enabled_tools_json"); then
-		    warn "Invalid tool definition. Tools not shown to the AI." >&2
-		    tools_json=false
-		    tools_enabled=false
-		fi
-            fi
-	fi
-    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-        url="${maia_api_base_url}/model/${model}/converse"
-
-	# Extract enabled tools for Bedrock (toolSpecs) but do NOT add to messages
-	if (( tools_count > 0 )); then
-	    # AWS Bedrock do not allow null parameters definition. Translated to an empty object.
-	    # Also strict is ignored so no reason to add it.
-	    tools_enabled=true
+    # Add enabled tools definitions to messages for the LLM if any enabled tools exist
+    if (( tools_count > 0 )); then
+	tools_enabled=true
+        if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
+	    if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-chat-completions-tools.jq" <<<"$enabled_tools_json"); then
+		warn "Invalid tool definition. Tools not shown to the AI." >&2
+		tools_json=false
+		tools_enabled=false
+	    fi
+        elif [[ "$api_type" == *"_RESPONSES"* ]] ; then
+	    if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tools.jq" <<<"$enabled_tools_json"); then
+		warn "Invalid tool definition. Tools not shown to the AI." >&2
+		tools_json=false
+		tools_enabled=false
+	    fi
+	elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 	    if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tools.jq" <<<"$enabled_tools_json"); then
 		warn "Invalid tool definition. Tools not shown to the AI." >&2
 		tools_json=false
 		tools_enabled=false
 	    fi
+	else
+	    # Currently dead code but may not be later
+	    die "Unknown API type '$api_type'"
 	fi
-    else
-	# Currently dead code but may not be later
-	die "Unknown API type '$api_type'"
     fi
 
     local session_lock="$(session_lock_file)"
@@ -645,7 +654,7 @@ handle_send_command() {
     fi
     local sys_m
     case "$api_type" in
-	OPENAI_CHAT_COMPLETIONS|OPENAI_RESPONSES)
+	OPENAI_CHAT_COMPLETIONS|*_RESPONSES*)
 	    sys_m="$sys"
 	    ;;
 	AWS_BEDROCK_CONVERSE)
@@ -691,7 +700,7 @@ handle_send_command() {
 		   > "$tmp_payload"
 		rm -f "$tmpmf"
 		;;
-	    OPENAI_RESPONSES)
+	    *_RESPONSES*)
 		local tmpmf="$(mktemp)"
 		local messages_json_resp=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-messages.jq" <<<"$messages_json")
 		printf '%s' "$messages_json_resp" > "$tmpmf"
@@ -756,7 +765,7 @@ handle_send_command() {
             local curl_headers=(
 		-H "Content-Type: application/json"
 	    )
-	    if [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
+	    if [[ "$api_type" == "AWS_BEDROCK_"* ]] ; then
 		local METHOD="POST"
 		curl_headers+=(-X "$METHOD")
 		. "$MAIA_CORE_LIB_DIR/aws.sh"
@@ -793,7 +802,7 @@ handle_send_command() {
 			#finish_reason=$(jq -r '.choices[0].finish_reason' <<<"$response")
 			tools_call_json=$(jq -c '.choices[0].message.tool_calls' <<<"$response")
 		    fi
-		elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
+		elif [[ "$api_type" == *"_RESPONSES"* ]] ; then
 		    errormsg=$(jq -r '.error.message // empty' <<<"$response")
 		    if [[ ! -n "$errormsg" ]]; then
 			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")

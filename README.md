@@ -236,38 +236,125 @@ export MAIA_EDITOR="emacs -nw"  # or your preferred editor
 maia config term_loglevel INFO  # to get more information about what the tool does
 ```
 
-### Used AI APIs
+## AI API configuration
 
-Depending on what AI provider you choose you configure it a little differently. The access information
-is set as environment variables, preferrbly in a ~/.bashrc file.
+Several AI API providers are supported:
 
-#### OpenAI
+* **OpenAI** — Responses API and Chat Completions API
+* **AWS Bedrock** — Converse API, Responses API via Runtime, and Responses API via Mantle
+* **Other compatible endpoints** — configurable base URL and optional authentication headers
+
+Configuration varies depending on the provider.
+Access credentials are typically set through environment variables, preferably in `~/.bashrc`.
+
+### [OpenAI](https://openai.com/api/)
+
+Set your API key:
 
 ```bash
 export OPENAI_API_KEY='your_api_key_here'
 ```
 
-Responses API is used by default but also chat completions API is supported.
+#### OpenAI Responses
 
-#### AWS Bedrock
+The [Responses API](https://developers.openai.com/api/reference/responses/overview) is used by default. No additional configuration is required.
+
+#### OpenAI Chat Completions
+
+To use the [Chat Completions API](https://developers.openai.com/api/reference/chat-completions/overview):
+
+```bash
+maia config api_type OPENAI_CHAT_COMPLETIONS
+```
+
+### [AWS Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html)
+
+Set your [AWS credentials](https://docs.aws.amazon.com/sdkref/latest/guide/environment-variables.html):
 
 ```bash
 export AWS_ACCESS_KEY_ID="..."
 export AWS_SECRET_ACCESS_KEY="..."
 export AWS_SESSION_TOKEN="..."
-maia config api_base_url https://bedrock-runtime.us-east-1.amazonaws.com
-maia config model someavailablemodel
+```
+
+`AWS_SESSION_TOKEN` is only needed when using temporary credentials.
+
+Select an available model:
+
+```bash
+maia config model <model>
+```
+
+A send hook can be useful for automatically setting or refreshing the required environment variables:
+
+```bash
 maia config send_hook "$HOME/.maia/send-hook.sh"
 ```
 
-For AWS Bedrock a send hook can be useful to automatically set the
-needed environment variables. Set it using send_hook configuration option.
+#### AWS Bedrock Converse
 
-#### Optional extra authentication headers
+To use the [Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html):
+
+```bash
+maia config api_base_url https://bedrock-runtime.<region>.amazonaws.com
+```
+
+#### AWS Bedrock Responses Runtime
+
+To use [Responses API](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-responses-api.html)
+through the Runtime [endpoint](https://docs.aws.amazon.com/bedrock/latest/userguide/endpoints.html):
+
+```bash
+maia config api_base_url https://bedrock-runtime.<region>.amazonaws.com
+maia config api_type AWS_BEDROCK_RESPONSES_RUNTIME
+```
+
+#### AWS Bedrock Responses Mantle
+
+To use [Responses API](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-responses-api.html)
+through the Mantle [endpoint](https://docs.aws.amazon.com/bedrock/latest/userguide/endpoints.html):
+
+```bash
+maia config api_base_url https://bedrock-mantle.<region>.api.aws
+```
+
+### Other
+
+Other providers can be used if their API is compatible with one of the supported API types.
+Configure the endpoint and model as described below, and set any required authentication credentials or headers.
+
+```bash
+maia config api_base_url <base url here>
+maia config api_type <API type it is compatible with>
+maia config model <model>
+```
+
+The base url must not have a trailing `/` character. The endpoint path is appended to the base path to form the full API URL.
+
+The supported API types are:
+
+| `api_type` | Endpoint path | Required environment variables |
+| --- | --- |
+| `OPENAI_RESPONSES` | `/v1/responses` | `OPENAI_API_KEY` |
+| `OPENAI_CHAT_COMPLETIONS` | `/v1/chat/completions` | `OPENAI_API_KEY` |
+| `AWS_BEDROCK_CONVERSE` | `/model/<model>/converse` | `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` |
+| `AWS_BEDROCK_RESPONSES_RUNTIME` | `/openai/v1/responses` | `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` |
+| `AWS_BEDROCK_RESPONSES_MANTLE` | `/v1/responses` | `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` |
+
+The environment variables listed above must be set for the selected API type.
+If the provider does not use these credentials, they can be set to dummy values.
+The provider may instead require additional authentication headers, or may not require authentication at all.
+
+#### Extra authentication headers
+
+If the provider requires additional HTTP headers for authentication or other purposes, set them using
+`MAIA_CURL_EXTRA_HEADERS`. Specify one header per line, separating the lines with newline characters:
 
 ```bash
 export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
 ```
+
+Each line must use the standard HTTP header format: `Header-Name: value`.
 
 ### MCP
 
