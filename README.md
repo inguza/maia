@@ -257,7 +257,6 @@ export AWS_SECRET_ACCESS_KEY="..."
 export AWS_SESSION_TOKEN="..."
 maia config api_base_url https://bedrock-runtime.us-east-1.amazonaws.com
 maia config model someavailablemodel
-maia config file_handling_mode APPEND
 maia config send_hook "$HOME/.maia/send-hook.sh"
 ```
 
