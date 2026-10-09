@@ -1,0 +1,49 @@
+{
+  "id": "resp_123",
+  "object": "response",
+  "created_at": 1710000000,
+  "status": "completed",
+  "model": "gpt-5.6-luna",
+  "output": [
+    {
+      "id": "fc_123",
+      "type": "function_call",
+      "status": "completed",
+      "call_id": "call_123123123123123",
+      "name": "core-print",
+      "arguments": "{\"content\":\"Hello\"}"
+    },
+    {
+      "id": "ig_123",
+      "type": "image_generation_call",
+      "status": "completed",
+      "result": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0WQAAAAASUVORK5CYII="
+    }
+  ],
+  "parallel_tool_calls": true,
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "name": "core-print",
+      "description": "Print content to the terminal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "strict": true
+    }
+  ],
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 20,
+    "total_tokens": 120
+  }
+}

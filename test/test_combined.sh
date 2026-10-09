@@ -103,6 +103,8 @@ declare -A canned_responses=(
     ["completions_success"]="$TEST_ROOT/send/responses/openai_completions_success.json"
     ["responses_success"]="$TEST_ROOT/send/responses/openai_responses_success.json"
     ["aws_success"]="$TEST_ROOT/send/responses/aws_success.json"
+    ["responses_imageresult"]="$TEST_ROOT/send/responses/openai_responses_imageresult.json"
+    ["responses_image_tooluse"]="$TEST_ROOT/send/responses/openai_responses_imagetooluse.json"
     )
 api_types_and_configs=(
     "AUTODETECT"
@@ -239,6 +241,29 @@ for api in "${api_types_and_configs[@]}"; do
 	    ;;
     esac
     run_history_cmd "history_clear_3${suffix}" clear
+
+    # Image generation testing with and without tools
+    case "$api" in
+	AWS_BEDROCK_CONVERSE|OPENAI_CHAT_COMPLETIONS)
+	    :
+	    ;;
+	AUTODETECT|OPENAI_RESPONSES)
+	    mkdir "xx${suffix}"
+	    cd "xx${suffix}"
+	    $MAIA tool replace "core-print" "openai-image-generate:cost"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_image_tooluse]}"
+	    run_send_cmd "tool_use_w_img${suffix}" "Print something nice and generate 1x1 image."
+	    run_history_cmd "hist_turn_tool_use_w_img${suffix}" turn
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_imageresult]}"
+	    run_send_cmd "w_img${suffix}" "Generate 1x1 image."
+	    run_history_cmd "hist_turn_w_img${suffix}" turn
+	    $MAIA tool delete
+	    cd ..
+	    ;;
+	*)
+	    exit
+	    ;;
+    esac
 
     unset MOCK_CURL_RESPONSE_FILE
 done

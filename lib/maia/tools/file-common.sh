@@ -6,6 +6,51 @@
 # Commercial licensing is available separately.
 #
 
+find_unique_filename() {
+    local n=1
+    local prefix="$1"
+    local ext="$2"
+    while [[ -e "${prefix}${n}.$ext" ]] ; do
+        ((n++))
+    done
+    printf '%s%s.%s' "$prefix" "$n" "$ext"
+}
+
+detect_mime() {
+    local file="$1"
+    local mime=""
+    local hex=""
+
+    if command -v file >/dev/null 2>&1; then
+        mime=$(file --brief --mime-type -- "$file" 2>/dev/null) || mime=""
+        mime=${mime//$'\r'/}
+        mime=${mime//$'\n'/}
+    fi
+
+    if [[ -z "$mime" ]] && command -v od >/dev/null 2>&1; then
+        hex=$(od -An -N12 -tx1 "$file" 2>/dev/null | tr -d ' \n') || hex=""
+
+        if [[ "$hex" =~ ^89504e470d0a1a0a ]]; then
+            mime="image/png"
+        elif [[ "$hex" =~ ^ffd8ff ]]; then
+            mime="image/jpeg"
+        elif [[ "$hex" =~ ^474946383761 || "$hex" =~ ^474946383961 ]]; then
+            mime="image/gif"
+        elif [[ "$hex" =~ ^52494646........57454250 ]]; then
+            mime="image/webp"
+        elif [[ "$hex" =~ ^255044462d ]]; then
+            mime="application/pdf"
+        elif [[ "$hex" =~ ^1f8b ]]; then
+            mime="application/gzip"
+        else
+            mime="application/octet-stream"
+        fi
+    fi
+
+    [[ -n "$mime" ]] || mime="application/octet-stream"
+    printf '%s' "$mime"
+}
+
 find_index() {
     local change_dir="$1"
     local baseid="$2"

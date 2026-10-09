@@ -593,6 +593,17 @@ read_file() {
     done < "$input"
 }
 
+mapfile_from_command_nolf() {
+    local -n _dst="$1"
+    shift
+    local tmpfile="$(mktemp)"
+    local status=0
+    "$@" > "$tmpfile" || status=$?
+    mapfile -t _dst < "$tmpfile"
+    rm -f "$tmpfile"
+    return $status
+}
+
 mapfile_from_command() {
     local -n _dst="$1"
     shift

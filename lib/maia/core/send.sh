@@ -590,47 +590,14 @@ handle_send_command() {
 	if (( tools_count > 0 )); then
             if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]]; then
 		tools_enabled=true
-		# .parameters is kept for backwards compatibility with pre 1.0 release software
-		# It can be removed eventually keeping only .inputSchema
-		if ! tools_json=$(jq '
-		   [.[] |
-                       if (.name and .description) then
-                           {
-                             type: "function",
-                             function: (
-			       {
-                                 name,
-                                 description,
-			         parameters: (.inputSchema // .parameters)
-                               }
-			       | if .parameters == null then del(.parameters) else . end
-			     )
-                           }
-                       else
-                           error("Invalid json")
-                       end
-		   ]
-		   ' <<<"$enabled_tools_json"); then
+		if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-chat-completions-tools.jq" <<<"$enabled_tools_json"); then
 		    warn "Invalid tool definition. Tools not shown to the AI." >&2
 		    tools_json=false
 		    tools_enabled=false
 		fi
             elif [[ "$api_type" == "OPENAI_RESPONSES" ]] ; then
 		tools_enabled=true
-		if ! tools_json=$(jq '
-		   [.[] |
-                       if (.name and .description) then
-                           {
-                             type: "function",
-                             name,
-                             description,
-                             parameters: (.inputSchema // .parameters)
-                           }
-                       else
-                           error("Invalid json")
-                       end
-		   ]
-		   ' <<<"$enabled_tools_json"); then
+		if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tools.jq" <<<"$enabled_tools_json"); then
 		    warn "Invalid tool definition. Tools not shown to the AI." >&2
 		    tools_json=false
 		    tools_enabled=false
@@ -644,30 +611,8 @@ handle_send_command() {
 	if (( tools_count > 0 )); then
 	    # AWS Bedrock do not allow null parameters definition. Translated to an empty object.
 	    # Also strict is ignored so no reason to add it.
-	    # .parameters is kept for backwards compatibility with pre 1.0 release software
-	    # It can be removed eventually keeping only .inputSchema
 	    tools_enabled=true
-	    if ! tools_json=$(jq '
-	      [ .[] |
-	        if (.name and .description) then
-		  {
-		    toolSpec: {
-		    name: .name,
-		    description: .description,
-		    inputSchema: {
-		      json: ((.inputSchema // .parameters) // {
-		        type: "object",
-			properties: {},
-			additionalProperties: false
-		      })		
-		    }
-		  }
-		}
-		else
-		  error("Invalid tool definition: missing required fields")
-    		end
-	      ]
-	      ' <<<"$enabled_tools_json"); then
+	    if ! tools_json=$(jq -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tools.jq" <<<"$enabled_tools_json"); then
 		warn "Invalid tool definition. Tools not shown to the AI." >&2
 		tools_json=false
 		tools_enabled=false
@@ -790,7 +735,7 @@ handle_send_command() {
 
 	local reply="" response="" errormsg=""
 	local tools_call_json=""
-	local tools_call_json=""
+	local tool_results_json=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
             response=$(read_file "$response_file" cr)
@@ -854,6 +799,7 @@ handle_send_command() {
 			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
 			# We ignore status field since we do not handle streaming events
 			tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
+			tool_results_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_results.jq" <<<"$response")
 		    else
 			errormsg+=" param="
 			errormsg+=$(jq -r '.error.param // empty' <<<"$response")
@@ -869,12 +815,15 @@ handle_send_command() {
 		if [[ "$tools_call_json" == "null" ]] ; then
 		    tools_call_json=""
 		fi
+		if [[ "$tool_results_json" == "null" ]] ; then
+		    tool_results_json=""
+		fi
             else
 		errormsg="API returned empty or null response."
             fi
 	fi
 	rm -f "$tmp_payload"
-	if [[ -z "$reply" && -z "$errormsg" && -z "$tools_call_json" ]] ; then
+	if [[ -z "$reply" && -z "$errormsg" && -z "$tools_call_json" && -z "$tool_results_json" ]] ; then
 	    errormsg="Empty response."
 	fi
 	if [[ -n "$errormsg" ]] ; then
@@ -882,7 +831,7 @@ handle_send_command() {
 	    die "$errormsg"
 	fi
 	# Only if we have outbox content and a proper reply
-	if [[ -n "$outbox_content" && ( -n "$tools_call_json" || -n "$reply" ) ]] ; then
+	if [[ -n "$outbox_content" && ( -n "$tools_call_json" || -n "$tool_results_json" || -n "$reply" ) ]] ; then
 	    local usershaid="$(printf '%s' "$outbox_content" | sha256sum | cut -c1-8)"
 	    # We do this late in case an error have occured
 	    # Append user message with timestamp to history
@@ -915,6 +864,57 @@ handle_send_command() {
 	    fi
 	fi
 
+	# tool_results handling before logging assistant response
+	if [[ -n "$tool_results_json" ]] ; then
+	    # If there is no workspace defined, fallback to current directory
+	    local ws_root="$(resolve_workspace_root)"
+	    if [[ -z "$ws_root" ]] ; then
+		ws_root="."
+	    fi
+	    # Can't strip LF here because bash hangs on larger image
+	    mapfile_from_command_nolf tool_results jq -c '.[]' <<<"$tool_results_json"
+	    for tool_result in "${tool_results[@]}"; do
+		local type="$(jq -r '.type' <<<"$tool_result")"
+		local tool_cmd=$(jq -r --arg type "$type" '.[] | select(.callback == $type) | .command' <<<"$enabled_tools_json")
+		if [[ -z "$tool_cmd" ]] ; then
+		    die "Unable to find the command for '$type'"
+		fi
+		local tool_search_path=$(build_tool_search_path)
+		# Find full path to executable without relying on PATH for security reasons
+		local tool_exec="${tool_cmd%% *}"
+		local tool_exec_dir="$(command_exec_dir "${tool_cmd}" "$tool_search_path")"
+		local result=""
+		if [[ -z "$tool_exec_dir" ]]; then
+		    die "Unable to execute command for '$type'"
+		else
+		    notice "Tool callback '$type'"
+		    result=$(
+			export PATH="$tool_search_path:$PATH"
+			cd "$ws_root"
+			printf '%s' "$tool_result" | "$tool_exec_dir"/$tool_cmd 2>&1
+		    )
+		    local status=$?
+		    if [[ $status != 0 ]] ; then
+			die "Command for '$type' failed with status $status."
+		    fi
+		fi
+		# Append assistant reply to history. This depends on whether we have function call or message or both
+		local shaid="$(printf '%s' "$tool_result" | sha256sum | cut -c1-8)"
+		printf '%s\n' "$result"
+		# Log the assistant response
+		exclusive_json_modify "$history_file" \
+				      --arg txt "$result" \
+				      --arg ts "$timestamp" \
+				      --arg id "$shaid" '
+	     . + [{
+	            role: "assistant",
+		    timestamp: $ts,
+		    id: $id,
+		    content: (if $txt == "" then null else $txt end)
+		  }
+	     ]'
+	    done
+	fi
 	# Append assistant reply to history. This depends on whether we have function call or message or both
 	local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
 

@@ -1,6 +1,6 @@
 [
   .output[]?
-  | select(.type == "function_call")
+  | select(.type == "function_call" and .status == "completed")
   |
     {
       id: .call_id,

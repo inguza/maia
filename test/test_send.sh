@@ -48,8 +48,6 @@ declare -A canned_responses=(
     ["aws_success"]="$TEST_ROOT/send/responses/aws_success.json"
     ["completions_tooluse"]="$TEST_ROOT/send/responses/openai_completions_tooluse.json"
     ["responses_tooluse"]="$TEST_ROOT/send/responses/openai_responses_tooluse.json"
-    ["responses_imageresult"]="$TEST_ROOT/send/responses/openai_responses_imageresult.json"
-    ["responses_image_tooluse"]="$TEST_ROOT/send/responses/openai_responses_imagetooluse.json"
     ["aws_tooluse"]="$TEST_ROOT/send/responses/aws_tooluse.json"
     ["openai_auth_error"]="$TEST_ROOT/send/responses/openai_error_auth.json"
     ["openai_rate_limit_error"]="$TEST_ROOT/send/responses/openai_error_rate_limit.json"
@@ -60,6 +58,8 @@ declare -A canned_responses=(
     ["aws_access_denied_error"]="$TEST_ROOT/send/responses/aws_error_access_denied.json"
     ["aws_malformed"]="$TEST_ROOT/send/responses/aws_malformed_response.json"
     ["aws_empty"]="$TEST_ROOT/send/responses/aws_empty_response.json"
+    ["responses_imageresult"]="$TEST_ROOT/send/responses/openai_responses_imageresult.json"
+    ["responses_image_tooluse"]="$TEST_ROOT/send/responses/openai_responses_imagetooluse.json"
 )
 
 # The API types to test, using config to set API type
@@ -179,6 +179,25 @@ for api in "${api_types_and_configs[@]}"; do
     run_send_cmd "tool_use${suffix}" "Print something nice"
     $MAIA tool delete
 
+    # Image generation testing with and without tools
+    case "$api" in
+	AWS_BEDROCK_CONVERSE|OPENAI_CHAT_COMPLETIONS)
+	    :
+	    ;;
+	AUTODETECT|OPENAI_RESPONSES)
+	    $MAIA tool replace "core-print" "openai-image-generate:cost"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_image_tooluse]}"
+	    run_send_cmd "tool_use_w_img${suffix}" "Print something nice and generate 1x1 image."
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_imageresult]}"
+	    run_send_cmd "w_img${suffix}" "Generate 1x1 image."	    
+	    $MAIA tool delete
+	    ;;
+	*)
+	    exit
+	    ;;
+    esac
+    $MAIA history clear
+    
     # TODO error cases for OPENAI RESPONSES
     # Specific error cases for OPENAI CHAT COMPLETIONS
     if [[ "$api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
