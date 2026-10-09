@@ -35,7 +35,7 @@ COMMANDS
   unhide [<range>...]
     Make entries in n–m inclusive for all given ranges visible to the AI.
 
-  prune [--assistant|--tool|--user] [--reduce|--edit|--cut] [<range>...]
+  prune [--assistant|--tool|--user|--reasoning] [--reduce|--edit|--cut] [<range>...]
     Prune history entries by role and mode.
 
   restore
@@ -70,6 +70,9 @@ OPTIONS
 
   -u, --user
     Filter or prune user messages only.
+
+  -r, --reasoning
+    Filter or prune reasoning messages only.
 
   If multiple role flags are provided, pruning will error.
 
@@ -131,9 +134,11 @@ readonly jq_add_indexes='
           user_index: (if $item.role == "user" then .user else null end),
           assistant_index: (if $item.role == "assistant" then .assistant else null end),
           tool_index: (if $item.role == "tool" then .tool else null end),
+          reasoning_index: (if $item.role == "reasoning" then .reasoning else null end),
           user: (if $item.role == "user" then .user + 1 else .user end),
           assistant: (if $item.role == "assistant" then .assistant + 1 else .assistant end),
-          tool: (if $item.role == "tool" then .tool + 1 else .tool end)
+          tool: (if $item.role == "tool" then .tool + 1 else .tool end),
+          reasoning: (if $item.role == "reasoning" then .reasoning + 1 else .reasoning end)
         }
     ) ]
   | map(
@@ -142,6 +147,7 @@ readonly jq_add_indexes='
       + (if .value.role == "user" then { user_index: .user_index }
          elif .value.role == "assistant" then { assistant_index: .assistant_index }
          elif .value.role == "tool" then { tool_index: .tool_index }
+         elif .value.role == "reasoning" then { reasoning_index: .reasoning_index }
          else {} end)
     )
 '
@@ -173,9 +179,9 @@ history_prune() {
     # Parse flags before ranges
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --assistant|--tool|--user)
+            --assistant|--tool|--user|--reasoning)
                 if [[ -n "$role" ]]; then
-                    die "Only one of --assistant, --tool, or --user can be specified."
+                    die "Only one of --assistant, --tool, --user, or --reasoning can be specified."
                 fi
                 role="${1#--}"
                 shift
@@ -249,6 +255,7 @@ history_prune() {
 		  {}
 		  + (if has("content") then {content: .content} else {} end)
 		  + (if has("tool_calls") then {tool_calls: .tool_calls} else {} end)
+		  + (if has("data") then {data: .data} else {} end)
 		)
 	      else
 	        .
@@ -557,6 +564,11 @@ handle_history_command() {
                       else
                         .
                       end
+                      | if .backup | has(\"data\") then
+                        .data = .backup.data
+                      else
+                        .
+                      end
                       | if .call_pruned == true then
                           del(.summarized)
                         else
@@ -720,12 +732,13 @@ print_history_entries() {
         (.user_index // 0),
         (.assistant_index // 0),
         (.tool_index // 0),
+        (.reasoning_index // 0),
         .timestamp,
         (.id // 0),
 	(.tool_call_id // "-"),
         (.content | @base64),
         ((.tool_calls // "") | @base64)
-    ] | @tsv' | while IFS=$'\t' read -r idx role hidden user_idx assistant_idx tool_idx ts id toolid content_b64 tools_call_b64; do
+    ] | @tsv' | while IFS=$'\t' read -r idx role hidden user_idx assistant_idx tool_idx reasoning_idx ts id toolid content_b64 tools_call_b64; do
 	# Git Bash workaround
 	tools_call_b64="${tools_call_b64%$'\r'}"
 	local content=""
@@ -754,6 +767,8 @@ print_history_entries() {
             role_idx="$assistant_idx"
         elif [[ "$role" == "tool" ]]; then
             role_idx="$tool_idx"
+        elif [[ "$role" == "reasoning" ]]; then
+            role_idx="$reasoning_idx"
         else
             role_idx=""
         fi

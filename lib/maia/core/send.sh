@@ -688,7 +688,8 @@ handle_send_command() {
 	case "$api_type" in
 	    OPENAI_CHAT_COMPLETIONS)
 		local tmpmf="$(mktemp)"
-		printf '%s' "$messages_json" > "$tmpmf"
+		local messages_json_compl=$(jq --arg apitype "$api_type" -f "$MAIA_CORE_LIB_DIR/send-openai-chat-completions-messages.jq" <<<"$messages_json")
+		printf '%s' "$messages_json_compl" > "$tmpmf"
 		jq -n \
 		   --arg model "$model" \
 		   --argjson temperature "$temperature" \
@@ -702,7 +703,7 @@ handle_send_command() {
 		;;
 	    *_RESPONSES*)
 		local tmpmf="$(mktemp)"
-		local messages_json_resp=$(jq -f "$MAIA_CORE_LIB_DIR/send-openai-responses-messages.jq" <<<"$messages_json")
+		local messages_json_resp=$(jq --arg apitype "$api_type" -f "$MAIA_CORE_LIB_DIR/send-openai-responses-messages.jq" <<<"$messages_json")
 		printf '%s' "$messages_json_resp" > "$tmpmf"
 		jq -n \
 		   --arg model "$model" \
@@ -745,6 +746,7 @@ handle_send_command() {
 	local reply="" response="" errormsg=""
 	local tools_call_json=""
 	local tool_results_json=""
+	local reasoning=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
             response=$(read_file "$response_file" cr)
@@ -807,8 +809,10 @@ handle_send_command() {
 		    if [[ ! -n "$errormsg" ]]; then
 			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
 			# We ignore status field since we do not handle streaming events
+			# TODO: Consider to have one that select all to preserve order
 			tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
 			tool_results_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_results.jq" <<<"$response")
+			reasoning=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reasoning.jq" <<<"$response")
 		    else
 			errormsg+=" param="
 			errormsg+=$(jq -r '.error.param // empty' <<<"$response")
@@ -826,6 +830,9 @@ handle_send_command() {
 		fi
 		if [[ "$tool_results_json" == "null" ]] ; then
 		    tool_results_json=""
+		fi
+		if [[ "$reasoning" == "null" ]] ; then
+		    reasoning=""
 		fi
             else
 		errormsg="API returned empty or null response."
@@ -871,6 +878,27 @@ handle_send_command() {
 		fi
 		echo "$reply"
 	    fi
+	fi
+
+	if [[ -n "$reasoning" ]] ; then
+	    local shaid="$(printf '%s' "$reasoning" | sha256sum | cut -c1-8)"
+	    # Log the assistant response
+	    exclusive_json_modify "$history_file" \
+				  --argjson reasoning "$reasoning" \
+				  --arg apitype "$api_type" \
+				  --arg ts "$timestamp" \
+				  --arg id "$shaid" '
+				      . + [
+				          $reasoning[]
+					  | {
+					      role: "reasoning",
+					      api_type: $apitype,
+					      id: $id,
+					      timestamp: $ts,
+					      data: .
+					    }
+					  ]
+				      '
 	fi
 
 	# tool_results handling before logging assistant response

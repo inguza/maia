@@ -1,8 +1,9 @@
 map(
-  select(
-    ((.content // "") | test("^[[:space:]]*$") | not)
-    or .tool_calls
-  )
+  select( .role != "reasoning" )
+  | select(
+      ((.content // "") | test("^[[:space:]]*$") | not)
+      or .tool_calls
+    )
   | if .role == "system" then
       .role = "user"
       | .content = [{text: .content}]

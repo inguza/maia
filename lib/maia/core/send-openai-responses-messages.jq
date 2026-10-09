@@ -84,7 +84,13 @@ map(
 	   [{type: "output_text", text: .content}]
         end
       )
-    }  
+    }
+  elif .role == "reasoning" then
+    if .api_type == $apitype then
+      .data
+    else
+      empty
+    end
   else
     {
       type: "message",
