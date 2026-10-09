@@ -322,7 +322,7 @@ sub detect_mime {
     }
     if ("$mime" eq "") {
 	# Fallback if mime is not available
-	if (open my $fh, '-|', 'od', '-An', '-N12', '-tx1', $file) {
+	if (open my $fh, '-|', 'od', '-An', '-N16', '-tx1', $file) {
 	    local $/;
 	    my $hex = <$fh> // '';
 	    close $fh;
@@ -330,7 +330,7 @@ sub detect_mime {
 		$mime = "image/png";
 	    }
 	    elsif ($hex =~ /^ffd8ff/) {
-		$mime = "image/png";
+		$mime = "image/jpeg";
 	    }
 	    elsif ($hex =~ /^474946383761/ || $hex =~ /^474946383961/) {
 		$mime = "image/gif";
@@ -339,7 +339,7 @@ sub detect_mime {
 		$mime = "image/webp";
 	    }
 	    elsif ($hex =~ /^255044462d/) {
-		$mime = "image/zip";
+		$mime = "image/pdf";
 	    }
 	    elsif ($hex =~ /^1f8b/) {
 		$mime = "image/gzip";
