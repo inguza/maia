@@ -9,6 +9,9 @@
 
 set -eo pipefail
 
+subcmd="diff"
+command="git $subcmd"
+
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
@@ -31,27 +34,18 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error." >&2
-	exit 3
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs pathspecs
 treeish="${param[tree-ish]}"
 
 declare -a diff_args=("${args[@]}")
 
-if [[ -n "$tree-ish" ]] ; then
-    diff_args+=("$tree-ish")
+if [[ -n "$treeish" ]] ; then
+    diff_args+=("$treeish")
 fi
 
 if [[ ${#paths[@]} -gt 0 ]] ; then
     diff_args+=("--" "${paths[@]}")
 fi
 
-git diff "${diff_args[@]}"
+git "$subcmd" "${diff_args[@]}"

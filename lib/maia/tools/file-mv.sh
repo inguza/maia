@@ -18,14 +18,10 @@ parseparam
 
 declare -A allowed
 
-pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error."
-	exit 3
-    fi
-else
+parsepathspecs pathspecs
+
+if ((${#paths[@]} == 0)); then
     echo "[WARNING] No paths specified."
     exit 4
 fi
@@ -34,9 +30,7 @@ if [[ -z "$destination" ]] ; then
     echo "[WARNING] No destination specified."
     exit 5
 fi
-for path in "${paths[@]}" "$destination" ; do
-    validate_path "$path"
-done
+validate_path "$destination"
 
 session_name="$(resolve_session_name)"
 ws_path="$(resolve_workspace_path)"
@@ -86,7 +80,7 @@ done
 printf '%s' "maia file remember" >> "$wpath"
 printf ' %q' "${remember[@]}" >> "$wpath"
 printf '\n' >> "$wpath"
-#
-write_meta "$ws_changes" "$baseid" "$index" "${paths[@]}"
+# * join to one entry
+write_meta "$ws_changes" "$baseid" "$index" "${paths[*]}"
 printf '%b' "[NOTICE] Direct file modification was not possible.\n\nChange proposal created for manual resolution:\n$id\n"
 exit 0

@@ -16,6 +16,7 @@ parseparam
 declare -A allowed
 
 subcmd="$1"
+command="git $subcmd"
 shift
 
 for arg in "$@"; do

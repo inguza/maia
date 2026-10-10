@@ -74,3 +74,35 @@ prune_tool_call_arguments() {
 	    -f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
     fi
 }
+
+# Adds entries to the global variable paths
+# it does not reset it.
+parsepathspecs() {
+    local specparam="$1"
+    local path match
+    local raw="${param[$specparam]:-}"
+    local -a input_paths=()
+    local -a matches=()
+
+    if [[ -n "$raw" ]]; then
+        if ! mapfile_from_json input_paths "$raw"; then
+            echo "[ERROR] $specparam parse error." >&2
+            return 3
+        fi
+    fi
+
+    for path in "${input_paths[@]}"; do
+        validate_path "$path"
+        matches=()
+
+        mapfile_from_command matches compgen -G "$path" || true
+
+        if ((${#matches[@]})); then
+            paths+=("${matches[@]}")
+        else
+            # Preserve unmatched patterns so the command can report the error.
+            paths+=("$path")
+        fi
+    done
+}
+

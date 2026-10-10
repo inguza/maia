@@ -40,6 +40,7 @@ for filepattern in "${filepatterns[@]}" ; do
     mapfile_from_command files compgen -G "$filepattern" || true
     if [[ ${#files[@]} == 0 ]] ; then
 	warn "File '$filepattern' not found, skipping."
+        continue
     fi
     for file in "${files[@]}"; do
 	if [[ -d "$file" ]] ; then
@@ -49,6 +50,7 @@ for filepattern in "${filepatterns[@]}" ; do
 	if [[ ! -f "$file" ]] ; then
 	    # Unlikely to appear but it could happen if the file is just removed
 	    warn "$file not found, skipping."	    
+	    continue
 	fi
 	if [[ -n "$startline" || -n "$stopline" ]] ; then
 	    filedefs+=("$file:$startline-$stopline")

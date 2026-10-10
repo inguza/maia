@@ -33,7 +33,7 @@ index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
 
 if [[ ! -e "$path" ]] ; then
-    echo "File '$path' does not exist." >2
+    echo "File '$path' does not exist." >&2
     exit 1
 fi
 

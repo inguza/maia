@@ -15,18 +15,12 @@ set -eo pipefail
 declare -A param
 parseparam
 
-# "filepatterns" is the legacy name, files have precedence
-fileparam="filepatterns"
-if [[ -v param[files] ]] ; then
-    fileparam="files"
-fi
-
-if [[ ! -v param[$fileparam] ]] ; then
-    die "Missing parameter $fileparam."
+if [[ ! -v param[files] ]] ; then
+    die "Missing parameter files."
 fi
 
 filedefs=()
-if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
+if ! mapfile_from_json filepatterns "${param[files]}" ; then
     echo "[ERROR] files parse error." >&2
     exit 2
 fi
@@ -40,7 +34,7 @@ done
 
 if [[ "$TOOL_NAME" == "session-file-forget" ]] ; then
     set_subsession "${param[session]:-}"
-    "$MAIA_BIN" file forget "${resourcedefs[@]}" 2>&1 | session_filter
+    "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1 | session_filter
 else
     "$MAIA_BIN" file forget "${filedefs[@]}" 2>&1
 fi

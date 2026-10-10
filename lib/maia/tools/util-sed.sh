@@ -32,17 +32,8 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-filespecs="${param[filespecs]:-}"
 declare -a paths=()
-if [[ -n "$filespecs" ]] ; then
-    if ! mapfile_from_json paths "$filespecs" ; then
-	echo "[ERROR] filespecs parse error." >&2
-	exit 3
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs filespecs
 script="$(printf '%b' "${param[script]}")"
 
 # Disable glob expansion

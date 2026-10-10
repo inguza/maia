@@ -9,6 +9,8 @@
 
 set -eo pipefail
 
+command="git branch"
+
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam

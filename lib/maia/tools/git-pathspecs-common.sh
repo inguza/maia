@@ -16,6 +16,7 @@ parseparam
 declare -A allowed
 
 subcmd="$1"
+command="git $subcmd"
 shift
 
 for arg in "$@"; do
@@ -34,15 +35,7 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error."
-	exit 3
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs pathspecs
+
 git "$subcmd" "${args[@]}" -- "${paths[@]}"

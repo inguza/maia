@@ -9,6 +9,8 @@
 
 set -eo pipefail
 
+command="git mv"
+
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam

@@ -23,20 +23,12 @@ for arg in "$@"; do
 done
 
 declare -a args
-lines="${param[lines-context]:-}"
+lines="${param[lines]:-}"
 if [[ -n "$lines" && "$lines" =~ ^[0-9]+$ ]] ; then
     args+=(-n $lines)
 fi
 
-pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error." >&2
-	exit 2
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs filespecs
+
 $command "${args[@]}" "${paths[@]}"

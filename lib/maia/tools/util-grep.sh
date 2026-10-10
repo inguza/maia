@@ -32,17 +32,8 @@ for argument in "${arguments[@]}"; do
     args+=("$argument")
 done
 
-pathspecs="${param[pathspecs]:-}"
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error." >&2
-	exit 3
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs pathspecs
 searchpattern="$(printf '%b' "${param[searchpattern]}")"
 
 before="${param["before-context"]:-}"

@@ -16,6 +16,7 @@ parseparam
 declare -A allowed
 
 subcmd="$1"
+command="git $subcmd"
 shift
 
 for arg in "$@"; do
@@ -39,7 +40,7 @@ refspecs="${param[refspecs]:-}"
 declare -a refs=()
 if [[ -n "$refspecs" ]] ; then
     if ! mapfile_from_json refs "$refspecs" ; then
-	echo "[ERROR] refspecs parse error."
+	echo "[ERROR] refspecs parse error." >&2
 	exit 3
     fi
 fi

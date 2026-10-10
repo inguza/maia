@@ -12,6 +12,7 @@ set -eo pipefail
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
+command="git commit"
 
 declare -A allowed
 
@@ -32,15 +33,9 @@ for argument in "${arguments[@]}"; do
 done
 
 message="${param[message]}"
-pathspecs="${param[pathspecs]:-}"
+
+
 declare -a paths=()
-if [[ -n "$pathspecs" ]] ; then
-    if ! mapfile_from_json paths "$pathspecs" ; then
-	echo "[ERROR] pathspecs parse error."
-	exit 2
-    fi
-fi
-for path in "${paths[@]}" ; do
-    validate_path "$path"
-done
+parsepathspecs pathspecs
+
 git commit "${args[@]}" -m "$message" -- "${paths[@]}"

@@ -12,6 +12,7 @@ set -eo pipefail
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
+command="git show"
 
 declare -A allowed
 
@@ -33,7 +34,10 @@ done
 
 objects="${param[objects]:-}"
 declare -a objs=()
-if [[ -n "$objects" ]] ; then
-    mapfile_from_json objs "$objects"
+if [[ -n "$objects" ]]; then
+    if ! mapfile_from_json objs "$objects"; then
+        echo "[ERROR] objects parse error." >&2
+        exit 2
+    fi
 fi
 git show "${args[@]}" "${objs[@]}"

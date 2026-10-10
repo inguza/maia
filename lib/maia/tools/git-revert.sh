@@ -12,6 +12,7 @@ set -eo pipefail
 . "$MAIA_TOOLS_LIB_DIR/common.sh"
 declare -A param
 parseparam
+command="git revert"
 
 declare -A allowed
 
@@ -32,7 +33,7 @@ for argument in "${arguments[@]}"; do
 done
 
 commitlist="${param[commits]:-}"
-declare -a refs=()
+declare -a commits=()
 if [[ -n "$commitlist" ]] ; then
     if ! mapfile_from_json commits "$commitlist" ; then
 	echo "[ERROR] commits parse error." >&2
@@ -40,4 +41,4 @@ if [[ -n "$commitlist" ]] ; then
     fi
 fi
 
-git revert -no-edit "${args[@]}" "${commits[@]}"
+git revert --no-edit "${args[@]}" "${commits[@]}"
