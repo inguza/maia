@@ -36,6 +36,8 @@ show_tasks() {
     while IFS=' ' read -r task taskfile; do
 	if [[ -n $memorized_glob && $task == $memorized_glob ]]; then
 	    myl_pretty "$taskfile" "task"
+	    echo
+	    echo
 	fi
     done <<< "$tasksdata"
 }
