@@ -10,20 +10,20 @@ session_usage() {
     cat <<'EOF'
 USAGE
 
-  maia session <command> [options]
+  maia session <command> [args]
   maia session
 
 Manage sessions, including creation, switching, and metadata.
 
 COMMANDS
 
-  create <name> [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]] [<src>]
+  create [options] <name> [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
   list
     List all sessions (active one marked with *).
 
-  set [<name>] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]]
+  set [options] [<name>]
     Set properties for a session.
 
   edit [<name>]
@@ -58,6 +58,9 @@ OPTIONS
 
   --workspace <name>
     Set workspace <name>. See note below.
+
+  --profile <name>
+    Set profile <name>.
 
   --filesets [fs1,[fs2...]]
      Set the active session filesets. See note below.
@@ -167,24 +170,23 @@ handle_session_command() {
     case "$cmd" in
 	create)
 	    shift
-	    if [[ -z "$1" ]]; then
-		die "Session name is required."
-	    fi
-	    local name="$1"
-	    shift
-	    local path="$(resolve_session_path "$name")"
+            RESOLVE_FILESETS=false
+            parse_session_options "$@"
+            if [[ ${#REMAINING_ARGS[@]} -eq 0 ]]; then
+                die "Session name is required."
+            fi
+            local name="${REMAINING_ARGS[0]}"
+            local path="$(resolve_session_path "$name")"
 	    if [[ -d "$path" ]] ; then
 		die "Session '$name' already exists."
 	    fi
 	    trigger_event "pre-session-create $name"
-            # Parse options first to get workspace, filesets and extra_send_filesets
-	    RESOLVE_FILESETS=false
-            parse_session_options "$@"
-	    # The remaining args after options may contain an optional source session name
-	    local src_session=""
-	    if [[ ${#REMAINING_ARGS[@]} -gt 0 ]]; then
-		src_session="${REMAINING_ARGS[0]}"
-	    fi
+            # The remaining args after options contain the session name and
+            # may contain an optional source session name.
+            local src_session=""
+            if [[ ${#REMAINING_ARGS[@]} -gt 1 ]]; then
+                src_session="${REMAINING_ARGS[1]}"
+            fi
 
 	    local ws_source=" (from default_workspace configuration)"
 	    local workspace=$(get_config default_workspace)
@@ -524,14 +526,9 @@ handle_session_command() {
 
 	set)
 	    shift
-	    local name_arg
-	    # Optional name
-	    if [[ $# -gt 0 && ! "$1" =~ ^-- ]]; then
-		name_arg="$1"; shift
-	    else
-		name_arg="$(resolve_session_name)"
-	    fi
-	    local name="$name_arg"
+            RESOLVE_FILESETS=false
+            parse_session_options "$@"
+            local name="${REMAINING_ARGS[0]:-$(resolve_session_name)}"
 	    trigger_event "pre-session-update $name"
 	    # Load current values
 	    local meta="$(resolve_session_meta "$name")"
@@ -540,10 +537,7 @@ handle_session_command() {
 	    local current_profile="$(myl_get "$meta" 'profile')"
 	    local current_fs="$(myl_get "$meta" 'filesets')"
 	    local current_extra_fs="$(myl_get "$meta" 'extra_send_filesets')"
-	    # Parse flags
-	    RESOLVE_FILESETS=false
-	    parse_session_options "$@"
-	    # Fallback to current if flags omitted
+            # Fallback to current if flags omitted
 	    local ws="${PARSED_WS-$current_ws}"
             if [[ -n "$ws" ]]; then
 		validate_workspace_exists "$ws"

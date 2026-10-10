@@ -89,13 +89,13 @@ run_session_cmd "list_after_delete_foo" list
 run_workspace_cmd "create_workspace_no_use" create ws
 
 # Now create the session with and without resolving
-run_session_cmd "create_session_defaultresolve_noneused" create newsession --workspace ws
+run_session_cmd "create_session_defaultresolve_noneused" create --workspace ws newsession
 run_session_cmd "show_session_defaultresolve_noneused" show newsession
 
-run_session_cmd "create_session_defaultresolve_nows" create newsessionnows --workspace ""
+run_session_cmd "create_session_defaultresolve_nows" create --workspace "" newsessionnows
 run_session_cmd "show_session_defaultresolve_nows" show --raw newsessionnows
 
-run_session_cmd "set_session_defaultresolve_nows" set newsessionnows --workspace ws
+run_session_cmd "set_session_defaultresolve_nows" set --workspace ws newsessionnows
 run_session_cmd "show_setsession_defaultresolve_nows" show --raw newsessionnows
 
 # Cleanup

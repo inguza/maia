@@ -1,19 +1,19 @@
 USAGE
 
-  maia session <command> [options]
+  maia session <command> [args]
   maia session
 
 Manage sessions, including creation, switching, and metadata.
 
 COMMANDS
 
-  create <name> [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]] [<src>]
+  create [options] <name> [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
   list
     List all sessions (active one marked with *).
 
-  set [<name>] [--workspace <ws>] [resolve-options] [--filesets <fs>[,fs2...]]
+  set [options] [<name>]
     Set properties for a session.
 
   edit [<name>]
@@ -48,6 +48,9 @@ OPTIONS
 
   --workspace <name>
     Set workspace <name>. See note below.
+
+  --profile <name>
+    Set profile <name>.
 
   --filesets [fs1,[fs2...]]
      Set the active session filesets. See note below.

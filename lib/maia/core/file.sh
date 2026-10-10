@@ -16,8 +16,9 @@ Manage files in your workspace's filesets.
 
 COMMANDS
 
-  list|ls
+  list|ls [--raw]
     List all files in each fileset for the active session's workspace.
+    --raw  Print file paths without the workspace directory or indentation.
 
   content
     Show the content of the files.
@@ -46,9 +47,6 @@ OPTIONS
 
   --all
     Operate on every .fileset under the session's workspace directory.
-
-  --raw
-    Print the file context without any space or workspace directory.
 
   --filesets fs1[,fs2]
     Comma-separated override of which workspace filesets to use.
@@ -194,10 +192,6 @@ handle_file_command() {
                 all_flag=true
                 shift
                 ;;
-            --raw)
-                raw=true
-                shift
-                ;;
             --filesets)
                 shift
                 [[ -n "$1" ]] || die "Error: --filesets requires a comma-separated list"
@@ -245,6 +239,17 @@ handle_file_command() {
     case "$cmd" in
         list|ls)
             shift
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --raw)
+                        raw=true
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                esac
+            done
             local workspace_root=$(resolve_workspace_root "$session_ws")
             if [[ ! -d "$workspace_root" ]]; then
                 die "Workspace root '$workspace_root' does not exist."

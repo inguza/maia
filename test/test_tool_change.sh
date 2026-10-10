@@ -53,8 +53,8 @@ printf '%b' "$text1$text2$text3$text4" > 1/1234.txt
 run_tool_cmd "file-change_err_1" run file-change "{\"path\":\"1/12342v3v.txt\",\"changes\":[{\"existing\":\"$text2\",\"replacement\":\"$new2\"}]}"
 
 # Then we create the workspace so we have something to work on
-$MAIA workspace create default --path "$XMAIA_HOME" > /dev/null 2>&1
-$MAIA session create testsess --workspace default > /dev/null 2>&1
+$MAIA workspace create --path "$XMAIA_HOME" default > /dev/null 2>&1
+$MAIA session create --workspace default testsess > /dev/null 2>&1
 export MAIA_SESSION=testsess
 run_tool_cmd "append" replace "file-*" "change-*"
 

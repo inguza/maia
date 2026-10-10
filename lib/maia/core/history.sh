@@ -17,8 +17,8 @@ Manage and manipulate the command history.
 
 COMMANDS
 
-  show [options] [--assistant|--tool|--user] [<range>...]
-    Display entries in the given range(s), filtered by role(s).
+  show [options] [show-role-options] [<range>]
+    Display entries in the given range, filtered by role(s).
 
   pop [options] [<n>]
     Remove & print last n entries (default 1).
@@ -26,22 +26,25 @@ COMMANDS
   top [options] [<n>]
     Remove & print first n entries (default 1).
 
-  delete [<range>...]
-    Delete entries in n–m inclusive for all given ranges.
+  delete [<range>]
+    Delete entries in n–m inclusive for given range.
 
-  hide [<range>...]
-    Hide entries in n–m inclusive for all given ranges from the AI.
+  hide [<range>]
+    Hide entries in n–m inclusive for given range.
 
-  unhide [<range>...]
-    Make entries in n–m inclusive for all given ranges visible to the AI.
+  unhide [<range>]
+    Make entries in n–m inclusive for given range.
 
-  prune [--assistant|--tool|--user|--reasoning] [--reduce|--edit|--cut] [<range>...]
+  prune [role-option] [--reduce|--edit|--cut] [<role range>...]
     Prune history entries by role and mode.
+
+    NOTE! If role-option is not specified, --assistant is assumed.
+    NOTE! If range is omitted, last entry of the selected role is pruned.
 
   restore
     Restore the entry as it was before it was pruned. Will also unhide it.
 
-  search [options] <keyword>
+  search [show-role-options] [options] <keyword>
     Find entries containing keyword.
 
   summarize|compact
@@ -62,31 +65,38 @@ OPTIONS
   -h, --help
     Show this help message and exit.
 
-  -a, --assistant
-    Filter or prune assistant messages only.
-
-  -t, --tool
-    Filter or prune tool messages only.
-
-  -u, --user
-    Filter or prune user messages only.
-
-  -r, --reasoning
-    Filter or prune reasoning messages only.
-
-  If multiple role flags are provided, pruning will error.
-
-  --reduce
-    Replace large blocks with a placeholder during pruning.
+  --cut
+    Replace entire message with a placeholder during pruning.
 
   --edit
     Edit messages in an editor during pruning.
 
-  --cut
-    Replace entire message with a placeholder during pruning.
+  --reduce
+    Replace large blocks with a placeholder during pruning.
 
   --raw, --json
     Print in json format. Applicable to show, search, pop and top.
+
+  Show role options:
+
+  -a, --assistant
+    Assistant messages only.
+
+  -u, --user
+    User messages only.
+
+  Role options:
+
+  -a, --assistant, -u, --user
+    See show role options above.
+
+  -t, --tool
+    Tool messages only.
+
+  -r, --reasoning
+    Reasoning messages only.
+
+  If multiple role flags are provided, pruning will error.
 
 EXAMPLES
 
@@ -97,7 +107,7 @@ EXAMPLES
       Cut tool messages in the last entry.
 
     maia history prune --user --edit
-      Edit user messages in the full history.
+      Edit last user message in the full history.
 
     maia history summarize
 
@@ -115,7 +125,7 @@ NOTES
     prompt    the last user input
     turn      entries from last user input to the end
 
-  Role flags specify which type of entries to prune.
+  Role flags specify which type of entries to operate on.
   Pruning modes differ per role (see documentation).
   Multiple ranges can be specified for batch pruning.
 
@@ -179,7 +189,7 @@ history_prune() {
     # Parse flags before ranges
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --assistant|--tool|--user|--reasoning)
+            -a|--assistant|-t|--tool|-u|--user|-r|--reasoning)
                 if [[ -n "$role" ]]; then
                     die "Only one of --assistant, --tool, --user, or --reasoning can be specified."
                 fi
@@ -659,15 +669,17 @@ handle_history_command() {
 	    # if no argument or an explicit empty-string is given, treat it like no-arg
 	    local user_only=0 assistant_only=0 raw_output=0
 	    # parse all args
+	    local keyword=""
 	    for arg in "$@"; do
 		case "$arg" in
 		    -u|--user)       user_only=1         ;;
 		    -a|--assistant)  assistant_only=1    ;;
 		    --raw|--json)    raw_output=1 ;;
-		    *) ;;
+		    *)
+			[[ -z "$keyword" ]] && keyword="$arg"
+			;;
 		esac
 	    done
-	    local keyword="$1"
             # Filter entries that contain keyword (case-insensitive) in any string field (tostring)
             # We want to keep all entries to preserve indexes, so we mark matches and then filter in bash
             local all_entries=$(get_history_entries "-" $user_only $assistant_only)

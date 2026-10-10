@@ -16,7 +16,7 @@ test_start
 common_setup_output_dir
 setup_maia_home
 $MAIA workspace create ws
-$MAIA session create default --workspace ws
+$MAIA session create --workspace ws default
 export MAIA_SESSION=default
 
 run_change_cmd() {

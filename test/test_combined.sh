@@ -118,7 +118,7 @@ api_types_and_configs=(
 run_workspace_cmd "create_and_use_workspace" create ws
 
 # Test 2: create a new session named 'foo'
-run_session_cmd "create_foo" create foo --workspace ws
+run_session_cmd "create_foo" create --workspace ws foo
 export MAIA_SESSION=foo
 run_session_cmd "show_after_foo" show foo
 

@@ -8,8 +8,9 @@ Manage named reusable user message snippet.
 
 COMMANDS
 
-  list
+  list [--with-scope]
     List all snippet names available in the effective scope(s).
+    If --with-scope is provided it shows scope information too.
 
   show <name>
     Display the content of the named snippet.

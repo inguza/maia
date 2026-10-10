@@ -6,8 +6,9 @@ Manage files in your workspace's filesets.
 
 COMMANDS
 
-  list|ls
+  list|ls [--raw]
     List all files in each fileset for the active session's workspace.
+    --raw  Print file paths without the workspace directory or indentation.
 
   content
     Show the content of the files.
@@ -36,9 +37,6 @@ OPTIONS
 
   --all
     Operate on every .fileset under the session's workspace directory.
-
-  --raw
-    Print the file context without any space or workspace directory.
 
   --filesets fs1[,fs2]
     Comma-separated override of which workspace filesets to use.

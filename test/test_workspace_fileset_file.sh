@@ -41,7 +41,7 @@ echo "y1" > y1.txt
 echo "y2" > y2.txt
 
 run_workspace_cmd "create_and_use_workspace" create ws
-$MAIA session create testsession --workspace ws
+$MAIA session create --workspace ws testsession
 export MAIA_SESSION=testsession
 
 run_fileset_cmd "create_t1" create t1

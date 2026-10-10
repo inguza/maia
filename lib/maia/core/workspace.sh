@@ -16,13 +16,13 @@ Manage workspace manifests and their filesets.
 
 COMMANDS
 
-  create [<name>] [--path <path>] [--filesets <array>] [--default-session-filesets <array>]
+  create [--path <path>] [--filesets <array>] [--default-session-filesets <array>] [<name>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
       * "default" if <workspace_path>/.maia matches $MAIA_HOME
       * basename("<workspace_path>") otherwise.
 
-  set [<name>] [--path <path>] [--filesets <array>] [--default-session-filesets <array>]
+  set [--path <path>] [--filesets <array>] [--default-session-filesets <array>] [<name>]
     Change the workspace properties.
 
   list|ls
@@ -36,7 +36,7 @@ COMMANDS
   edit [<name>]
     Open the workspace meta data file in $EDITOR.
 
-  clear [--fileset] [--system] [<name>]
+  clear [<name>]
     Reset the manifest (keep "name" and "path").
 
   delete [--force] <name>
@@ -72,7 +72,7 @@ EXAMPLES
     maia workspace list
       List all available workspaces.
 
-    maia workspace create myworkspace --path /path/to/project
+    maia workspace create --path /path/to/project myworkspace
       Create a workspace named "myworkspace" with the specified path.
 
 NOTES
@@ -141,8 +141,8 @@ parse_workspace_options() {
                 workspace_usage
                 ;;
             *)
-                REMAINING_ARGS+=( "$1" )
-                shift
+                REMAINING_ARGS+=( "$@" )
+                break
                 ;;
         esac
     done

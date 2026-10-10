@@ -30,7 +30,7 @@ run_workspace_cmd() {
 
 # We just need a workspace to work in
 $MAIA workspace create foo > /dev/null 2>&1
-$MAIA session create testsession --workspace foo
+$MAIA session create --workspace foo testsession
 export MAIA_SESSION=testsession
 
 # Test list filesets (likely empty initially)
