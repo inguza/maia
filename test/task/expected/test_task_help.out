@@ -26,8 +26,8 @@ COMMANDS
   list
       List all tasks, marking loaded tasks.
 
-  show
-      Show loaded tasks and their descriptions.
+  show [<taskname>...]
+      Show loaded tasks and their descriptions, or only the specified tasks.
 
   append|remember|add <taskname>...
       Append task(s) to the loaded list. Wildcards supported.

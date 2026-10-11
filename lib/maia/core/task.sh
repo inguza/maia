@@ -42,6 +42,29 @@ show_tasks() {
     done <<< "$tasksdata"
 }
 
+# Show tasks selected by their task IDs.  Resolve through the task catalogue so
+# this also works for shared tasks and respects the normal shadowing order.
+show_selected_tasks() {
+    local requested taskfile
+
+    for requested in "$@"; do
+        [[ -n "$requested" ]] || die "Empty task id."
+        taskfile=""
+        while IFS=' ' read -r task candidate; do
+            if [[ "$task" == "$requested" ]]; then
+                taskfile="$candidate"
+                break
+            fi
+        done < <(get_all_ordered_task_names "file")
+
+        [[ -n "$taskfile" && -f "$taskfile" ]] || \
+            die "Task '$requested' not found."
+        myl_pretty "$taskfile" "task"
+        echo
+        echo
+    done
+}
+
 expand_taskset_file() {
     local scope="$1" taskset_file="$2"
     local memory_glob="$(make_glob_from_file "$taskset_file")"
@@ -145,8 +168,8 @@ COMMANDS
   list
       List all tasks, marking loaded tasks.
 
-  show
-      Show loaded tasks and their descriptions.
+  show [<taskname>...]
+      Show loaded tasks and their descriptions, or only the specified tasks.
 
   append|remember|add <taskname>...
       Append task(s) to the loaded list. Wildcards supported.
@@ -380,19 +403,23 @@ handle_task_command() {
 	    fi
 	    ;;
         show)
-	    echo "Tasks:"
-	    echo "------"
-	    get_all_ordered_task_names "list"
-	    echo ""
-	    echo "Memorized tasks:"
-	    echo "----------------"
-	    prompt_for_scope "$scope" "taskset"
-	    echo ""
-	    echo "Task memory:"
-	    echo "------------"
-	    echo ""
-	    show_tasks "$scope" "$filepath"
-	    echo ""
+            if [[ $# -gt 0 ]]; then
+                show_selected_tasks "$@"
+            else
+	        echo "Tasks:"
+	        echo "------"
+	        get_all_ordered_task_names "list"
+	        echo ""
+	        echo "Memorized tasks:"
+	        echo "----------------"
+	        prompt_for_scope "$scope" "taskset"
+	        echo ""
+	        echo "Task memory:"
+	        echo "------------"
+	        echo ""
+	        show_tasks "$scope" "$filepath"
+	        echo ""
+            fi
             ;;
         append|remember|add|edit|replace|clear|clearnonotice|delete)
 	    # seed on first append
