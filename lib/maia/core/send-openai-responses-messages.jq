@@ -41,18 +41,14 @@ def file_content:
 
 map(
   if .role == "tool" then
-    if ((.content // "") == "" and ((.files // []) | length) == 0) then
-      []
-    else
-      {
-        type: "function_call_output",
-        call_id: .tool_call_id,
-        output: (
-          (if (.content // "") == "" then [] else [{type: "input_text", text: .content}] end)
-          + file_content
-        )
-      }
-    end
+    {
+      type: "function_call_output",
+      call_id: .tool_call_id,
+      output: (
+        (if (.content // "") == "" then [] else [{type: "input_text", text: .content}] end)
+        + file_content
+      )
+    }
   elif .role == "assistant" and (.tool_calls // null) != null then
     [
       {
