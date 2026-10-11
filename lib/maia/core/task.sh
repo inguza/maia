@@ -17,11 +17,12 @@ list_tasks() {
     local memorized_glob=$(make_glob_from_file "$taskset_file")
     
     while IFS=' ' read -r task taskfile; do
+        local status="$(myl_get "$taskfile" "status")"
 	if [[ -n $memorized_glob && $task == $memorized_glob ]]; then
-	    printf '* %s %s\n' "$task" "$taskfile"
+	    printf '* %s %s %s\n' "$task" "$status" "$taskfile"
 	else
 	    # TODO: Implement autoload information
-            printf '  %s %s\n' "$task" "$taskfile"
+            printf '  %s %s %s\n' "$task" "$status" "$taskfile"
 	fi
     done <<< "$tasksdata"
 }
