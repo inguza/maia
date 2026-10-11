@@ -914,7 +914,8 @@ handle_send_command() {
 		local type="$(jq -r '.type' <<<"$tool_result")"
 		local tool_cmd=$(jq -r --arg type "$type" '.[] | select(.callback == $type) | .command' <<<"$enabled_tools_json")
 		if [[ -z "$tool_cmd" ]] ; then
-		    die "Unable to find the command for '$type'"
+		    warn "Unable to find the command for '$type'"
+		    continue
 		fi
 		local tool_search_path=$(build_tool_search_path)
 		# Find full path to executable without relying on PATH for security reasons
