@@ -1,0 +1,2079 @@
+{
+  "id": "resp_05d60fad0dc39d9e016acbe63c2e1487d287e68088ed89e88c",
+  "object": "response",
+  "created_at": 1791747644,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "openai"
+  },
+  "completed_at": 1791747650,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 32000,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-luna",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_05d60fad0dc39d9e016acbe63d966c87d288727b4bb5bf7613",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqy-ZCdO7MytpgfpBHcnMYdiuvcYtjB6qRxj7fOfUJIu33LffKD8l_a_Ws5n0h9n0O9SFjdd0O6ss-ahSfk_CgN3xMRiDrTguh01WvHw5dvKV6_UcUmU22T8m_iSNFvDIJ6Gcz_6tFGTCJfKS-2TTzgbtW5yisaVCCVXjN_kvxm1aVHZGGGbrgGEjKMayMjxCQs_I9XAaaDlnnI8e7UKA3Yki5iZPhlDzNRbmwpQGtGl310m2VnjoFdV5bmPbhdR4X6nfRj09BAog9VGKAEovg6eqt-sFk3Ms8jOuZ19vdjrShlEbB0WopLrSxdPYWegmFjK-ALJTav27OKAStIQxvxgnYGSzsB3YoxzUBT394jt645Cam6ewgcEjP2M-K1tXGOl6OIBjYfZM73MaTLnUBOFzJR1D2uRbDtEuEU0-zf549qzHua2NT2W5Hm5qriHp6e564afy6ji7wHcRRkmrQvfk_y74CTTpC_d0u19LeUw6V0DmCyXG16iDcJtsrQ8AgTH1hoqEppNeueEQq7Zou8jusaGXiFM_J5ppMAipeJROf4hBd0FE83ZuYRbb88MNOsn11nKtX_qSwmRy73fG4PnzVSV8RmxBZZ9MCXEPtLvBXb9vCN7-KeENh3OivRCGQweUvSyEMja6Iy-uQgjHsULe_VwmepsBVxipQtQz8ey3pf9vZDcdc-VxRN-NlGxfa8hJytuZvGQ064aoo9n65WPQ43bcuJb9L6PERe0v-hXsnEStchCxnBUP8adj7E2BTucKHYKg46bc1oRwVe_8n45iHoIdv2qro-XuKMTFBM8-vLnlBUAmtjzTTJ179zDJaslDJlX4YeSe5ysLX_bjiOTU1yr4XOO1tJwVLnPdQfHjiteDZYkhwW2EUH1dqMNq0GiJhFwwS7qdaCdKDQVrrP34p1_08ogVMGmKec1TRkb0bBUA4DvGyXsXl_fDuHa6JPx91j0VM-YPReFUyOE9qhdGMltq-y8swoWh9TQRFdPe1r3Ee-cMNkLHEl-_qvP04PUiURm2TpdmfkfTexdIfCJuCU0I035BACMsaXD-njQtudyHb_fGd1Mtq_TxsPhKn-tXGPNWoeMP_YMEPW_JdljZKmvVSIGXyQhU3DdGTtPCFPZoOwFDzVFiiAy9efg2Tu-q_ZQbSZJlK94QZ-JgAPG2Ga_p-2mSOabzl3O1DRU2jOLERIqrzqDXegRHmlw0LYFKBV9x7_TdbWEqkx-8dXNR5UtMM9tetWhFTrQqpx1kpWSUuJERAuBatH_c9xnaWLHQ8puy_Mm9bDe_1G2YPPPbQRf9Hioehlivfc2ECclbE-HzTMHSH6tfLrEBoiTy9y-XsU7k6qpEvfS8677vuUJBSITKmeB6Xr0WOzGZIaUY3LKRDl2kI6GnlqWfQaY_gWRHXV2Y9AYNz9EkEnxqdY-raMBMcsapGMzZw2jWzPNRM0OmT_LBv1o0wC3YnDnYwX1IP96Wi9aUNv34bMtphtA_s83akJlST6e-wBpT2VhTD6vzzWDTBBcuco8qa0A33E0KgTSj49IyDl7A5WHsmnVIJ-svVI48jJna3etPwfB_4YiKiYIHXv36FJJ8DqXVECAmm3XhoQFprOH_pMyv5JCyW1GfTq4vsY5X5Ms9Z7v9dQokI3ArObpk06wSr4QPm9LqVRpnJ1fBRE6CzcmnfEPxSVLsWqQ4SWRWDywg2XboKamc3c5yBFFFvOiDb5RcuZViN",
+      "summary": []
+    },
+    {
+      "id": "ws_05d60fad0dc39d9e016acbe63de8a487d2b0ad8f8bc366b9b0",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "queries": [
+          "Inguza"
+        ],
+        "query": "Inguza"
+      }
+    },
+    {
+      "id": "msg_05d60fad0dc39d9e016acbe6412e7887d2823b7c58a57b7dee",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [
+            {
+              "type": "url_citation",
+              "end_index": 293,
+              "start_index": 217,
+              "title": "Inguza",
+              "url": "https://en.wikipedia.org/wiki/Inguza?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 475,
+              "start_index": 356,
+              "title": "Inguza, CCU, AO Current Weather - The Weather Network",
+              "url": "https://www.theweathernetwork.com/en/city/ao/kuando-cubango/inguza/current?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 721,
+              "start_index": 547,
+              "title": "PART B  \nTERMS AND CONDITIONS FOR BIDDING\n\nInguza",
+              "url": "https://softkings.rfqguy.co.za/storage/rfq_documents/2291/tender-document-logistics-for-tourism-indaba-2026pdf-69cb9b60a4366.pdf?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 923,
+              "start_index": 823,
+              "title": "Inguza (MON) | FFXIclopedia | Fandom",
+              "url": "https://ffxiclopedia.fandom.com/wiki/Inguza_%28MON%29?utm_source=openai"
+            }
+          ],
+          "logprobs": [],
+          "text": "Search results for **\u201cInguza\u201d** include:\n\n- **Inguza predemersus** \u2014 an extinct, monotypic genus of penguin known from Late Pliocene fossils found at Langebaanweg, South Africa, dating to roughly 5 million years ago. ([en.wikipedia.org](https://en.wikipedia.org/wiki/Inguza?utm_source=openai))\n- **Inguza, Angola** \u2014 a locality in Cuando Cubango Province. ([theweathernetwork.com](https://www.theweathernetwork.com/en/city/ao/kuando-cubango/inguza/current?utm_source=openai))\n- **Inguza Hill Local Municipality** \u2014 a municipality in South Africa. ([softkings.rfqguy.co.za](https://softkings.rfqguy.co.za/storage/rfq_documents/2291/tender-document-logistics-for-tourism-indaba-2026pdf-69cb9b60a4366.pdf?utm_source=openai))\n- **Inguza in Final Fantasy XI** \u2014 a bird-like \u201cMonipulator\u201d creature related to the Apkallu family. ([ffxiclopedia.fandom.com](https://ffxiclopedia.fandom.com/wiki/Inguza_%28MON%29?utm_source=openai))\n\nThe most prominent result is the **extinct penguin genus**."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 1
+    }
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
+      "name": "core-pipe",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pipeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the function/tool to use."
+                },
+                "arguments": {
+                  "type": "object",
+                  "description": "Arguments for the function/tool use.",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "name",
+                "arguments"
+              ]
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "pipeline"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    },
+    {
+      "type": "function",
+      "description": "Execute multiple tools in sequence order.",
+      "name": "core-sequence",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the function/tool to use."
+                },
+                "arguments": {
+                  "type": "object",
+                  "description": "Arguments for the function/tool use.",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "name",
+                "arguments"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "sequence"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    },
+    {
+      "type": "function",
+      "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+      "name": "core-print",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The content to pass to another tool. If absent, stdin is passed."
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Sleep for the specified duration.",
+      "name": "core-sleep",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "duration": {
+            "type": "string",
+            "description": "The duration to sleep. Defaults to seconds if no suffix is specified. The suffixes s, m, h and d specify seconds, minutes, hours and days respectively. Example: 5.5s sleeps for 5.5 seconds."
+          }
+        },
+        "required": [
+          "duration"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Determine file type.",
+      "name": "util-file",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to search for. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of file command line arguments. Allowed are: -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Tool for transferring data from or to a server.",
+      "name": "web-browser-curl",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One or more URLs."
+          },
+          "header": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "header/@file"
+            }
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "POST data. @file reads data from a file."
+            }
+          },
+          "data-raw": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "POST data."
+            }
+          },
+          "data-binary": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "POST data as is."
+            }
+          },
+          "json": {
+            "type": "string",
+            "description": "Sends the specified JSON data in a POST request to the HTTP server."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of curl command line arguments. Allowed are: -i -D -G --get --raw -s -Sx -X POST."
+          }
+        },
+        "required": [
+          "urls",
+          "header",
+          "data",
+          "data-raw",
+          "data-binary",
+          "json",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
+      "name": "file-write",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path of the file to write."
+          },
+          "content": {
+            "type": "string",
+            "description": "The full content to write to the file. If omitted, content is read from stdin."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
+      "name": "file-append",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path of the file to append to."
+          },
+          "content": {
+            "type": "string",
+            "description": "The content to append to the file. If omitted, content is read from stdin."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
+      "name": "file-change",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File to update."
+          },
+          "changes": {
+            "type": "array",
+            "description": "A list of exact text replacements. Each change replaces one exact, contiguous region of the current file.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "existing": {
+                  "type": "string",
+                  "description": "The exact text currently present in the file. Matching is literal; whitespace and every other character matter. The text must occur exactly once in the current file."
+                },
+                "replacement": {
+                  "type": "string",
+                  "description": "The exact text to insert in place of `existing`. All other file content remains unchanged."
+                }
+              },
+              "required": [
+                "existing",
+                "replacement"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "path",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Remove files. Always creates a change proposal.",
+      "name": "file-rm",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to remove. Only paths relative to the current directory allowed."
+          }
+        },
+        "required": [
+          "pathspecs"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Move files. Always creates a change proposal.",
+      "name": "file-mv",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to move. Only paths relative to the current directory allowed."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination file or directory."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "destination"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Add a files to the known context",
+      "name": "context-file-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "File(s) to add to the currently known context. Glob pattern matching can be used to match files."
+            }
+          },
+          "linestart": {
+            "type": "string",
+            "description": "First line to remember when only part of the file is needed."
+          },
+          "lineend": {
+            "type": "string",
+            "description": "Last line to remember when only part of the file is needed."
+          }
+        },
+        "required": [
+          "files",
+          "linestart",
+          "lineend"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Forget file content from the known context.",
+      "name": "context-file-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "File(s) to remove from the known context. Glob pattern matching can be used to match files."
+            }
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
+      "name": "change-apply",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Change proposal ID(s) to apply in order."
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Skip (reject) one or more change proposals.",
+      "name": "change-skip",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Change proposal ID(s) to skip in order."
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Revert one or more changes.",
+      "name": "change-revert",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Change proposal ID(s) to revert in order."
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Git status.",
+      "name": "git-status",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to check the status for. Only paths relative to the current directory allowed. If absent the status of the current directory is shown."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of git command line arguments. Allowed are: -s --short -b --branch."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Git log.",
+      "name": "git-log",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to check the status for. Only paths relative to the current directory allowed. If absent current directory is logged."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of git command line arguments. Allowed are: --no-decorate --source."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Git show.",
+      "name": "git-show",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Objects to show. If absent the last commit is shown."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of git command line arguments. Allowed are: --abbrev-commit --oneline."
+          }
+        },
+        "required": [
+          "objects",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Git diff.",
+      "name": "git-diff",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tree-ish": {
+            "type": "string",
+            "description": "The commit to diff against. The syntax <commit>...<commit> is also possible."
+          },
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to diff. Only paths relative to the current directory allowed."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of git command line arguments. Allowed are: -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base."
+          }
+        },
+        "required": [
+          "tree-ish",
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Search files using regular expression.",
+      "name": "util-grep",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "searchpattern": {
+            "type": "string",
+            "description": "Regular expression to search for."
+          },
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to search in. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "after-context": {
+            "type": "string",
+            "description": "Print before-context number of lines of trailing context after matching lines."
+          },
+          "before-context": {
+            "type": "string",
+            "description": "Print before-context number of lines of leading context before matching lines."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I --."
+          }
+        },
+        "required": [
+          "searchpattern",
+          "pathspecs",
+          "after-context",
+          "before-context",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Search files - but not files starting with a .",
+      "name": "util-find",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to search for. Only paths relative to the current directory allowed."
+          },
+          "mindepth": {
+            "type": "string",
+            "description": "Do not apply any tests or actions at levels less than levels (a non-negative integer). 1 means process all files except the starting-points."
+          },
+          "maxdepth": {
+            "type": "string",
+            "description": "Descend at most levels (a non-negative integer) levels of directories below the starting-points. 0 means only apply the tests and actions to the starting-points themselves."
+          },
+          "name": {
+            "type": "string",
+            "description": "File name matches shell pattern pattern."
+          },
+          "type": {
+            "type": "string",
+            "description": "File is of type: d - directory, f - regular file."
+          },
+          "path": {
+            "type": "string",
+            "description": "Path name matches shell pattern pattern."
+          },
+          "ipath": {
+            "type": "string",
+            "description": "Path name matches shell pattern pattern, case insensitive."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of find command line arguments. Allowed are: -d -depth -executable -nogroup -nouser -readable -ls."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "mindepth",
+          "maxdepth",
+          "name",
+          "type",
+          "path",
+          "ipath",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "List files",
+      "name": "util-ls",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to list. Only paths relative to the current directory allowed."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of ls command line arguments. Allowed are: -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --"
+          }
+        },
+        "required": [
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "List files",
+      "name": "util-sort",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to sort. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of sort command line arguments. Allowed are: -n -s -v --show-nonprinting --."
+          }
+        },
+        "required": [
+          "filespecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+      "name": "util-cat",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to print the content of. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of cat command line arguments. Allowed are: --."
+          }
+        },
+        "required": [
+          "filespecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+      "name": "util-head",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to print the head for. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "lines": {
+            "type": "string",
+            "description": "Print the first <lines> lines instead of the first 10."
+          }
+        },
+        "required": [
+          "filespecs",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Print the last part of one or more files to pipe to the next tool in a core-pipe.",
+      "name": "util-tail",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to print the tail of. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "lines": {
+            "type": "string",
+            "description": "Print the last <lines> lines instead of the last 10."
+          }
+        },
+        "required": [
+          "filespecs",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Count newline, word and bytes for files",
+      "name": "util-wc",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to count in. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of wc command line arguments. Allowed are: -c --bytes -m --chars -l --lines -w --words --."
+          }
+        },
+        "required": [
+          "filespecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Stream editor - write forbidden",
+      "name": "util-sed",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "script": {
+            "type": "string",
+            "description": "Sed script to be executed."
+          },
+          "filespecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files to edit. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
+          }
+        },
+        "required": [
+          "script",
+          "filespecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Count newline, word and bytes for files",
+      "name": "util-uniq",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Specific file to operate on. Only paths relative to the current directory allowed. If absent data is read from stdin."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of uniq command line arguments. Allowed are: -c -d -D -i -u."
+          }
+        },
+        "required": [
+          "path",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Compare two files",
+      "name": "util-diff",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pathspecs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Glob patterns of files and directories to compare. Only paths relative to the current directory allowed."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of diff command line arguments. Allowed are: -c -d -D -i -u --."
+          }
+        },
+        "required": [
+          "pathspecs",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Retrieve the original content of conversation history entries.",
+      "name": "history-retrieve",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Conversation history item ID(s) whose original content should be retrieved."
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Start a background job. A job id will be the output..",
+      "name": "job-start",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the function/tool to use."
+          },
+          "arguments": {
+            "type": "object",
+            "description": "Arguments for the function/tool use."
+          }
+        },
+        "required": [
+          "name",
+          "arguments"
+        ]
+      },
+      "strict": false
+    },
+    {
+      "type": "function",
+      "description": "List all background jobs. Returns their job ids.",
+      "name": "job-list",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Show the metadata and current status of a background job.",
+      "name": "job-show",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Show the current status of a background job: Running, Completed(0), Failed(exitcode), Killed(cause), or Missing.",
+      "name": "job-status",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Show the output produced by a background job so far, including stderr. Output is available while the job is running and after it finishes.",
+      "name": "job-output",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Cancel a running background job.",
+      "name": "job-cancel",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Delete a background job and its data. A running job cannot be deleted unless force is true.",
+      "name": "job-delete",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Force deletion (optional)."
+          }
+        },
+        "required": [
+          "id",
+          "force"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Check whether a background job exists. Returns no output and exits successfully if the job exists, or exits with status 1 if it does not exist.",
+      "name": "job-exist",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Job id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Run jq",
+      "name": "jq",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Run jq. arguments contains jq command-line arguments: [options] filter [files...]. The first non-option argument is the jq filter; following arguments are input files. File path wildcards may be used. Allowed options are: -s, --slurp, --raw-input, -R, --null-input, -n, -c, --compact-output, -e, -f <file>--stream, --tab, --sort-keys, -S, -r, --raw-output, --arg <name> <value>, --argjson <name> <json>,  --slurpfile <name> <file>, --argfile <name> <file>, --args ..., --jsonargs ...."
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Retrieve and browse a web page using Lynx. Returns the page content as text.",
+      "name": "web-browser-lynx",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The URLs to browse"
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of lynx command line arguments. Allowed are: -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source."
+          }
+        },
+        "required": [
+          "urls",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Add resources to the known context.",
+      "name": "context-resource-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Resource to add to the currently known context."
+            }
+          }
+        },
+        "required": [
+          "resources"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Forget resource content from the known context.",
+      "name": "context-resource-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Resource(s) to remove from the known context. Glob pattern matching can be used to match multiple resources."
+            }
+          }
+        },
+        "required": [
+          "resources"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Establish a tcp connection to a host and port to send data to it.",
+      "name": "net-request-tcp",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "IP address or host name to connect to"
+          },
+          "port": {
+            "type": "string",
+            "description": "Port number or port name to connect to"
+          },
+          "data": {
+            "type": "string",
+            "description": "Data to transmit on the TCP connection. If absent data is read from stdin."
+          },
+          "timeout": {
+            "type": "string",
+            "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "data",
+          "timeout"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
+      "name": "net-request-ssl",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "IP address or host name to connect to"
+          },
+          "port": {
+            "type": "string",
+            "description": "Port number or port name to connect to"
+          },
+          "data": {
+            "type": "string",
+            "description": "Data to transmit on the SSL connection. If absent data is read from stdin."
+          },
+          "timeout": {
+            "type": "string",
+            "description": "An integer telling for how long the operation is allowed to execute (default 30 seconds)."
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "data",
+          "timeout"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Convert documents between markup formats using pandoc.",
+      "name": "pandoc",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the input file. If omitted, content is read from stdin."
+          },
+          "input-format": {
+            "type": "string",
+            "description": "Input format."
+          },
+          "output-format": {
+            "type": "string",
+            "description": "Output format."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional pandoc command line arguments. Allowed are: --quiet, --list-input-formats, --list-output-formats."
+          }
+        },
+        "required": [
+          "path",
+          "input-format",
+          "output-format",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Create a new AI interaction session. A session inherits most tool and skill context, but not file context.",
+      "name": "session-create",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session to create."
+          },
+          "profile": {
+            "type": "string",
+            "description": "Optional configuration profile for the session. Only specify this when the profile has been explicitly requested. Use the exact profile name; never invent, guess, or derive a profile name."
+          }
+        },
+        "required": [
+          "session",
+          "profile"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Show information about a session.",
+      "name": "session-show",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session to show."
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Remove an AI interaction session.",
+      "name": "session-delete",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session to delete."
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "List all AI interaction sessions.",
+      "name": "session-list",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "List allowed tools for a session.",
+      "name": "session-tool-list",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to list the allowed tools."
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "List allowed skills for a session.",
+      "name": "session-skill-list",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to list the allowed skills."
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Restrict tools for a session. If a tool is both allowed and restricted, the most recent operation takes precedence.",
+      "name": "session-tool-restrict",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to restrict tools."
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the tool to restrict. Glob patterns can be used to match tools."
+            }
+          }
+        },
+        "required": [
+          "session",
+          "restrictions"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Restrict skills for a session. If a skill is both allowed and restricted, the most recent operation takes precedence.",
+      "name": "session-skill-restrict",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to restrict skills."
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to restrict. Glob patterns can be used to match skills."
+            }
+          }
+        },
+        "required": [
+          "session",
+          "restrictions"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Allow tools for a session. If a tool is both allowed and restricted, the most recent operation takes precedence.",
+      "name": "session-tool-allow",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to allow tools."
+          },
+          "allow": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the tool to allow. Glob patterns can be used to match tools."
+            }
+          }
+        },
+        "required": [
+          "session",
+          "allow"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Allow skills for a session. If a skill is both allowed and restricted, the most recent operation takes precedence.",
+      "name": "session-skill-allow",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session for which to allow skills."
+          },
+          "allow": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to allow. Glob patterns can be used to match skills."
+            }
+          }
+        },
+        "required": [
+          "session",
+          "allow"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session remember a skill instruction.",
+      "name": "session-skill-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to remember. Glob patterns can be used to match allowed skills."
+            }
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session that should remember the specified skill."
+          }
+        },
+        "required": [
+          "skills",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session forget a skill instruction.",
+      "name": "session-skill-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to forget. Glob patterns can be used to match skills."
+            }
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session that should forget the specified skill."
+          }
+        },
+        "required": [
+          "skills",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session remember file content.",
+      "name": "session-file-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "File(s) to add to the known context. Glob pattern matching can be used to match files."
+            }
+          },
+          "linestart": {
+            "type": "string",
+            "description": "If the whole file is not needed, specify the number of the first line to remember."
+          },
+          "lineend": {
+            "type": "string",
+            "description": "If the whole file is not needed, specify the number of the last line to remember."
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session whose known context should be modified."
+          }
+        },
+        "required": [
+          "files",
+          "linestart",
+          "lineend",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session forget file content.",
+      "name": "session-file-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "File(s) to remove from the sessions known context. Glob patterns can be used to match files."
+            }
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session whose known context should be modified."
+          }
+        },
+        "required": [
+          "files",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session remember resource content.",
+      "name": "session-resource-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Resource to add to the currently known context."
+            }
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session whose known context should be modified."
+          }
+        },
+        "required": [
+          "resources",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Make a session forget resource content.",
+      "name": "session-resource-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Resource(s) to remove from the known context. Glob pattern matching can be used to match multiple resources."
+            }
+          },
+          "session": {
+            "type": "string",
+            "description": "Name of the session whose known context should be modified."
+          }
+        },
+        "required": [
+          "resources",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Send a message to a session.",
+      "name": "session-send",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "Name of the session to receive the message."
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the message to send. If omitted, content is read from stdin."
+          }
+        },
+        "required": [
+          "session",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Execute bash shell commands. An execution proposal will be created. This tool cannot be used with the core-pipe tool.",
+      "name": "shell-exec",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "commands": {
+            "type": "string",
+            "description": "Shell commands to execute, provided as a single shell script."
+          }
+        },
+        "required": [
+          "commands"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Remember a skill instruction in the current context.",
+      "name": "context-skill-remember",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to remember."
+            }
+          }
+        },
+        "required": [
+          "skills"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Forget a skill instruction from the current context.",
+      "name": "context-skill-forget",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of the skill to forget."
+            }
+          }
+        },
+        "required": [
+          "skills"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "description": "Execute a skill script with optional arguments. ONLY use this tool to execute a script explicitly mentioned in the description of the specified skill.",
+      "name": "skill-exec",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skill": {
+            "type": "string",
+            "description": "Name of the skill to execute."
+          },
+          "script": {
+            "type": "string",
+            "description": "Path to the script executable specified by the skill."
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Arguments to the script. Each argument should be a separate string."
+          }
+        },
+        "required": [
+          "skill",
+          "script",
+          "arguments"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "web_search",
+      "return_token_budget": "default",
+      "search_content_types": [
+        "text"
+      ],
+      "search_context_size": "medium",
+      "user_location": {
+        "type": "approximate",
+        "city": null,
+        "country": "US",
+        "region": null,
+        "timezone": null
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 14150,
+    "input_tokens_details": {
+      "cache_write_tokens": 10025,
+      "cached_tokens": 0
+    },
+    "output_tokens": 261,
+    "output_tokens_details": {
+      "reasoning_tokens": 52
+    },
+    "total_tokens": 14411
+  },
+  "user": null,
+  "metadata": {}
+}

@@ -21,7 +21,7 @@ Each `.td` file should be a valid JSON object with the following fields:
   - push - Able to push local changes to a remote system
 - `parameters` (JSON Schema object): Specifies the expected input parameters for the tool function.
 
-**Example:**
+**Example: Local tool**
 
 ```json
 {
@@ -45,7 +45,21 @@ The command is the executable to run and the executable is searched for in the s
 
 The command string can have space, and in that case the text after the space is the command arguments.
 
-**Interface Contract**
+**Example: Provider tool**
+
+```json
+  {
+    "name": "openai-web-search",
+    "api_def": { "type": "web_search" },
+    "callback": "web_search_call",
+    "command": "openai-web-search.sh",
+    "effects": ["cost"]
+  },
+```
+
+All tool definitions sharing a callback, must use the same command.
+
+**Local Tool Interface Contract**
 
 The tool executable shall work in the following way:
 

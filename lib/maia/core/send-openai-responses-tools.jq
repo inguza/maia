@@ -7,8 +7,8 @@
         description,
         parameters: .inputSchema
       }
-    elif (.name and (.inputSchema == null) and .api_type) then
-      { type: .api_type }
+    elif (.name and (.inputSchema == null) and .api_def) then
+      .api_def
     else
       error("Invalid tool definition: missing required fields")
     end

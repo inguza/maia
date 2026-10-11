@@ -60,6 +60,7 @@ declare -A canned_responses=(
     ["aws_empty"]="$TEST_ROOT/send/responses/aws_empty_response.json"
     ["responses_imageresult"]="$TEST_ROOT/send/responses/openai_responses_imageresult.json"
     ["responses_image_tooluse"]="$TEST_ROOT/send/responses/openai_responses_imagetooluse.json"
+    ["responses_websearch"]="$TEST_ROOT/send/responses/openai_responses_websearch.json"
 )
 
 # The API types to test, using config to set API type
@@ -187,11 +188,17 @@ for api in "${api_types_and_configs[@]}"; do
 	    :
 	    ;;
 	AUTODETECT|OPENAI_RESPONSES)
+	    $MAIA history clear
 	    $MAIA tool replace "core-print" "openai-image-generate:cost"
 	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_image_tooluse]}"
 	    run_send_cmd "tool_use_w_img${suffix}" "Print something nice and generate 1x1 image."
 	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_imageresult]}"
 	    run_send_cmd "w_img${suffix}" "Generate 1x1 image."	    
+	    $MAIA tool delete
+	    $MAIA history clear
+	    $MAIA tool replace "core-print" "openai-web-text-search*:cost"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_imageresult]}"
+	    run_send_cmd "w_search${suffix}" "Search for Inguza."	    
 	    $MAIA tool delete
 	    ;;
 	*)

@@ -66,6 +66,8 @@
   net-request-tcp   (<MAIA_ROOT>/lib/maia/tools/net-request.td)
   net-request-ssl   (<MAIA_ROOT>/lib/maia/tools/net-request.td)
   openai-image-generate   (<MAIA_ROOT>/lib/maia/tools/openai.td)
+  openai-web-text-search   (<MAIA_ROOT>/lib/maia/tools/openai.td)
+  openai-web-image-search   (<MAIA_ROOT>/lib/maia/tools/openai.td)
   pandoc   (<MAIA_ROOT>/lib/maia/tools/pandoc.td)
 * session-create   (<MAIA_ROOT>/lib/maia/tools/session.td)
 * session-show   (<MAIA_ROOT>/lib/maia/tools/session.td)

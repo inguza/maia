@@ -57,6 +57,8 @@ jq:write
 net-request-ssl:write
 net-request-tcp:write
 openai-image-generate:write
+openai-web-image-search:write
+openai-web-text-search:write
 pandoc:write
 resource-discover:write
 shell-exec:write

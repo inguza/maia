@@ -859,26 +859,6 @@ handle_send_command() {
 	    outbox_content=""
 	fi
 
-	if [[ -n "$reply" ]] ; then
-	    if [[ -n "$tools_call_json" ]] ; then
-		if [[ "$output_mode" == "full" ]] ; then
-		    if [[ "$separator" == true ]] ; then
-			echo "--------------------------------------------------------------------------------"
-			separator=false
-		    fi
-		    # We do not return intermediate reasoning things to the caller in case this is a subsession
-		    echo "$reply"
-		fi
-	    else
-		# No need to check against output mode since the final LLM reply is in all modes so far
-		if [[ "$separator" == true ]] ; then
-		    echo "--------------------------------------------------------------------------------"
-		    separator=false
-		fi
-		echo "$reply"
-	    fi
-	fi
-
 	if [[ -n "$reasoning" ]] ; then
 	    local shaid="$(printf '%s' "$reasoning" | sha256sum | cut -c1-8)"
 	    # Log the assistant response
@@ -911,7 +891,7 @@ handle_send_command() {
 	    mapfile_from_command tool_results jq -c '.[]' <<<"$tool_results_json"
 	    for tool_result in "${tool_results[@]}"; do
 		local type="$(jq -r '.type' <<<"$tool_result")"
-		local tool_cmd=$(jq -r --arg type "$type" '.[] | select(.callback == $type) | .command' <<<"$enabled_tools_json")
+		local tool_cmd=$(jq -r --arg type "$type" '[.[] | select(.callback == $type)][0].command // empty' <<<"$enabled_tools_json")
 		if [[ -z "$tool_cmd" ]] ; then
 		    warn "Unable to find the command for '$type'"
 		    continue
@@ -971,6 +951,27 @@ handle_send_command() {
 		  + (if ($tools | length) > 0 then {tool_calls: $tools} else {} end)
 	     ]'
 	fi
+
+	if [[ -n "$reply" ]] ; then
+	    if [[ -n "$tools_call_json" ]] ; then
+		if [[ "$output_mode" == "full" ]] ; then
+		    if [[ "$separator" == true ]] ; then
+			echo "--------------------------------------------------------------------------------"
+			separator=false
+		    fi
+		    # We do not return intermediate reasoning things to the caller in case this is a subsession
+		    echo "$reply"
+		fi
+	    else
+		# No need to check against output mode since the final LLM reply is in all modes so far
+		if [[ "$separator" == true ]] ; then
+		    echo "--------------------------------------------------------------------------------"
+		    separator=false
+		fi
+		echo "$reply"
+	    fi
+	fi
+
 	if [[ -n "$tools_call_json" ]] ; then
 	    local tool_tmp_dir="$(mktemp -d)"
 	    local tool_count=0

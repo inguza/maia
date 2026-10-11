@@ -1,0 +1,49 @@
+{
+  "model": "gpt-5.6-luna",
+  "store": false,
+  "max_output_tokens": 32000,
+  "stream": false,
+  "input": [
+    {
+      "type": "message",
+      "role": "system",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls."
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Search for Inguza."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "core-print",
+      "description": "Print content to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The content to pass to another tool. If absent, stdin is passed."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "type": "web_search"
+    }
+  ]
+}
