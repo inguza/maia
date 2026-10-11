@@ -221,7 +221,7 @@ myl_load() {
 
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Be tolerant of files created on Windows.
-        line="${line%$'\\r'}"
+        line="$(strip_cr "$line")"
 
         # A line beginning with two spaces belongs to the preceding key.
         if [[ "$line" == "  "* && -n "$current" ]]; then
@@ -542,7 +542,7 @@ normalize_lf() {
     local i
 
     for i in "${!_xdst[@]}"; do
-        _xdst[i]="${_xdst[i]%$'\r'}"
+        _xdst[i]="$(strip_cr "${_xdst[i]}")"
     done
 }
 
@@ -556,7 +556,7 @@ read_file_by_line() {
     while IFS= read -r line || [[ -n "$line" ]]; do
 	case "$filter" in
 	    cr)
-		line="${line%$'\r'}"
+		line="$(strip_cr "$line")"
 		;;
 	    *)
 		:
@@ -564,6 +564,17 @@ read_file_by_line() {
 	esac
 	printf '%s\n' "$line"
     done < "$input"
+}
+
+strip_cr() {
+    local line="$1"
+    # We need to do this way because bash hangs on the more simple line="${line%$'\r'}"
+    # construct when the line is too long
+    if [[ "$line" == *$'\r' ]]; then
+	printf '%s' "${line:0:${#line}-1}"
+    else
+	printf '%s' "$line"
+    fi
 }
 
 read_file() {
@@ -579,7 +590,7 @@ read_file() {
 	[[ $status -eq 0 || -n "$line" ]] || break
 	case "$filter" in
 	    cr)
-		line="${line%$'\r'}"
+		line="$(strip_cr "$line")"
 		;;
 	    *)
 		:
@@ -591,17 +602,6 @@ read_file() {
             printf '%s' "$line"
 	fi
     done < "$input"
-}
-
-mapfile_from_command_nolf() {
-    local -n _dst="$1"
-    shift
-    local tmpfile="$(mktemp)"
-    local status=0
-    "$@" > "$tmpfile" || status=$?
-    mapfile -t _dst < "$tmpfile"
-    rm -f "$tmpfile"
-    return $status
 }
 
 mapfile_from_command() {

@@ -114,7 +114,7 @@ forget_entries() {
 	fi
         local tmp=$(mktemp)
         while IFS= read -r line || [[ -n "$line" ]]; do
-	    line="${line%$'\r'}"
+	    line="$(strip_cr "$line")"
             local keep=true
             for pat in "${patterns[@]}"; do
 		# A pattern must have # in it to remove a resource
@@ -258,7 +258,7 @@ handle_file_command() {
             declare -A seen=()
             for fs in "${FILESET_FILES[@]}"; do
                 while IFS= read -r line || [[ -n "$line" ]]; do
-		    line="${line%$'\r'}"
+		    line="$(strip_cr "$line")"
                     [[ -z "$line" ]] && continue
                     seen["$line"]=1
                 done < "$fs"
@@ -290,7 +290,7 @@ handle_file_command() {
 		declare -A seen=()
 		declare tokeep=()
                 while IFS= read -r line || [[ -n "$line" ]]; do
-		    line="${line%$'\r'}"
+		    line="$(strip_cr "$line")"
                     [[ -z "$line" ]] && continue
 		    # Resources are currently always kept.
 		    if [[ "$line" == *"#"* ]]; then

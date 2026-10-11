@@ -91,6 +91,6 @@ session_filter() {
 	# the identity of the prefix, but anyway.
 	sed "s/${subsession_prefix}//;"
     else
-	sed "s/\r\n/\n/g;"
+	read_file "" cr
     fi
 }

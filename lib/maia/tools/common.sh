@@ -32,8 +32,7 @@ parseparam() {
     # It will loop at least once so we need to check against empty key
     while IFS=$'\t' read -r key value; do
 	[[ -n "$key" ]] || continue
-	# Remove \r for windows users
-        param["$key"]="${value%$'\r'}"
+        param["$key"]="$(strip_cr "$value")"
     done <<< "$output"
 }
 

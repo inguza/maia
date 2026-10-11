@@ -38,7 +38,7 @@ build_list_filter_from_patterns() {
 
     if [ -e "$allowed_tools_list_file" ] ; then
 	while IFS= read -r line || [[ -n "$line" ]]; do
-	    line="${line%$'\r'}"
+	    line="$(strip_cr "$line")"
             [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
             patterns+=("$line")
 	done < "$allowed_tools_list_file"
@@ -99,7 +99,7 @@ tool_instr_dir() {
     local tool_instr_dir=""
     IFS=: read -ra dirs <<< "$tool_search_path"
     for d in "${dirs[@]}"; do
-	d="${d%$'\r'}"
+	d="$(strip_cr "$d")"
 	if [[ -e "$d/$tool_instr" ]]; then
 	    tool_instr_dir="$d"
 	    break
@@ -138,7 +138,7 @@ generate_allowed_tools_instr_file() {
     local tool_search_path=$(build_tool_search_path)
 
     while IFS= read -r tool_instr_file || [[ -n "$tool_instr_file" ]]; do
-	tool_instr_file="${tool_instr_file%$'\r'}"
+	tool_instr_file="$(strip_cr "$tool_instr_file")"
         [[ -z "$tool_instr_file" ]] && continue
 
 	local tool_instr_dir="$(tool_instr_dir "${tool_instr_file}" "$tool_search_path")"

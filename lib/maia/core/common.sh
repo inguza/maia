@@ -588,7 +588,7 @@ resolve_profile_path() {
                 [[ -d "$d" ]] || continue
                 if [[ -f "$d/profile.myl" ]]; then
                     local profilename=$(basename "$d")
-		    profilename="${profilename%$'\r'}"
+		    profilename="$(strip_cr "$profilename")"
 		    if [[ "$this" == "$profilename" ]] ; then
 			# We have found the profile directory base
 			case "$type" in
@@ -934,7 +934,7 @@ fileset_content_extract() {
 	local spec
 	while IFS= read -r spec || [[ -n "$spec" ]]; do
 	    # Git Bash workaround
-	    spec="${spec%$'\r'}"
+	    spec="$(strip_cr "$spec")"
 	    # Skip empty lines and comments
             [[ -z "$spec" || -n "${seen[$spec]}" || "$spec" =~ ^# ]] && continue
 	    if [[ "$action" != "list" ]] ; then
@@ -1519,7 +1519,7 @@ curl_extra_headers() {
     if [[ -n "$hdrs" ]]; then
         # Split on newlines, add each as -H "header"
         while IFS= read -r line || [[ -n "$line" ]] ; do
-	    line="${line%$'\r'}"
+	    line="$(strip_cr "$line")"
             if [[ -n "$line" ]]; then
                 args+=( -H "$line" )
             fi
@@ -1533,7 +1533,7 @@ make_glob_from_file() {
 	return
     fi
     while IFS= read -r pattern || [[ -n "$pattern" ]]; do
-	pattern="${pattern%$'\r'}"
+	pattern="$(strip_cr "$pattern")"
         [[ -z $pattern ]] && continue
         [[ -n $result ]] && result+='|'
         result+="$pattern"
@@ -1961,9 +1961,9 @@ mcp_request_http() {
     #cat $headers >&2
     local session_id=$(
         sed -n 's/^[Mm][Cc][Pp]-[Ss][Ee][Ss][Ss][Ii][Oo][Nn]-[Ii][Dd]:[[:space:]]*//p' "$headers" | \
-            head -n 1 | \
-            tr -d '\r'
+            head -n 1
           )
+    session_id="$(strip_cr "$session_id")"
     rm -f "${headers}"
     if [[ -z "$session_id" ]]; then
         die "'$mcpname' MCP server did not return a session ID."
@@ -2003,9 +2003,9 @@ mcp_request_http() {
 
     local content_type=$(
 	sed -n 's/^[Cc]ontent-[Tt]ype:[[:space:]]*//p' "$headers" |
-	    tail -n 1 |
-	    tr -d '\r'
+	    tail -n 1
 	  )
+    content_type="$(strip_cr "$content_type")"
     rm -f "${headers}"
 
     case "${content_type%%;*}" in
@@ -2127,7 +2127,7 @@ get_all_ordered_instruction_names() {
                 [[ -d "$d" ]] || continue
                 if [[ -f "$d/INSTRUCTION.md" ]]; then
                     local instructionname=$(basename "$d")
-		    instructionname="${instructionname%$'\r'}"
+		    instructionname="$(strip_cr "$instructionname")"
                     if [[ -z "${seen[$instructionname]}" ]]; then
                         seen["$instructionname"]=1
 			if [[ "$type" == "file" ]] ; then

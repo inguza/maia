@@ -21,7 +21,7 @@ get_all_ordered_skill_names() {
                 [[ -d "$d" ]] || continue
                 if [[ -f "$d/SKILL.md" ]]; then
                     local skillname=$(basename "$d")
-		    skillname="${skillname%$'\r'}"
+		    skillname="$(strip_cr "$skillname")"
                     if [[ -z "${seen[$skillname]}" ]]; then
                         seen["$skillname"]=1
 			if [[ "$type" == "file" ]] ; then

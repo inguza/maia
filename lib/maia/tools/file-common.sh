@@ -23,6 +23,7 @@ detect_mime() {
 
     if command -v file >/dev/null 2>&1; then
         mime=$(file --brief --mime-type -- "$file" 2>/dev/null) || mime=""
+	# We do not use strip_cr here because the mime type is not that long
         mime=${mime//$'\r'/}
         mime=${mime//$'\n'/}
     fi

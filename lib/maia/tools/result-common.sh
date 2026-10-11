@@ -32,7 +32,6 @@ parseresult() {
     # It will loop at least once so we need to check against empty key
     while IFS=$'\t' read -r key value; do
 	[[ -n "$key" ]] || continue
-	# No \r for windows users because that makes bash hang on Linux with large data
-        param["$key"]="${value}"
+        param["$key"]="$(strip_cr "$value")"
     done <<< "$output"
 }

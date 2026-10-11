@@ -75,7 +75,7 @@ get_all_subprofile_names() {
         [[ -d "$d" ]] || continue
         if [[ -f "$d/profile.myl" ]]; then
             local profilename=$(basename "$d")
-	    profilename="${profilename%$'\r'}"
+	    profilename="$(strip_cr "$profilename")"
 	    get_all_subprofile_names "$type" "$profile%$profilename" "$d"
 	    show_name_desc "$type" "$profile%$profilename" "$d/profile.myl"
 	fi
@@ -97,7 +97,7 @@ get_all_ordered_profile_names() {
                 [[ -d "$d" ]] || continue
                 if [[ -f "$d/profile.myl" ]]; then
                     local profilename=$(basename "$d")
-		    profilename="${profilename%$'\r'}"
+		    profilename="$(strip_cr "$profilename")"
                     if [[ -z "${seen[$profilename]}" ]]; then
                         seen["$profilename"]=1
 			show_name_desc "$type" "$profilename" "$d/profile.myl"

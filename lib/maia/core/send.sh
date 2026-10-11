@@ -750,7 +750,6 @@ handle_send_command() {
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
             response=$(read_file "$response_file" cr)
-            reply=$(jq -r '.choices[0].message.content' <<<"$response")
 	elif $dry_run; then
             reply="Dry-run response"
 	else
@@ -794,50 +793,50 @@ handle_send_command() {
 		info "Response logged to $log_dir/${timestamp}-${iteration}-response.json"
             fi
 	    trigger_event "post-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$response"
-
-	    # Extract reply or error from response
-            if [[ -n "$response" && "$response" != "null" ]]; then
-		if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
-		    errormsg=$(jq -r '.error.message // empty' <<<"$response")
-		    if [[ ! -n "$errormsg" ]]; then
-			reply=$(jq -r '.choices[0].message.content // empty' <<<"$response")
-			#finish_reason=$(jq -r '.choices[0].finish_reason' <<<"$response")
-			tools_call_json=$(jq -c '.choices[0].message.tool_calls' <<<"$response")
-		    fi
-		elif [[ "$api_type" == *"_RESPONSES"* ]] ; then
-		    errormsg=$(jq -r '.error.message // empty' <<<"$response")
-		    if [[ ! -n "$errormsg" ]]; then
-			reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
-			# We ignore status field since we do not handle streaming events
-			# TODO: Consider to have one that select all to preserve order
-			tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
-			tool_results_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_results.jq" <<<"$response")
-			reasoning=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reasoning.jq" <<<"$response")
-		    else
-			errormsg+=" param="
-			errormsg+=$(jq -r '.error.param // empty' <<<"$response")
-		    fi
-		elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		    reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-reply.jq" <<<"$response")
-		    errormsg=$(jq -r '.message // empty' <<<"$response")
-		    if [[ -z "$errormsg" ]] ; then
-			errormsg=$(jq -r '.Message // empty' <<<"$response")
-		    fi
-                    tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
-		fi
-		if [[ "$tools_call_json" == "null" ]] ; then
-		    tools_call_json=""
-		fi
-		if [[ "$tool_results_json" == "null" ]] ; then
-		    tool_results_json=""
-		fi
-		if [[ "$reasoning" == "null" ]] ; then
-		    reasoning=""
-		fi
-            else
-		errormsg="API returned empty or null response."
-            fi
 	fi
+	# Extract reply or error from response
+        if [[ -n "$response" && "$response" != "null" ]]; then
+	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
+		errormsg=$(jq -r '.error.message // empty' <<<"$response")
+		if [[ ! -n "$errormsg" ]]; then
+		    reply=$(jq -r '.choices[0].message.content // empty' <<<"$response")
+		    #finish_reason=$(jq -r '.choices[0].finish_reason' <<<"$response")
+		    tools_call_json=$(jq -c '.choices[0].message.tool_calls' <<<"$response")
+		fi
+	    elif [[ "$api_type" == *"_RESPONSES"* ]] ; then
+		errormsg=$(jq -r '.error.message // empty' <<<"$response")
+		if [[ ! -n "$errormsg" ]]; then
+		    reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
+		    # We ignore status field since we do not handle streaming events
+		    # TODO: Consider to have one that select all to preserve order
+		    tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
+		    tool_results_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_results.jq" <<<"$response")
+		    reasoning=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reasoning.jq" <<<"$response")
+		else
+		    errormsg+=" param="
+		    errormsg+=$(jq -r '.error.param // empty' <<<"$response")
+		fi
+	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
+		reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-reply.jq" <<<"$response")
+		errormsg=$(jq -r '.message // empty' <<<"$response")
+		if [[ -z "$errormsg" ]] ; then
+		    errormsg=$(jq -r '.Message // empty' <<<"$response")
+		fi
+                tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
+	    fi
+	    if [[ "$tools_call_json" == "null" ]] ; then
+		tools_call_json=""
+	    fi
+	    if [[ "$tool_results_json" == "null" ]] ; then
+		tool_results_json=""
+	    fi
+	    if [[ "$reasoning" == "null" ]] ; then
+		reasoning=""
+	    fi
+        else
+	    errormsg="API returned empty or null response."
+        fi
+
 	rm -f "$tmp_payload"
 	if [[ -z "$reply" && -z "$errormsg" && -z "$tools_call_json" && -z "$tool_results_json" ]] ; then
 	    errormsg="Empty response."
@@ -909,7 +908,7 @@ handle_send_command() {
 		ws_root="."
 	    fi
 	    # Can't strip LF here because bash hangs on larger image
-	    mapfile_from_command_nolf tool_results jq -c '.[]' <<<"$tool_results_json"
+	    mapfile_from_command tool_results jq -c '.[]' <<<"$tool_results_json"
 	    for tool_result in "${tool_results[@]}"; do
 		local type="$(jq -r '.type' <<<"$tool_result")"
 		local tool_cmd=$(jq -r --arg type "$type" '.[] | select(.callback == $type) | .command' <<<"$enabled_tools_json")

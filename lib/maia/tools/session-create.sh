@@ -42,7 +42,7 @@ apply_config_param() {
     local maia_cmd2="$3"
     local value="$(get_config "$param_name")"
     # Git Bash workaround
-    value="${value%$'\r'}"
+    value="$(strip_cr "$value")"
     read -ra patterns <<< "$value"
     if [[ "$maia_cmd2" == allow || "$maia_cmd2" == remember ]] ; then
 	parent_allowed=()
