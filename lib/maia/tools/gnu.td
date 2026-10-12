@@ -115,7 +115,7 @@
   },
   {
     "name":"util-sort",
-    "description": "List files",
+    "description": "Sort text content.",
     "command": "allowed-tool.sh sort filespecs -n -s -v --show-nonprinting --",
     "inputSchema": {
       "type": "object",
@@ -190,7 +190,7 @@
   },
   {
     "name":"util-tail",
-    "description": "Print the last part of one or more files to pipe to the next tool in a core-pipe.",
+    "description": "Print the last part of one or more files.",
     "command": "head-tail.sh tail --",
     "inputSchema": {
       "type": "object",
@@ -239,7 +239,7 @@
   },
   {
     "name":"util-sed",
-    "description": "Stream editor - write forbidden",
+    "description": "Stream editor (write to files is forbidden) to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
     "command": "util-sed.sh --posix -s -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
@@ -300,7 +300,7 @@
   },
   {
     "name":"util-uniq",
-    "description": "Count newline, word and bytes for files",
+    "description": "Report or omit repeated lines.",
     "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
     "inputSchema": {
       "type": "object",

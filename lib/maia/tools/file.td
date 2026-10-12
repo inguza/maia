@@ -128,7 +128,6 @@
     "name":"context-file-remember",
     "description": "Add a files to the known context",
     "command": "file-remember.sh",
-    "instructions": [ "context-file-remember.txt" ],
     "inputSchema": {
       "type": "object",
       "properties": {

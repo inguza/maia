@@ -7,7 +7,8 @@ loadable: false
 # File context
 
 A remembered file is a file whose latest contents are automatically supplied
-to you on every request. This is referred to as your *file context*.
+to you on every request in the # Files section. This is referred to as your
+*file context*.
 
 When a file is relevant to the ongoing work, use `context-file-remember` to
 register it as part of your file context.
@@ -69,6 +70,8 @@ Example: Find php files that are not for test
 Example: Filter some other tool
 core-pipe ( web-browser-lynx "https://someurl" | util-head )
 
+
+
 # File modification
 
 A normal file modification flow consists of:
@@ -110,3 +113,6 @@ The user does not need to approve a change proposal separately. The assistant
 is authorized to apply intended change proposals with `change-apply`.
 
 If you are lacking tools to apply or skip a change, please tell.
+
+Do not verify that the file has been updated using tools. Use the provided file
+context instead.
