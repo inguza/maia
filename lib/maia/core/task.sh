@@ -48,6 +48,8 @@ show_tasks() {
 show_selected_tasks() {
     local requested taskfile
 
+    local all_tasks=$(get_all_ordered_task_names "file")
+    
     for requested in "$@"; do
         [[ -n "$requested" ]] || die "Empty task id."
         taskfile=""
@@ -56,7 +58,7 @@ show_selected_tasks() {
                 taskfile="$candidate"
                 break
             fi
-        done < <(get_all_ordered_task_names "file")
+        done <<< "$all_tasks"
 
         [[ -n "$taskfile" && -f "$taskfile" ]] || \
             die "Task '$requested' not found."

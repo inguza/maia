@@ -95,6 +95,13 @@ convert_x_json_files() {
         return 0
     }
 
+    local filelist="$(mktemp)" || die "Unable to create temporary file."
+
+    if ! find "$maia_home" -path "$1" -type f -print0 > "$filelist"; then
+        rm -f -- "$filelist"
+        die "Unable to find $type metadata files."
+    fi
+
     while IFS= read -r -d '' jsonfile; do
         mylfile="${jsonfile%.json}.myl"
 
@@ -114,7 +121,9 @@ convert_x_json_files() {
         #rm -f -- "$jsonfile"
         info "Converted $type metadata '$jsonfile' to '$mylfile'."
         converted=$((converted + 1))
-    done < <(find "$maia_home" -path "$@" -type f -print0)
+    done < "$filelist"
+
+    rm -f -- "$filelist"
 
     notice "Change $type metadata upgrade complete: $converted converted, $skipped skipped, $failed failed."
     (( failed == 0 ))
