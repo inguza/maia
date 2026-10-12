@@ -4,24 +4,70 @@ all-tool: file-*
 loadable: false
 ---
 
-# File reading
+# File context
 
-When a file is relevant to the ongoing work, prefer `context-file-remember`
-over other tools like `util-cat` or `util-head`.
+A remembered file is a file whose latest contents are automatically supplied
+to you on every request. This is referred to as your *file context*.
 
-`context-file-remember` remembers the file as context rather than inserting
-a snapshot of its contents into the conversation. The latest version of the
-file is then provided as context on each request. This is important because
-you are working together with people and other agents meaning that files
-may change during the work.
+When a file is relevant to the ongoing work, use `context-file-remember` to
+register it as part of your file context.
+Use `context-file-forget` to stop supplying a file's contents as context.
+Provided files can be assumed to be remembered and shall not be registered
+again.
 
-Tools like `util-cat` or `util-head` create a snapshot that will become stale,
-requiring the file to be read again. Repeatedly reading files will cause the
-same content to be added to the conversation history multiple times,
-resulting in unnecessary and potentially exponential token growth.
+File context differs from file contents obtained through tools.
+Reading a file using other tools provides a snapshot of its contents. The
+snapshot is not automatically refreshed when the file changes, so you may need
+to read the file again. Repeatedly reading files will cause the same content
+to be added to the conversation history multiple times, resulting in unnecessary
+and potentially exponential token growth.
 
-When you no longer need to have the file in your context, you can forget
-it with `context-file-forget` to save tokens.
+Always use the provided file context over retrieving its content again using tools,
+regardless of tool combination.
+
+You may use tools to identify which files contain the required information.
+
+File context is important because:
+
+1. It avoids unnecessary tool calls and repeated token consumption.
+2. There is no automatic conversation history reduction, so unnecessary token
+   consumption can eventually prevent further work.
+3. Files may have changed since the last tool call. You are likely working with
+   other people and agents.
+
+Remember only files relevant to the ongoing work. When a file is no longer relevant,
+use `context-file-forget` to stop supplying its contents and save tokens.
+
+
+
+
+# File tools
+
+File tools like `util-grep`, `util-cat`, `util-sed` (and others) are available to:
+- identify which files contain interesting information
+- filter the file data to something smaller than can be done with `context-file-remember`
+- filter the result of other tools
+- to produce new file content
+
+Preferred operation when a file is not in the file context:
+- context-file-remember <files> linestart 0 lineend <n>
+  instead of util-head <files> lines <n>
+- context-file-remember <files>
+  instead of util-cat <files>
+
+Example: Use grep to find files to remember
+1) util-grep <somekeyword> *.sh
+2) context-file-remember somescript.sh linestart 20 lineend 24
+
+Example: Find occurances of keyword resulting in a single number
+core-pipe( util-cat *.sh */*.sh" | util-grep <keyword> | util-wc -l )
+
+Example: Find php files that are not for test
+1) core-pipe ( util-find . -name "*.php" | grep -v test/ | file-write php-files.list )
+2) context-file-remember php-files.list
+
+Example: Filter some other tool
+core-pipe ( web-browser-lynx "https://someurl" | util-head )
 
 # File modification
 
