@@ -15,10 +15,12 @@ sigv4headers() {
     local url="$2"
     local SERVICE="$3"
     local PAYLOAD="$4"
-    local HOST=$(echo "$url" | sed -n 's|https://\([^/]*\)/.*|\1|p')
-    local REGION=$(echo "$HOST" | sed -n 's|^[^.]*\.\([^.]*\)\.amazonaws\.com$|\1|p')
-    #debug "REGION=$REGION ($url)"
-    local URI=$(echo "$url" | sed -n 's|https://[^/]*/\(.*\)|/\1|p')
+    local HOST="${url#https://}"
+    HOST="${HOST%%/*}"
+    local REGION="${HOST#*.}"
+    REGION="${REGION%.amazonaws.com}"
+    [[ "$REGION" == *.* ]] && REGION=""
+    local URI="/${url#https://*/}"
     local ENDPOINT="https://${HOST}${URI}"
 
     local ACCESS_KEY="${AWS_ACCESS_KEY_ID}"
@@ -34,8 +36,8 @@ sigv4headers() {
 	exit 1
     fi
 
-    # Fix for :. TODO: Make it more generic
-    URI=$(printf "%s" "$URI" | sed 's/:/%3A/g;')
+    # Fix for : TODO: Make it more generic
+    URI="${URI//:/%3A}"
     local AMZ_DATE=$(date -u +"%Y%m%dT%H%M%SZ")
     local DATESTAMP=$(date -u +"%Y%m%d")
     # For debugging only
@@ -43,12 +45,13 @@ sigv4headers() {
     #    DATESTAMP="20250610"
     local CONTENT_HASH
     if [[ -e "$PAYLOAD" ]] ; then
-	CONTENT_HASH=$(read_file "$PAYLOAD" | openssl dgst -sha256 -hex | sed 's/^.* //')
-	cp $PAYLOAD tmp-payload.txt
+	CONTENT_HASH=$(read_file "$PAYLOAD" | openssl dgst -sha256 -hex)
+	cp "$PAYLOAD" tmp-payload.txt
     else
-	CONTENT_HASH=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hex | sed 's/^.* //')
+	CONTENT_HASH=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hex)
     fi
-    
+    CONTENT_HASH="${CONTENT_HASH##* }"
+
     local SIGNED_HEADERS
     local CANONICAL_REQUEST
     # We do not have content type, should we?
@@ -83,7 +86,8 @@ sigv4headers() {
 			 );
     fi
     #debug "CANONICAL_REQUEST='$CANONICAL_REQUEST'"
-    local CANONICAL_REQUEST_HASH=$(printf '%s' "$CANONICAL_REQUEST" | openssl dgst -sha256 | sed 's/^.* //')
+    local CANONICAL_REQUEST_HASH=$(printf '%s' "$CANONICAL_REQUEST" | openssl dgst -sha256)
+    CANONICAL_REQUEST_HASH="${CANONICAL_REQUEST_HASH##* }"
     local ALGORITHM="AWS4-HMAC-SHA256"
     local CREDENTIAL_SCOPE="$DATESTAMP/$REGION/$SERVICE/aws4_request"
 
@@ -102,7 +106,8 @@ sigv4headers() {
     local K_SERVICE=$(HMAC "$K_REGION" "$SERVICE")
     local K_SIGNING=$(HMAC "$K_SERVICE" "aws4_request")
 
-    local SIGNATURE=$(printf '%s' "$STRING_TO_SIGN" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$K_SIGNING" | sed 's/^.* //')
+    local SIGNATURE=$(printf '%s' "$STRING_TO_SIGN" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$K_SIGNING")
+    SIGNATURE="${SIGNATURE##* }"
 
     local AUTH_HEADER="Authorization: $ALGORITHM Credential=$ACCESS_KEY/$CREDENTIAL_SCOPE, SignedHeaders=$SIGNED_HEADERS, Signature=$SIGNATURE"
     local DATE_HEADER="X-Amz-Date: $AMZ_DATE"
