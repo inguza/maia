@@ -17,13 +17,18 @@ USAGE
 
 Update data structures to the latest software and refresh skills and tools.
 
+The refresh operation searches the session, profile, workspace, and home
+scopes for toolset.txt and skillset.txt/skillsetcontext.txt files and refreshes
+each file that is found.
+
 COMMANDS
 
   upgrade
     Update the data structures
 
   refresh
-    Refresh skills and tools.
+    Refresh all found tool and skill definition files in the session, profile,
+    workspace, and home scopes.
 
 OPTIONS
 
@@ -129,10 +134,120 @@ convert_x_json_files() {
     (( failed == 0 ))
 }
 
+definition_file_scope() {
+    local maia_home="$1"
+    local file="$2"
+    local relative="${file#"$maia_home"/}"
+
+    # Profiles can be nested below a session or workspace, so test them
+    # before the session and workspace directory names.
+    case "$relative" in
+        profiles/*|*/profiles/*)
+            printf '%s\n' profile
+            ;;
+        sessions/*)
+            printf '%s\n' session
+            ;;
+        workspaces/*)
+            printf '%s\n' workspace
+            ;;
+        *)
+            printf '%s\n' home
+            ;;
+    esac
+}
+
+refresh_scopes() (
+    # Refresh through the normal commands, because they initialize all of the
+    # search data needed by the generators for the selected session/context.
+    # The temporary session gives scoped refreshes an explicit workspace and
+    # profile without changing the user's active session.
+    local maia_home="$(resolve_home_dir)"
+    local temporary_session="maia-temporary-update-refresh"
+    local file relative scope session workspace profile profile_relative
+
+    [[ -d "$maia_home" ]] || {
+        notice "MAIA home '$maia_home' does not exist; nothing to refresh."
+        return 0
+    }
+
+    # This name is reserved for update refresh.  Creating an existing session
+    # is harmless and keeps this operation idempotent.
+    "$MAIA_BIN" session create "$temporary_session" >/dev/null 2>&1 || true
+    # Make sure to clean up even if Ctrl-C is entered
+    trap '"$MAIA_BIN" session delete "maia-temporary-update-refresh" >/dev/null 2>&1 || true' EXIT INT TERM
+
+    while IFS= read -r -d '' file; do
+        relative="${file#"$maia_home"/}"
+        scope="$(definition_file_scope "$maia_home" "$file")"
+        session=""
+        workspace=""
+        profile=""
+
+        case "$scope" in
+            session)
+                session="${relative#sessions/}"
+                session="${session%%/*}"
+                # Do not process the temporary session itself.
+                [[ "$session" == "$temporary_session" ]] && continue
+                export MAIA_SESSION="$session"
+                ;;
+            workspace)
+                workspace="${relative#workspaces/}"
+                workspace="${workspace%%/*}"
+                export MAIA_SESSION="$temporary_session"
+                "$MAIA_BIN" session set \
+                    --workspace "$workspace" --profile "" || continue
+                ;;
+            profile)
+                # A profile path has the form
+                #   profiles/name/...
+                # or
+                #   sessions/name/profiles/profile/...
+                # or
+                #   workspaces/name/profiles/profile/...
+                profile_relative="${relative#*profiles/}"
+                profile_relative="${profile_relative%/*}"
+                profile="${profile_relative//\/profiles\//%}"
+
+                export MAIA_SESSION="$temporary_session"
+                "$MAIA_BIN" session set \
+                    --workspace "" --profile "$profile" || continue
+                ;;
+            home)
+                export MAIA_SESSION="$temporary_session"
+                "$MAIA_BIN" session set --workspace "" --profile "" || continue
+                ;;
+	    *)
+		die "Unexpected scope '$scope'"
+		;;
+        esac
+
+        case "$(basename "$file")" in
+            toolset.txt)
+                "$MAIA_BIN" tool --scope "$scope" refresh
+                ;;
+            skillset.txt)
+                "$MAIA_BIN" skill --scope "$scope" refresh
+                ;;
+        esac
+    done < <(find "$maia_home" -type f \( \
+        -name 'toolset.txt' -o \
+        -name 'skillset.txt' \
+    \) -print0)
+
+    # Remove the trap
+    trap - EXIT INT TERM
+    "$MAIA_BIN" session delete "$temporary_session" >/dev/null 2>&1 || true
+)
+
 handle_update_command() {
     # help flags
     [[ "$1" =~ ^-h|--help$ ]] && update_usage
     [[ "$2" =~ ^-h|--help$ ]] && update_usage
+
+    local scope="home"
+    load_config "$scope" CONFIG
 
     local cmd="${1:-upgrade}"
     shift || true
@@ -140,7 +255,7 @@ handle_update_command() {
     case "$cmd" in
 	"")
 	    handle_update_command upgrade
-	    handle_update_command refresh
+	    #handle_update_command refresh
 	    ;;
         upgrade)
             convert_change_json_files
@@ -150,7 +265,7 @@ handle_update_command() {
             convert_workspace_json_files
             ;;
         refresh)
-            :
+            refresh_scopes
             ;;
         check)
             :
