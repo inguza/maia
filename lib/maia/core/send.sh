@@ -801,32 +801,41 @@ handle_send_command() {
 	# Extract reply or error from response
         if [[ -n "$response" && "$response" != "null" ]]; then
 	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
-		errormsg=$(jq -r '.error.message // empty' <<<"$response")
-		if [[ ! -n "$errormsg" ]]; then
+		if ! errormsg=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null) ; then
+		    errormsg="$response"
+		fi
+		if [[ -z "$errormsg" ]]; then
 		    reply=$(jq -r '.choices[0].message.content // empty' <<<"$response")
 		    #finish_reason=$(jq -r '.choices[0].finish_reason' <<<"$response")
 		    tools_call_json=$(jq -c '.choices[0].message.tool_calls' <<<"$response")
 		fi
 	    elif [[ "$api_type" == *"_RESPONSES"* ]] ; then
-		errormsg=$(jq -r '.error.message // empty' <<<"$response")
-		if [[ ! -n "$errormsg" ]]; then
+		if ! errormsg=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null) ; then
+		    errormsg="$response"
+		else
+		    if [[ -n "$errormsg" ]] ; then
+			local param=$(jq -r '.error.param // empty' <<<"$response")
+			if [[ -n "$param" ]] ; then
+			    errormsg+=" param=$param"
+			fi
+		    fi
+		fi
+		if [[ -z "$errormsg" ]]; then
 		    reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reply.jq" <<<"$response")
 		    # We ignore status field since we do not handle streaming events
 		    # TODO: Consider to have one that select all to preserve order
 		    tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_calls.jq" <<<"$response")
 		    tool_results_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-tool_results.jq" <<<"$response")
 		    reasoning=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-openai-responses-reasoning.jq" <<<"$response")
-		else
-		    errormsg+=" param="
-		    errormsg+=$(jq -r '.error.param // empty' <<<"$response")
 		fi
 	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-reply.jq" <<<"$response")
-		errormsg=$(jq -r '.message // empty' <<<"$response")
-		if [[ -z "$errormsg" ]] ; then
-		    errormsg=$(jq -r '.Message // empty' <<<"$response")
+		if ! errormsg=$(jq -r '.message // .Message // empty' <<<"$response" 2>/dev/null) ; then
+		    errormsg="$response"
 		fi
-                tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
+		if [[ -z "$errormsg" ]]; then
+		    reply=$(jq -r -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-reply.jq" <<<"$response")
+                    tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
+		fi
 	    fi
 	    if [[ "$tools_call_json" == "null" ]] ; then
 		tools_call_json=""
