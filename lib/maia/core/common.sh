@@ -1545,6 +1545,7 @@ load_config() {
 	done
 	[[ "$s" == "$target_scope" ]] && break
     done
+    export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
 }
 
 # Helper to convert environment variable MAIA_CURL_EXTRA_HEADERS into curl -H arguments.

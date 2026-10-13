@@ -415,6 +415,11 @@ handle_history_command() {
     # 1) Help wins
     [[ "$1" =~ ^-h|--help$ ]] && history_usage
     [[ "$2" =~ ^-h|--help$ ]] && history_usage
+
+    # Load merged config
+    local scope="session"
+    load_config "$scope" CONFIG
+
     local history_dir=$(resolve_session_base)
     local history_name=$(resolve_session_name)  # Resolve the active history name using `used`
     local history_file="$(resolve_history_meta)"

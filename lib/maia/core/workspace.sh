@@ -157,6 +157,9 @@ handle_workspace_command() {
     [[ "$1" =~ ^-h|--help$ ]] && workspace_usage
     [[ "$2" =~ ^-h|--help$ ]] && workspace_usage
 
+    local scope="session"
+    load_config "$scope" CONFIG
+
     local cmd="${1:-}"
 
     local data_dir project_dir project_name

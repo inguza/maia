@@ -54,6 +54,10 @@ EOF
 handle_home_command() {
     [[ "$1" =~ ^-h|--help$ ]] && home_usage
     [[ "$2" =~ ^-h|--help$ ]] && home_usage
+
+    local scope="home"
+    load_config "$scope" CONFIG
+
     local cmd=${1:-}
     local path=${2:-.}
 

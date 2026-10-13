@@ -165,6 +165,9 @@ parse_session_options() {
 handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 
+    local scope="session"
+    load_config "$scope" CONFIG
+
     local cmd="$1"
 
     case "$cmd" in

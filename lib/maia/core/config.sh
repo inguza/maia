@@ -218,6 +218,9 @@ handle_config_command() {
         die "Cannot combine --scope and --effective"
     fi
 
+    # Load merged config
+    load_config "$scope" CONFIG
+
     # Decide view vs write scopes:
     # - If user provided --scope, both view and write should use that scope.
     # - If not, viewing defaults to session (merged to session) while writing defaults to session.

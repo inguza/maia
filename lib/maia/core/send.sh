@@ -417,6 +417,10 @@ handle_send_command() {
     # Show help if requested
     [[ "$1" =~ ^-h|--help$ ]] && send_usage
     [[ "$2" =~ ^-h|--help$ ]] && send_usage
+
+    local scope="session"
+    load_config "$scope" CONFIG
+
     local maia_api_base_url="$(get_config api_base_url)"
 
     local history_dir=$(resolve_session_path)

@@ -142,6 +142,8 @@ handle_snippet_command() {
         esac
     done
 
+    load_config "$scope" CONFIG
+
     # The next argument should be subcommand or list (if none)
     subcmd="$1"
 

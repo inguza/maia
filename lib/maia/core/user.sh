@@ -86,7 +86,9 @@ EOF
 handle_user_command() {
     [[ "$1" =~ ^-h|--help$ ]] && user_usage
     [[ "$2" =~ ^-h|--help$ ]] && user_usage
-    # No arecognized command, but args were passed → default to `u append`, but not always
+
+    local scope="session"
+    load_config "$scope" CONFIG
 
     local subcmd="${1:-}"  # Default to "show" if no subcommand is provided
 

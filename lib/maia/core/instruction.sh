@@ -178,6 +178,7 @@ handle_instruction_command() {
     fi
 
     validate_scope "$scope"
+    load_config "$scope" CONFIG
 	
     local filepath="${SCOPE_DIR[$scope]}/instructionset.txt"
 

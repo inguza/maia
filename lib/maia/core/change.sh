@@ -593,7 +593,12 @@ showfiles() {
 handle_change_command() {
     [[ "$1" =~ ^-h|--help$ ]] && change_usage
     [[ "$2" =~ ^-h|--help$ ]] && change_usage
-    cmd=$1; shift
+
+    local scope="session"
+    load_config "$scope" CONFIG
+
+    local cmd=$1
+    shift
     # Determine active session and ensure it exists
     local session=$(resolve_session_name)
     ensure_session_exists "$session"

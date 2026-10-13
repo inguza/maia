@@ -70,6 +70,9 @@ handle_count_command() {
     [[ "$1" =~ ^-h|--help$ ]] && count_usage
     [[ "$2" =~ ^-h|--help$ ]] && count_usage
 
+    local scope="session"
+    load_config "$scope" CONFIG
+
     # Parse arguments for --model option
     local model=$(get_config model)
     local file_handling_mode_raw

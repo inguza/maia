@@ -81,9 +81,7 @@ fi
 
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
-# Load merged config up to history scope
-load_config session CONFIG
-export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
+export TERM_LOGLEVEL=NOTICE
 
 # Check for required tools
 require_command curl

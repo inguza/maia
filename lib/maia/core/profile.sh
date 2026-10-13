@@ -163,6 +163,8 @@ handle_profile_command() {
     if [[ "$scope" == "profile" ]] ; then
 	die "Scope '$scope' not valid for profile actions."
     fi
+
+    load_config "$scope" CONFIG
     
     local prompt_type="profile"
     

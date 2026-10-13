@@ -304,6 +304,7 @@ handle_tool_command() {
     fi
 
     validate_scope "$scope"
+    load_config "$scope" CONFIG
 
     # compute filename & path
     local filename="${prompt_type}.txt"

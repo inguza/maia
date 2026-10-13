@@ -71,6 +71,10 @@ handle_api_command() {
     # If no subcommand or help flag, display help
     [[ "$1" =~ ^-h|--help$ ]] && api_usage
     [[ "$2" =~ ^-h|--help$ ]] && api_usage
+
+    local scope="session"
+    load_config "$scope" CONFIG
+
     local maia_api_base_url="$(get_config api_base_url)"
     local api_type=$(get_config api_type)
     # Detect API type

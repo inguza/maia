@@ -165,6 +165,10 @@ handle_file_command() {
     [[ "$1" =~ ^-h|--help$ ]] && file_usage
     [[ "$2" =~ ^-h|--help$ ]] && file_usage
 
+    # Load merged config
+    local scope="session"
+    load_config "$scope" CONFIG
+
     # Determine active session and ensure it exists
     local session_name=$(resolve_session_name)
     ensure_session_exists "$session_name"
