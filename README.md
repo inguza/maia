@@ -83,7 +83,7 @@ For optional functionality:
 | --- | --- | --- |
 | `maia shell enter` | `script` from bsdutils | |
 | AWS API | `xxd` | |
-| Binary files | `file` | If `file` is not available a less precise heuristic based on `od` is used instead |
+| Binary files | `file` | If `file` is not available a less precise heuristic is used |
 
 Some MAIA tools have additional dependencies:
 
@@ -112,13 +112,17 @@ sudo apt-get install jq
 
 ### Microsoft Windows
 
-On Windows, MAIA can run under WSL.
+#### Windows Subsystem for Linux (WSL)
+
+On Windows, MAIA can run under WSL. To install WSL, open PowerShell and run:
 
 ```powershell
 wsl --install
 ```
 
 How to configure WSL and install a Linux distribution is outside the scope of this document.
+
+#### Git Bash
 
 MAIA can also be run from [Git Bash](https://git-scm.com/install/windows) on Windows.
 
@@ -131,14 +135,14 @@ winget install --id Git.Git -e --source winget
 
 Then start Git Bash.
 
-**Windows support has not been fully tested.**
+**Git Bash support has not been fully tested.**
 In particular, MAIA appears to run significantly slower under Git Bash than under WSL.
 
 There are behavioral differences when MAIA is run from Git Bash due to:
 - Unix-style paths are used by MAIA, but some MAIA output may contain Windows-style paths (`C:\...` vs `/c/...`) [#77](https://github.com/inguza/maia/issues/77)
-- Line endings (CRLF vs LF) [#74](https://github.com/inguza/maia/issues/74) [#75](https://github.com/inguza/maia/issues/75) [#76](https://github.com/inguza/maia/issues/76)
+- Line endings (CRLF vs LF) [#74](https://github.com/inguza/maia/issues/74) [#75](https://github.com/inguza/maia/issues/75)
 - MSYS text-mode translation
-- Differences in behavior of the provided Unix-style utilities
+- Differences in the behavior of the provided Unix-style utilities
 - Differences in process and signal handling
 
 ## Install the software
