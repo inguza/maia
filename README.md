@@ -368,10 +368,10 @@ MCP servers are configured using the `mcp_servers` configuration parameter.
 It contains a list of MCP server definitions, each using the following syntax:
 
 ```text
-<name>=<endpoint>
+<service name>=<endpoint>
 ```
 
-Where `<name>` is a name you choose and `<endpoint>` is an MCP endpoint.
+Where `<service name>` is a name you choose and `<endpoint>` is an MCP endpoint (URI).
 
 Two types of endpoints are supported:
 - stdio - syntax 'stdio:command [arguments]'
@@ -390,8 +390,9 @@ maia file discover
 maia tool discover
 ```
 
-MCP resources are modelled as files using the following syntax `<servicename>#<uri>` while discovered MCP tools are handled as any other MAIA tool.
-Discovered MCP tools have `<name>-` as the prefix to the MCP discovered tool name.
+MCP resources are modelled as files using the following syntax `<service name>#<resource uri>` while discovered MCP tools are handled as any other MAIA tool.
+
+Discovered MCP tools are named `<service name>-<tool name>` where `<tool name>` is the name reported by the MCP service.
 
 #### stdio
 
@@ -413,7 +414,7 @@ Example:
 name2=https://api.githubcopilot.com/mcp/
 ```
 
-For authentication, MAIA looks for an environment variable named `<NAME>_TOKEN`, where `<NAME>` is the uppercase MCP server name.
+For authentication, MAIA looks for an environment variable named `<NAME>_TOKEN`, where `<NAME>` is the uppercase MCP `<service name>`.
 
 Example:
 

@@ -5,15 +5,15 @@
 Syntax:
 
 ```
-<path>[:<type>[:<typespecific>]][|<filter>]
-<path>[:<typespecific>][|<filter>]
-<provider>#<mcp url>[|<filter>]
-<name/path>[:<type>[:<typespecific>]]@<url>
+<path>[:<type>[:<type-specific>]][|<filter>]
+<path>[:<type-specific>][|<filter>]
+<service name>#<resource uri>[|<filter>]
+<name/path>[:<type>[:<type-specific>]]@<url>
 ```
 
 `<path>` is the path to the local file relative to the workspace root.
 
-`<name/path>` is a name used reference the content in text.
+`<name/path>` is a name that can be used to reference the content in text.
 
 `<type>` is one of:
  - `text` -- Text file
@@ -21,11 +21,15 @@ Syntax:
  - `document` -- A pdf or other document
  - `other` -- Any other file
 
-If the `<type>` is not specified it is autodetected before the `<typespecific>` rules are applied.
+If the `<type>` is not specified it is autodetected before the `<type-specific>` rules are applied.
 
 The meaning of `<type-specific>` depends on `<type>`.
 
 `<filter>` is a shell command that the content is piped through.
+
+`<service name>` is the MCP service name as defined in the `mcp_servers` configuration setting.
+
+`<resource uri>` is the URI used to identify and retrieve the resource from the MCP service.
 
 Compatibility notes!
  - Only `text` is supported in MAIA for OpenAI Chat Completions API.
