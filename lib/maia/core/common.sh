@@ -2428,28 +2428,6 @@ trigger_event() {
 	[[ -f "$hook" && -x "$hook" ]] || continue
 	hook_execute "$hook" "$event" "" "${data[@]}"
     done
-    # Then look up tool hooks among the allowed tools
-    local tool_search_path="$(build_tool_search_path)"
-    local enabled_tools_json="$(prompt_for_scope "session" "toolset" "json")"
-    local hooks=()
-    if ! mapfile_from_command hooks jq -r --arg event "$event" '
-      .[]
-      | select(.hooks[$event] != null)
-      | [.name, .hooks[$event]]
-      | @tsv
-    ' <<<"$enabled_tools_json" ; then
-	error "Unable to parse the enabled tools."
-	return 2
-    fi
-
-    for hook in "${hooks[@]}" ; do
-	local hook_exec_dir="$(command_exec_dir "${hook_exec}" "$tool_search_path")"
-	if [[ -z "$hook_exec_dir" ]]; then
-	    warning "Unable to execute '$hook_exec' for event '$event' (not found in tool search path)."
-	else
-	    hook_execute "$hook_exec_dir/$hook_exec" "$event" "$tool_search_path" "${data[@]}"
-	fi
-    done
 }
 
 init_scope_dirs
