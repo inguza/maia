@@ -73,8 +73,6 @@ list_tools() {
 generate_allowed_toolset_def_file() {
     local allowed_tools_list_file="$1"
     local allowed_tools_def_file="$2"
-    # Important to call this because it is used by load_all_tool_defs below
-    init_tool_search_dirs
     
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
@@ -111,8 +109,6 @@ tool_instr_dir() {
 generate_allowed_tools_instr_file() {
     local allowed_tools_list_file="$1"
     local allowed_tools_instr_file="$2"
-    # Important to call this because it is used by load_all_tool_defs below
-    init_tool_search_dirs
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
     local instruction_files=$(jq -r --argjson patterns "$patterns_json" '
@@ -162,6 +158,9 @@ refresh_allowed_toolset_files() {
 	rm -f "$allowed_tools_def_file"
 	rm -f "$allowed_tools_instr_file"
     else
+	# Important to call this because it is used by load_all_tool_defs
+	init_tool_search_dirs "$scope"
+
 	generate_allowed_toolset_def_file "$allowed_tools_list_file" "${allowed_tools_def_file}"
 	generate_allowed_tools_instr_file "$allowed_tools_list_file" "${allowed_tools_instr_file}"
 	info "Refreshed allowed toolset for scope '$scope'"
@@ -172,6 +171,9 @@ refresh_allowed_toolset_files() {
 # Optionally for a specific function pattern
 verify_tools_def_file() {
     local scope="$1"
+    # Important to call this because it is used by load_all_tool_defs
+    init_tool_search_dirs "$scope"
+
     local allowed_tools_list_file="$2"
     local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
     local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"

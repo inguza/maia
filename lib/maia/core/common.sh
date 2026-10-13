@@ -217,6 +217,7 @@ init_profile_search_dirs() {
 }
 
 init_tool_search_dirs() {
+    local scope="$1"
     init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
     TOOL_DIRS=(
@@ -230,9 +231,28 @@ init_tool_search_dirs() {
 	[plugins]="$(resolve_plugin_paths "tools")"
 	[extra]="$(get_config additional_tool_paths)"
     )
+    case "$scope" in
+	profile)
+	    TOOL_DIRS[workspace]=""
+	    TOOL_DIRS[session]=""
+	    ;;
+	workspace)
+	    TOOL_DIRS[profile]=""
+	    TOOL_DIRS[session]=""
+	    ;;
+	home|user|system|install|plugins|extra)
+	    TOOL_DIRS[workspace]=""
+	    TOOL_DIRS[profile]=""
+	    TOOL_DIRS[session]=""
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
 }
 
 init_skill_search_dirs() {
+    local scope="$1"
     init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
     SKILL_DIRS=(
@@ -246,6 +266,24 @@ init_skill_search_dirs() {
 	[plugins]="$(resolve_plugin_paths "skills")"
 	[extra]="$(get_config additional_skill_paths)"
     )
+    case "$scope" in
+	profile)
+	    SKILL_DIRS[workspace]=""
+	    SKILL_DIRS[session]=""
+	    ;;
+	workspace)
+	    SKILL_DIRS[profile]=""
+	    SKILL_DIRS[session]=""
+	    ;;
+	home|user|system|install|plugins|extra)
+	    SKILL_DIRS[workspace]=""
+	    SKILL_DIRS[profile]=""
+	    SKILL_DIRS[session]=""
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
 }
 
 init_instruction_search_dirs() {
@@ -1433,7 +1471,6 @@ build_tool_search_path() {
     echo "${paths}"
 }
 
-# IMPORTANT! init_skill_search_dirs must be called before a call to this
 build_skill_search_path() {
     init_skill_search_dirs
     local paths=()

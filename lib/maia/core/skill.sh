@@ -386,7 +386,7 @@ handle_skill_command() {
 	    ;;
     esac
 
-    init_skill_search_dirs
+    init_skill_search_dirs "$scope"
 
     local remember=""
     case "$subcmd" in
