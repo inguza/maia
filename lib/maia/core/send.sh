@@ -575,11 +575,11 @@ handle_send_command() {
     trigger_event "pre-send" "$api_type"
 
     # Tools preparation
-    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
-    local tools_count=$(jq 'length' <<<"$enabled_tools_json")
-    if [[ "$no_tools" == true ]] ; then
-	enabled_tools_json='[]'
-	tools_count=0
+    local enabled_tools_json='[]'
+    local tools_count=0
+    if [[ "$no_tools" != true ]] ; then
+	enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+	tools_count=$(jq 'length' <<<"$enabled_tools_json")
     fi
 
     # Build API payload JSON
