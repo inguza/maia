@@ -1,5 +1,5 @@
 #
-# Handles AI introspection ("maia api") commands: models, model, fine-tunes, fine-tune, usage
+# Handles AI introspection
 #
 # Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
 #
@@ -14,7 +14,7 @@ USAGE
 
   maia api <command> [options]
 
-Commands for interacting with OpenAI API resources.
+Commands for interacting with API resources.
 
 COMMANDS
 
@@ -29,14 +29,8 @@ COMMANDS
     and availability details.
     Not implemented for AWS.
 
-  fine-tunes
-    List all fine-tune jobs associated with your account, including status,
-    training metrics, and resulting model IDs.
-    Not implemented for AWS.
-
-  fine-tune <job_id>
-    Show detailed information for the specified fine-tune job, such as
-    hyperparameters, dataset size, and completion status.
+  usage
+    Show usage.
     Not implemented for AWS.
 
 OPTIONS
@@ -95,7 +89,7 @@ handle_api_command() {
     local url=""
     local METHOD="GET"
     if [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-	url="$(echo $maia_api_base_url | sed 's/-runtime//;')"
+	url="${maia_api_base_url/-runtime/}"
 	curl_headers+=(-X "$METHOD")
 	. "$MAIA_CORE_LIB_DIR/aws.sh"
     else
@@ -158,37 +152,6 @@ handle_api_command() {
 		     "$maia_api_base_url/v1/models/$model_id" | jq .
 	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 		die "Get model not implemented for AWS Bedrock."
-	    else
-		die "Unknown api type '$api_type'"
-	    fi
-	    ;;
-
-	fine-tunes)
-	    # List fine-tune jobs
-	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
-		curl -sS -H "Authorization: Bearer $OPENAI_API_KEY" \
-		     "${extra_headers[@]}" \
-		     "$maia_api_base_url/v1/fine-tunes" | jq .
-	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		die "List fine-tunes not implemented for AWS Bedrock."
-	    else
-		die "Unknown api type '$api_type'"
-	    fi
-	    ;;
-
-	fine-tune)
-	    # Show details for a single fine-tune job
-	    if [[ -z "$1" ]]; then
-		api_usage
-		exit 1
-	    fi
-	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
-		local job_id="$1"
-		curl -sS -H "Authorization: Bearer $OPENAI_API_KEY" \
-		     "${extra_headers[@]}" \
-		     "$maia_api_base_url/v1/fine-tunes/$job_id" | jq .
-	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		die "Get fine-tune not implemented for AWS Bedrock."
 	    else
 		die "Unknown api type '$api_type'"
 	    fi
