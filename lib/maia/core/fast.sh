@@ -540,7 +540,9 @@ myl_get() {
 normalize_lf() {
     local -n _xdst="$1"
     local i
-
+    if [[ ! -v MSYSTEM ]] ; then
+	return
+    fi
     for i in "${!_xdst[@]}"; do
         _xdst[i]="$(strip_cr "${_xdst[i]}")"
     done
@@ -556,7 +558,9 @@ read_file_by_line() {
     while IFS= read -r line || [[ -n "$line" ]]; do
 	case "$filter" in
 	    cr)
-		line="$(strip_cr "$line")"
+		if [[ -v MSYSTEM ]] ; then
+		    line="$(strip_cr "$line")"
+		fi
 		;;
 	    *)
 		:
@@ -572,9 +576,9 @@ strip_cr() {
     # construct when the line is too long
     if [[ "$line" == *$'\r' ]]; then
 	printf '%s' "${line:0:${#line}-1}"
-    else
-	printf '%s' "$line"
+	return
     fi
+    printf '%s' "$line"
 }
 
 read_file() {
@@ -590,7 +594,9 @@ read_file() {
 	[[ $status -eq 0 || -n "$line" ]] || break
 	case "$filter" in
 	    cr)
-		line="$(strip_cr "$line")"
+		if [[ -v MSYSTEM ]] ; then
+		    line="$(strip_cr "$line")"
+		fi
 		;;
 	    *)
 		:
