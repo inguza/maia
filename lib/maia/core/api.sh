@@ -29,10 +29,6 @@ COMMANDS
     and availability details.
     Not implemented for AWS.
 
-  usage
-    Show usage.
-    Not implemented for AWS.
-
 OPTIONS
 
   -h, --help
@@ -52,14 +48,6 @@ NOTES
 EOF
     exit 0
 }
-
-# Do not yet dislplay the usage function because it does not seem to work
-#  usage [--start YYYY-MM-DD] [--end YYYY-MM-DD]
-#    Display billing and usage statistics for your OpenAI account.
-#    Defaults to the past 30 days if no dates are provided.
-#    --start     Start date for usage (inclusive).
-#    --end       End date for usage (inclusive).
-
 
 handle_api_command() {
     # If no subcommand or help flag, display help
@@ -152,36 +140,6 @@ handle_api_command() {
 		     "$maia_api_base_url/v1/models/$model_id" | jq .
 	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
 		die "Get model not implemented for AWS Bedrock."
-	    else
-		die "Unknown api type '$api_type'"
-	    fi
-	    ;;
-
-	usage)
-	    # Show usage. Defaults to past 30 days; supports optional date flags
-	    # Usage: maia api usage [--start YYYY-MM-DD] [--end YYYY-MM-DD]
-	    while [[ "$1" =~ ^- ]]; do
-		case "$1" in
-		    --start)
-			start_date="$2"; shift 2;;
-		    --end)
-			end_date="$2"; shift 2;;
-		    *)
-			die "Unknown option: $1"
-		esac
-	    done
-	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
-		# Default to past 30 days
-		local start_date="${start_date:-$(date -I -d '30 days ago')}"
-		local end_date="${end_date:-$(date -I)}"
-		curl -sS -G \
-		     -H "Authorization: Bearer $OPENAI_API_KEY" \
-		     "${extra_headers[@]}" \
-		     --data-urlencode "start_date=$start_date" \
-		     --data-urlencode "end_date=$end_date" \
-		     "$maia_api_base_url/v1/dashboard/billing/usage" | jq .
-	    elif [[ "$api_type" == "AWS_BEDROCK_CONVERSE" ]] ; then
-		die "Usage not implemented for AWS Bedrock."
 	    else
 		die "Unknown api type '$api_type'"
 	    fi
