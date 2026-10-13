@@ -53,6 +53,7 @@ declare -A canned_responses=(
     ["openai_rate_limit_error"]="$TEST_ROOT/send/responses/openai_error_rate_limit.json"
     ["openai_invalid_request_error"]="$TEST_ROOT/send/responses/openai_error_invalid_request.json"
     ["openai_malformed"]="$TEST_ROOT/send/responses/openai_malformed_response.json"
+    ["openai_responses_connect_error"]="$TEST_ROOT/send/responses/openai_responses_error_connect.json"
     ["openai_empty"]="$TEST_ROOT/send/responses/openai_empty_response.json"
     ["aws_throttling_error"]="$TEST_ROOT/send/responses/aws_error_throttling.json"
     ["aws_access_denied_error"]="$TEST_ROOT/send/responses/aws_error_access_denied.json"
@@ -207,34 +208,41 @@ for api in "${api_types_and_configs[@]}"; do
     esac
     $MAIA history clear
     
-    # TODO error cases for OPENAI RESPONSES
-    # Specific error cases for OPENAI CHAT COMPLETIONS
-    if [[ "$api" == "OPENAI_CHAT_COMPLETIONS" ]]; then
-	# Test error handling for OpenAI errors
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_auth_error]}"
-	run_send_cmd "openai_auth_error" "Test auth error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_rate_limit_error]}"
-	run_send_cmd "openai_rate_limit_error" "Test rate limit error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_invalid_request_error]}"
-	run_send_cmd "openai_invalid_request_error" "Test invalid request error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_malformed]}"
-	run_send_cmd "openai_malformed_response" "Test malformed response"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_empty]}"
-	run_send_cmd "openai_empty_response" "Test empty response"
-    fi
-    # Specific error cases for AWS
-    if [[ "$api" == "AWS_BEDROCK_CONVERSE" ]]; then
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
-	run_send_cmd "aws_tool_use" "Test AWS throttling error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
-	run_send_cmd "aws_throttling_error" "Test AWS throttling error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_access_denied_error]}"
-	run_send_cmd "aws_access_denied_error" "Test AWS access denied error"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_malformed]}"
-	run_send_cmd "aws_malformed_response" "Test AWS malformed response"
-	export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_empty]}"
-	run_send_cmd "aws_empty_response" "Test AWS empty response"
-    fi
+    case "$api" in
+	OPENAI_RESPONSES)
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_responses_connect_error]}"
+	    run_send_cmd "openai_responses_connect_error" "Test connect error"
+	    ;;
+	OPENAI_CHAT_COMPLETIONS)
+	    # Test error handling for OpenAI chat completion errors
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_auth_error]}"
+	    run_send_cmd "openai_auth_error" "Test auth error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_rate_limit_error]}"
+	    run_send_cmd "openai_rate_limit_error" "Test rate limit error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_invalid_request_error]}"
+	    run_send_cmd "openai_invalid_request_error" "Test invalid request error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_malformed]}"
+	    run_send_cmd "openai_malformed_response" "Test malformed response"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[openai_empty]}"
+	    run_send_cmd "openai_empty_response" "Test empty response"
+	    ;;
+	AWS_BEDROCK_CONVERSE)
+	    # Specific error cases for AWS bedrock converse
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
+	    run_send_cmd "aws_tool_use" "Test AWS throttling error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_throttling_error]}"
+	    run_send_cmd "aws_throttling_error" "Test AWS throttling error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_access_denied_error]}"
+	    run_send_cmd "aws_access_denied_error" "Test AWS access denied error"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_malformed]}"
+	    run_send_cmd "aws_malformed_response" "Test AWS malformed response"
+	    export MOCK_CURL_RESPONSE_FILE="${canned_responses[aws_empty]}"
+	    run_send_cmd "aws_empty_response" "Test AWS empty response"
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
 
     # Test the send hook
     unset OPENAI_API_KEY
