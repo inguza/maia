@@ -110,7 +110,7 @@ COMMANDS:
   Configuration / General
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
-    api              AI introspection (models, model, fine-tunes, fine-tune, usage)
+    api              AI introspection (models, model)
     update	     Update data to latest software and refresh skills and tools.
 
   Session and prompt handling
