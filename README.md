@@ -338,7 +338,7 @@ The base url must not have a trailing `/` character. The endpoint path is append
 The supported API types are:
 
 | `api_type` | Endpoint path | Required environment variables |
-| --- | --- |
+| --- | --- | --- |
 | `OPENAI_RESPONSES` | `/v1/responses` | `OPENAI_API_KEY` |
 | `OPENAI_CHAT_COMPLETIONS` | `/v1/chat/completions` | `OPENAI_API_KEY` |
 | `AWS_BEDROCK_CONVERSE` | `/model/<model>/converse` | `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` |
