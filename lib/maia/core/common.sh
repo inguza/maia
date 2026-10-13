@@ -1014,9 +1014,14 @@ fileset_content_extract() {
 		for spec in "${mcpspecs[@]}" ; do
 		    local name="${spec%%#*}"
 		    local endpoint="${services[$name]}"
-		    local uri="${spec#*#}"
-		    # MCP specifications are opaque. The exact spec is the cache identity;
-		    # URI characters such as ':' and '|' must not be parsed or changed.
+		    local uri_and_filter="${spec#*#}"
+		    # The complete spec is the cache identity, but a trailing |filter is
+		    # applied locally after the resource has been downloaded. Only the
+		    # resource URI is sent to the MCP server.
+		    local uri="${uri_and_filter}"
+		    if [[ "$uri" == *'|'* ]]; then
+			uri="${uri%%|*}"
+		    fi
 		    local cacheid="$(printf '%s' "$spec" | sha256sum | cut -c1-16)"
 		    local sessionpath="$(resolve_session_path)"
 		    local cache="$sessionpath/cache/$cacheid.mcp"
@@ -1025,9 +1030,8 @@ fileset_content_extract() {
 			    mkdir "$sessionpath/cache"
 			fi
 		    fi
-		    echo "[$spec]"
 		    if [[ ! -e "$cache" ]] ; then
-			info "Caching contenf of $spec."
+			info "Caching content of $spec."
 			local tmpf="$(mktemp)"
 			mcp_content "$spec" "$name" "$endpoint" "$uri" > "$tmpf"
 			local status=$?
@@ -1037,9 +1041,6 @@ fileset_content_extract() {
 			    rm -f "$tmpf"
 			    error "Unable to retrieve content."
 			fi
-		    fi
-		    if [[ -s "$cache" ]] ; then
-			read_file "$cache"
 		    fi
 		done
 	    fi
