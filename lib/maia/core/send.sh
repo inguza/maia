@@ -225,13 +225,13 @@ build_system_text() {
 	sys+=$'\n\n'
         case "${mode^^}" in
             BEFORE|FIRST)
-                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-before-first.txt" cr)"$'\n'
+                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-before-first.txt")"$'\n'
                 ;;
             APPEND)
-                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-append.txt" cr)"$'\n'
+                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-append.txt")"$'\n'
                 ;;
             AUTOTOOL)
-                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-autotool.txt" cr)"$'\n'
+                sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-autotool.txt")"$'\n'
                 ;;
             *)
                 :
@@ -267,8 +267,8 @@ build_messages_json() {
 	local tmplist="$(mktemp)"
 	local tmpmem="$(mktemp)"
 	generate_taskset_gen "$tasks_file" "$tmplist" "$tmpmem"
-	task_list="$(read_file "$tmplist" cr)"
-	task_memory="$(read_file "$tmpmem" cr)"
+	task_list="$(read_file "$tmplist")"
+	task_memory="$(read_file "$tmpmem")"
 	rm -f "$tmplist" "$tmpmem"
     fi
     if [[ -n "$task_memory" ]] ; then
@@ -299,7 +299,7 @@ build_messages_json() {
     fi
     local out=""
     if [[ -e "$outbox_file" ]]; then
-        out=$(read_file "$outbox_file" cr)
+        out=$(read_file "$outbox_file")
     fi
     if [[ -n "$out" ]] ; then
 	append_message msgs "user" "$out"
@@ -669,7 +669,7 @@ handle_send_command() {
 	    ;;
     esac
 
-    local outbox_content=$(read_file "$outbox_file" cr)
+    local outbox_content=$(read_file "$outbox_file")
 
     local allowed_iterations=$(get_config tool_iteration_limit)
     local allowed_iterations_left=$allowed_iterations
@@ -753,7 +753,7 @@ handle_send_command() {
 	local reasoning=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
-            response=$(read_file "$response_file" cr)
+            response=$(read_file "$response_file")
 	elif $dry_run; then
             reply="Dry-run response"
 	else
@@ -1034,7 +1034,7 @@ handle_send_command() {
 			tool_count=$((tool_count + 1))
 			tool_call_ids+=($id)
 		    else
-			local fork_output=$(read_file "$tool_tmp_dir/$id.start" cr)
+			local fork_output=$(read_file "$tool_tmp_dir/$id.start")
 			if [[ "$output_mode" == "full" ]] ; then
 			    echo "$fork_output" >&2
 			fi
@@ -1086,7 +1086,7 @@ handle_send_command() {
 		local id="${finished##*/}"
 		id="${id%.finished}"
 
-		status="$(read_file "$tool_tmp_dir/$id.finished" cr)"
+		status="$(read_file "$tool_tmp_dir/$id.finished")"
 
 		local exitinfo=""
 		if (( status != 0 )); then
@@ -1107,7 +1107,7 @@ handle_send_command() {
 		    local shortargs=$(shorten_args "$arguments")
 		    local short
 		    echo "######## $idshort $toolname $shortargs -> $status ########"
-		    read_file_by_line "$tool_tmp_dir/$id.output" cr
+		    read_file_by_line "$tool_tmp_dir/$id.output"
 		    # Make sure we print a separator to show that the tool end and the response is shown
 		    separator=true
 		fi

@@ -28,7 +28,7 @@ handle_shell_command() {
 		dir="${dir##*/}"
 		local status=unknown
 		if [[ -e "$base/$dir/exit_status" ]] ; then
-		    local exit_status="$(read_file "$base/$dir/exit_status" cr)"
+		    local exit_status="$(read_file "$base/$dir/exit_status")"
 		    if [[ -z "$exit_status" ]] ; then
 			status="created"
 		    elif [[ "$exit_status" == 0 ]] ; then

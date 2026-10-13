@@ -536,25 +536,25 @@ showfiles() {
     if [ -n "$patch" ] ; then
 	echo "Suggested patch below:"
 	echo "======================"
-	read_file_by_line "$patch" cr
+	read_file_by_line "$patch"
     elif [ -n "$shell" ] ; then
 	local shellout=$(match_single_file "$prefix" .output)
 	local shellstat=$(match_single_file "$prefix" .exit_status)
 	if [ -n "$shellout" ] ; then
 	    echo "Command output below:"
 	    echo "====================="
-	    read_file_by_line "$shellout" cr
+	    read_file_by_line "$shellout"
 	    echo
 	    echo "Exit status below:"
 	    echo "=================="
 	    if [ -n "$shellstat" ] ; then
-		read_file_by_line "$shellstat" cr
+		read_file_by_line "$shellstat"
 	    fi
 	    echo
 	else
 	    echo "Suggested commands below:"
 	    echo "========================="
-	    read_file_by_line "$shell" cr
+	    read_file_by_line "$shell"
 	    echo
 	fi
     elif [ -n "$action" ] ; then
@@ -563,29 +563,29 @@ showfiles() {
 	if [ -n "$actionout" ] ; then
 	    echo "Command output below:"
 	    echo "====================="
-	    read_file_by_line "$actionout" cr
+	    read_file_by_line "$actionout"
 	    echo
 	    echo "Exit status below:"
 	    echo "=================="
 	    if [ -n "$actionstat" ] ; then
-		read_file_by_line "$actionstat" cr
+		read_file_by_line "$actionstat"
 	    fi
 	    echo
 	else
 	    echo "Suggested commands below:"
 	    echo "========================="
-	    read_file_by_line "$action" cr
+	    read_file_by_line "$action"
 	    echo
 	fi
     elif [ -n "$text" ] ; then
 	echo "Manual change description below:"
 	echo "================================"
-	read_file_by_line "$text" cr
+	read_file_by_line "$text"
 	echo
     elif [ -n "$snippet" ] ; then
 	echo "Suggested code snippet below:"
 	echo "============================="
-	read_file_by_line "$snippet" cr
+	read_file_by_line "$snippet"
 	echo
     fi
 }
@@ -703,7 +703,7 @@ handle_change_command() {
 		    cat "$prefix"*.* 2>/dev/null || die "No files for ID $id"
 		    echo
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
-			read_file_by_line "$changes_dir/$session/$id.txt" cr
+			read_file_by_line "$changes_dir/$session/$id.txt"
 		    fi
 		else
 		    myl_pretty "$file"
@@ -712,7 +712,7 @@ handle_change_command() {
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
 			echo "Assistant response text below:"
 			echo "=============================="
-			read_file_by_line "$changes_dir/$session/$id.txt" cr
+			read_file_by_line "$changes_dir/$session/$id.txt"
 		    fi
 		fi
 
@@ -739,7 +739,7 @@ handle_change_command() {
 		    cat "$prefix"*.* 2>/dev/null || die "No files for ID $id"
 		    echo
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
-			read_file_by_line "$changes_dir/$session/$id.txt" cr
+			read_file_by_line "$changes_dir/$session/$id.txt"
 		    fi
 		else
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"

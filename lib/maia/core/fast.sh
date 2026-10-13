@@ -550,22 +550,14 @@ normalize_lf() {
 
 read_file_by_line() {
     local filename="$1"
-    local filter="$2"
     local input=/dev/stdin
     [[ -n "$filename" ]] && input="$filename"
 
     local line
     while IFS= read -r line || [[ -n "$line" ]]; do
-	case "$filter" in
-	    cr)
-		if [[ -v MSYSTEM ]] ; then
-		    line="$(strip_cr "$line")"
-		fi
-		;;
-	    *)
-		:
-		;;
-	esac
+	if [[ -v MSYSTEM ]] ; then
+	    line="$(strip_cr "$line")"
+	fi
 	printf '%s\n' "$line"
     done < "$input"
 }
@@ -583,7 +575,6 @@ strip_cr() {
 
 read_file() {
     local filename="$1"
-    local filter="$2"
     local input=/dev/stdin
     [[ -n "$filename" ]] && input="$filename"
 
@@ -592,16 +583,9 @@ read_file() {
 	IFS= read -r line
 	local status=$?
 	[[ $status -eq 0 || -n "$line" ]] || break
-	case "$filter" in
-	    cr)
-		if [[ -v MSYSTEM ]] ; then
-		    line="$(strip_cr "$line")"
-		fi
-		;;
-	    *)
-		:
-		;;
-	esac
+	if [[ -v MSYSTEM ]] ; then
+	    line="$(strip_cr "$line")"
+	fi
 	if [[ $status -eq 0 ]]; then
 	    printf '%s\n' "$line"
 	else

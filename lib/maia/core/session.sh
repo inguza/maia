@@ -430,7 +430,7 @@ handle_session_command() {
             local meta="$(resolve_session_meta "$name")"
             [[ -f "$meta" ]] || die "Session '${name:-$(resolve_session_name)}' does not exist"
 	    if (( raw_output )); then
-		read_file "$meta" cr
+		read_file "$meta"
 	    else
 		local ws="$(myl_get "$meta" 'workspace')"
 		local profile="$(myl_get "$meta" 'profile')"

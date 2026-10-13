@@ -142,7 +142,7 @@ generate_allowed_tools_instr_file() {
 	    warn "Tool instruction file $tool_instr_file not found."
 	    continue
 	else
-	    read_file_by_line "$tool_instr_dir/$tool_instr_file" cr >> "$allowed_tools_instr_file"
+	    read_file_by_line "$tool_instr_dir/$tool_instr_file" >> "$allowed_tools_instr_file"
 	fi
     done <<< "$instruction_files"
 }
@@ -415,7 +415,7 @@ handle_tool_command() {
 		"$enabled_tools_json" \
 		" run" > "$tool_tmp_dir/$id.start" 2>&1
 	    local status=$?
-	    local errormsg="$(read_file_by_line "$tool_tmp_dir/$id.start" cr)"
+	    local errormsg="$(read_file_by_line "$tool_tmp_dir/$id.start")"
 	    if [[ -n "$errormsg" ]] ; then
 		echo "$errormsg" >&2
 	    else
@@ -424,7 +424,7 @@ handle_tool_command() {
 		if [[ -z "$finished" ]]; then
 		    die "Tool call malfunction."
 		fi
-		status="$(read_file "$tool_tmp_dir/$id.finished" cr)"
+		status="$(read_file "$tool_tmp_dir/$id.finished")"
 		local exitinfo=""
 		if (( status != 0 )); then
 		    exitinfo="Tool exited with code $status.
@@ -435,7 +435,7 @@ handle_tool_command() {
 		if [[ -n "$exitinfo" ]] ; then
 		    echo "$exitinfo"
 		fi
-		read_file_by_line "$tool_tmp_dir/$id.output" cr
+		read_file_by_line "$tool_tmp_dir/$id.output"
 		echo "----------------- Tool output $id end --------------------------------------"
 	    fi
 	    trap - INT TERM

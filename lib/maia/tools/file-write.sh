@@ -45,7 +45,7 @@ if [[ -v "param[content]" ]] ; then
     printf "%b" "${param[content]}" > "$wpath"
     contentstr="Content"
 else
-    read_file "" cr > "$wpath"
+    read_file > "$wpath"
     contentstr="Stdin"
 fi
 
@@ -60,7 +60,7 @@ if [[ "$path" != "$wpath" ]] ; then
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
 	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe content of the proposed change is the following:\n"
 	echo "\`\`\`patch"
-	read_file_by_line "$pfile" cr
+	read_file_by_line "$pfile"
 	echo "\`\`\`"
 	trigger_event "post-change-create" "${baseid}-${index}"
     fi

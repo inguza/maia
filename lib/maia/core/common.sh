@@ -877,7 +877,7 @@ session_task_extract() {
 	echo "No available tasks."
 	echo ""
     else
-	read_file "$tmplist" cr
+	read_file "$tmplist"
     fi
     rm -f "$tmplist"
     echo "# Tasks"
@@ -886,7 +886,7 @@ session_task_extract() {
 	echo "No tasks."
 	echo ""
     else
-	read_file "$tmpmem" cr
+	read_file "$tmpmem"
     fi
     rm -f "$tmpmem"
 }
@@ -902,7 +902,7 @@ session_instruction_extract() {
 	echo "No available instructions."
 	echo ""
     else
-	read_file "$tmplist" cr
+	read_file "$tmplist"
     fi
     rm -f "$tmplist"
     echo "# Instructions"
@@ -911,7 +911,7 @@ session_instruction_extract() {
 	echo "No instructions."
 	echo ""	
     else
-	read_file "$tmpmem" cr
+	read_file "$tmpmem"
     fi
     rm -f "$tmpmem"
 }
@@ -1039,7 +1039,7 @@ fileset_content_extract() {
 			fi
 		    fi
 		    if [[ -s "$cache" ]] ; then
-			read_file "$cache" cr
+			read_file "$cache"
 		    fi
 		done
 	    fi
@@ -1167,7 +1167,7 @@ read_text_from_editor() {
         rm -f "$tmpfile"
         return 1
     fi
-    local content=$(read_file "$tmpfile" cr)
+    local content=$(read_file "$tmpfile")
     rm -f "$tmpfile"
     printf '%s' "$content"
 }
@@ -1218,7 +1218,7 @@ expand_snippet_name() {
     local found
     if found=$(find_snippet_scope_and_path "$name"); then
         local file="${found#*|}"
-        read_file "$file" cr
+        read_file "$file"
         return 0
     fi
     return 1
@@ -1231,7 +1231,7 @@ deduplicate_files() {
     for file in "$@"; do
         if [[ -e "$file" ]]; then
             seen=()
-            mapfile_from_command lines read_file "$file" cr
+            mapfile_from_command lines read_file "$file"
 
             for line in "${lines[@]}"; do
                 [[ "$line" =~ ^[[:space:]]*$ ]] && continue
@@ -1240,7 +1240,7 @@ deduplicate_files() {
                 printf '%s\n' "$line"
             done > "${file}.tmp"
 
-            read_file "${file}.tmp" cr > "$file"
+            read_file "${file}.tmp" > "$file"
             rm -f "${file}.tmp"
         fi
     done
@@ -1264,7 +1264,7 @@ handle_text_file_command() {
     case "$subcmd" in
         show)
             shift || true
-            [[ -f "$file" ]] && read_file_by_line "$file" cr
+            [[ -f "$file" ]] && read_file_by_line "$file"
             ;;
 	edit)
 	    shift || true
@@ -1280,7 +1280,7 @@ handle_text_file_command() {
 		case "$1" in
 		    +read)
 			shift
-			read_file "" cr >> "$file"
+			read_file >> "$file"
 			;;
 		    +compose)
 			shift
@@ -1304,10 +1304,10 @@ handle_text_file_command() {
 			echo '# Shell output' >> "$file"
 			echo '' >> "$file"
 			echo '```text' >> "$file"
-			read_file_by_line "$shell_output" cr >> "$file"
+			read_file_by_line "$shell_output" >> "$file"
 			echo '```' >> "$file"
 			if [[ -e "$exit_status" ]] ; then
-			    echo "Exit status: ""$(read_file "$exit_status" cr)" >> "$file"
+			    echo "Exit status: ""$(read_file "$exit_status")" >> "$file"
 			else
 			    echo "The process is still running." >> "$file"
 			fi
@@ -1338,9 +1338,9 @@ handle_text_file_command() {
 			echo "# Shell execution" >> "$file"
 			echo "" >> "$file"
 			echo '```text' >> "$file"
-			read_file_by_line "$shell_output" cr >> "$file"
+			read_file_by_line "$shell_output" >> "$file"
 			echo '```' >> "$file"
-			echo "Exit status: ""$(read_file "$exit_status" cr)" >> "$file"
+			echo "Exit status: ""$(read_file "$exit_status")" >> "$file"
 			echo "" >> "$file"
 			;;
 		    +edit)
@@ -1368,7 +1368,7 @@ handle_text_file_command() {
 			# todo strip = from the file
                         local efile="${1#=}"
 			if [[ -f "$efile" ]]; then
-                            read_file_by_line "$efile" cr >> "$file"
+                            read_file_by_line "$efile" >> "$file"
 			else
 			    warn "File '$efile' do not exist."
 			fi
@@ -1420,7 +1420,7 @@ prompt_for_scope() {
     local f="$(file_for_scope "$target" "${type}.${ext}")"
     if [[ -n "$f" ]]; then
 	# Git Bash workaround to use sed instead of cat
-	read_file "$f" cr
+	read_file "$f"
     else
 	local T="${type^^}"
 	local E="${ext^^}"
@@ -1831,7 +1831,7 @@ cleanup_tools()
     if [[ -d "$tool_tmp_dir" ]] ; then
 	for file in "$tool_tmp_dir"/*.json; do
             [ -f "$file" ] || continue
-            local pid="$(jq -r '.pid // empty' "$file" | read_file "" cr)"
+            local pid="$(jq -r '.pid // empty' "$file" | read_file)"
             [ -n "$pid" ] && kill "$pid" 2>/dev/null
 	done
     fi

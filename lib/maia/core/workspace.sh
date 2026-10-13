@@ -270,7 +270,7 @@ handle_workspace_command() {
             [[ -f "$meta" ]] || die "Workspace '$name' does not exist"
 	    if (( raw_output )); then
 		echo "name: $name"
-		read_file "$meta" cr
+		read_file "$meta"
 	    else
 		local path="$(myl_get "$meta" 'path')"
 		local filesets="$(myl_get "$meta" 'filesets')"

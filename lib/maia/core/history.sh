@@ -244,7 +244,7 @@ history_prune() {
 	local entries=$(jq --arg role "$role" '
 	   map(select(.role == $role)) | .['"$jq_slice"']
 	   ' "$tmpfile")
-        local count=$(jq 'length' <<<"$entries" | read_file "" cr)
+        local count=$(jq 'length' <<<"$entries" | read_file)
         if [[ $count == 0 ]]; then
             info "No entries of role '$role' in range '$range' to prune."
             continue
@@ -275,20 +275,20 @@ history_prune() {
 
 	local i=0
         for (( i=0; i < count; i++ )); do
-            local ts=$(jq -r ".[$i].timestamp" <<<"$entries" | read_file "" cr)
-            local id=$(jq -r ".[$i].id" <<<"$entries" | read_file "" cr)
+            local ts=$(jq -r ".[$i].timestamp" <<<"$entries" | read_file)
+            local id=$(jq -r ".[$i].id" <<<"$entries" | read_file)
             local prune_id="${ts}-${id}"
 
             # Backup original if not already backed up
             # Get actual role_index of the entry
-            local role_index=$(jq -r ".[$i].${role}_index" <<<"$entries" | read_file "" cr)
-	    local global_index=$(jq -r ".[$i].index" <<<"$entries" | read_file "" cr)
+            local role_index=$(jq -r ".[$i].${role}_index" <<<"$entries" | read_file)
+	    local global_index=$(jq -r ".[$i].index" <<<"$entries" | read_file)
 
-	    local orig_content=$(jq -r "map(select(.index == $global_index)) | .[0].content" "$tmpfile" | read_file "" cr)
+	    local orig_content=$(jq -r "map(select(.index == $global_index)) | .[0].content" "$tmpfile" | read_file)
 	    if [[ "$orig_content" == "null" ]] ; then
 		orig_content=""
 	    fi
-            local orig_tool_calls=$(jq -r "map(select(.index == $global_index)) | .[0].tool_calls" "$tmpfile" | read_file "" cr)
+            local orig_tool_calls=$(jq -r "map(select(.index == $global_index)) | .[0].tool_calls" "$tmpfile" | read_file)
 	    if [[ "$orig_tool_calls" == "null" ]] ; then
 		orig_tool_calls=""
 	    fi
@@ -480,7 +480,7 @@ handle_history_command() {
 			;;
 		esac
 	    done
-	    local total=$(jq 'length' "$history_file" | read_file "" cr)
+	    local total=$(jq 'length' "$history_file" | read_file)
 	    # If total is zero, nothing to pop; just print info and return
 	    if (( total == 0 )); then
 		notice "Nothing to pop from history '$history_name' (history is empty)."
@@ -525,7 +525,7 @@ handle_history_command() {
 			;;
 		esac
 	    done
-	    local total=$(jq 'length' "$history_file" | read_file "" cr)
+	    local total=$(jq 'length' "$history_file" | read_file)
 	    # If total is zero, nothing to top; just print info and return
 	    if (( total == 0 )); then
 		notice "Nothing to top from history '$history_name' (history is empty)."
@@ -809,9 +809,9 @@ print_history_entries() {
 	    if [[ "$role" == "assistant" && -n "$tools_call_json" && "$tools_call_json" != "null" ]]; then
 		mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
 		for tool_call in "${tool_calls[@]}"; do
-		    id=$(jq -r '.id // empty' <<<"$tool_call" | read_file "" cr)
-		    func_name=$(jq -r '.function.name // empty' <<<"$tool_call" | read_file "" cr)
-		    func_args=$(jq -r '.function.arguments // empty' <<<"$tool_call" | read_file "" cr)
+		    id=$(jq -r '.id // empty' <<<"$tool_call" | read_file)
+		    func_name=$(jq -r '.function.name // empty' <<<"$tool_call" | read_file)
+		    func_args=$(jq -r '.function.arguments // empty' <<<"$tool_call" | read_file)
 
 		    if [[ -n "$func_name" ]]; then
 			echo "[tool call] $id $func_name($func_args)"
