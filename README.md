@@ -365,7 +365,7 @@ Each line must use the standard HTTP header format: `Header-Name: value`.
 MAIA can connect to external tools and resources through the Model Context Protocol (MCP).
 
 MCP servers are configured using the `mcp_servers` configuration parameter.
-It contains a list of MCP server definitions, each using the following syntax:
+It contains a command separated list of MCP server definitions, each using the following syntax:
 
 ```text
 <service name>=<endpoint>
@@ -380,7 +380,7 @@ Two types of endpoints are supported:
 Example:
 
 ```text
-maia config mcp_servers '["name1=stdio:mcpcommand","name2=https://api.githubcopilot.com/mcp/"]'
+maia config mcp_servers 'name1=stdio:mcpcommand,name2=https://api.githubcopilot.com/mcp/'
 ```
 
 Once configured, MCP tools and resources can be discovered using:

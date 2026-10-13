@@ -359,7 +359,7 @@ handle_tool_command() {
 	discover)
 	    init_tool_search_dirs
 	    local serverscfg="$(get_config mcp_servers empty)"
-	    mapfile_from_json servers "$serverscfg"
+	    IFS="," read -ra servers <<< "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
 		local endpoint="${server#*=}"

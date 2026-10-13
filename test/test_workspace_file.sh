@@ -143,7 +143,7 @@ echo "Dummy" > y1.txt
 run_file_cmd "remember1" remember "y1.txt"
 run_file_cmd "remember3" remember "y1.txt|test"
 run_file_cmd "remember4" remember "y1.txt:0-1100"
-$MAIA config mcp_servers '["provider=test"]'
+$MAIA config mcp_servers 'provider=test'
 run_file_cmd "remember#" remember "provider#ui://test/foo"
 run_file_cmd "remember6" remember "y1.txt:0-1100"
 run_file_cmd "verify2" verify

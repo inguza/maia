@@ -65,7 +65,7 @@ declare -A DEFAULT_CONFIG=(
     [default_session_filesets]='__SESSION_NAME__'
     [default_session_extra_send_filesets]=''
     # Tool control
-    [mcp_servers]='[]'
+    [mcp_servers]=''
     [default_allowed_tool_effects]='limited-write'
     [allowed_profiles]='*'
     [agent_session_prefix]='__SESSION_NAME__%'
@@ -957,7 +957,7 @@ fileset_content_extract() {
     # MCP support
     local serverscfg="$(get_config mcp_servers empty)"
     local -a servers
-    read -ra servers <<< "$serverscfg"
+    IFS="," read -ra servers <<< "$serverscfg"
     declare -A services
     for server in "${servers[@]}" ; do
 	local name="${server%%=*}"

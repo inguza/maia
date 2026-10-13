@@ -341,7 +341,7 @@ handle_file_command() {
             local workspace_root=$(resolve_workspace_root "$session_ws")
 	    local -a servers
 	    local serverscfg="$(get_config mcp_servers empty)"
-	    mapfile_from_json servers "$serverscfg"
+	    IFS="," read -ra servers <<< "$serverscfg"
 	    declare -A services
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
@@ -360,9 +360,11 @@ handle_file_command() {
 
 		# Further split file_part on first colon ':' to get actual filename for existence check
                 local actual_file="${file_part%%:*}"
-
-		# Resolve absolute path of actual_file for existence check
+                # Resolve absolute path of actual_file for existence check.
+                # MCP resources are not local files and must be kept in their
+                # original service#resource form.
                 local abs
+                local is_mcp=false
                 if [[ "$actual_file" == /* ]]; then
                     abs=$(realpath_or_readlink "$actual_file")
                 else
@@ -372,19 +374,28 @@ handle_file_command() {
                 if [[ ! -f "$abs" ]]; then
 		    local name="${file_part%%#*}"
 		    local endpoint="${services[$name]}"
-		    if [[ ! -n "$endpoint" ]] ; then
+		    if [[ "$file_part" == *'#'* && -n "$endpoint" ]] ; then
+                        is_mcp=true
+		    else
 		        warn "File '$file_part' not found, skipping"
 			continue
 		    fi
                 fi
 
-		# Get relative path to workspace root for the whole original path (including filter parts)
-                local rel_path=$(realpath --relative-to "$workspace_root" "$abs")
+		# Local files are stored relative to the workspace root. MCP resources
+		# are already valid fileset entries and must not be resolved locally.
+                local rel_path
+                if [[ "$is_mcp" == true ]]; then
+                    rel_path="$file_part"
+                else
+                    rel_path=$(realpath --relative-to "$workspace_root" "$abs")
 
-		# Rebuild relative path with colon filters and pipe filters (everything after actual_file)
-                local remainder="${file_part#$actual_file}"
-                if [[ -n "$remainder" ]]; then
-                    rel_path+="$remainder"
+		    # Rebuild relative path with colon selectors and pipe filters
+		    # (everything after actual_file).
+                    local remainder="${file_part#$actual_file}"
+                    if [[ -n "$remainder" ]]; then
+                        rel_path+="$remainder"
+                    fi
                 fi
                 if [[ -n "$filter_part" ]]; then
                     rel_path+="|$filter_part"
@@ -424,7 +435,8 @@ handle_file_command() {
 	discover)
 	    init_tool_search_dirs
 	    local -a servers
-	    mapfile_from_command servrs get_config mcp_servers
+	    local serverscfg="$(get_config mcp_servers empty)"
+	    IFS="," read -ra servers <<< "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"
 		local endpoint="${server#*=}"
