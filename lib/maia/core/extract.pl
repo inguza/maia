@@ -314,44 +314,58 @@ sub run_filter {
 sub detect_mime {
     my ($file) = @_;
     my $mime = '';
-    if (open my $fh, '-|', 'file', '--brief', '--mime-type', '--', $file) {
-        local $/;
-        $mime = <$fh> // '';
-        close $fh;
-        $mime =~ s/[\r\n]+\z//;
+
+    # Try to use the system `file` utility first. Quietly ignore stderr.
+    if (open my $fh, '-|') {
+	# Parent: read the MIME type.
+	local $/;
+	$mime = <$fh> // '';
+	$mime =~ s/[\r\n]+\z//;
+	close $fh;
     }
-    if ("$mime" eq "") {
-	# Fallback if mime is not available
-	if (open my $fh, '-|', 'od', '-An', '-N16', '-tx1', $file) {
-	    local $/;
-	    my $hex = <$fh> // '';
-	    close $fh;
-	    if ($hex =~ /^89504e470d0a1a0a89504e470d0a1a0a/) {
-		$mime = "image/png";
-	    }
-	    elsif ($hex =~ /^ffd8ff/) {
-		$mime = "image/jpeg";
-	    }
-	    elsif ($hex =~ /^474946383761/ || $hex =~ /^474946383961/) {
-		$mime = "image/gif";
-	    }
-	    elsif ($hex =~ /^52494646........57454250/) {
-		$mime = "image/webp";
-	    }
-	    elsif ($hex =~ /^255044462d/) {
-		$mime = "image/pdf";
-	    }
-	    elsif ($hex =~ /^1f8b/) {
-		$mime = "image/gzip";
-	    }
-	    else {
-		$mime = "application/octet-stream";
-	    }
-	}
+    else {
+	# Child: suppress errors from exec/file.
+	open STDERR, '>', '/dev/null' or exit 127;
+	exec 'file', '--brief', '--mime-type', '--', $file;
+	exit 127;
     }
-    if ("$mime" eq "") {
-	$mime = "application/octet-stream";
+
+    # Fallback: inspect the file magic in-process by reading the first bytes and
+    # matching known signatures. This avoids relying on external utilities and
+    # normalizes output for pattern matching.
+    if ($mime eq '') {
+        my $hdr = '';
+        if (open my $fh2, '<:raw', $file) {
+            read $fh2, $hdr, 16;
+            close $fh2;
+            my $hex = unpack('H*', $hdr) // '';
+            $hex = lc $hex;
+
+            if ($hex =~ /^89504e470d0a1a0a/) {
+                $mime = 'image/png';
+            }
+            elsif ($hex =~ /^ffd8ff/) {
+                $mime = 'image/jpeg';
+            }
+            elsif ($hex =~ /^474946383761/ || $hex =~ /^474946383961/) {
+                $mime = 'image/gif';
+            }
+            elsif ($hex =~ /^52494646[0-9a-f]{8}57454250/) {
+                $mime = 'image/webp';
+            }
+            elsif ($hex =~ /^255044462d/) {
+                $mime = 'application/pdf';
+            }
+            elsif ($hex =~ /^1f8b/) {
+                $mime = 'application/gzip';
+            }
+            else {
+                $mime = 'application/octet-stream';
+            }
+        }
     }
+
+    $mime = 'application/octet-stream' if $mime eq '';
     return $mime;
 }
 
