@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Main entrypoint for the `maia` CLI tool.
+# Main entrypoint for the maia CLI tool.
 #
 # Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
 #
@@ -208,11 +208,11 @@ NOTES:
       edit:
         Edit existing text.
       run:
-        If `+run` then it takes the last shell change run output.
-	If `+"run <changeid>"` then it takes the output of that specific shell change run.
+        If +run then it takes the last shell change run output.
+	If +"run <changeid>" then it takes the output of that specific shell change run.
       shell:
-        If `+shell` then it takes the output of the active (or default) monitored shell.
-	IF `+"shell <shellname>"` then it takes the output of that specific monitored shell.
+        If +shell then it takes the output of the active (or default) monitored shell.
+	IF +"shell <shellname>" then it takes the output of that specific monitored shell.
     - =filename (content of a file)
     - ++word (litteral +word)
     - ==word (litteral =word)
