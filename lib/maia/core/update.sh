@@ -255,6 +255,8 @@ handle_update_command() {
     [[ "$1" =~ ^-h|--help$ ]] && update_usage
     [[ "$2" =~ ^-h|--help$ ]] && update_usage
 
+    init_profile_search_dirs
+    
     local scope="home"
     load_config "$scope" CONFIG
 
