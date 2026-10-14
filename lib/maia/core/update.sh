@@ -175,66 +175,75 @@ refresh_scopes() (
     # is harmless and keeps this operation idempotent.
     "$MAIA_BIN" session create "$temporary_session" >/dev/null 2>&1 || true
     # Make sure to clean up even if Ctrl-C is entered
-    trap '"$MAIA_BIN" session delete "maia-temporary-update-refresh" >/dev/null 2>&1 || true' EXIT INT TERM
 
-    while IFS= read -r -d '' file; do
-        relative="${file#"$maia_home"/}"
-        scope="$(definition_file_scope "$maia_home" "$file")"
-        session=""
-        workspace=""
-        profile=""
+    trap '"$MAIA_BIN" session delete "maia-temporary-update-refresh" >/dev/null 2>&1 || true; exit 1;' EXIT INT TERM
 
-        case "$scope" in
-            session)
-                session="${relative#sessions/}"
-                session="${session%%/*}"
-                # Do not process the temporary session itself.
-                [[ "$session" == "$temporary_session" ]] && continue
-                export MAIA_SESSION="$session"
-                ;;
-            workspace)
-                workspace="${relative#workspaces/}"
-                workspace="${workspace%%/*}"
-                export MAIA_SESSION="$temporary_session"
-                "$MAIA_BIN" session set \
-                    --workspace "$workspace" --profile "" || continue
-                ;;
-            profile)
-                # A profile path has the form
-                #   profiles/name/...
-                # or
-                #   sessions/name/profiles/profile/...
-                # or
-                #   workspaces/name/profiles/profile/...
-                profile_relative="${relative#*profiles/}"
-                profile_relative="${profile_relative%/*}"
-                profile="${profile_relative//\/profiles\//%}"
+    local path
+    for path in "$maia_home/sessions" "$maia_home/workspaces" "$maia_home/profiles" ; do
+	if [[ ! -d "$path" ]] ; then
+	    continue
+	fi
+	while IFS= read -r -d '' file; do
+            relative="${file#"$maia_home"/}"
+            scope="$(definition_file_scope "$maia_home" "$file")"
+            session=""
+            workspace=""
+            profile=""
+	    home="-"
 
-                export MAIA_SESSION="$temporary_session"
-                "$MAIA_BIN" session set \
-                    --workspace "" --profile "$profile" || continue
-                ;;
-            home)
-                export MAIA_SESSION="$temporary_session"
-                "$MAIA_BIN" session set --workspace "" --profile "" || continue
-                ;;
-	    *)
-		die "Unexpected scope '$scope'"
-		;;
-        esac
+            case "$scope" in
+		session)
+                    session="${relative#sessions/}"
+                    session="${session%%/*}"
+                    # Do not process the temporary session itself.
+                    [[ "$session" == "$temporary_session" ]] && continue
+                    export MAIA_SESSION="$session"
+                    ;;
+		workspace)
+                    workspace="${relative#workspaces/}"
+                    workspace="${workspace%%/*}"
+                    export MAIA_SESSION="$temporary_session"
+                    "$MAIA_BIN" session set \
+				--workspace "$workspace" --profile "" || continue
+                    ;;
+		profile)
+                    # A profile path has the form
+                    #   profiles/name/...
+                    # or
+                    #   sessions/name/profiles/profile/...
+                    # or
+                    #   workspaces/name/profiles/profile/...
+                    profile_relative="${relative#*profiles/}"
+                    profile_relative="${profile_relative%/*}"
+                    profile="${profile_relative//\/profiles\//%}"
+                    export MAIA_SESSION="$temporary_session"
+                    "$MAIA_BIN" session set \
+				--workspace "" --profile "$profile" || continue
+                    ;;
+		home)
+                    export MAIA_SESSION="$temporary_session"
+                    "$MAIA_BIN" session set --workspace "" --profile "" || continue
+                    ;;
+		*)
+		    die "Unexpected scope '$scope'"
+		    ;;
+            esac
 
-        case "$(basename "$file")" in
-            toolset.txt)
-                "$MAIA_BIN" tool --scope "$scope" refresh
-                ;;
-            skillset.txt)
-                "$MAIA_BIN" skill --scope "$scope" refresh
-                ;;
-        esac
-    done < <(find "$maia_home" -type f \( \
-        -name 'toolset.txt' -o \
-        -name 'skillset.txt' \
-    \) -print0)
+            case "$(basename "$file")" in
+		toolset.txt)
+		    echo "Refreshing toolset for scope $scope ${!scope}"
+                    "$MAIA_BIN" tool --scope "$scope" refresh 2> /dev/null
+                    ;;
+		skillset.txt)
+		    echo "Refreshing skillset for scope $scope ${!scope}"
+                    "$MAIA_BIN" skill --scope "$scope" refresh
+                    ;;
+            esac
+	done < <(find "$path" -type f \( \
+		      -name 'toolset.txt' -o \
+		      -name 'skillset.txt' \
+		      \) -print0)
+    done
 
     # Remove the trap
     trap - EXIT INT TERM
