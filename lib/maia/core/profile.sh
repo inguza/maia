@@ -29,6 +29,10 @@ OPTIONS
   -h, --help
     Show this help message for the "profile" subcommand.
 
+NOTES
+
+  The default scope for profiles is 'home'.
+
 EOF
     exit 0
 }
@@ -156,7 +160,7 @@ handle_profile_command() {
     esac
 
     if [[ -z "$scope" ]]; then
-	scope="session"
+	scope="home"
     fi
 
     validate_scope "$scope"

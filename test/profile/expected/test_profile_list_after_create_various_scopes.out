@@ -1,5 +1,7 @@
   NAME                  DESCRIPTION
 =======================================================================
+  bar                   
+  foo                   
   h_1                   Test profile for home scope level 1
   h_1%h_2%xx            Test profile for home scope level 3
   h_1%h_2               Test profile for home scope level 2
@@ -7,8 +9,6 @@
   h_2                   Test profile 2 for home scope level 1
   h_2%h_4%xx            
   h_2%h_4               
-  bar                   
-  foo                   
   s_1                   
   s_1%s_2%xx            
   s_1%s_2%yy            
