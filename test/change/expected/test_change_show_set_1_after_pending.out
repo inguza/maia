@@ -1,3 +1,4 @@
+State: pending
 Type: set
 
 Assistant response text below:
@@ -5,6 +6,7 @@ Assistant response text below:
 Instruction text for the change set
 
 Sub-change: <dateandtime>-abcd1234-1
+State: pending
 Type: patch
 Filename: src/file1.txt
 

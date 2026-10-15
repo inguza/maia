@@ -1,7 +1,9 @@
+State: pending
 Type: set
 
 
 Sub-change: <dateandtime>-abcd1235-1
+State: finished
 Type: shell
 Filename: 
 
