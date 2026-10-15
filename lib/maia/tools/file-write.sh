@@ -67,6 +67,7 @@ if [[ "$path" != "$wpath" ]] ; then
 else
     echo "$contentstr written to $path."
     # If this was a direct write from a tool call, prune arguments in history
+    clean_meta "$ws_changes" "$baseid" "$index"
     prune_tool_call_arguments
     trigger_event "post-file-write" "$path"
 fi

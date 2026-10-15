@@ -56,6 +56,13 @@ run_skills_cmd() {
     run_and_check "test_skills_${test_id}" $MAIA skill "$@"
 }
 
+# Helper to run a skill command and check output
+run_change_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_change_${test_id}" $MAIA change "$@"
+}
+
 ##### DEBUG
 ##### basic tools
 
@@ -121,6 +128,7 @@ run_tool_cmd "print-1" "core-print" '{"content":"This is a test\nAnd after new l
 ##### Shell exec
 export ASSISTANT_BASEID="20260717T214714-68e23e97"
 run_tool_cmd "shell-exec-1" "shell-exec" '{"commands":"make\ngcc\n"}'
+run_change_cmd "change-list-after-shell-exec" list
 
 ##### maia-* tools
 $MAIA tool replace "core-*" "file-*" "util-*" > /dev/null 2>&1
@@ -215,21 +223,28 @@ $MAIA tool allow "change-*:write"
 # file-* tools
 # write
 run_tool_cmd "file-write-1-1" "file-write" '{"path": "x/1.txt","content":"First write content 1\n"}'
+run_change_cmd "change-list-after-file-write-1-1" list
 run_tool_cmd "file-write-2-1" "file-write" '{"path": "pathx/2.txt","content": "First write content 2\n"}'
+run_change_cmd "change-list-after-file-write-2-1" list
 export ASSISTANT_BASEID="20260717T214714-68e33e97"
 run_tool_cmd "file-write-1-2" "file-write" '{"path": "x/1.txt","content":"Second write content 1\n"}'
 C1=$(capture_change "file-write-1-2")
 #export ASSISTANT_BASEID="20260817T214714-68e33e98"
 run_tool_cmd "file-write-2-2" "file-write" '{"path": "pathx/2.txt","content": "First write content 2\nSecond write\n"}'
 C2=$(capture_change "file-write-2-2")
+run_change_cmd "change-list-after-file-2-2" list
 run_tool_cmd "maia-change-apply-1" "change-apply" '{"ids": ["'$C1'"]}'
+run_change_cmd "change-list-after-change-apply-1" list
 run_tool_cmd "maia-change-apply-2" "change-apply" '{"ids": ["'$C1'","'$C2'"]}'
+run_change_cmd "change-list-after-change-apply-2" list
 run_tool_cmd "maia-change-apply-3" "change-apply" '{"ids": []}'
+run_change_cmd "change-list-after-change-apply-3" list
 # Revert
 run_tool_cmd "maia-change-revert-2" "change-revert" '{"ids": ["'$C1'","'$C2'"]}'
 run_tool_cmd "maia-change-reapply-2" "change-apply" '{"ids": ["'$C1'","'$C2'"]}'
 # Not existing
 run_tool_cmd "maia-change-apply-err" "change-apply" '{"ids": ["20260817T214714-68e33e97-3"]}'
+run_change_cmd "change-list-after-apply-err" list
 # Out of path
 run_tool_cmd "file-write-3-1" "file-write" '{"path": "../x/1.txt","content":"First write content 1"}'
 run_tool_cmd "file-write-4-1" "file-write" '{"path": "/../x/1.txt","content":"First write content 1"}'
@@ -238,12 +253,16 @@ run_tool_cmd "file-write-6-1" "file-write" '{"path": "x/../../1.txt","content":"
 
 # Append
 run_tool_cmd "file-append-1-3" "file-append" '{"path": "x/1.txt","content":"Append it 1\n"}'
+run_change_cmd "change-list-after-file-append" list
 #export ASSISTANT_BASEID="20260817T214714-68e33e99"
 run_tool_cmd "file-change-1-3" "file-change" '{"path": "x/1.txt","changes":[{"old":"Second write content 1\n","new":"Rewritten content 1\n"}]}'
 C3=$(capture_change "file-change-1-3")
+run_change_cmd "change-list-after-file-change" list
 run_tool_cmd "maia-change-apply-4" "change-apply" '{"ids": ["'$C3'"]}'
+run_change_cmd "change-list-after-change-apply" list
 # Skip
 run_tool_cmd "maia-change-skip-2" "change-skip" '{"ids": ["'$C1'","'$C2'"]}'
+run_change_cmd "change-list-after-change-skip" list
 
 # Curl
 $MAIA tool allow "web-browser-curl"
