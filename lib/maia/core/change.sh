@@ -370,6 +370,15 @@ get_status() {
     echo "$status"
 }
 
+# Display change metadata together with the state encoded in its filename.
+# The state is deliberately not stored in the metadata file, so include it
+# explicitly when presenting a change to the user.
+show_change_metadata() {
+    local file="$1"
+    printf "State: %s\n" "$(get_status "$file")"
+    myl_pretty "$file"
+}
+
 add_file_to_session_filesets() {
     local file="$1"
     local session="$2"
@@ -706,7 +715,7 @@ handle_change_command() {
 			read_file_by_line "$changes_dir/$session/$id.txt"
 		    fi
 		else
-		    myl_pretty "$file"
+		    show_change_metadata "$file"
 		    echo
 		    showfiles "$prefix"
 		    if [[ -e "$changes_dir/$session/$id.txt" ]] ; then
@@ -724,7 +733,7 @@ handle_change_command() {
 		    local subid="${subbase%-*}"
 		    echo
 		    echo "Sub-change: $subid"
-		    myl_pretty "$subchange"
+		    show_change_metadata "$subchange"
 		    echo
 		    if [[ "$raw" == false ]]; then
 			local subprefix="${changes_dir}/$session/${subbase}"
@@ -743,7 +752,7 @@ handle_change_command() {
 		    fi
 		else
 		    [[ -f "$file" ]] || die "Change '$id' not found [$file]"
-		    myl_pretty "$file"; echo
+		    show_change_metadata "$file"; echo
 		    showfiles "$prefix"
 		fi
 	    fi
