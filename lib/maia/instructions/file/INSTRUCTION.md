@@ -1,5 +1,5 @@
 ---
-description: How to read and manipulate files using file and change tools
+description: How to read and manipulate files using file, util-* and change tools
 all-tool: file-*
 loadable: false
 ---
@@ -69,6 +69,15 @@ Example: Find php files that are not for test
 
 Example: Filter some other tool
 core-pipe ( web-browser-lynx "https://someurl" | util-head )
+
+
+
+# Minimize token usage
+
+Avoid unnecessary tool calls, repeated file content, and other operations that consume
+tokens without providing a corresponding benefit. When relevant content is already
+available in the file context, use it directly instead of retrieving it again.
+Follow this principle even when a tool call would otherwise be permitted by its tool description.
 
 
 
