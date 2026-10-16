@@ -48,8 +48,7 @@ build_list_filter_from_patterns() {
 }
 
 list_tools() {
-    # Load all tools}
-    init_tool_search_dirs
+    # Load all tools
     local all_tools_json=$(load_all_tool_defs)
     local allowed_tools_list_file="$1"
     if [[ -s "$allowed_tools_list_file" ]]; then
@@ -158,9 +157,6 @@ refresh_allowed_toolset_files() {
 	rm -f "$allowed_tools_def_file"
 	rm -f "$allowed_tools_instr_file"
     else
-	# Important to call this because it is used by load_all_tool_defs
-	init_tool_search_dirs "$scope"
-
 	generate_allowed_toolset_def_file "$allowed_tools_list_file" "${allowed_tools_def_file}"
 	generate_allowed_tools_instr_file "$allowed_tools_list_file" "${allowed_tools_instr_file}"
 	info "Refreshed allowed toolset for scope '$scope'"
@@ -171,9 +167,6 @@ refresh_allowed_toolset_files() {
 # Optionally for a specific function pattern
 verify_tools_def_file() {
     local scope="$1"
-    # Important to call this because it is used by load_all_tool_defs
-    init_tool_search_dirs "$scope"
-
     local allowed_tools_list_file="$2"
     local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
     local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"
@@ -221,7 +214,6 @@ verify_tools_def_file() {
 expand_tool_wildcards() {
     local patterns=("$@")
     local all_tools=()
-    init_tool_search_dirs
     # Load all tools
     local tmpfile="$(mktemp)"
     load_all_tool_defs > "$tmpfile"
@@ -277,6 +269,10 @@ handle_tool_command() {
     local subcmd="${1:-}"
     shift
 
+    if [[ "$scopearg" = "yes" && "$subcmd" = "run" ]] ; then
+	die "Scope argument not allowed for run."
+    fi
+
     # default scope if none given
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
@@ -285,19 +281,21 @@ handle_tool_command() {
     fi
 
     # Special default scope handling
-    case "$subcmd" in
-	list)
-	    scope="$implicit_scope"
-	    ;;
-        refresh|verify|edit)
-	    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+    if [[ -z "$scope" ]]; then
+	case "$subcmd" in
+	    list)
 		scope="$implicit_scope"
-	    fi
-	    ;;
-	*)
-	    :
-	    ;;
-    esac
+		;;
+            refresh|verify|edit)
+		if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+		    scope="$implicit_scope"
+		fi
+		;;
+	    *)
+		:
+		;;
+	esac
+    fi
 
     if [[ -z "$scope" ]]; then
 	scope="session"
@@ -305,6 +303,7 @@ handle_tool_command() {
 
     validate_scope "$scope"
     load_config "$scope" CONFIG
+    init_tool_search_dirs "$scope"
 
     # compute filename & path
     local filename="${prompt_type}.txt"
@@ -357,7 +356,6 @@ handle_tool_command() {
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
 	discover)
-	    init_tool_search_dirs
 	    local serverscfg="$(get_config mcp_servers empty)"
 	    IFS="," read -ra servers <<< "$serverscfg"
 	    for server in "${servers[@]}" ; do

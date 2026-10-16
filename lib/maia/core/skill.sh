@@ -341,6 +341,10 @@ handle_skill_command() {
     local subcmd="${1:-}"
     shift || true
 
+    if [[ "$scopearg" = "yes" && "$subcmd" = "run" ]] ; then
+	die "Scope argument not allowed for run."
+    fi
+
     # default scope if none given
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
@@ -349,19 +353,21 @@ handle_skill_command() {
     fi
 
     # Special default scope handling
-    case "$subcmd" in
-	list)
-	    scope="$implicit_scope"
-	    ;;
-        refresh|verify|edit)
-	    if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+    if [[ -z "$scope" ]] ; then
+	case "$subcmd" in
+	    list)
 		scope="$implicit_scope"
-	    fi
-	    ;;
-	*)
-	    :
-	    ;;
-    esac
+		;;
+            refresh|verify|edit)
+		if [[ -z "$scope" && "$implicit_scope" != "default" && "$implicit_scope" != "system" ]]; then
+		    scope="$implicit_scope"
+		fi
+		;;
+	    *)
+		:
+		;;
+	esac
+    fi
 
     if [[ -z "$scope" ]]; then
         scope="session"

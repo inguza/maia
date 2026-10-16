@@ -7,9 +7,6 @@
 # Commercial licensing is available separately.
 #
 . "$MAIA_CORE_LIB_DIR/user.sh"
-# Important to be able to see the instructions
-init_instruction_search_dirs
-init_task_search_dirs
 
 send_usage() {
     cat <<'EOF'
@@ -420,6 +417,9 @@ handle_send_command() {
 
     local scope="session"
     load_config "$scope" CONFIG
+    # Important to be able to see the instructions
+    init_instruction_search_dirs
+    init_task_search_dirs
 
     local maia_api_base_url="$(get_config api_base_url)"
 
@@ -454,6 +454,7 @@ handle_send_command() {
     local no_skills=false
     local no_instructions=false
     local no_tasks=false
+    init_tool_search_dirs "session"
 
     local dry_run=false
     local response_file=""

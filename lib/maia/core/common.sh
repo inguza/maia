@@ -220,9 +220,12 @@ init_tool_search_dirs() {
     local scope="$1"
     init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
+    local pscopepaths="$(resolve_profile_path "scope+tools")"
+    local pscope="${pscopepaths%%|*}"
+    local ppaths="${pscopepaths#*|}"
     TOOL_DIRS=(
 	[session]="${SCOPE_DIR[session]}/tools"
-	[profile]="$(resolve_profile_path "tools")"
+	[profile]="$ppaths"
 	[workspace]="$wsroot/.maia/tools:${SCOPE_DIR[workspace]}/tools"
 	[home]="${SCOPE_DIR[home]}/tools"
 	[user]="${SCOPE_DIR[user]}/tools"
@@ -233,11 +236,18 @@ init_tool_search_dirs() {
     )
     case "$scope" in
 	profile)
-	    # TODO: We need to figure out what kind of profile this is, if it is a
-	    # session priofile it should not reset anything, if it is a workspace profile
-	    # only the session part and if it is a home profile the below is correct.
-	    TOOL_DIRS[workspace]=""
-	    TOOL_DIRS[session]=""
+	    case "$pscope" in
+		session)
+		    :
+		    ;;
+		workspace)
+		    TOOL_DIRS[session]=""
+		    ;;
+		*)
+		    TOOL_DIRS[workspace]=""
+		    TOOL_DIRS[session]=""
+		    ;;
+	    esac
 	    ;;
 	workspace)
 	    TOOL_DIRS[profile]=""
@@ -248,7 +258,7 @@ init_tool_search_dirs() {
 	    TOOL_DIRS[profile]=""
 	    TOOL_DIRS[session]=""
 	    ;;
-	*)
+	*) # session and ""
 	    :
 	    ;;
     esac
@@ -258,9 +268,12 @@ init_skill_search_dirs() {
     local scope="$1"
     init_profile_search_dirs
     local wsroot="$(resolve_workspace_root)"
+    local pscopepaths="$(resolve_profile_path "scope+skills")"
+    local pscope="${pscopepaths%%|*}"
+    local ppaths="${pscopepaths#*|}"
     SKILL_DIRS=(
 	[session]="${SCOPE_DIR[session]}/skills"
-	[profile]="$(resolve_profile_path "skills")"
+	[profile]="$ppaths"
 	[workspace]="${SCOPE_DIR[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
 	[home]="${SCOPE_DIR[home]}/skills"
 	[user]="${SCOPE_DIR[user]}/skills"
@@ -271,11 +284,18 @@ init_skill_search_dirs() {
     )
     case "$scope" in
 	profile)
-	    # TODO: We need to figure out what kind of profile this is, if it is a
-	    # session priofile it should not reset anything, if it is a workspace profile
-	    # only the session part and if it is a home profile the below is correct.
-	    SKILL_DIRS[workspace]=""
-	    SKILL_DIRS[session]=""
+	    case "$pscope" in
+		session)
+		    :
+		    ;;
+		workspace)
+		    SKILL_DIRS[session]=""
+		    ;;
+		*)
+		    SKILL_DIRS[workspace]=""
+		    SKILL_DIRS[session]=""
+		    ;;
+	    esac
 	    ;;
 	workspace)
 	    SKILL_DIRS[profile]=""
@@ -286,7 +306,7 @@ init_skill_search_dirs() {
 	    SKILL_DIRS[profile]=""
 	    SKILL_DIRS[session]=""
 	    ;;
-	*)
+	*) # session and ""
 	    :
 	    ;;
     esac
@@ -297,7 +317,7 @@ init_instruction_search_dirs() {
     local wsroot="$(resolve_workspace_root)"
     INSTRUCTION_DIRS=(
 	[session]="${SCOPE_DIR[session]}/instructions"
-	[profile]="$(resolve_profile_path "tools")"
+	[profile]="$(resolve_profile_path "instructions")"
 	[workspace]="${SCOPE_DIR[workspace]}/instructions:$wsroot/instructions:$wsroot/.maia/instructions"
 	[home]="${SCOPE_DIR[home]}/instructions"
 	[user]="${SCOPE_DIR[user]}/instructions"
@@ -635,13 +655,24 @@ resolve_profile_path() {
 		    profilename="$(strip_cr "$profilename")"
 		    if [[ "$this" == "$profilename" ]] ; then
 			# We have found the profile directory base
-			case "$type" in
+			local output_type="$type"
+			local output_prefix=""
+			if [[ "$type" == scope+* ]]; then
+			    output_type="${type#scope+}"
+			    output_prefix="$sc|"
+			elif [[ "$type" == scope ]]; then
+			    printf '%s' "$sc"
+			    return 0
+			fi
+			case "$output_type" in
 			    path)
+				printf '%s' "$output_prefix"
 				local path="$(dirname $d)/$name"
 				path="${path//%/\/profiles\/}"
 				printf '%s' "$path"
 				;;
 			    paths)
+				printf '%s' "$output_prefix"
 				local paths=
 				local path="$(dirname $d)"
 				IFS='%' read -ra parts <<< "$name"
@@ -655,8 +686,9 @@ resolve_profile_path() {
 				printf '%s' "$paths"
 				;;
 			    tools|skills|instructions)
+				printf '%s' "$output_prefix"
 				local paths=
-				local path="(dirname $d)"
+			    local path="$(dirname "$d")"
 				IFS='%' read -ra parts <<< "$name"
 				for part in "${parts[@]}"; do
 				    path+="/${part}"
@@ -695,7 +727,7 @@ profile_allowed() {
     local -a patterns
 
     read -ra patterns <<< "$(get_config allowed_profiles)"
-    profile_allowed_raw "$pattern" "${patterns[@]}"
+    profile_allowed_raw "$profile" "${patterns[@]}"
     return $?
 }
 
@@ -1476,8 +1508,7 @@ command_exec_dir() {
 
 # IMPORTANT! init_tool_search_dirs must be called before a call to this
 build_tool_search_path() {
-    init_tool_search_dirs
-    local paths=()
+    local paths=""
     local sep=""
     for scope in "${TOOL_SEARCH_ORDER[@]}"; do
 	paths+="${sep}${TOOL_DIRS[$scope]}"
@@ -1561,6 +1592,8 @@ load_config() {
 	[[ "$s" == "$target_scope" ]] && break
     done
     export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
+    PROFILE_SEARCH_DIRS_INITIALIZED=""
+    init_scope_dirs
 }
 
 # Helper to convert environment variable MAIA_CURL_EXTRA_HEADERS into curl -H arguments.

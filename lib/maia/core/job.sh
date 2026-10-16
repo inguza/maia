@@ -84,6 +84,7 @@ handle_job_command() {
 	    local id="$(date +%Y%m%dT%H%M%S)-$$-$(pid_starttime "$$")"
 	    trigger_event "pre-job-start" "$id" "$tool" "$toolargs"
 	    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+	    init_tool_search_dirs "$scope"
 	    tool_fork "${session_path}/jobs" \
 		      "$id" \
 		      "$tool" \

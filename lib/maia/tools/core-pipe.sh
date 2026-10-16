@@ -15,6 +15,7 @@ declare -A param
 parseparam
 
 enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+init_tool_search_dirs "session"
 tool_search_path=$(build_tool_search_path)
 export PATH="$tool_search_path:$PATH"
 
