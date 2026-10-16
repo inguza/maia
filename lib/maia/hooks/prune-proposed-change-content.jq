@@ -12,6 +12,7 @@
                             {}
                             + (if has("content") then {content: .content} else {} end)
                             + (if has("tool_calls") then {tool_calls: .tool_calls} else {} end)
+			    + (if has("data") then {data: .data} else {} end)
                         )
                     else
                         .
