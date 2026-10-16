@@ -233,6 +233,9 @@ init_tool_search_dirs() {
     )
     case "$scope" in
 	profile)
+	    # TODO: We need to figure out what kind of profile this is, if it is a
+	    # session priofile it should not reset anything, if it is a workspace profile
+	    # only the session part and if it is a home profile the below is correct.
 	    TOOL_DIRS[workspace]=""
 	    TOOL_DIRS[session]=""
 	    ;;
@@ -268,6 +271,9 @@ init_skill_search_dirs() {
     )
     case "$scope" in
 	profile)
+	    # TODO: We need to figure out what kind of profile this is, if it is a
+	    # session priofile it should not reset anything, if it is a workspace profile
+	    # only the session part and if it is a home profile the below is correct.
 	    SKILL_DIRS[workspace]=""
 	    SKILL_DIRS[session]=""
 	    ;;
@@ -1352,19 +1358,14 @@ handle_text_file_command() {
                         echo "${1#+}" >> "$file"
                         shift
                         ;;
-
                     ==*)
                         echo "${1#=}" >> "$file"
                         shift
                         ;;
-		    @*)
-			local snippet_name="${1#@}"
-			if expanded=$(expand_snippet_name "$snippet_name"); then
-			    echo "$expanded" >> "$file"
-			else
-			    die "Snippet '$snippet_name' not found for explicit @ expansion."
-			fi
-			;;
+                    @@*)
+                        echo "${1#@}" >> "$file"
+                        shift
+                        ;;
 		    =*)
 			# todo strip = from the file
                         local efile="${1#=}"
@@ -1374,6 +1375,19 @@ handle_text_file_command() {
 			    warn "File '$efile' do not exist."
 			fi
 			shift
+			;;
+		    *' '*)
+                        echo "$1" >> "$file"
+			shift
+			;;
+		    @*)
+			local snippet_name="${1#@}"
+			shift
+			if expanded=$(expand_snippet_name "$snippet_name"); then
+			    echo "$expanded" >> "$file"
+			else
+			    die "Snippet '$snippet_name' not found for explicit @ expansion."
+			fi
 			;;
 		    *)
                         echo "$1" >> "$file"
