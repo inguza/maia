@@ -608,13 +608,6 @@ handle_history_command() {
 	    info "Entries restored in history '$history_name'."
 	    ;;
 
-	restore)
-	    shift
-            local slice=$(range_defaults "${1:-}")
-            exclusive_json_modify "$history_file" ".[${slice}] |= map(.hidden = true)"
-            info "Entries hidden in history '$history_name'."	    
-	    ;;
-
 	hide)
 	    shift
             local slice=$(range_defaults "${1:-}")
