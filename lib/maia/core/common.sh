@@ -260,7 +260,7 @@ init_skill_search_dirs() {
     local wsroot="$(resolve_workspace_root)"
     SKILL_DIRS=(
 	[session]="${SCOPE_DIR[session]}/skills"
-	[profile]="$(resolve_profile_path "tools")"
+	[profile]="$(resolve_profile_path "skills")"
 	[workspace]="${SCOPE_DIR[workspace]}/skills:$wsroot/skills:$wsroot/.maia/skills"
 	[home]="${SCOPE_DIR[home]}/skills"
 	[user]="${SCOPE_DIR[user]}/skills"
