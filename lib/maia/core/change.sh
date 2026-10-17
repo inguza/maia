@@ -211,8 +211,8 @@ pre_check() {
     # Make sure unmatched globs vanish
     shopt -s nullglob
 
-    # Look at every sub-entry (index "+" or digits)
-    for f in "$changes_dir/$session/${base}-"*".myl"; do
+    # Look at numbered sub-entries only; the -+-*.myl file is the set metadata.
+    for f in "$changes_dir/$session/${base}-"[0-9]*".myl"; do
 	[[ -f "$f" ]] || continue
 	if [[ "$(get_status "$f")" == "pending" ]]; then
 	    pending=true
@@ -230,8 +230,10 @@ post_check() {
     local status="$3"
     local all_match=true
     shopt -s nullglob
-    # Verify every sub-entry now has .status != pending
-    for f in "$changes_dir/$session/${base}-"*".myl"; do
+    # Verify every numbered sub-entry now has .status != pending.
+    # The -+-*.myl file is the set metadata and must not participate.
+    for f in "$changes_dir/$session/${base}-"[0-9]*".myl"; do
+	[[ -f "$f" ]] || continue
 	if [[ "$(get_status "$f")" == "pending" ]]; then
 	    all_match=false
 	    break
@@ -240,6 +242,13 @@ post_check() {
 
     # If we transitioned from some pending to all-matching, bump the base
     if [[ "$PREVIOUSLY_PENDING" == true && "$all_match" == true ]]; then
+        # The set metadata is deliberately excluded from the scan above, so
+        # update it only after all numbered sub-entries have transitioned.
+        local setmeta
+        setmeta="$(match_single_file "$changes_dir/$session/${base}-+-" ".myl")"
+        if [[ -n "$setmeta" ]]; then
+            change_state_for_meta "$status" "$setmeta"
+        fi
 	# Prune history if configured
 	[[ "$UPDATE_HISTORY" == true ]] && prune_history "$base" "$status"
     fi
@@ -811,6 +820,7 @@ handle_change_command() {
 		    local type=$(myl_get "$metaf" "type")
 		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
 		    [[ "$type"   == "shell"  || "$type" == "action" ]] || die "Cannot auto-apply non-shell '$id'"
+                    pre_check "$session" "${id%-*}"
 		    change_state_for_meta "running" "$metaf"
 		    # OBSERVE! Files are changed now to running!!!
 		    metaf=$(match_single_file "$prefix" ".myl")
@@ -879,11 +889,13 @@ handle_change_command() {
 		    if [[ "$cmd" == "apply" ]] ; then
 			[[ "$status" == "pending" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
 			[[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
+			pre_check "$session" "${id%-*}"
 			apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
 			post_check "$session" "${id%-*}" applied
-		    elif [[ "$cmd" == "revert" ]] ; then
+		elif [[ "$cmd" == "revert" ]] ; then
 			[[ "$status" == "applied" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
 			[[ "$type"   == "patch"  ]] || die "Cannot auto-revert non-patch '$id'"
+			pre_check "$session" "${id%-*}"
 			apply_patch -R "$workspace_root" "${changes_dir}/$session/${id}-applied.patch"
 			post_check "$session" "${id%-*}" pending
 		    fi
@@ -969,8 +981,14 @@ handle_change_command() {
 		    notice "Updated to state '$action' for change set $id and all sub-entries."
 		else
 		    # --- single sub-entry ---
+		    if [[ "$action" != "pending" ]]; then
+			pre_check "$session" "${id%-*}"
+		    fi
 		    change_state_for_meta "$action" "$changes_dir/$session/${id}-"*".myl"
 		    notice "Updated to state '$action' for change $id."
+		    if [[ "$action" != "pending" ]]; then
+			post_check "$session" "${id%-*}" "$action"
+		    fi
 		fi
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ && "$action" != "pending" ]]; then
 		    # --- whole change set ---

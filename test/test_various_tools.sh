@@ -33,7 +33,7 @@ touch "$XMAIA_HOME/file-to-see.txt"
 export MAIA_SESSION=default
 
 capture_change() {
-    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep -A1 "Change proposal created:" | grep "^2"
+    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep -A1 "proposal created:" | grep "^2"
 }
 
 run_tool_cmd() {
@@ -127,8 +127,11 @@ run_tool_cmd "print-1" "core-print" '{"content":"This is a test\nAnd after new l
 
 ##### Shell exec
 export ASSISTANT_BASEID="20260717T214714-68e23e97"
-run_tool_cmd "shell-exec-1" "shell-exec" '{"commands":"make\ngcc\n"}'
+run_tool_cmd "shell-exec-1" "shell-exec" '{"commands":"echo Foobar\necho gcc\n"}'
+C1=$(capture_change "shell-exec-1")
 run_change_cmd "change-list-after-shell-exec" list
+run_change_cmd "change-do-1" do "$C1"
+run_change_cmd "change-list-after-change-do" list
 
 ##### maia-* tools
 $MAIA tool replace "core-*" "file-*" "util-*" > /dev/null 2>&1
