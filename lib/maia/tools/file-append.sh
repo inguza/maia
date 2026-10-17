@@ -28,10 +28,6 @@ ws_changes="${ws_path}/changes/${session_name}"
 path="$(printf '%b' "${param[path]}")"
 validate_path "$path"
 
-baseid="${ASSISTANT_BASEID}"
-index="$(find_index "$ws_changes" "$baseid")"
-id="${baseid}-${index}"
-
 if [[ ! -e "$path" ]] ; then
     touch "$path"
 fi
