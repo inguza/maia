@@ -48,7 +48,6 @@ fi
 
 for d in "data" "data-raw" "data-binary" "header"; do
     if [[ -v "param[$d]" ]]; then
-        local values
         if ! mapfile_from_command values jq -r '.[]' <<<"$(printf '%b' "${param[$d]}")" ; then
 	    echo "[WARNING] $d parse error." >&2
 	fi
