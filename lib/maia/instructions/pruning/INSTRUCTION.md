@@ -10,3 +10,5 @@ original record's content has been pruned or compacted from the conversation
 history. Treat it as a reference identifier, not as part of the original
 text or as user-provided content. Do not reproduce it in responses unless
 explicitly asked to discuss the reference itself.
+
+Do NOT invent Original text reference as assistant response.
