@@ -78,6 +78,7 @@ Avoid unnecessary tool calls, repeated file content, and other operations that c
 tokens without providing a corresponding benefit. When relevant content is already
 available in the file context, use it directly instead of retrieving it again.
 Follow this principle even when a tool call would otherwise be permitted by its tool description.
+Even retreiving a small amount of data for a file already in context is unnecessary.
 
 
 
