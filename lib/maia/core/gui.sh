@@ -203,7 +203,7 @@ gui_server_ready() {
     [[ "$host" == "0.0.0.0" ]] && host="127.0.0.1"
     [[ "$host" == "::" ]] && host="[::1]"
 
-    curl -fsS --max-time 1 "http://$host:$port/" >/dev/null 2>&1
+    curl -sS --max-time 1 "http://$host:$port/" >/dev/null 2>&1
 }
 
 gui_start_server() {
