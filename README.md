@@ -426,6 +426,41 @@ The token is sent as `Authorization: Bearer <token>`.
 
 ---
 
+# Web GUI
+
+MAIA includes an web GUI for browsing sessions and conversations, managing workspaces and profiles, and managing files in the current session's filesets.
+
+The GUI uses PHP's built-in web server. Start it with:
+
+```bash
+maia gui start
+```
+
+The command prints the URL. If `MAIA_BROWSER` is set, it also opens the URL automatically:
+
+```bash
+export MAIA_BROWSER=firefox
+maia gui start
+```
+
+Stop the server with:
+
+```bash
+maia gui stop
+```
+
+By default, the server listens only on `127.0.0.1`. To make it listen on another address, use:
+
+```bash
+maia gui start --bind 0.0.0.0
+```
+
+Only use a public bind address with appropriate network access controls. The current GUI does not provide its own authentication layer.
+
+Workspace access through the GUI is restricted. A workspace can be selected and used by the GUI only when its
+filesystem root is inside the base directory containing the resolved MAIA home directory. The CLI may still manage
+workspaces outside that boundary.
+
 # Key Concepts
 
 ## [Scope](docs/scope.md)
