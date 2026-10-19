@@ -16,13 +16,13 @@ Manage workspace manifests and their filesets.
 
 COMMANDS
 
-  create [--path <path>] [--filesets <array>] [--default-session-filesets <array>] [<name>]
+  create [--path <path>] [--filesets <array>] [<name>]
     Create a new workspace manifest. 
     If <name> is omitted, the default is:
       * "default" if <workspace_path>/.maia matches $MAIA_HOME
       * basename("<workspace_path>") otherwise.
 
-  set [--path <path>] [--filesets <array>] [--default-session-filesets <array>] [<name>]
+  set [--path <path>] [--filesets <array>] [<name>]
     Change the workspace properties.
 
   list|ls
@@ -53,13 +53,6 @@ OPTIONS
   --filesets <array> (create and set)
     Specify the list of filesets in the workspace as a array of strings.
     Example: 'default,tests,docs'
-
-  --default-session-filesets <json-array> (create and set)
-    Set the default session filesets as a JSON array of strings.
-    Supports the special marker "__WORKSPACE_FILESETS__" to represent all
-    current workspace filesets.
-    Example: '__WORKSPACE_FILESETS__,extra_fileset'
-    If omitted during workspace creation, defaults to __WORKSPACE_FILESETS__.
 
   --fileset (only with clear)
     Remove all filesets and recreate default fileset.
