@@ -237,7 +237,28 @@ handle_workspace_command() {
 
 	list|ls)
 	    shift
-	    handle_x_list workspace
+	    local raw_output=0
+	    while [[ $# -gt 0 ]]; do
+		case "$1" in
+		    --raw|--json)
+			raw_output=1
+			shift
+			;;
+		    *)
+			die "Unknown option '$1'."
+			;;
+		esac
+	    done
+	    if (( raw_output )); then
+		local active="$(resolve_workspace_name)"
+		local base="$(resolve_x_base workspace)"
+		for d in "$base"/*/; do
+		    [[ -d "$d" ]] || continue
+		    basename "${d%/}"
+		done
+	    else
+		handle_x_list workspace
+	    fi
 	    ;;
 
 	show)

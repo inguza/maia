@@ -110,8 +110,10 @@ COMMANDS:
   Configuration / General
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
+    gui              Start and manage the web GUI
     api              AI introspection (models, model)
     update	     Update data to latest software and refresh skills and tools.
+    gui		     Web GUI (start, stop)
 
   Session and prompt handling
     session          Session management (create, list, show, delete)
@@ -237,6 +239,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/home.sh"
 	handle_home_command "$@"
+	;;
+    gui)
+	shift
+	. "$MAIA_CORE_LIB_DIR/gui.sh"
+	handle_gui_command "$@"
 	;;
     debug)
 	;;

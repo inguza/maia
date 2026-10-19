@@ -444,7 +444,7 @@ handle_history_command() {
 		    -a|--assistant)  assistant_only=1    ;;
 		    --raw|--json)    raw_output=1 ;;
 		    # detect any range-like token
-		    prompt|turn|last|last-*|all) range="$arg" ;;
+		    prompt|turn*|last|last-*|all) range="$arg" ;;
 		    -|[0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9]|*-[0-9]*|[0-9]*-[0-9]*|[0-9]*-) range="$arg" ;;
 		    *)
 			die "Unknown argument '$arg'."

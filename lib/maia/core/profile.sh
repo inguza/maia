@@ -257,7 +257,27 @@ handle_profile_command() {
 
 	list|ls)
 	    init_profile_search_dirs
-	    list_profiles
+	    local raw_output=0
+	    while [[ $# -gt 0 ]]; do
+		case "$1" in
+		    --raw|--json)
+			raw_output=1
+			shift
+			;;
+		    *)
+			die "Unknown option '$1'."
+			;;
+		esac
+	    done
+	    if (( raw_output )); then
+		local profile_name
+		while IFS= read -r profile_name; do
+		    [[ -n "$profile_name" ]] || continue
+		    printf '%s\n' "${profile_name%% *}"
+		done < <(get_all_ordered_profile_names "name")
+	    else
+		list_profiles
+	    fi
 	    ;;
 
 	delete)

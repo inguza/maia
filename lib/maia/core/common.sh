@@ -1130,6 +1130,37 @@ range_defaults() {
         return
     fi
     # keyword turn
+    if [[ "$raw" =~ ^turn([0-9]+)-turn([0-9]+)$ ]]; then
+        [[ -z "$role" ]] || die "Role specifier is not allowed with a turn range."
+        local start_user=${BASH_REMATCH[1]}
+        local end_user=${BASH_REMATCH[2]}
+        echo '([to_entries[] | select(.value.role == "user" and .value.user_index == '"$start_user"') | .key] | .[0] // length):([to_entries[] | select(.value.role == "user" and .value.user_index == '"$((end_user + 1))"') | .key] | .[0] // length)'
+        return
+    fi
+    # Single user turn: turnN.
+    if [[ "$raw" =~ ^turn([0-9]+)$ ]]; then
+        [[ -z "$role" ]] || die "Role specifier is not allowed with a turn range."
+        local turn_user=${BASH_REMATCH[1]}
+        echo '([to_entries[] | select(.value.role == "user" and .value.user_index == '"$turn_user"') | .key] | .[0] // length):([to_entries[] | select(.value.role == "user" and .value.user_index == '"$((turn_user + 1))"') | .key] | .[0] // length)'
+        return
+    fi
+
+    # Open-ended user-index range: turnN-.
+    if [[ "$raw" =~ ^turn([0-9]+)-$ ]]; then
+        [[ -z "$role" ]] || die "Role specifier is not allowed with a turn range."
+        local start_user=${BASH_REMATCH[1]}
+        echo '([to_entries[] | select(.value.role == "user" and .value.user_index == '"$start_user"') | .key] | .[0] // length):'
+        return
+    fi
+
+    # Relative range from the end: turn-N means the last turn plus N earlier turns.
+    if [[ "$raw" =~ ^turn-([0-9]+)$ ]]; then
+        [[ -z "$role" ]] || die "Role specifier is not allowed with a turn range."
+        local preceding=${BASH_REMATCH[1]}
+        echo '(. as $history | ([ $history[] | select(.role == "user") | .user_index ] | max // -1) as $max_user | ([ $history | to_entries[] | select(.value.role == "user" and .value.user_index == ($max_user - '"$preceding"')) | .key] | .[0] // length)):'
+        return
+    fi
+
     if [[ "$raw" == "turn" ]]; then
 	if [[ -n "$role" ]] ; then
 	    die "Role specifier is not allowed with 'turn'."

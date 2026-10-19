@@ -1,0 +1,44 @@
+USAGE
+
+  maia gui [command]
+     Start and manage the MAIA web GUI.
+
+COMMANDS
+
+  start [--bind <address>] [--launch]
+     Start the MAIA web GUI using PHP's built-in web server.
+
+     The default bind address is 127.0.0.1. Use --bind 0.0.0.0 to listen on
+     all interfaces.
+
+  stop
+     Stop the running MAIA web GUI server.
+
+  launch [<url>]
+     Open the supplied URL, or http://localhost:<port>/ when no URL is supplied.
+
+  create [<name>] [--launch]
+     Create an authentication token and print an authenticated URL.
+
+  list
+     List authentication token identifiers.
+
+  delete <name>:<salt>
+     Delete one authentication token.
+
+  clear
+     Delete all authentication tokens.
+
+OPTIONS
+
+  -h, --help
+     Show this help message and exit.
+
+ENVIRONMENT
+
+  MAIA_BROWSER
+     Command used to open the GUI URL after the server starts.
+
+  MAIA_GUI_BIND
+     Default bind address, overridden by --bind.
+
