@@ -11,6 +11,12 @@ COMMANDS
   list|ls
     List all available profiles.
 
+  show [--raw] [<name>]
+    Show profile metadata.
+
+  set --description <description> [<name>]
+    Set the profile description.
+
   delete [--force] <name>
     Delete the specified profile (cannot delete the current one).
 

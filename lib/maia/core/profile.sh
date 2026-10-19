@@ -21,6 +21,12 @@ COMMANDS
   list|ls
     List all available profiles.
 
+  show [--raw] [<name>]
+    Show profile metadata.
+
+  set --description <description> [<name>]
+    Set the profile description.
+
   delete [--force] <name>
     Delete the specified profile (cannot delete the current one).
 
@@ -193,6 +199,60 @@ handle_profile_command() {
 	    mkdir -p "$filedir"
 	    myl_add "$filepath" description "$description"
 	    notice "Created profile '$name' with description '$description'."
+	    ;;
+
+	show)
+	    init_profile_search_dirs
+	    local raw_output=0
+	    while [[ $# -gt 0 ]]; do
+		case "$1" in
+		    --raw|--json) raw_output=1; shift ;;
+		    *) break ;;
+		esac
+	    done
+	    local name="${1:-$(resolve_profile_name)}"
+	    local profile_dir="$(resolve_profile_path path "$name")"
+	    local meta="$profile_dir/profile.myl"
+	    [[ -f "$meta" ]] || die "Profile '$name' does not exist"
+	    if (( raw_output )); then
+		read_file "$meta"
+	    else
+		echo "Profile:     $name"
+		echo "Description: $(myl_get "$meta" description)"
+	    fi
+	    ;;
+
+	set)
+	    init_profile_search_dirs
+	    local description_set=false
+	    local description=""
+	    while [[ $# -gt 0 ]]; do
+		case "$1" in
+		    --description)
+			[[ -n "${2:-}" ]] || die "The option --description requires an argument."
+			description="$2"
+			description_set=true
+			shift 2
+			;;
+		    --)
+			shift
+			break
+			;;
+		    -*)
+			die "Unknown option '$1'."
+			;;
+		    *)
+			break
+			;;
+		esac
+	    done
+	    [[ "$description_set" == true ]] || die "The option --description is required."
+	    local name="${1:-$(resolve_profile_name)}"
+	    local profile_dir="$(resolve_profile_path path "$name")"
+	    local meta="$profile_dir/profile.myl"
+	    [[ -f "$meta" ]] || die "Profile '$name' does not exist"
+	    myl_update "$meta" description "$description"
+	    notice "Updated profile '$name'."
 	    ;;
 
 	list|ls)
