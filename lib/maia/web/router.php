@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 
+if ($path === '/status') {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "OK\n";
+    return true;
+}
+
 // Authenticate the root request before redirecting it to the canonical
 // session URL. This prevents an unauthenticated client from being redirected
 // before the authentication bootstrap has run.
