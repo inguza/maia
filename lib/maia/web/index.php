@@ -1369,6 +1369,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sessionSearch = document.getElementById('session-search');
         const sessionSearchInput = document.getElementById('session-search-input');
         const sessionSearchAction = document.getElementById('session-search-action');
+        const sessionCreateAction = document.createElement('button');
+        sessionCreateAction.type = 'button';
+        sessionCreateAction.textContent = '+';
+        sessionCreateAction.setAttribute('aria-label', 'Create session');
+        sessionSearchAction.insertAdjacentElement('afterend', sessionCreateAction);
+        sessionCreateAction.hidden = true;
         const sessionDeleteDialog = document.getElementById('session-delete-dialog');
         const sessionDeleteMessage = document.getElementById('session-delete-message');
         const resourceDeleteDialog = document.getElementById('resource-delete-dialog');
@@ -1390,9 +1396,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const workspaceSearch = document.getElementById('workspace-search');
         const workspaceSearchInput = document.getElementById('workspace-search-input');
         const workspaceSearchAction = document.getElementById('workspace-search-action');
+        const workspaceCreateAction = document.createElement('button');
+        workspaceCreateAction.type = 'button';
+        workspaceCreateAction.textContent = '+';
+        workspaceCreateAction.setAttribute('aria-label', 'Create workspace');
+        workspaceSearchAction.insertAdjacentElement('afterend', workspaceCreateAction);
+        workspaceCreateAction.hidden = true;
         const profileSearch = document.getElementById('profile-search');
         const profileSearchInput = document.getElementById('profile-search-input');
         const profileSearchAction = document.getElementById('profile-search-action');
+        const profileCreateAction = document.createElement('button');
+        profileCreateAction.type = 'button';
+        profileCreateAction.textContent = '+';
+        profileCreateAction.setAttribute('aria-label', 'Create profile');
+        profileSearchAction.insertAdjacentElement('afterend', profileCreateAction);
+        profileCreateAction.hidden = true;
         const resourceCreateDialog = document.getElementById('resource-create-dialog');
         const resourceCreateForm = document.getElementById('resource-create-form');
         const resourceCreateTitle = document.getElementById('resource-create-title');
@@ -1547,12 +1565,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        function updateResourceSearchAction(input, action, names, label) {
+        function updateResourceSearchAction(input, action, names, label, createAction) {
             const query = input.value.trim();
-            const matches = resourceMatches(names, query);
-            const canCreate = query !== '' && matches.length === 0 && validResourceName(query);
-            action.textContent = canCreate ? '＋' : '🔍';
-            action.setAttribute('aria-label', canCreate ? `Create ${label}` : `Search ${label}`);
+            const exactMatch = names.some((name) => name === query);
+            const canCreate = query !== '' && !exactMatch && validResourceName(query);
+            action.textContent = '🔍';
+            action.setAttribute('aria-label', `Search ${label}`);
+            if (createAction) {
+                createAction.hidden = !canCreate;
+            }
         }
 
         function updateSessionSearchAction() {
@@ -1560,17 +1581,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 sessionSearchInput,
                 sessionSearchAction,
                 knownSessions.map((session) => session.name),
-                'session'
+                'session',
+                sessionCreateAction
             );
         }
 
         function updateSidebarResourceSearch(type) {
             if (type === 'workspace') {
                 renderSidebarNames(workspaceList, workspaceListPlaceholder, workspaceNames, null, workspaceSearchInput.value.trim(), 'workspace');
-                updateResourceSearchAction(workspaceSearchInput, workspaceSearchAction, workspaceNames, 'workspace');
+                updateResourceSearchAction(workspaceSearchInput, workspaceSearchAction, workspaceNames, 'workspace', workspaceCreateAction);
             } else {
                 renderSidebarNames(profileList, profileListPlaceholder, profileNames, null, profileSearchInput.value.trim(), 'profile');
-                updateResourceSearchAction(profileSearchInput, profileSearchAction, profileNames, 'profile');
+                updateResourceSearchAction(profileSearchInput, profileSearchAction, profileNames, 'profile', profileCreateAction);
             }
         }
 
@@ -3218,8 +3240,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (query === '') {
                 return;
             }
-            const matches = resourceMatches(names, query);
-            if (matches.length === 0 && validResourceName(query)) {
+            const exactMatch = names.some((name) => name === query);
+            if (!exactMatch && validResourceName(query)) {
                 openResourceCreate(type, query);
             }
         }
@@ -3230,6 +3252,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         profileSearchInput.addEventListener('input', () => {
             updateSidebarResourceSearch('profile');
         });
+        sessionCreateAction.addEventListener('click', () => {
+            openResourceCreate('session', sessionSearchInput.value.trim());
+        });
+        workspaceCreateAction.addEventListener('click', () => {
+            openResourceCreate('workspace', workspaceSearchInput.value.trim());
+        });
+        profileCreateAction.addEventListener('click', () => {
+            openResourceCreate('profile', profileSearchInput.value.trim());
+        });
+
         workspaceSearch.addEventListener('submit', (event) => {
             event.preventDefault();
             resourceSearchSubmit('workspace');
@@ -3286,14 +3318,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
 
-            const matches = knownSessions.filter((session) => {
-                try {
-                    return new RegExp(query).test(session.name);
-                } catch (_) {
-                    return false;
-                }
-            });
-            if (matches.length === 0 && validResourceName(query)) {
+            const exactMatch = knownSessions.some((session) => session.name === query);
+            if (!exactMatch && validResourceName(query)) {
                 sessionSearchAction.disabled = true;
                 error.hidden = true;
                 try {
