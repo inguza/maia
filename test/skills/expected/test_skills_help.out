@@ -9,8 +9,11 @@ Manage LLM skills.
 
 COMMANDS
 
-  list
+  list [--json]
       List all discovered skills, marking allowed and loaded skills.
+
+  view [--expand]
+      View the allowed skills, optionally expand.
 
   show
       Show allowed skills and their descriptions.
@@ -24,6 +27,9 @@ COMMANDS
   append|allow [--remember] <skillname>...
       Append skill(s) to the allowed list. Wildcards supported.
       If --remember is given, also add to loaded context.
+
+  disable
+      Remove exact allowed-skill entries from the specified scope.
 
   replace [--remember] <skillname>...
       Replace allowed skills with specified ones. Wildcards supported.

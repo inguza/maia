@@ -80,6 +80,7 @@ show_x applied
 
 # Test pending command
 run_change_cmd "pending" pending "${set1}-1"
+run_change_cmd "pending_set" pending "${set1}"
 show_x pending
 
 # Test skipped command

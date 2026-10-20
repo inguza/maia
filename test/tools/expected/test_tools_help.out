@@ -9,8 +9,11 @@ Manage LLM tools/functions.
 
 COMMANDS
 
-  list
+  list [--json]
       List allowed tools and scope.
+
+  view [--expand]
+      View the allowed tools, optionally expand.
 
   show
       Show allowed tool definitions matching regex.
@@ -19,19 +22,22 @@ COMMANDS
       Edit the tool definition in specified scope.
 
   append|enable|allow <toolname> [<toolname> ...]
-      Allowed tool(s) matching regex in current scope.
+      Allowed tool(s) matching regex in specified scope.
       Wildcards are allowed in toolname.
 
   replace [<toolname> ...]
       Replace tool definition (same as clear and append)
       Wildcards are allowed in toolname.
 
+  disable <string> [<string> [...]]
+      Remove exact allowed-tool entries from the specified scope.
+
   run <toolname> [argumentsjsonstring]
       Run a tool directly. The result is not recorded in the conversation history.
       Note that the tool is run detached from stdin and stdout just as when run normally.
 
   clear
-      Clear all tool definitions in the current scope.
+      Clear all tool definitions in the specified scope.
 
   refresh
       Refresh allowed tools file to sync with discovered .td files.

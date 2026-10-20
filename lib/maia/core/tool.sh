@@ -51,20 +51,37 @@ list_tools() {
     # Load all tools
     local all_tools_json=$(load_all_tool_defs)
     local allowed_tools_list_file="$1"
+    if [[ "${2:-}" == "--json" ]]; then
+        if [[ -s "$allowed_tools_list_file" ]]; then
+            jq --slurpfile allowed "$allowed_tools_list_file" '
+                ($allowed[0] | map(.name)) as $allowed_names |
+                map(. + {allowed: (.name | IN($allowed_names[]))})
+            ' <<<"$all_tools_json"
+        else
+            jq 'map(. + {allowed: false})' <<<"$all_tools_json"
+        fi
+        return
+    fi
+    printf '  %-32s %-16s (%s)\n' 'Name' 'Effects' 'File'
+    printf '%s\n' '------------------------------------------------------------------------------------'
     if [[ -s "$allowed_tools_list_file" ]]; then
         jq -r --slurpfile allowed "$allowed_tools_list_file" '
             ($allowed[0] | map(.name)) as $allowed_names |
             .[] |
-            if (.name | IN($allowed_names[]))
-            then "* " + .name + "   (" + .source + ")"
-            else "  " + .name + "   (" + .source + ")"
-            end
-        ' <<<"$all_tools_json"
+            ((.effects // []) | if length == 0 then "-" else join("+") end) as $effects |
+            (if (.name | IN($allowed_names[])) then "*" else " " end) as $marker |
+            [$marker, .name, $effects, ("(" + .source + ")")] | @tsv
+        ' <<<"$all_tools_json" | while IFS=$'\t' read -r marker name effects file; do
+            printf '%s %-32s %-16s %s\n' "$marker" "$name" "$effects" "$file"
+        done
     else
         jq -r '
             .[] |
-            "  " + .name + "   (" + .source + ")"
-        ' <<<"$all_tools_json"
+            ((.effects // []) | if length == 0 then "-" else join("+") end) as $effects |
+            [" ", .name, $effects, ("(" + .source + ")")] | @tsv
+        ' <<<"$all_tools_json" | while IFS=$'\t' read -r marker name effects file; do
+            printf '%s %-32s %-16s %s\n' "$marker" "$name" "$effects" "$file"
+        done
     fi
 }
    
@@ -311,8 +328,37 @@ handle_tool_command() {
     local filegenpath="${SCOPE_DIR[$scope]}/${prompt_type}.json"
 
     case "$subcmd" in
+	append|enable|allow)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    # Start an explicit definition by inheriting the effective raw
+	    # definition from the parent scope, then append the new entry.
+	    copy_over "$implicit_scope" "$prompt_type" "$filepath"
+	    subcmd="append"
+	    ;;
+        clear|clearnonotice)
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            : > "$filepath"
+            ;;
+	*)
+	    :
+	    ;;
+    esac
+
+    case "$subcmd" in
         list)
-	    list_tools "$filegenpath"
+            # The requested scope may inherit its effective definition from a
+            # parent scope. Use the generated cache belonging to that source
+            # rather than looking only at the requested scope's cache.
+            local effective_file="$(file_for_scope "$scope" "$filename")"
+            local effective_genpath="$filegenpath"
+            if [[ -n "$effective_file" ]]; then
+                effective_genpath="${effective_file%.txt}.json"
+            fi
+            if [[ "${1:-}" == "--json" ]]; then
+                list_tools "$effective_genpath" --json
+            else
+                list_tools "$effective_genpath"
+            fi
             ;;
         restrict)
 	    # In case there is no file in this scope, copy it over
@@ -447,24 +493,21 @@ handle_tool_command() {
 	    echo "-----------------"
 	    prompt_for_scope "$scope" "$prompt_type" "json"
 	    ;;
-	append|enable|allow)
-	    # seed on first append
-	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    if [[ ! -f "$filepath" ]]; then
-		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
-		if [[ -z "$msg" ]] ; then
-		    touch "$filepath"
-		else
-		    echo "$msg" > "$filepath"
-		fi
-	    fi
-	    if [[ "$subcmd" == "enable" || "$subcmd" == "allow" ]] ; then
-		subcmd="append"
-	    fi
-	    handle_text_file_command "$filepath" "$subcmd" "$@"
-	    refresh_allowed_toolset_files "$scope" "$filepath"
-	    ;;
-        edit|replace|clear|delete|clearnonotice)
+        disable)
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            [[ -f "$filepath" ]] || : > "$filepath"
+            local tmpfile="$(mktemp)"
+            while IFS= read -r current || [[ -n "$current" ]]; do
+                local remove=false
+                for pattern in "$@"; do
+                    [[ "$current" == "$pattern" ]] && remove=true
+                done
+                [[ "$remove" == true ]] || printf '%s\n' "$current" >> "$tmpfile"
+            done < "$filepath"
+            mv "$tmpfile" "$filepath"
+            refresh_allowed_toolset_files "$scope" "$filepath"
+            ;;
+        append|edit|replace|delete|clear|clearnonotice)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
@@ -495,8 +538,11 @@ Manage LLM tools/functions.
 
 COMMANDS
 
-  list
+  list [--json]
       List allowed tools and scope.
+
+  view [--expand]
+      View the allowed tools, optionally expand.
 
   show
       Show allowed tool definitions matching regex.
@@ -505,19 +551,22 @@ COMMANDS
       Edit the tool definition in specified scope.
 
   append|enable|allow <toolname> [<toolname> ...]
-      Allowed tool(s) matching regex in current scope.
+      Allowed tool(s) matching regex in specified scope.
       Wildcards are allowed in toolname.
 
   replace [<toolname> ...]
       Replace tool definition (same as clear and append)
       Wildcards are allowed in toolname.
 
+  disable <string> [<string> [...]]
+      Remove exact allowed-tool entries from the specified scope.
+
   run <toolname> [argumentsjsonstring]
       Run a tool directly. The result is not recorded in the conversation history.
       Note that the tool is run detached from stdin and stdout just as when run normally.
 
   clear
-      Clear all tool definitions in the current scope.
+      Clear all tool definitions in the specified scope.
 
   refresh
       Refresh allowed tools file to sync with discovered .td files.

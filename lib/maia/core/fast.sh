@@ -67,6 +67,9 @@ resolve_workspace_base() { resolve_x_base "workspace" ; }
 # Enhanced resolve_workspace_name() supporting __SESSION_WORKSPACE__ indirection
 resolve_workspace_name() {
     local ws="$1"
+    if [[ -z "$ws" && -n "${MAIA_WORKSPACE:-}" ]]; then
+        ws="$MAIA_WORKSPACE"
+    fi
     if [[ -z "$ws" ]]; then
         # Indirection to session workspace
         local sess_name="$(resolve_session_name)"
@@ -137,6 +140,9 @@ resolve_profile_base() { resolve_x_base "profile" ; }
 
 resolve_profile_name() {
     local profile="$1"
+    if [[ -z "$profile" && -n "${MAIA_PROFILE:-}" ]]; then
+        profile="$MAIA_PROFILE"
+    fi
     if [[ -z "$profile" ]]; then
         # Indirection to session workspace
         local sess_name="$(resolve_session_name)"

@@ -179,6 +179,9 @@ handle_session_command() {
                 die "Session name is required."
             fi
             local name="${REMAINING_ARGS[0]}"
+	    if [[ "$name" == "_EMPTY_" ]] ; then
+		die "Session name _EMPTY_ is not allowed."
+	    fi
             local path="$(resolve_session_path "$name")"
 	    if [[ -d "$path" ]] ; then
 		die "Session '$name' already exists."

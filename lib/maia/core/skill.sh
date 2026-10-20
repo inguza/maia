@@ -46,17 +46,26 @@ list_skills() {
     local memorized_glob=$(make_glob_from_file "$skillset_context_file")
     
     while IFS=' ' read -r skill skillfile; do
-	if [[ -n $memorized_glob && $skill == $memorized_glob ]]; then
+        local marker=' '
+        if [[ -n $memorized_glob && $skill == $memorized_glob ]]; then
             if [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
-		printf '+ %s %s\n' "$skill" "$skillfile"
+                marker='+'
             else
-		printf 'E %s %s\n' "$skill" "$skillfile"
+                marker='E'
             fi
-	elif [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
-            printf '* %s %s\n' "$skill" "$skillfile"
-	else
+        elif [[ -n $allowed_glob && $skill == $allowed_glob ]]; then
+            marker='*'
+        fi
+        if [[ "${4:-}" == "--json" ]]; then
+            local description="$(read_md_field "$skillfile" description)"
+            jq -cn --arg marker "$marker" --arg name "$skill" \
+                --arg description "$description" --arg source "$skillfile" \
+                '{marker: $marker, name: $name, description: $description, source: $source}'
+        elif [[ "$marker" == '+' || "$marker" == '*' || "$marker" == 'E' ]]; then
+            printf '%s %s %s\n' "$marker" "$skill" "$skillfile"
+        else
             printf '  %s %s\n' "$skill" "$skillfile"
-	fi
+        fi
     done <<< "$skillsdata"
 }
 
@@ -217,8 +226,11 @@ Manage LLM skills.
 
 COMMANDS
 
-  list
+  list [--json]
       List all discovered skills, marking allowed and loaded skills.
+
+  view [--expand]
+      View the allowed skills, optionally expand.
 
   show
       Show allowed skills and their descriptions.
@@ -232,6 +244,9 @@ COMMANDS
   append|allow [--remember] <skillname>...
       Append skill(s) to the allowed list. Wildcards supported.
       If --remember is given, also add to loaded context.
+
+  disable
+      Remove exact allowed-skill entries from the specified scope.
 
   replace [--remember] <skillname>...
       Replace allowed skills with specified ones. Wildcards supported.
@@ -280,20 +295,6 @@ NOTE
 
 EOF
     exit 0
-}
-
-copy_over() {
-    local implicit_scope="$1"
-    local prompt_type="$2"
-    local filepath="$3"
-    if [[ ! -f "$filepath" ]]; then
-	local msg=$(prompt_for_scope "$implicit_scope" "prompt_type")
-	if [[ -z "$msg" ]] ; then
-	    touch "$filepath"
-	else
-	    echo "$msg" > "$filepath"
-	fi
-    fi
 }
 
 handle_skill_command() {
@@ -413,6 +414,10 @@ handle_skill_command() {
 		subcmd="append"
 	    fi
 	    ;;
+	clear|clearnonotice)
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            : > "$filepath"
+	    ;;
 	*)
 	    :
 	    ;;
@@ -420,7 +425,36 @@ handle_skill_command() {
     
     case "$subcmd" in
         list)
-	    list_skills "$scope" "$skillset_file" "$skillset_context_file"
+            # Display the effective inherited definitions for the requested
+            # scope, not only files physically present at that scope.
+            local effective_skillset_file="$(file_for_scope "$scope" "skillset.txt")"
+            local effective_skillset_context_file="$(file_for_scope "$scope" "skillsetcontext.txt")"
+            if [[ "${1:-}" == "--json" ]]; then
+                list_skills "$scope" "$effective_skillset_file" "$effective_skillset_context_file" --json
+            else
+                list_skills "$scope" "$effective_skillset_file" "$effective_skillset_context_file"
+            fi
+            ;;
+        disable)
+            # Remove the exact pattern from the allowed list. This also
+            # creates a local empty definition when the effective pattern was
+            # inherited from another scope, thereby masking that inherited
+            # definition as expected for an explicit scope operation.
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            [[ -f "$skillset_file" ]] || : > "$skillset_file"
+            local disable_tmpfile="$(mktemp)"
+            while IFS= read -r current || [[ -n "$current" ]]; do
+                local remove=false
+                for pattern in "$@"; do
+                    [[ "$current" == "$pattern" ]] && remove=true
+                done
+                [[ "$remove" == true ]] || printf '%s\n' "$current" >> "$disable_tmpfile"
+            done < "$skillset_file"
+            mv "$disable_tmpfile" "$skillset_file"
+            refresh_allowed_skillset_file "$scope" "$skillset_file"
+            expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+            deduplicate_files "$skillset_context_file"
+            refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
         restrict)
             # Restrict skills from the allowed list
@@ -465,15 +499,14 @@ handle_skill_command() {
             expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
             refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
-	view|"")
-	    # Expand allowed wildcards to explicit allowed skills
-	    if [[ "$1" == "--expand" ]]; then
+        view|"")
+            if [[ "$1" == "--expand" ]]; then
                 mapfile_from_command allowed_patterns prompt_for_scope "$scope" "$prompt_type"
                 expand_skill_wildcards "${allowed_patterns[@]}" | uniq
-	    else
-		prompt_for_scope "$scope" "$prompt_type"
-	    fi
-	    ;;
+            else
+                prompt_for_scope "$scope" "$prompt_type"
+            fi
+            ;;
         show)
 	    echo "Allowed skills:"
 	    echo "---------------"

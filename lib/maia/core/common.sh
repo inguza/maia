@@ -1326,6 +1326,20 @@ match_single_file() {
     echo $file
 }
 
+copy_over() {
+    local implicit_scope="$1"
+    local prompt_type="$2"
+    local filepath="$3"
+    if [[ ! -f "$filepath" ]]; then
+	local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
+	if [[ -z "$msg" ]] ; then
+	    touch "$filepath"
+	else
+	    echo "$msg" > "$filepath"
+	fi
+    fi
+}
+
 # Shared file command handler (used by maia user and maia system)
 handle_text_file_command() {
     local file="$1"

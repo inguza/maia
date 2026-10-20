@@ -163,20 +163,12 @@ refresh_scopes() (
     # The temporary session gives scoped refreshes an explicit workspace and
     # profile without changing the user's active session.
     local maia_home="$(resolve_home_dir)"
-    local temporary_session="maia-temporary-update-refresh"
     local file relative scope session workspace profile profile_relative
 
     [[ -d "$maia_home" ]] || {
         notice "MAIA home '$maia_home' does not exist; nothing to refresh."
         return 0
     }
-
-    # This name is reserved for update refresh.  Creating an existing session
-    # is harmless and keeps this operation idempotent.
-    "$MAIA_BIN" session create "$temporary_session" >/dev/null 2>&1 || true
-    # Make sure to clean up even if Ctrl-C is entered
-
-    trap '"$MAIA_BIN" session delete "maia-temporary-update-refresh" >/dev/null 2>&1 || true; exit 1;' EXIT INT TERM
 
     local path
     for path in "$maia_home/sessions" "$maia_home/workspaces" "$maia_home/profiles" ; do
@@ -198,13 +190,15 @@ refresh_scopes() (
                     # Do not process the temporary session itself.
                     [[ "$session" == "$temporary_session" ]] && continue
                     export MAIA_SESSION="$session"
+		    unset MAIA_WORKSPACE
+		    unset MAIA_PROFILE
                     ;;
 		workspace)
                     workspace="${relative#workspaces/}"
                     workspace="${workspace%%/*}"
-                    export MAIA_SESSION="$temporary_session"
-                    "$MAIA_BIN" session set \
-				--workspace "$workspace" --profile "" || continue
+                    export MAIA_SESSION="_EMPTY_"
+		    export MAIA_WORKSPACE="$workspace"
+		    unset MAIA_PROFILE
                     ;;
 		profile)
                     # A profile path has the form
@@ -216,13 +210,14 @@ refresh_scopes() (
                     profile_relative="${relative#*profiles/}"
                     profile_relative="${profile_relative%/*}"
                     profile="${profile_relative//\/profiles\//%}"
-                    export MAIA_SESSION="$temporary_session"
-                    "$MAIA_BIN" session set \
-				--workspace "" --profile "$profile" || continue
+                    export MAIA_SESSION="_EMPTY_"
+		    export MAIA_PROFILE="$profile"
+		    unset MAIA_WORKSPACE
                     ;;
 		home)
-                    export MAIA_SESSION="$temporary_session"
-                    "$MAIA_BIN" session set --workspace "" --profile "" || continue
+                    export MAIA_SESSION="_EMPTY_"
+		    unset MAIA_WORKSPACE
+		    unset MAIA_PROFILE
                     ;;
 		*)
 		    die "Unexpected scope '$scope'"
@@ -244,10 +239,6 @@ refresh_scopes() (
 		      -name 'skillset.txt' \
 		      \) -print0)
     done
-
-    # Remove the trap
-    trap - EXIT INT TERM
-    "$MAIA_BIN" session delete "$temporary_session" >/dev/null 2>&1 || true
 )
 
 handle_update_command() {
