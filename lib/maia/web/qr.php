@@ -9,6 +9,7 @@ header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 header('Referrer-Policy: no-referrer');
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -48,7 +49,7 @@ header('Referrer-Policy: no-referrer');
         return;
     }
 
-    const authUrl = `${location.origin}<?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>/#auth=${auth}`;
+    const authUrl = `${location.origin}<?= $webBasePath ?>/#auth=${auth}`;
     urlCode.textContent = authUrl;
     urlContainer.hidden = false;
 
