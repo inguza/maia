@@ -428,9 +428,11 @@ The token is sent as `Authorization: Bearer <token>`.
 
 # Web GUI
 
-MAIA includes an web GUI for browsing sessions and conversations, managing workspaces and profiles, and managing files in the current session's filesets.
+MAIA includes an web GUI that can run either using PHP's built-in web server or through Apache.
 
-The GUI uses PHP's built-in web server. Start it with:
+## PHP built-in web server
+
+Start the server with:
 
 ```bash
 maia gui start
@@ -460,6 +462,58 @@ Only use a public bind address with appropriate network access controls. The cur
 Workspace access through the GUI is restricted. A workspace can be selected and used by the GUI only when its
 filesystem root is inside the base directory containing the resolved MAIA home directory. The CLI may still manage
 workspaces outside that boundary.
+
+NOTE! The build in PHP web server DO NOT support encryption.
+
+## Apache integration
+
+The GUI can also run under Apache, allowing it to be accessed through an existing web server and HTTPS configuration without running a separate PHP development server. PHP must be configured to run through Apache.
+
+The following example uses placeholder paths. Adjust them and the URL prefix to match your installation.
+
+Enable the required Apache modules, including mod_alias, mod_rewrite, and mod_env, and add the following configuration:
+
+```text
+Alias /somelocation /path/to/lib/maia/web
+<Directory /path/to/lib/maia/web>
+  AllowOverride All
+  Options FollowSymLinks
+  Require all granted
+
+  DirectoryIndex router.php
+
+  RewriteEngine On
+
+  # Serve existing files directly.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [END]
+
+  # Route GUI and API requests through the router.
+  RewriteRule ^ router.php [END]
+</Directory>
+
+<Location /somelocation>
+    SetEnv MAIA_HOME /a/path/to/maia_home
+    SetEnv MAIA_BIN /path/to/bin/maia
+    Require all granted
+</Location>
+```
+
+The configuration serves existing files directly and sends other requests to router.php. The MAIA_HOME and MAIA_BIN environment variables specify the MAIA home directory and executable.
+
+After reloading Apache, generate the authentication URL using the externally accessible URL:
+
+```bash
+maia gui create --url https://example.com/somelocation
+```
+
+The command prints two URLs:
+
+* GUI URL: Opens the GUI with its authentication credentials.
+* QR URL: Opens a QR code that can be scanned to access the GUI on another device.
+
+Both URLs contain authentication credentials. Treat them as secrets.
 
 # Key Concepts
 
