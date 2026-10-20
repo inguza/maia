@@ -6,6 +6,27 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+function maia_web_base_path(): string
+{
+    $script = parse_url((string) ($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
+    if (!is_string($script) || $script === '') {
+        return '';
+    }
+    $base = str_replace('\\', '/', dirname($script));
+    return $base === '.' || $base === '/' ? '' : rtrim($base, '/');
+}
+
+function maia_web_request_path(): string
+{
+    $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    $path = is_string($path) && $path !== '' ? $path : '/';
+    $base = maia_web_base_path();
+    if ($base !== '' && ($path === $base || str_starts_with($path, $base . '/'))) {
+        $path = substr($path, strlen($base));
+    }
+    return $path === '' ? '/' : $path;
+}
+
 function maia_web_binary(): string
 {
     return getenv('MAIA_BIN') ?: 'maia';
@@ -79,7 +100,7 @@ function maia_web_refresh_auth_cookie(): void
 {
     $options = [
         'expires' => time() + 365 * 24 * 60 * 60,
-        'path' => '/',
+        'path' => maia_web_base_path() . '/' ?: '/',
         'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -381,7 +402,7 @@ function maia_web_initial_session(): ?string
 
 // Every API endpoint uses the same explicit authentication cookie. The
 // bootstrap page is handled by index.php and is intentionally not gated here.
-$maiaWebRequestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-if (is_string($maiaWebRequestPath) && str_starts_with($maiaWebRequestPath, '/api/')) {
+$maiaWebRequestPath = maia_web_request_path();
+if (str_starts_with($maiaWebRequestPath, '/api/')) {
     maia_web_require_auth();
 }

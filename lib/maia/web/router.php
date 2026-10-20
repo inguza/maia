@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$scriptName = parse_url((string) ($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
+$basePath = $scriptName === '' ? '' : rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+if ($basePath === '.' || $basePath === '/') {
+    $basePath = '';
+}
+if ($basePath !== '' && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+    $path = substr($path, strlen($basePath));
+    $path = $path === '' ? '/' : $path;
+}
 
 if ($path === '/status') {
     header('Content-Type: text/plain; charset=utf-8');
@@ -18,7 +27,7 @@ if ($path === '/' || $path === '') {
     maia_web_authenticate_page();
 
     $session = trim((string) (getenv('MAIA_SESSION') ?: 'default'));
-    header('Location: /session/' . rawurlencode($session), true, 302);
+    header('Location: ' . ($basePath ?: '') . '/session/' . rawurlencode($session), true, 302);
     exit;
 }
 

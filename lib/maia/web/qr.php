@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/api/web.php';
+$webBasePath = maia_web_base_path();
+
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
@@ -30,7 +33,7 @@ header('Referrer-Policy: no-referrer');
     <div id="qr" class="qr-container" hidden></div>
     <p id="url" hidden><code></code></p>
 </main>
-<script src="/qrcode.min.js"></script>
+<script src="<?= htmlspecialchars($webBasePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>/qrcode.min.js"></script>
 <script>
 (() => {
     const status = document.getElementById('status');
@@ -45,7 +48,7 @@ header('Referrer-Policy: no-referrer');
         return;
     }
 
-    const authUrl = `${location.origin}/#auth=${auth}`;
+    const authUrl = `${location.origin}<?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>/#auth=${auth}`;
     urlCode.textContent = authUrl;
     urlContainer.hidden = false;
 

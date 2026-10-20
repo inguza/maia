@@ -16,6 +16,7 @@ function escape(string $value): string
 $workspacePageName = trim((string) ($_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
 $profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
 $homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
+$webBasePath = maia_web_base_path();
 $resourcePageName = $workspacePageName !== '' ? $workspacePageName : $profilePageName;
 $isResourcePage = $resourcePageName !== '' || $homePage;
 $initialSessionName = maia_web_initial_session() ?: 'No session selected';
@@ -1053,7 +1054,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     <aside id="sidebar" class="sidebar" aria-label="MAIA navigation" aria-hidden="true">
         <div class="sidebar-header">
             <h2>MAIA</h2>
-            <a id="home-link" href="/home">Home</a>
+            <a id="home-link" href="<?= escape($webBasePath) ?>/home">Home</a>
             <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close sidebar">×</button>
         </div>
 
@@ -1340,6 +1341,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         })();
     </script>
     <script>
+        const maiaBasePath = <?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const maiaUrl = (path) => `${maiaBasePath}${path}`;
         const form = document.getElementById('message-form');
         const input = document.getElementById('message');
         const send = document.getElementById('send');
@@ -1460,24 +1463,27 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let urlSessionName = null;
         let urlWorkspaceName = null;
         let urlProfileName = null;
-        const urlHomeName = location.pathname === '/home' ? 'home' : null;
-        if (location.pathname.startsWith('/workspace/')) {
+        const maiaPath = maiaBasePath && location.pathname.startsWith(maiaBasePath)
+            ? location.pathname.slice(maiaBasePath.length) || '/'
+            : location.pathname;
+        const urlHomeName = maiaPath === '/home' ? 'home' : null;
+        if (maiaPath.startsWith('/workspace/')) {
             try {
-                urlWorkspaceName = decodeURIComponent(location.pathname.slice('/workspace/'.length));
+                urlWorkspaceName = decodeURIComponent(maiaPath.slice('/workspace/'.length));
             } catch (_) {
                 urlWorkspaceName = null;
             }
         }
-        if (location.pathname.startsWith('/profile/')) {
+        if (maiaPath.startsWith('/profile/')) {
             try {
-                urlProfileName = decodeURIComponent(location.pathname.slice('/profile/'.length));
+                urlProfileName = decodeURIComponent(maiaPath.slice('/profile/'.length));
             } catch (_) {
                 urlProfileName = null;
             }
         }
-        if (location.pathname.startsWith('/session/')) {
+        if (maiaPath.startsWith('/session/')) {
             try {
-                urlSessionName = decodeURIComponent(location.pathname.slice('/session/'.length));
+                urlSessionName = decodeURIComponent(maiaPath.slice('/session/'.length));
             } catch (_) {
                 urlSessionName = null;
             }
@@ -1498,6 +1504,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
             if (urlHomeName) {
                 headers.set('X-MAIA-Home', 'home');
+            }
+            if (typeof resource === 'string' && resource.startsWith('/')) {
+                resource = maiaUrl(resource);
             }
             return nativeFetch(resource, { ...options, headers });
         };
@@ -1557,7 +1566,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (type === 'profile' || type === 'workspace') {
                     const resourceLink = document.createElement('a');
                     const prefix = type === 'profile' ? '/profile/' : '/workspace/';
-                    resourceLink.href = `${prefix}${encodeURIComponent(name)}`;
+                    resourceLink.href = maiaUrl(`${prefix}${encodeURIComponent(name)}`);
                     resourceLink.className = 'sidebar-resource-name';
                     resourceLink.textContent = name;
                     resourceLink.addEventListener('click', (event) => {
@@ -1570,7 +1579,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     item.appendChild(resourceLink);
                 } else {
                     const label = document.createElement('a');
-                    label.href = `/session/${encodeURIComponent(name)}`;
+                    label.href = maiaUrl(`/session/${encodeURIComponent(name)}`);
                     label.className = 'sidebar-resource-name';
                     label.textContent = name;
                     label.addEventListener('click', (event) => {
@@ -3078,7 +3087,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     } else {
                         selectedSessionName = null;
                         renderSessions([], null);
-                        history.replaceState({}, '', '/');
+                        history.replaceState({}, '', maiaUrl('/'));
                         showHistoryLoading('No sessions available.');
                     }
                 } else {
@@ -3420,7 +3429,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             // from their sidebar must enter the session page so the session
             // context and composer are rebuilt together.
             if (urlWorkspaceName || urlProfileName) {
-                window.location.href = `/session/${encodeURIComponent(name)}`;
+                window.location.href = maiaUrl(`/session/${encodeURIComponent(name)}`);
                 return;
             }
 
@@ -3440,7 +3449,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             try {
                 // The URL is the session selector. No server-side PHP session
                 // update is needed; all subsequent API requests carry this name.
-                history.pushState({}, '', `/session/${encodeURIComponent(name)}`);
+                history.pushState({}, '', maiaUrl(`/session/${encodeURIComponent(name)}`));
                 urlSessionName = name;
                 selectedSessionName = name;
 
