@@ -2996,7 +2996,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 item.className = 'session-item';
 
                 const button = document.createElement('a');
-                button.href = `/session/${encodeURIComponent(session.name)}`;
+                button.href = maiaUrl(`/session/${encodeURIComponent(session.name)}`);
                 button.className = 'sidebar-resource-name';
                 button.textContent = session.name;
                 button.classList.toggle('selected', session.name === selected);
