@@ -510,7 +510,33 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             color: #6b7280;
             display: flex;
             gap: 0.5rem;
-            margin-bottom: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .pending-response,
+        .pending-response * {
+            color: #6b7280 !important;
+        }
+
+        .partial-response {
+            align-self: flex-start;
+            color: #6b7280;
+            font-size: 0.9rem;
+            max-width: 80%;
+            overflow-wrap: anywhere;
+        }
+
+        .partial-response summary {
+            cursor: pointer;
+        }
+
+        .partial-response-content {
+            background: #f3f4f6;
+            border-left: 3px solid #9ca3af;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            white-space: pre-wrap;
         }
 
         .history-loading[hidden] {
@@ -3135,6 +3161,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         function updatePendingResponse(element, statusText, output = '') {
             element.replaceChildren();
+            element.classList.add('pending-response');
+
+            if (output !== '') {
+                const content = document.createElement('div');
+                content.textContent = output;
+                element.appendChild(content);
+            }
 
             const status = document.createElement('div');
             status.className = 'pending-status';
@@ -3145,12 +3178,25 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             text.textContent = statusText;
             status.append(spinner, text);
             element.appendChild(status);
+        }
 
-            if (output !== '') {
-                const content = document.createElement('div');
-                content.textContent = output;
-                element.appendChild(content);
+        function appendPartialResponse(output, beforeElement = null) {
+            if (output === '') {
+                return;
             }
+            const details = document.createElement('details');
+            details.className = 'partial-response';
+            const summary = document.createElement('summary');
+            summary.textContent = 'Raw response';
+            const content = document.createElement('div');
+            content.className = 'partial-response-content';
+            content.textContent = output;
+            details.append(summary, content);
+            conversation.insertBefore(details, beforeElement);
+        }
+
+        function conversationIsNearBottom() {
+            return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
         }
 
         function renderHistory(items, scrollToEnd = true) {
@@ -3951,6 +3997,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             const pending = appendMessage('server', '', true);
             updatePendingResponse(pending, 'Waiting for response...');
+            let output = '';
 
             try {
                 const response = await fetch('/api/send', {
@@ -3964,7 +4011,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 // Consume the response stream as it arrives instead of
                 // waiting for the complete MAIA process to finish.
                 updatePendingResponse(pending, 'Receiving response...');
-                let output = '';
                 if (response.body) {
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
@@ -3974,9 +4020,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                             break;
                         }
                         const chunk = decoder.decode(value, { stream: true });
+                        const shouldFollow = conversationIsNearBottom();
                         output += chunk;
                         updatePendingResponse(pending, 'Receiving response...', output);
-                        pending.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        if (shouldFollow) {
+                            pending.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
                     }
                     const finalChunk = decoder.decode();
                     output += finalChunk;
@@ -3989,7 +4038,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (!response.ok) {
                     historyItems = historyItems.filter((item) => item !== userItem);
                     renderHistory(historyItems);
-                    pending.remove();
+                    appendPartialResponse(output);
                     showError(output || 'The request failed.');
                     return;
                 }
@@ -4025,8 +4074,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     : result.firstIndex;
                 lastIndex = result.lastIndex;
                 renderHistory(historyItems);
+                appendPartialResponse(output, conversation.lastElementChild);
                 updateEarlierButton();
             } catch (requestError) {
+                pending.remove();
+                appendPartialResponse(output);
                 showError(requestError.message || 'Unable to refresh MAIA history.');
             } finally {
                 input.disabled = false;
