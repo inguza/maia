@@ -241,7 +241,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             padding: 0;
         }
 
-        .sidebar-list button {
+        .sidebar-list button,
+        .sidebar-list a.sidebar-resource-name {
             background: transparent;
             border: 0;
             border-radius: 0.35rem;
@@ -251,6 +252,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             padding: 0.4rem 0.5rem;
             text-align: left;
             width: 100%;
+        }
+
+        .sidebar-list a.sidebar-resource-name {
+            color: inherit;
+            text-decoration: none;
         }
 
         .session-item {
@@ -1521,19 +1527,31 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 item.classList.toggle('selected', name === selected);
 
                 if (type === 'profile' || type === 'workspace') {
-                    const resourceLink = document.createElement('button');
-                    resourceLink.type = 'button';
+                    const resourceLink = document.createElement('a');
+                    const prefix = type === 'profile' ? '/profile/' : '/workspace/';
+                    resourceLink.href = `${prefix}${encodeURIComponent(name)}`;
                     resourceLink.className = 'sidebar-resource-name';
                     resourceLink.textContent = name;
-                    resourceLink.addEventListener('click', () => {
-                        const prefix = type === 'profile' ? '/profile/' : '/workspace/';
-                        history.pushState({}, '', `${prefix}${encodeURIComponent(name)}`);
-                        window.location.reload();
+                    resourceLink.addEventListener('click', (event) => {
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                            return;
+                        }
+                        event.preventDefault();
+                        window.location.href = resourceLink.href;
                     });
                     item.appendChild(resourceLink);
                 } else {
-                    const label = document.createElement('span');
+                    const label = document.createElement('a');
+                    label.href = `/session/${encodeURIComponent(name)}`;
+                    label.className = 'sidebar-resource-name';
                     label.textContent = name;
+                    label.addEventListener('click', (event) => {
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                            return;
+                        }
+                        event.preventDefault();
+                        selectSession(name);
+                    });
                     item.appendChild(label);
                 }
 
@@ -2940,11 +2958,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const item = document.createElement('li');
                 item.className = 'session-item';
 
-                const button = document.createElement('button');
-                button.type = 'button';
+                const button = document.createElement('a');
+                button.href = `/session/${encodeURIComponent(session.name)}`;
+                button.className = 'sidebar-resource-name';
                 button.textContent = session.name;
                 button.classList.toggle('selected', session.name === selected);
-                button.addEventListener('click', () => selectSession(session.name));
+                button.addEventListener('click', (event) => {
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                        return;
+                    }
+                    event.preventDefault();
+                    selectSession(session.name);
+                });
 
                 const remove = document.createElement('button');
                 remove.type = 'button';
