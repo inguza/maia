@@ -786,6 +786,9 @@ update_session() {
 # $1 = optional session name
 ensure_session_exists() {
     local name="$(resolve_session_name "$1")"
+    if [[ "$name" == "_EMPTY_" ]] ; then
+	return
+    fi
     local dir="$(resolve_session_path)"
     # If it already exists, nothing to do
     local meta="$(resolve_session_meta "$name")"
@@ -818,6 +821,9 @@ ensure_session_exists() {
 
 ensure_history_exists() {
     local history_file="$1"
+    if [[ "$history_file" == *_EMPTY_* ]] ; then
+	return
+    fi
     if [[ ! -s "$history_file" ]] \
 	   || ! jq -e 'type=="array"' "$history_file" >/dev/null 2>&1; then
 	info "Create empty history in $history_file"
