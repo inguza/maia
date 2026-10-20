@@ -84,12 +84,21 @@ function session_settings_list(array $arguments): array
 
 function session_settings_values(): array
 {
-    $show = session_settings_run(['session', 'show', '--raw']);
-    if ($show['status'] !== 0) {
-        session_settings_error(502, trim($show['error']) ?: 'Unable to read session settings.');
+    // Profile and workspace pages use the reserved _EMPTY_ session context.
+    // They still need the resource lists for the sidebar, but there is no
+    // real session whose settings should be read.
+    $profileContext = trim((string) ($_SERVER['HTTP_X_MAIA_PROFILE'] ?? $_SERVER['MAIA_URL_PROFILE'] ?? ''));
+    $workspaceContext = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+    $homeContext = trim((string) ($_SERVER['HTTP_X_MAIA_HOME'] ?? $_SERVER['MAIA_URL_HOME'] ?? ''));
+    $values = [];
+    if ($profileContext === '' && $workspaceContext === '' && $homeContext === '') {
+        $show = session_settings_run(['session', 'show', '--raw']);
+        if ($show['status'] !== 0) {
+            session_settings_error(502, trim($show['error']) ?: 'Unable to read session settings.');
+        }
+        $values = session_settings_myl($show['output']);
     }
 
-    $values = session_settings_myl($show['output']);
     $decodeList = static function (?string $value): array {
         if ($value === null || trim($value) === '') {
             return [];

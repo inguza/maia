@@ -34,6 +34,36 @@ if (preg_match('#^/session/(.+)$#', $path, $matches)) {
     return true;
 }
 
+if (preg_match('#^/workspace/(.+)$#', $path, $matches)) {
+    $workspace = rawurldecode($matches[1]);
+    if ($workspace === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspace)) {
+        http_response_code(404);
+        echo "Workspace not found.\n";
+        return true;
+    }
+    $_SERVER['MAIA_URL_WORKSPACE'] = $workspace;
+    require __DIR__ . '/index.php';
+    return true;
+}
+
+if (preg_match('#^/profile/(.+)$#', $path, $matches)) {
+    $profile = rawurldecode($matches[1]);
+    if ($profile === '' || !preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $profile)) {
+        http_response_code(404);
+        echo "Profile not found.\n";
+        return true;
+    }
+    $_SERVER['MAIA_URL_PROFILE'] = $profile;
+    require __DIR__ . '/index.php';
+    return true;
+}
+
+if ($path === '/home') {
+    $_SERVER['MAIA_URL_HOME'] = 'home';
+    require __DIR__ . '/index.php';
+    return true;
+}
+
 $routes = [
     '/api/send' => __DIR__ . '/api/send.php',
     '/api/history/show' => __DIR__ . '/api/history/show.php',
@@ -51,6 +81,12 @@ $routes = [
     '/api/file/list' => __DIR__ . '/api/file/list.php',
     '/api/file/add' => __DIR__ . '/api/file/add.php',
     '/api/file/forget' => __DIR__ . '/api/file/forget.php',
+    '/api/tool/context' => __DIR__ . '/api/tool/context.php',
+    '/api/tool/append' => __DIR__ . '/api/tool/append.php',
+    '/api/tool/disable' => __DIR__ . '/api/tool/disable.php',
+    '/api/tool/clear' => __DIR__ . '/api/tool/clear.php',
+    '/api/tool/delete' => __DIR__ . '/api/tool/delete.php',
+    '/api/skill/context' => __DIR__ . '/api/skill/context.php',
 ];
 
 if (isset($routes[$path])) {

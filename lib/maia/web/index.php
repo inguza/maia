@@ -13,7 +13,19 @@ function escape(string $value): string
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+$workspacePageName = trim((string) ($_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+$profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
+$homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
+$resourcePageName = $workspacePageName !== '' ? $workspacePageName : $profilePageName;
+$isResourcePage = $resourcePageName !== '' || $homePage;
 $initialSessionName = maia_web_initial_session() ?: 'No session selected';
+$initialTitle = $workspacePageName !== ''
+    ? 'workspace: ' . $workspacePageName
+    : ($profilePageName !== ''
+        ? 'profile: ' . $profilePageName
+        : ($homePage
+            ? 'home: ' . (maia_web_home_dir() ?: 'home')
+            : 'session: ' . $initialSessionName));
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
@@ -769,6 +781,35 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             overflow-wrap: anywhere;
         }
 
+        .available-resource-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .available-resource-heading {
+            align-items: center;
+            color: #6b7280;
+            display: flex;
+            font-size: 0.8rem;
+            font-weight: 600;
+            gap: 0.75rem;
+            padding: 0.2rem 0;
+        }
+
+        .available-resource-heading > :first-child,
+        .available-resource-heading > .available-resource-name {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .available-resource-heading > :not(:first-child),
+        .available-resource-effects,
+        .available-resource-state {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
         .file-remove {
             flex: 0 0 auto;
             margin: 0;
@@ -911,6 +952,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     <aside id="sidebar" class="sidebar" aria-label="MAIA navigation" aria-hidden="true">
         <div class="sidebar-header">
             <h2>MAIA</h2>
+            <a id="home-link" href="/home">Home</a>
             <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close sidebar">×</button>
         </div>
 
@@ -923,7 +965,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <button id="session-search-action" type="submit" aria-label="Search session">🔍</button>
             </form>
             <ul id="session-list" class="sidebar-list" aria-label="MAIA sessions"></ul>
-            <p id="session-list-placeholder" class="sidebar-placeholder">Loading sessions...</p>
+            <p id="session-list-placeholder" class="sidebar-placeholder">Pending sessions...</p>
             <button id="session-more" class="sidebar-more" type="button" hidden>...</button>
             <p id="session-loading" class="session-loading" hidden aria-live="polite">
                 <span class="spinner" aria-hidden="true"></span>
@@ -939,7 +981,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <button id="workspace-search-action" type="submit" aria-label="Search workspace">🔍</button>
             </form>
             <ul id="workspace-list" class="sidebar-list" aria-label="MAIA workspaces"></ul>
-            <p id="workspace-list-placeholder" class="sidebar-placeholder">Loading workspaces...</p>
+            <p id="workspace-list-placeholder" class="sidebar-placeholder">Pending workspaces...</p>
         </section>
 
         <section class="sidebar-section">
@@ -950,7 +992,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <button id="profile-search-action" type="submit" aria-label="Search profile">🔍</button>
             </form>
             <ul id="profile-list" class="sidebar-list" aria-label="MAIA profiles"></ul>
-            <p id="profile-list-placeholder" class="sidebar-placeholder">Loading profiles...</p>
+            <p id="profile-list-placeholder" class="sidebar-placeholder">Pending profiles...</p>
         </section>
     </aside>
     <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
@@ -1023,7 +1065,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         <header class="topbar">
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
-            <h1 id="session-title"><?= escape($initialSessionName) ?></h1>
+            <h1 id="session-title"><?= escape($initialTitle) ?></h1>
+            <button id="create-profile" type="button">Create profile</button>
+            <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
+                    aria-label="Profile settings">⚙</button>
         </header>
 
         <div class="history-actions">
@@ -1040,8 +1085,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         <div id="error" class="error" role="alert" hidden></div>
 
         <form id="message-form">
+<?php if (!$isResourcePage): ?>
             <label for="message">Continue in session: <span id="message-session-name"><?= escape($initialSessionName) ?></span></label>
             <textarea id="message" name="message" required autofocus></textarea>
+<?php endif; ?>
 
             <div class="composer-actions">
                 <div class="composer-actions-left">
@@ -1049,6 +1096,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                             aria-expanded="false">⚙</button>
                     <button id="files-toggle" type="button"
                             aria-expanded="false">Files ▾</button>
+                    <button id="skills-toggle" type="button"
+                            aria-expanded="false">Skills ▾</button>
+                    <button id="tools-toggle" type="button"
+                            aria-expanded="false">Tools ▾</button>
                 </div>
                 <button id="send" type="submit" disabled>Send</button>
             </div>
@@ -1091,9 +1142,96 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <p id="files-status" class="files-status" role="status"></p>
                 <ul id="files-list" class="files-list"></ul>
             </section>
+
+            <section id="tools-panel" class="composer-panel" hidden>
+                <h2>Tools</h2>
+                <p id="tools-scope" class="settings-status"></p>
+                <div class="file-add">
+                    <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
+                    <input id="tool-pattern" type="text" autocomplete="off"
+                           placeholder="tool pattern, e.g. * or *:write">
+                    <button id="tool-pattern-add" type="button">Add</button>
+                    <button id="tool-clear" type="button">Clear</button>
+                    <button id="tool-delete" type="button">Delete</button>
+                </div>
+                <p id="tools-status" class="files-status" role="status"></p>
+                <ul id="tool-pattern-list" class="files-list"></ul>
+                <details id="available-tools-details">
+                    <summary>Available tools</summary>
+                    <ul id="available-tools-list" class="files-list">
+                        <li class="available-resource-heading">
+                            <span class="available-resource-name">Name - Description</span>
+                            <span>Effect</span>
+                            <span>Allowed</span>
+                        </li>
+                    </ul>
+                </details>
+            </section>
+
+            <section id="skills-panel" class="composer-panel" hidden>
+                <h2>Skills</h2>
+                <p id="skills-scope" class="settings-status"></p>
+                <div class="file-add">
+                    <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
+                    <input id="skill-pattern" type="text" autocomplete="off"
+                           placeholder="skill pattern, e.g. *">
+                    <button id="skill-pattern-add" type="button">Add</button>
+                    <button id="skill-clear" type="button">Clear</button>
+                    <button id="skill-delete" type="button">Delete</button>
+                </div>
+                <p id="skills-status" class="files-status" role="status"></p>
+                <ul id="skill-pattern-list" class="files-list"></ul>
+                <details id="available-skills-details">
+                    <summary>Available skills</summary>
+                    <ul id="available-skills-list" class="files-list">
+                        <li class="available-resource-heading">
+                            <span class="available-resource-name">Name - Description</span>
+                            <span>Allowed</span>
+                            <span>In memory</span>
+                        </li>
+                    </ul>
+                </details>
+            </section>
         </form>
     </div>
 
+    <script>
+        (() => {
+            const setInitialLoadingState = () => {
+                const states = [
+                    ['session-list-placeholder', 'Loading sessions...'],
+                    ['workspace-list-placeholder', 'Loading workspaces...'],
+                    ['profile-list-placeholder', 'Loading profiles...']
+                ];
+                for (const [id, text] of states) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = text;
+                    }
+                }
+            };
+
+            const reportJavaScriptError = (message) => {
+                const element = document.getElementById('error');
+                if (!element) {
+                    return;
+                }
+                element.textContent = `JavaScript error: ${message}`;
+                element.hidden = false;
+            };
+
+            window.addEventListener('error', (event) => {
+                reportJavaScriptError(event.message || 'Unknown JavaScript error.');
+            });
+            window.addEventListener('unhandledrejection', (event) => {
+                const reason = event.reason instanceof Error
+                    ? event.reason.message
+                    : String(event.reason || 'Unknown rejected promise.');
+                reportJavaScriptError(reason);
+            });
+            setInitialLoadingState();
+        })();
+    </script>
     <script>
         const form = document.getElementById('message-form');
         const input = document.getElementById('message');
@@ -1113,6 +1251,29 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const filesList = document.getElementById('files-list');
         const filePath = document.getElementById('file-path');
         const fileAddButton = document.getElementById('file-add-button');
+        const toolsToggle = document.getElementById('tools-toggle');
+        const toolsPanel = document.getElementById('tools-panel');
+        const skillsToggle = document.getElementById('skills-toggle');
+        const skillsPanel = document.getElementById('skills-panel');
+        const skillsStatus = document.getElementById('skills-status');
+        const skillsScope = document.getElementById('skills-scope');
+        const skillPattern = document.getElementById('skill-pattern');
+        const skillPatternAdd = document.getElementById('skill-pattern-add');
+        const skillClear = document.getElementById('skill-clear');
+        const skillDelete = document.getElementById('skill-delete');
+        const skillPatternList = document.getElementById('skill-pattern-list');
+        const availableSkillsList = document.getElementById('available-skills-list');
+        const toolsStatus = document.getElementById('tools-status');
+        const toolsScope = document.getElementById('tools-scope');
+        const toolPattern = document.getElementById('tool-pattern');
+        const toolPatternAdd = document.getElementById('tool-pattern-add');
+        const profilePageSettings = document.getElementById('profile-page-settings');
+        const createProfileButton = document.getElementById('create-profile');
+        const toolClear = document.getElementById('tool-clear');
+        const toolDelete = document.getElementById('tool-delete');
+        const toolPatternList = document.getElementById('tool-pattern-list');
+        const availableToolsDetails = document.getElementById('available-tools-details');
+        const availableToolsList = document.getElementById('available-tools-list');
         const loadEarlier = document.getElementById('load-earlier');
         const turnCount = document.getElementById('turn-count');
         const turnCountControl = document.getElementById('turn-count-control');
@@ -1168,6 +1329,23 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const resourceCreateSubmit = document.getElementById('resource-create-submit');
 
         let urlSessionName = null;
+        let urlWorkspaceName = null;
+        let urlProfileName = null;
+        const urlHomeName = location.pathname === '/home' ? 'home' : null;
+        if (location.pathname.startsWith('/workspace/')) {
+            try {
+                urlWorkspaceName = decodeURIComponent(location.pathname.slice('/workspace/'.length));
+            } catch (_) {
+                urlWorkspaceName = null;
+            }
+        }
+        if (location.pathname.startsWith('/profile/')) {
+            try {
+                urlProfileName = decodeURIComponent(location.pathname.slice('/profile/'.length));
+            } catch (_) {
+                urlProfileName = null;
+            }
+        }
         if (location.pathname.startsWith('/session/')) {
             try {
                 urlSessionName = decodeURIComponent(location.pathname.slice('/session/'.length));
@@ -1182,6 +1360,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const session = selectedSessionName || urlSessionName;
             if (session) {
                 headers.set('X-MAIA-Session', session);
+            }
+            if (urlWorkspaceName) {
+                headers.set('X-MAIA-Workspace', urlWorkspaceName);
+            }
+            if (urlProfileName) {
+                headers.set('X-MAIA-Profile', urlProfileName);
+            }
+            if (urlHomeName) {
+                headers.set('X-MAIA-Home', 'home');
             }
             return nativeFetch(resource, { ...options, headers });
         };
@@ -1205,6 +1392,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         let settingsLoaded = false;
         let filesLoaded = false;
+        let toolsLoaded = false;
         let sidebarOptionsLoaded = false;
         let workspaceNames = [];
         let profileNames = [];
@@ -1235,9 +1423,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const item = document.createElement('li');
                 item.classList.toggle('selected', name === selected);
 
-                const label = document.createElement('span');
+                if (type === 'profile' || type === 'workspace') {
+                    const resourceLink = document.createElement('button');
+                    resourceLink.type = 'button';
+                    resourceLink.className = 'sidebar-resource-name';
+                    resourceLink.textContent = name;
+                    resourceLink.addEventListener('click', () => {
+                        const prefix = type === 'profile' ? '/profile/' : '/workspace/';
+                        history.pushState({}, '', `${prefix}${encodeURIComponent(name)}`);
+                        window.location.reload();
+                    });
+                    item.appendChild(resourceLink);
+                } else {
+                    const label = document.createElement('span');
                     label.textContent = name;
-                item.appendChild(label);
+                    item.appendChild(label);
+                }
 
                 if (type !== '') {
                     const settings = document.createElement('button');
@@ -1559,6 +1760,377 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 addFile();
             }
         });
+
+        function showToolsLoading(message = 'Loading tools...') {
+            toolsStatus.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const text = document.createElement('span');
+            text.textContent = message;
+            toolsStatus.append(text, spinner);
+        }
+
+        async function loadTools() {
+            showToolsLoading();
+            try {
+                const scope = currentContextScope();
+                const response = await fetch(`/api/tool/context?scope=${encodeURIComponent(scope)}`);
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to load tools.');
+                }
+
+                const toolScope = result.scope || 'session';
+                toolsScope.textContent = `Toolset scope '${toolScope}'`;
+                toolPatternList.replaceChildren();
+                const patterns = result.patterns || [];
+                for (const pattern of patterns) {
+                    const item = document.createElement('li');
+                    const value = document.createElement('span');
+                    value.className = 'known-file-path';
+                    value.textContent = pattern;
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'file-remove';
+                    remove.textContent = 'X';
+                    remove.title = `Remove tool pattern ${pattern}`;
+                    remove.setAttribute('aria-label', `Remove tool pattern ${pattern}`);
+                    remove.addEventListener('click', () => removeToolPattern(pattern, remove));
+                    item.append(value, remove);
+                    toolPatternList.appendChild(item);
+                }
+
+                availableToolsList.replaceChildren();
+                const toolHeading = document.createElement('li');
+                toolHeading.className = 'available-resource-heading';
+                toolHeading.innerHTML = '<span class="available-resource-name">Name - Description</span><span>Effect</span><span>Allowed</span>';
+                availableToolsList.appendChild(toolHeading);
+                const tools = result.tools || [];
+                for (const tool of tools) {
+                    const item = document.createElement('li');
+                    const value = document.createElement('span');
+                    value.className = 'known-file-path available-resource-name';
+                    value.textContent = tool.description
+                        ? `${tool.name} - ${tool.description}`
+                        : tool.name;
+                    value.title = value.textContent;
+                    const effects = document.createElement('span');
+                    effects.className = 'settings-status available-resource-effects';
+                    effects.textContent = Array.isArray(tool.effects) && tool.effects.length > 0
+                        ? tool.effects.join(', ')
+                        : '(none)';
+                    const state = document.createElement('span');
+                    state.textContent = tool.allowed ? 'Yes' : 'No';
+                    state.className = 'settings-status available-resource-state';
+                    item.append(value, effects, state);
+                    availableToolsList.appendChild(item);
+                }
+
+                toolsStatus.textContent = patterns.length > 0
+                    ? ''
+                    : 'No tool patterns configured.';
+                if (tools.length === 0) {
+                    const item = document.createElement('li');
+                    item.textContent = 'No available tools.';
+                    availableToolsList.appendChild(item);
+                }
+                toolsLoaded = true;
+            } catch (requestError) {
+                toolsStatus.textContent = requestError.message || 'Unable to load tools.';
+                toolsLoaded = false;
+            }
+        }
+
+        async function addToolPattern() {
+            const pattern = toolPattern.value.trim();
+            if (pattern === '') {
+                toolsStatus.textContent = 'Enter a tool pattern.';
+                toolPattern.focus();
+                return;
+            }
+            toolPatternAdd.disabled = true;
+            toolPattern.disabled = true;
+            toolsStatus.textContent = 'Adding tool pattern...';
+            try {
+                const scope = currentContextScope();
+                const response = await fetch(`/api/tool/append?scope=${encodeURIComponent(scope)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+                    body: pattern
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to add tool pattern.');
+                }
+                toolPattern.value = '';
+                toolsLoaded = false;
+                await loadTools();
+            } catch (requestError) {
+                toolsStatus.textContent = requestError.message || 'Unable to add tool pattern.';
+            } finally {
+                toolPatternAdd.disabled = false;
+                toolPattern.disabled = false;
+                toolPattern.focus();
+            }
+        }
+
+        async function removeToolPattern(pattern, button) {
+            button.disabled = true;
+            toolsStatus.textContent = `Removing ${pattern}...`;
+            try {
+                const scope = currentContextScope();
+                const response = await fetch(`/api/tool/disable?scope=${encodeURIComponent(scope)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+                    body: pattern
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to remove tool pattern.');
+                }
+                toolsLoaded = false;
+                await loadTools();
+            } catch (requestError) {
+                toolsStatus.textContent = requestError.message || 'Unable to remove tool pattern.';
+                button.disabled = false;
+            }
+        }
+
+        async function updateToolDefinitions(action, button) {
+            if (!window.confirm(action === 'clear'
+                ? 'Clear the session tool definitions? This leaves no tools allowed at this scope.'
+                : 'Delete the session tool definitions? The effective definition will be inherited from another scope.')) {
+                return;
+            }
+            button.disabled = true;
+            toolsStatus.textContent = action === 'clear' ? 'Clearing tool definitions...' : 'Deleting tool definitions...';
+            try {
+                const scope = currentContextScope();
+                const response = await fetch(`/api/tool/${action}?scope=${encodeURIComponent(scope)}`, { method: 'POST' });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || `Unable to ${action} tool definitions.`);
+                }
+                toolsLoaded = false;
+                await loadTools();
+            } catch (requestError) {
+                toolsStatus.textContent = requestError.message || `Unable to ${action} tool definitions.`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        toolClear.addEventListener('click', () => updateToolDefinitions('clear', toolClear));
+        toolDelete.addEventListener('click', () => updateToolDefinitions('delete', toolDelete));
+
+        toolsToggle.addEventListener('click', async () => {
+            const expanded = toolsPanel.hidden;
+            toolsPanel.hidden = !expanded;
+            toolsToggle.setAttribute('aria-expanded', String(expanded));
+            if (expanded && !toolsLoaded) {
+                await loadTools();
+            }
+        });
+
+        toolPatternAdd.addEventListener('click', addToolPattern);
+        toolPattern.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addToolPattern();
+            }
+        });
+
+        function currentContextScope() {
+            return urlProfileName ? 'profile'
+                : (urlWorkspaceName ? 'workspace'
+                    : (urlHomeName ? 'home' : 'session'));
+        }
+
+        function showSkillsLoading(message = 'Loading skills...') {
+            skillsStatus.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const text = document.createElement('span');
+            text.textContent = message;
+            skillsStatus.append(spinner, text);
+        }
+
+        async function loadSkills() {
+            showSkillsLoading();
+            try {
+                const scope = currentContextScope();
+                const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(scope)}`);
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to load skills.');
+                }
+
+                skillsScope.textContent = `Skill scope '${result.scope || scope}'`;
+                skillPatternList.replaceChildren();
+                for (const pattern of result.patterns || []) {
+                    const item = document.createElement('li');
+                    const value = document.createElement('span');
+                    value.className = 'known-file-path';
+                    value.textContent = pattern;
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'file-remove';
+                    remove.textContent = 'X';
+                    remove.title = `Remove skill pattern ${pattern}`;
+                    remove.setAttribute('aria-label', `Remove skill pattern ${pattern}`);
+                    remove.addEventListener('click', () => updateSkillContext('disable', pattern, remove));
+                    item.append(value, remove);
+                    skillPatternList.appendChild(item);
+                }
+
+                availableSkillsList.replaceChildren();
+                const skillHeading = document.createElement('li');
+                skillHeading.className = 'available-resource-heading';
+                skillHeading.innerHTML = '<span class="available-resource-name">Name - Description</span><span>Allowed</span><span>In memory</span>';
+                availableSkillsList.appendChild(skillHeading);
+                for (const skill of result.skills || []) {
+                    const item = document.createElement('li');
+                    const value = document.createElement('span');
+                    value.className = 'known-file-path available-resource-name';
+                    value.textContent = skill.description
+                        ? `${skill.name} - ${skill.description}`
+                        : skill.name;
+                    value.title = value.textContent;
+                    const state = document.createElement('span');
+                    state.className = 'settings-status available-resource-state';
+                    state.textContent = skill.allowed ? 'Yes' : 'No';
+                    const memoryLabel = document.createElement('label');
+                    memoryLabel.className = 'skill-memory';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = Boolean(skill.memory);
+                    checkbox.disabled = !skill.allowed;
+                    checkbox.title = skill.allowed
+                        ? 'Load this skill into memory'
+                        : 'The skill must be allowed before it can be loaded into memory';
+                    checkbox.addEventListener('change', () => updateSkillMemory(skill.name, checkbox));
+                    memoryLabel.append(checkbox, document.createTextNode(' In memory'));
+                    item.append(value, state, memoryLabel);
+                    availableSkillsList.appendChild(item);
+                }
+                if ((result.skills || []).length === 0) {
+                    const item = document.createElement('li');
+                    item.textContent = 'No available skills.';
+                    availableSkillsList.appendChild(item);
+                }
+                skillsStatus.textContent = (result.patterns || []).length > 0
+                    ? ''
+                    : 'No skill patterns configured.';
+            } catch (requestError) {
+                skillsStatus.textContent = requestError.message || 'Unable to load skills.';
+            }
+        }
+
+        async function updateSkillMemory(name, checkbox) {
+            const desired = checkbox.checked;
+            checkbox.disabled = true;
+            skillsStatus.textContent = desired
+                ? `Remembering ${name}...`
+                : `Forgetting ${name}...`;
+            try {
+                const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(currentContextScope())}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'memory', name, remember: desired })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to update skill memory.');
+                }
+                checkbox.disabled = false;
+                skillsStatus.textContent = desired ? `${name} is in memory.` : `${name} removed from memory.`;
+            } catch (requestError) {
+                checkbox.checked = !desired;
+                checkbox.disabled = false;
+                skillsStatus.textContent = requestError.message || 'Unable to update skill memory.';
+            }
+        }
+
+        async function addSkillPattern() {
+            const pattern = skillPattern.value.trim();
+            if (pattern === '') {
+                skillsStatus.textContent = 'Enter a skill pattern.';
+                skillPattern.focus();
+                return;
+            }
+            skillPatternAdd.disabled = true;
+            skillPattern.disabled = true;
+            skillsStatus.textContent = 'Adding skill pattern...';
+            try {
+                const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(currentContextScope())}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'append', pattern })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to add skill pattern.');
+                }
+                skillPattern.value = '';
+                await loadSkills();
+            } catch (requestError) {
+                skillsStatus.textContent = requestError.message || 'Unable to add skill pattern.';
+            } finally {
+                skillPatternAdd.disabled = false;
+                skillPattern.disabled = false;
+                skillPattern.focus();
+            }
+        }
+
+        async function updateSkillContext(action, patternOrButton, maybeButton) {
+            const pattern = typeof patternOrButton === 'string' ? patternOrButton : '';
+            const button = maybeButton || patternOrButton;
+            if (action === 'disable') {
+                button.disabled = true;
+            } else if (!window.confirm(action === 'clear'
+                ? 'Clear the skill definitions at this scope?'
+                : 'Delete the skill definitions at this scope?')) {
+                return;
+            }
+            skillsStatus.textContent = `${action === 'disable' ? 'Removing' : action === 'clear' ? 'Clearing' : 'Deleting'} skill definitions...`;
+            try {
+                const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(currentContextScope())}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...(pattern !== '' ? { pattern } : {}) })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || `Unable to ${action} skill definitions.`);
+                }
+                await loadSkills();
+            } catch (requestError) {
+                skillsStatus.textContent = requestError.message || `Unable to ${action} skill definitions.`;
+                if (action === 'disable') {
+                    button.disabled = false;
+                }
+            }
+        }
+
+        skillsToggle.addEventListener('click', async () => {
+            const expanded = skillsPanel.hidden;
+            skillsPanel.hidden = !expanded;
+            skillsToggle.setAttribute('aria-expanded', String(expanded));
+            if (expanded) {
+                await loadSkills();
+            }
+        });
+        skillPatternAdd.addEventListener('click', addSkillPattern);
+        skillPattern.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addSkillPattern();
+            }
+        });
+        skillClear.addEventListener('click', () => updateSkillContext('clear', skillClear));
+        skillDelete.addEventListener('click', () => updateSkillContext('delete', skillDelete));
 
         let firstIndex = null;
         let lastIndex = null;
@@ -1907,8 +2479,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sessionListPlaceholder.hidden = sessions.length > 0;
 
             selectedSessionName = selected || null;
-            sessionTitle.textContent = selectedSessionName || 'No session selected';
-            messageSessionName.textContent = selectedSessionName || 'No session selected';
+            if (!urlWorkspaceName && !urlProfileName && !urlHomeName) {
+                sessionTitle.textContent = `session: ${selectedSessionName || 'No session selected'}`;
+                if (messageSessionName) {
+                    messageSessionName.textContent = selectedSessionName || 'No session selected';
+                }
+            }
 
             for (const session of sessions.slice(0, visibleSessionCount)) {
                 const item = document.createElement('li');
@@ -2125,10 +2701,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         });
 
-        function openResourceCreate(type, name) {
+        function openResourceCreate(type, name = '', editable = false) {
             resourceCreateError.hidden = true;
             resourceCreateName.value = name;
-            resourceCreateName.readOnly = true;
+            resourceCreateName.readOnly = !editable;
             resourceCreatePath.value = '';
             resourceCreateDescription.value = '';
 
@@ -2159,7 +2735,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 body.description = description;
             }
 
-            const response = await fetch(endpoints[type], {
+            const endpoint = type === 'profile'
+                ? `${endpoints[type]}?scope=${encodeURIComponent(currentContextScope())}`
+                : endpoints[type];
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -2309,8 +2888,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sidebarToggle.disabled = busy;
             sidebarClose.disabled = busy;
             if (busy) {
-                sessionTitle.textContent = 'Selecting session...';
-                messageSessionName.textContent = 'Selecting session...';
+                sessionTitle.textContent = 'session: Selecting session...';
+                if (messageSessionName) {
+                    messageSessionName.textContent = 'Selecting session...';
+                }
             }
         }
 
@@ -2327,8 +2908,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         async function selectSession(name) {
             error.hidden = true;
+
+            // Resource pages have no session composer. Selecting a session
+            // from their sidebar must enter the session page so the session
+            // context and composer are rebuilt together.
+            if (urlWorkspaceName || urlProfileName) {
+                window.location.href = `/session/${encodeURIComponent(name)}`;
+                return;
+            }
+
             send.disabled = true;
-            input.disabled = true;
+            if (input) {
+                input.disabled = true;
+            }
 
             if (selectionController) {
                 selectionController.abort();
@@ -2369,9 +2961,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (requestId === selectionRequestId) {
                     selectionController = null;
                     setSelectionBusy(false);
-                    input.disabled = false;
+                    if (input) {
+                        input.disabled = false;
+                        input.focus();
+                    }
                     send.disabled = false;
-                    input.focus();
                 }
             }
         }
@@ -2475,6 +3069,32 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function initialize() {
+            if (urlProfileName || urlWorkspaceName || urlHomeName) {
+                document.body.classList.add(urlProfileName
+                    ? 'profile-page'
+                    : (urlWorkspaceName ? 'workspace-page' : 'home-page'));
+                const resourceName = urlProfileName || urlWorkspaceName;
+                if (resourceName) {
+                    sessionTitle.textContent = `${urlProfileName ? 'profile' : 'workspace'}: ${resourceName}`;
+                }
+                if (urlHomeName) {
+                    profilePageSettings.hidden = true;
+                }
+                profilePageSettings.hidden = !urlProfileName;
+                settingsToggle.hidden = true;
+                filesToggle.hidden = true;
+                send.hidden = true;
+                document.querySelector('.history-actions')?.setAttribute('hidden', '');
+                conversation.hidden = true;
+                error.hidden = true;
+                await Promise.allSettled([
+                    loadSessions(),
+                    loadSidebarOptions(),
+                    loadTools(),
+                    loadSkills()
+                ]);
+                return;
+            }
             showHistoryLoading();
             try {
                 await Promise.all([
@@ -2528,6 +3148,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
+            if (!input) {
+                return;
+            }
             error.hidden = true;
 
             const message = input.value;
@@ -2636,6 +3259,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 input.focus();
             }
         });
+
+        profilePageSettings?.addEventListener('click', () => openResourceSettings('profile', urlProfileName));
+        createProfileButton?.addEventListener('click', () => openResourceCreate('profile', '', true));
 
         initialize();
     </script>

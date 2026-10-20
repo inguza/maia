@@ -29,8 +29,46 @@ if ($name === '') {
     profile_create_error(400, 'A profile name is required.');
 }
 
+$scope = trim((string) ($_GET['scope'] ?? 'home'));
+if (!in_array($scope, ['session', 'workspace', 'profile', 'home'], true)) {
+    profile_create_error(400, 'Invalid profile scope.');
+}
+
+// A profile page supplies a parent profile, but profile is not itself a
+// storage scope. Store the child as parent%child in the scope where the
+// parent profile is defined.
+if ($scope === 'profile') {
+    $parent = trim((string) ($_SERVER['HTTP_X_MAIA_PROFILE'] ?? $_SERVER['MAIA_URL_PROFILE'] ?? ''));
+    if ($parent === '') {
+        profile_create_error(400, 'A parent profile is required when creating from a profile page.');
+    }
+
+    $scopeProcess = proc_open(
+        [maia_web_binary(), 'profile', '--scope'],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $scopePipes,
+        null,
+        maia_web_environment()
+    );
+    if (!is_resource($scopeProcess)) {
+        profile_create_error(500, 'Unable to resolve the parent profile scope.');
+    }
+    fclose($scopePipes[0]);
+    $parentScope = trim((string) stream_get_contents($scopePipes[1]));
+    fclose($scopePipes[1]);
+    $scopeError = (string) stream_get_contents($scopePipes[2]);
+    fclose($scopePipes[2]);
+    $scopeStatus = proc_close($scopeProcess);
+    if ($scopeStatus !== 0 || !in_array($parentScope, ['session', 'workspace', 'home'], true)) {
+        profile_create_error(502, trim($scopeError) ?: 'Unable to resolve the parent profile scope.');
+    }
+
+    $name = $parent . '%' . $name;
+    $scope = $parentScope;
+}
+
 $process = proc_open(
-    [maia_web_binary(), 'profile', 'create', $name, $description],
+    [maia_web_binary(), 'profile', '--scope', $scope, 'create', $name, $description],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
