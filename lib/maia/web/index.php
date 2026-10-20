@@ -821,6 +821,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 0.75rem;
+            position: relative;
         }
 
         .file-add input {
@@ -829,6 +830,50 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             min-width: 0;
             padding: 0.4rem 0.5rem;
             width: 100%;
+        }
+
+        .file-completion-menu,
+        .resource-completion-menu {
+            background: #ffffff;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            left: 0;
+            max-height: 16rem;
+            overflow-y: auto;
+            position: absolute;
+            right: 4.5rem;
+            top: calc(100% + 0.2rem);
+            z-index: 5;
+        }
+
+        .file-completion-menu[hidden],
+        .resource-completion-menu[hidden] {
+            display: none;
+        }
+
+        .file-completion-option,
+        .resource-completion-option {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            color: #111827;
+            cursor: pointer;
+            display: block;
+            margin: 0;
+            overflow: hidden;
+            padding: 0.4rem 0.55rem;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .file-completion-option:hover,
+        .file-completion-option.selected,
+        .resource-completion-option:hover,
+        .resource-completion-option.selected {
+            background: #dbeafe;
         }
 
         .file-add button {
@@ -944,6 +989,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             .hidden-entry {
                 border-left-color: #9ca3af;
                 color: #d1d5db !important;
+            }
+
+            .file-completion-menu {
+                background: #1f2937;
+                border-color: #6b7280;
+            }
+
+            .file-completion-option {
+                color: #f9fafb;
+            }
+
+            .file-completion-option:hover,
+            .file-completion-option.selected {
+                background: #374151;
             }
         }
     </style>
@@ -1066,6 +1125,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
+            <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button">Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
                     aria-label="Profile settings">⚙</button>
@@ -1137,6 +1197,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     <label class="visually-hidden" for="file-path">Add file relative to workspace root</label>
                     <input id="file-path" type="text" autocomplete="off"
                            placeholder="path relative to workspace root">
+                    <div id="file-completion-menu" class="file-completion-menu" role="listbox" hidden></div>
                     <button id="file-add-button" type="button">Add</button>
                 </div>
                 <p id="files-status" class="files-status" role="status"></p>
@@ -1150,6 +1211,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
                     <input id="tool-pattern" type="text" autocomplete="off"
                            placeholder="tool pattern, e.g. * or *:write">
+                    <div id="tool-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
                     <button id="tool-pattern-add" type="button">Add</button>
                     <button id="tool-clear" type="button">Clear</button>
                     <button id="tool-delete" type="button">Delete</button>
@@ -1175,6 +1237,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
                     <input id="skill-pattern" type="text" autocomplete="off"
                            placeholder="skill pattern, e.g. *">
+                    <div id="skill-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
                     <button id="skill-pattern-add" type="button">Add</button>
                     <button id="skill-clear" type="button">Clear</button>
                     <button id="skill-delete" type="button">Delete</button>
@@ -1250,6 +1313,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const filesStatus = document.getElementById('files-status');
         const filesList = document.getElementById('files-list');
         const filePath = document.getElementById('file-path');
+        const fileCompletionMenu = document.getElementById('file-completion-menu');
         const fileAddButton = document.getElementById('file-add-button');
         const toolsToggle = document.getElementById('tools-toggle');
         const toolsPanel = document.getElementById('tools-panel');
@@ -1268,6 +1332,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const toolPattern = document.getElementById('tool-pattern');
         const toolPatternAdd = document.getElementById('tool-pattern-add');
         const profilePageSettings = document.getElementById('profile-page-settings');
+        const profilePageScope = document.getElementById('profile-page-scope');
         const createProfileButton = document.getElementById('create-profile');
         const toolClear = document.getElementById('tool-clear');
         const toolDelete = document.getElementById('tool-delete');
@@ -1396,6 +1461,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let sidebarOptionsLoaded = false;
         let workspaceNames = [];
         let profileNames = [];
+        let availableToolNames = [];
+        let availableSkillNames = [];
 
         function validResourceName(name) {
             return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(name);
@@ -1753,13 +1820,136 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        fileAddButton.addEventListener('click', addFile);
+        let fileCompletionCandidates = [];
+        let fileCompletionTimer = null;
+        let fileCompletionRequest = 0;
+        let fileCompletionQuery = '';
+        let fileCompletionPending = false;
+
+        function commonFileCompletionPrefix(values) {
+            if (values.length === 0) {
+                return '';
+            }
+            let prefix = values[0];
+            for (const value of values.slice(1)) {
+                let length = 0;
+                while (length < prefix.length && length < value.length &&
+                       prefix[length] === value[length]) {
+                    length++;
+                }
+                prefix = prefix.slice(0, length);
+            }
+            return prefix;
+        }
+
+        function renderFileCompletionMenu() {
+            fileCompletionMenu.replaceChildren();
+            if (fileCompletionCandidates.length === 0 || filePath.value === '') {
+                fileCompletionMenu.hidden = true;
+                return;
+            }
+            for (const candidate of fileCompletionCandidates) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'file-completion-option';
+                option.textContent = candidate;
+                option.addEventListener('mousedown', (event) => {
+                    event.preventDefault();
+                    filePath.value = candidate;
+                    fileCompletionMenu.hidden = true;
+                    updateFileCompletions();
+                    filePath.focus();
+                });
+                fileCompletionMenu.appendChild(option);
+            }
+            fileCompletionMenu.hidden = false;
+        }
+
+        async function updateFileCompletions() {
+            const value = filePath.value;
+            const requestId = ++fileCompletionRequest;
+            fileCompletionQuery = value;
+            fileCompletionPending = true;
+            try {
+                const response = await fetch(`/api/file/complete?path=${encodeURIComponent(value)}`);
+                const result = await response.json();
+                if (requestId !== fileCompletionRequest || filePath.value !== value) {
+                    return;
+                }
+                if (!response.ok || !result.ok) {
+                    fileCompletionCandidates = [];
+                    renderFileCompletionMenu();
+                    return;
+                }
+                fileCompletionCandidates = Array.isArray(result.candidates)
+                    ? result.candidates
+                    : [];
+                renderFileCompletionMenu();
+            } catch (_) {
+                if (requestId === fileCompletionRequest) {
+                    fileCompletionCandidates = [];
+                    renderFileCompletionMenu();
+                }
+            } finally {
+                if (requestId === fileCompletionRequest) {
+                    fileCompletionPending = false;
+                }
+            }
+        }
+
+        function completeFilePath() {
+            if (fileCompletionCandidates.length === 0) {
+                return;
+            }
+            const completion = fileCompletionCandidates.length === 1
+                ? fileCompletionCandidates[0]
+                : commonFileCompletionPrefix(fileCompletionCandidates);
+            if (completion !== '' && completion !== filePath.value) {
+                filePath.value = completion;
+                updateFileCompletions();
+            }
+            filePath.focus();
+        }
+
+        filePath.addEventListener('input', () => {
+            fileCompletionCandidates = [];
+            fileCompletionQuery = filePath.value;
+            fileCompletionPending = true;
+            renderFileCompletionMenu();
+            window.clearTimeout(fileCompletionTimer);
+            fileCompletionTimer = window.setTimeout(updateFileCompletions, 100);
+        });
         filePath.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab' && (fileCompletionPending ||
+                (fileCompletionQuery === filePath.value && fileCompletionCandidates.length > 0))) {
+                event.preventDefault();
+                window.clearTimeout(fileCompletionTimer);
+                const value = filePath.value;
+                if (fileCompletionQuery === value && fileCompletionCandidates.length > 0) {
+                    completeFilePath();
+                } else if (fileCompletionPending) {
+                    updateFileCompletions().then(() => {
+                        if (filePath.value === value) {
+                            completeFilePath();
+                        }
+                    });
+                }
+                return;
+            }
+            if (event.key === 'Escape') {
+                fileCompletionMenu.hidden = true;
+            }
             if (event.key === 'Enter') {
                 event.preventDefault();
                 addFile();
             }
         });
+        filePath.addEventListener('blur', () => {
+            window.setTimeout(() => {
+                fileCompletionMenu.hidden = true;
+            }, 100);
+        });
+        fileAddButton.addEventListener('click', addFile);
 
         function showToolsLoading(message = 'Loading tools...') {
             toolsStatus.replaceChildren();
@@ -1807,6 +1997,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 toolHeading.innerHTML = '<span class="available-resource-name">Name - Description</span><span>Effect</span><span>Allowed</span>';
                 availableToolsList.appendChild(toolHeading);
                 const tools = result.tools || [];
+                availableToolNames = [];
+                for (const tool of tools) {
+                    if (!tool.name) {
+                        continue;
+                    }
+                    const effects = Array.isArray(tool.effects) ? tool.effects.filter(Boolean) : [];
+                    if (effects.length === 0) {
+                        availableToolNames.push(tool.name);
+                    } else {
+                        for (const effect of effects) {
+                            availableToolNames.push(`${tool.name}:${effect}`);
+                        }
+                    }
+                }
+                availableToolNames = [...new Set(availableToolNames)];
                 for (const tool of tools) {
                     const item = document.createElement('li');
                     const value = document.createElement('span');
@@ -1841,6 +2046,95 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 toolsLoaded = false;
             }
         }
+
+        function commonResourceCompletionPrefix(values) {
+            if (values.length === 0) {
+                return '';
+            }
+            let prefix = values[0];
+            for (const value of values.slice(1)) {
+                let length = 0;
+                while (length < prefix.length && length < value.length &&
+                       prefix[length] === value[length]) {
+                    length++;
+                }
+                prefix = prefix.slice(0, length);
+            }
+            return prefix;
+        }
+
+        function setupResourceCompletion(input, menu, getNames) {
+            let candidates = [];
+            let query = '';
+            const render = () => {
+                menu.replaceChildren();
+                if (candidates.length === 0 || input.value === '') {
+                    menu.hidden = true;
+                    return;
+                }
+                for (const candidate of candidates) {
+                    const option = document.createElement('button');
+                    option.type = 'button';
+                    option.className = 'resource-completion-option';
+                    option.textContent = candidate;
+                    option.addEventListener('mousedown', (event) => {
+                        event.preventDefault();
+                        input.value = candidate;
+                        menu.hidden = true;
+                        input.focus();
+                    });
+                    menu.appendChild(option);
+                }
+                menu.hidden = false;
+            };
+            const refresh = () => {
+                query = input.value;
+                const names = getNames();
+                candidates = query === '' || query.includes('*') || query.includes('?')
+                    ? []
+                    : names.filter((name) => name.startsWith(query));
+                render();
+            };
+            const complete = () => {
+                if (candidates.length === 0 || query !== input.value) {
+                    return;
+                }
+                const completion = candidates.length === 1
+                    ? candidates[0]
+                    : commonResourceCompletionPrefix(candidates);
+                if (completion !== '' && completion !== input.value) {
+                    input.value = completion;
+                    refresh();
+                }
+                input.focus();
+            };
+            input.addEventListener('input', refresh);
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Tab' && candidates.length > 0 && query === input.value) {
+                    event.preventDefault();
+                    complete();
+                } else if (event.key === 'Escape') {
+                    menu.hidden = true;
+                }
+            });
+            input.addEventListener('blur', () => {
+                window.setTimeout(() => {
+                    menu.hidden = true;
+                }, 100);
+            });
+            return { refresh };
+        }
+
+        const toolCompletion = setupResourceCompletion(
+            toolPattern,
+            document.getElementById('tool-completion-menu'),
+            () => availableToolNames
+        );
+        const skillCompletion = setupResourceCompletion(
+            skillPattern,
+            document.getElementById('skill-completion-menu'),
+            () => availableSkillNames
+        );
 
         async function addToolPattern() {
             const pattern = toolPattern.value.trim();
@@ -1990,7 +2284,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 skillHeading.className = 'available-resource-heading';
                 skillHeading.innerHTML = '<span class="available-resource-name">Name - Description</span><span>Allowed</span><span>In memory</span>';
                 availableSkillsList.appendChild(skillHeading);
-                for (const skill of result.skills || []) {
+                const skills = result.skills || [];
+                availableSkillNames = skills.map((skill) => skill.name).filter(Boolean);
+                for (const skill of skills) {
                     const item = document.createElement('li');
                     const value = document.createElement('span');
                     value.className = 'known-file-path available-resource-name';
@@ -3076,6 +3372,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const resourceName = urlProfileName || urlWorkspaceName;
                 if (resourceName) {
                     sessionTitle.textContent = `${urlProfileName ? 'profile' : 'workspace'}: ${resourceName}`;
+                }
+                if (urlProfileName) {
+                    try {
+                        const profileResponse = await fetch(`/api/profile/settings?name=${encodeURIComponent(urlProfileName)}`);
+                        const profileResult = await profileResponse.json();
+                        if (profileResponse.ok && profileResult.ok && profileResult.scope) {
+                            profilePageScope.textContent = `Scope: ${profileResult.scope}`;
+                            profilePageScope.hidden = false;
+                        }
+                    } catch (_) {
+                        // The profile page remains usable if scope display fails.
+                    }
                 }
                 if (urlHomeName) {
                     profilePageSettings.hidden = true;

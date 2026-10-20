@@ -46,7 +46,12 @@ function profile_settings_values(string $name): array
             break;
         }
     }
-    return ['name' => $name, 'description' => $description];
+    $scopeResult = profile_settings_run(['profile', '--scope']);
+    $scope = trim($scopeResult['output']);
+    if ($scopeResult['status'] !== 0 || $scope === '') {
+        $scope = 'home';
+    }
+    return ['name' => $name, 'description' => $description, 'scope' => $scope];
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
