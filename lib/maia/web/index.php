@@ -25,7 +25,7 @@ $initialTitle = $workspacePageName !== ''
     : ($profilePageName !== ''
         ? 'profile: ' . $profilePageName
         : ($homePage
-            ? 'home: ' . (maia_web_home_dir() ?: 'home')
+            ? 'home'
             : 'session: ' . $initialSessionName));
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
@@ -905,6 +905,40 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             min-height: 1.2rem;
         }
 
+        .credential-created {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            width: 100%;
+        }
+
+        .credential-url {
+            align-items: center;
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            width: 100%;
+        }
+
+        .credential-url a {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .credential-url button {
+            align-items: center;
+            display: inline-flex;
+            justify-content: center;
+            margin: 0;
+            padding: 0.25rem 0.45rem;
+        }
+
+        .credential-url button svg {
+            height: 1em;
+            width: 1em;
+        }
+
         .history-actions {
             align-items: center;
             display: flex;
@@ -1197,6 +1231,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             <div class="composer-actions">
                 <div class="composer-actions-left">
+<?php if ($homePage): ?>
+                    <button id="credentials-toggle" type="button"
+                            aria-expanded="false">Credentials ▾</button>
+<?php endif; ?>
                     <button id="settings-toggle" type="button"
                             aria-expanded="false">⚙</button>
                     <button id="files-toggle" type="button"
@@ -1301,6 +1339,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 </details>
             </section>
         </form>
+<?php if ($homePage): ?>
+        <section id="credentials-panel" class="composer-panel credentials-panel" hidden>
+            <h2>Credentials</h2>
+            <p id="credentials-description" class="settings-status">Credentials used to authenticate access to this MAIA web interface.</p>
+            <div class="file-add">
+                <label class="visually-hidden" for="credential-name">New credential name (optional)</label>
+                <input id="credential-name" type="text" autocomplete="off" placeholder="credential name (optional)">
+                <button id="credential-create" type="button">Create</button>
+            </div>
+            <p id="credentials-status" class="files-status" role="status"></p>
+            <ul id="credential-list" class="files-list"></ul>
+        </section>
+<?php endif; ?>
     </div>
 
     <script>
@@ -1364,6 +1415,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const fileAddButton = document.getElementById('file-add-button');
         const toolsToggle = document.getElementById('tools-toggle');
         const toolsPanel = document.getElementById('tools-panel');
+        const credentialsToggle = document.getElementById('credentials-toggle');
+        const credentialsPanel = document.getElementById('credentials-panel');
         const skillsToggle = document.getElementById('skills-toggle');
         const skillsPanel = document.getElementById('skills-panel');
         const skillsStatus = document.getElementById('skills-status');
@@ -1459,7 +1512,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const resourceCreateDescription = document.getElementById('resource-create-description');
         const resourceCreateError = document.getElementById('resource-create-error');
         const resourceCreateSubmit = document.getElementById('resource-create-submit');
+        const credentialName = document.getElementById('credential-name');
+        const credentialCreate = document.getElementById('credential-create');
+        const credentialsStatus = document.getElementById('credentials-status');
+        const credentialList = document.getElementById('credential-list');
 
+        let credentialsLoaded = false;
         let urlSessionName = null;
         let urlWorkspaceName = null;
         let urlProfileName = null;
@@ -1688,6 +1746,195 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 sidebarOptionsLoaded = false;
             }
         }
+
+        function showCredentialsLoading(message = 'Loading credentials...') {
+            if (!credentialsStatus) {
+                return;
+            }
+            credentialsStatus.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const text = document.createElement('span');
+            text.textContent = message;
+            credentialsStatus.append(spinner, text);
+        }
+
+        async function loadCredentials() {
+            if (!credentialList || !credentialsStatus) {
+                return;
+            }
+            showCredentialsLoading();
+            try {
+                const response = await fetch('/api/auth/context');
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to load credentials.');
+                }
+                credentialList.replaceChildren();
+                for (const credential of result.credentials || []) {
+                    const item = document.createElement('li');
+                    const value = document.createElement('span');
+                    value.className = 'known-file-path';
+                    const salt = typeof credential.salt === 'string'
+                        ? credential.salt
+                        : String(credential.identifier || '').split(':')[1] || '';
+                    value.textContent = salt === ''
+                        ? credential.name
+                        : `${credential.name}:${salt.slice(0, 4)}`;
+                    value.title = credential.identifier;
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'file-remove';
+                    remove.textContent = 'X';
+                    remove.title = `Delete credential ${credential.name}`;
+                    remove.setAttribute('aria-label', `Delete credential ${credential.name}`);
+                    remove.addEventListener('click', () => deleteCredential(credential, remove));
+                    item.append(value, remove);
+                    credentialList.appendChild(item);
+                }
+                credentialsStatus.textContent = result.credentials?.length
+                    ? ''
+                    : 'No credentials configured.';
+                credentialsLoaded = true;
+            } catch (requestError) {
+                credentialsStatus.textContent = requestError.message || 'Unable to load credentials.';
+                credentialsLoaded = false;
+            }
+        }
+
+        credentialsToggle?.addEventListener('click', async () => {
+            const expanded = credentialsPanel.hidden;
+            credentialsPanel.hidden = !expanded;
+            credentialsToggle.setAttribute('aria-expanded', String(expanded));
+            if (expanded && !credentialsLoaded) {
+                await loadCredentials();
+            }
+        });
+
+        async function createCredential() {
+            const name = credentialName.value.trim();
+            if (name !== '' && !/^[A-Za-z0-9_-]+$/.test(name)) {
+                credentialsStatus.textContent = 'Use a credential name containing only letters, digits, underscore and hyphen.';
+                credentialName.focus();
+                return;
+            }
+            credentialCreate.disabled = true;
+            credentialName.disabled = true;
+            credentialsStatus.textContent = 'Creating credential...';
+            try {
+                const response = await fetch('/api/auth/context', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'create', name })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to create credential.');
+                }
+                credentialName.value = '';
+                credentialsLoaded = false;
+                await loadCredentials();
+                credentialsStatus.replaceChildren();
+                const created = result.credential || {};
+                const createdName = created.name || (name || 'auto');
+                const createdSalt = created.salt || (() => {
+                    try {
+                        return new URL(result.url).hash.slice(6).split(':')[0];
+                    } catch (_) {
+                        return '';
+                    }
+                })();
+                const createdMessage = document.createElement('div');
+                createdMessage.className = 'credential-created';
+                const createdLine = document.createElement('strong');
+                createdLine.textContent = `Created ${createdName}:${createdSalt.slice(0, 4)}. `;
+                if (result.qrUrl) {
+                    const qrLink = document.createElement('a');
+                    qrLink.href = result.qrUrl;
+                    qrLink.textContent = 'QR code';
+                    qrLink.target = '_blank';
+                    qrLink.rel = 'noopener noreferrer';
+                    createdLine.append(qrLink);
+                }
+                createdMessage.appendChild(createdLine);
+                if (result.url) {
+                    const urlLine = document.createElement('div');
+                    urlLine.className = 'credential-url';
+                    const urlLabel = document.createElement('span');
+                    urlLabel.textContent = 'Auth URL:';
+                    const link = document.createElement('a');
+                    link.href = result.url;
+                    link.textContent = result.url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    const copy = document.createElement('button');
+                    copy.type = 'button';
+                    copy.className = 'copy-button';
+                    copy.setAttribute('aria-label', 'Copy authentication URL');
+                    copy.title = 'Copy authentication URL';
+                    copy.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 9.5A2.5 2.5 0 0 1 11.5 7h7A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 9 16.5v-7Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15 7V6.5A2.5 2.5 0 0 0 12.5 4h-7A2.5 2.5 0 0 0 3 6.5v7A2.5 2.5 0 0 0 5.5 16H9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+                    copy.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(result.url);
+                            copy.setAttribute('aria-label', 'Authentication URL copied');
+                            copy.title = 'Copied';
+                            window.setTimeout(() => {
+                                copy.setAttribute('aria-label', 'Copy authentication URL');
+                                copy.title = 'Copy authentication URL';
+                            }, 1500);
+                        } catch (_) {
+                            copy.setAttribute('aria-label', 'Copy failed');
+                            copy.title = 'Copy failed';
+                        }
+                    });
+                    urlLine.append(urlLabel, link, copy);
+                    createdMessage.appendChild(urlLine);
+                }
+                const instruction = document.createElement('span');
+                instruction.textContent = 'Copy the authentication URL or scan the QR code.';
+                createdMessage.appendChild(instruction);
+                credentialsStatus.appendChild(createdMessage);
+            } catch (requestError) {
+                credentialsStatus.textContent = requestError.message || 'Unable to create credential.';
+            } finally {
+                credentialCreate.disabled = false;
+                credentialName.disabled = false;
+                credentialName.focus();
+            }
+        }
+
+        async function deleteCredential(credential, button) {
+            if (!window.confirm(`Delete credential '${credential.name}'? Existing links using it will stop working.`)) {
+                return;
+            }
+            button.disabled = true;
+            credentialsStatus.textContent = `Deleting ${credential.name}...`;
+            try {
+                const response = await fetch('/api/auth/context', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', identifier: credential.identifier })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to delete credential.');
+                }
+                credentialsLoaded = false;
+                await loadCredentials();
+            } catch (requestError) {
+                credentialsStatus.textContent = requestError.message || 'Unable to delete credential.';
+                button.disabled = false;
+            }
+        }
+
+        credentialCreate?.addEventListener('click', createCredential);
+        credentialName?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                createCredential();
+            }
+        });
 
         function showFilesLoading(message = 'Loading files...') {
             filesStatus.replaceChildren();

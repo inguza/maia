@@ -103,6 +103,7 @@ $routes = [
     '/api/tool/clear' => __DIR__ . '/api/tool/clear.php',
     '/api/tool/delete' => __DIR__ . '/api/tool/delete.php',
     '/api/skill/context' => __DIR__ . '/api/skill/context.php',
+    '/api/auth/context' => __DIR__ . '/api/auth/context.php',
 ];
 
 if (isset($routes[$path])) {
