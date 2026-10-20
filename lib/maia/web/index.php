@@ -339,6 +339,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-top: 0.75rem;
         }
 
+        .completion-field {
+            position: relative;
+        }
+
         .resource-create-dialog label[hidden] {
             display: none;
         }
@@ -852,6 +856,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             display: none;
         }
 
+        .completion-field .file-completion-menu {
+            right: 0;
+        }
+
         .file-completion-option,
         .resource-completion-option {
             background: transparent;
@@ -1081,9 +1089,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     <dialog id="resource-settings-dialog" class="resource-settings-dialog">
         <form id="resource-settings-form" method="dialog">
             <h2 id="resource-settings-title">Resource settings</h2>
-            <label id="resource-settings-path-label" for="resource-settings-path" hidden>
+            <label id="resource-settings-path-label" class="completion-field" for="resource-settings-path" hidden>
                 Workspace path relative to MAIA base directory
-                <input id="resource-settings-path" name="path" type="text" placeholder="project">
+                <input id="resource-settings-path" name="path" type="text" autocomplete="off" placeholder="project">
+                <div id="resource-settings-path-menu" class="file-completion-menu" role="listbox" hidden></div>
             </label>
             <label id="resource-settings-description-label" for="resource-settings-description" hidden>
                 Description
@@ -1104,9 +1113,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 Name
                 <input id="resource-create-name" name="name" type="text" required>
             </label>
-            <label id="resource-create-path-label" for="resource-create-path" hidden>
+            <label id="resource-create-path-label" class="completion-field" for="resource-create-path" hidden>
                 Workspace path relative to MAIA home
-                <input id="resource-create-path" name="path" type="text" placeholder="project">
+                <input id="resource-create-path" name="path" type="text" autocomplete="off" placeholder="project">
+                <div id="resource-create-path-menu" class="file-completion-menu" role="listbox" hidden></div>
             </label>
             <label id="resource-create-description-label" for="resource-create-description" hidden>
                 Description (optional)
@@ -1369,6 +1379,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const resourceSettingsTitle = document.getElementById('resource-settings-title');
         const resourceSettingsPathLabel = document.getElementById('resource-settings-path-label');
         const resourceSettingsPath = document.getElementById('resource-settings-path');
+        const resourceSettingsPathMenu = document.getElementById('resource-settings-path-menu');
         const resourceSettingsDescriptionLabel = document.getElementById('resource-settings-description-label');
         const resourceSettingsDescription = document.getElementById('resource-settings-description');
         const resourceSettingsStatus = document.getElementById('resource-settings-status');
@@ -1388,6 +1399,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const resourceCreateName = document.getElementById('resource-create-name');
         const resourceCreatePathLabel = document.getElementById('resource-create-path-label');
         const resourceCreatePath = document.getElementById('resource-create-path');
+        const resourceCreatePathMenu = document.getElementById('resource-create-path-menu');
         const resourceCreateDescriptionLabel = document.getElementById('resource-create-description-label');
         const resourceCreateDescription = document.getElementById('resource-create-description');
         const resourceCreateError = document.getElementById('resource-create-error');
@@ -1783,6 +1795,121 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         });
 
+        function setupWorkspacePathCompletion(input, menu) {
+            let candidates = [];
+            let query = '';
+            let pending = false;
+            let timer = null;
+            let requestId = 0;
+
+            const render = () => {
+                menu.replaceChildren();
+                if (candidates.length === 0) {
+                    menu.hidden = true;
+                    return;
+                }
+                for (const candidate of candidates) {
+                    const option = document.createElement('button');
+                    option.type = 'button';
+                    option.className = 'file-completion-option';
+                    option.textContent = candidate;
+                    option.addEventListener('mousedown', (event) => {
+                        event.preventDefault();
+                        input.value = candidate;
+                        menu.hidden = true;
+                        refresh();
+                        input.focus();
+                    });
+                    menu.appendChild(option);
+                }
+                menu.hidden = false;
+            };
+
+            const refresh = async () => {
+                const value = input.value;
+                const currentRequest = ++requestId;
+                query = value;
+                pending = true;
+                try {
+                    const response = await fetch(`/api/workspace/complete?path=${encodeURIComponent(value)}`);
+                    const result = await response.json();
+                    if (currentRequest !== requestId || input.value !== value) {
+                        return;
+                    }
+                    candidates = response.ok && result.ok && Array.isArray(result.candidates)
+                        ? result.candidates
+                        : [];
+                    render();
+                } catch (_) {
+                    if (currentRequest === requestId) {
+                        candidates = [];
+                        render();
+                    }
+                } finally {
+                    if (currentRequest === requestId) {
+                        pending = false;
+                    }
+                }
+            };
+
+            const complete = () => {
+                if (candidates.length === 0 || query !== input.value) {
+                    return;
+                }
+                const completion = candidates.length === 1
+                    ? candidates[0]
+                    : commonFileCompletionPrefix(candidates);
+                if (completion !== '' && completion !== input.value) {
+                    input.value = completion;
+                    refresh();
+                }
+                input.focus();
+            };
+
+            input.addEventListener('input', () => {
+                candidates = [];
+                pending = true;
+                window.clearTimeout(timer);
+                timer = window.setTimeout(refresh, 100);
+                menu.hidden = true;
+            });
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Tab' && (input.value === '' || pending ||
+                    (query === input.value && candidates.length > 0))) {
+                    event.preventDefault();
+                    window.clearTimeout(timer);
+                    const value = input.value;
+                    if (query === value && candidates.length > 0) {
+                        complete();
+                    } else if (pending || value === '') {
+                        refresh().then(() => {
+                            if (input.value === value) {
+                                complete();
+                            }
+                        });
+                    }
+                } else if (event.key === 'Escape') {
+                    menu.hidden = true;
+                }
+            });
+            input.addEventListener('blur', () => {
+                window.setTimeout(() => {
+                    menu.hidden = true;
+                }, 100);
+            });
+
+            return { refresh };
+        }
+
+        const resourceCreatePathCompletion = setupWorkspacePathCompletion(
+            resourceCreatePath,
+            resourceCreatePathMenu
+        );
+        const resourceSettingsPathCompletion = setupWorkspacePathCompletion(
+            resourceSettingsPath,
+            resourceSettingsPathMenu
+        );
+
         async function addFile() {
             const path = filePath.value.trim();
             if (path === '') {
@@ -1844,7 +1971,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         function renderFileCompletionMenu() {
             fileCompletionMenu.replaceChildren();
-            if (fileCompletionCandidates.length === 0 || filePath.value === '') {
+            if (fileCompletionCandidates.length === 0) {
                 fileCompletionMenu.hidden = true;
                 return;
             }
@@ -1920,14 +2047,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             fileCompletionTimer = window.setTimeout(updateFileCompletions, 100);
         });
         filePath.addEventListener('keydown', (event) => {
-            if (event.key === 'Tab' && (fileCompletionPending ||
+            if (event.key === 'Tab' && (filePath.value === '' || fileCompletionPending ||
                 (fileCompletionQuery === filePath.value && fileCompletionCandidates.length > 0))) {
                 event.preventDefault();
                 window.clearTimeout(fileCompletionTimer);
                 const value = filePath.value;
                 if (fileCompletionQuery === value && fileCompletionCandidates.length > 0) {
                     completeFilePath();
-                } else if (fileCompletionPending) {
+                } else if (fileCompletionPending || value === '') {
                     updateFileCompletions().then(() => {
                         if (filePath.value === value) {
                             completeFilePath();

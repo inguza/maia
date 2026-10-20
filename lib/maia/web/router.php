@@ -75,6 +75,7 @@ $routes = [
     '/api/workspace/create' => __DIR__ . '/api/workspace/create.php',
     '/api/workspace/delete' => __DIR__ . '/api/workspace/delete.php',
     '/api/workspace/settings' => __DIR__ . '/api/workspace/settings.php',
+    '/api/workspace/complete' => __DIR__ . '/api/workspace/complete.php',
     '/api/profile/create' => __DIR__ . '/api/profile/create.php',
     '/api/profile/delete' => __DIR__ . '/api/profile/delete.php',
     '/api/profile/settings' => __DIR__ . '/api/profile/settings.php',
