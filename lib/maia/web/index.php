@@ -3675,7 +3675,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             // Resource pages have no session composer. Selecting a session
             // from their sidebar must enter the session page so the session
             // context and composer are rebuilt together.
-            if (urlWorkspaceName || urlProfileName) {
+            if (urlWorkspaceName || urlProfileName || urlHomeName) {
                 window.location.href = maiaUrl(`/session/${encodeURIComponent(name)}`);
                 return;
             }
