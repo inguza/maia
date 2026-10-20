@@ -955,6 +955,34 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-bottom: 1rem;
         }
 
+        @media (max-width: 48rem) {
+            body {
+                padding: 1rem;
+            }
+
+            body::before,
+            .sidebar-rail {
+                display: none;
+            }
+
+            .topbar {
+                padding-left: 2.75rem;
+            }
+
+            .topbar > #sidebar-toggle {
+                left: 0.75rem;
+            }
+
+            .sidebar {
+                left: 0;
+                width: min(18rem, 85vw);
+            }
+
+            .sidebar-backdrop {
+                left: 0;
+            }
+        }
+
         @media (prefers-color-scheme: dark) {
             .message.user {
                 background: #1e3a8a;

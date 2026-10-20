@@ -175,6 +175,13 @@ gui_auth_fragment() {
     printf '%s:%s' "${GUI_AUTH_IDENTIFIER#*:}" "$GUI_AUTH_SECRET"
 }
 
+gui_auth_qr_url() {
+    local bind="$1"
+    local port="$2"
+    local fragment="$3"
+    printf 'http://%s:%s/qr#auth=%s' "$(gui_url_host "$bind")" "$port" "$fragment"
+}
+
 gui_auth_create_and_print_url() {
     local name="${1:-auto}"
     local gui_dir="$(resolve_home_dir)"
@@ -184,8 +191,11 @@ gui_auth_create_and_print_url() {
     bind="${bind:-${MAIA_GUI_BIND:-$GUI_DEFAULT_BIND}}"
     port="${port:-$GUI_DEFAULT_PORT}"
     gui_auth_create_token "$name"
-    GUI_AUTH_URL="http://$(gui_url_host "$bind"):$port/#auth=$(gui_auth_fragment)"
+    local fragment="$(gui_auth_fragment)"
+    GUI_AUTH_URL="http://$(gui_url_host "$bind"):$port/#auth=$fragment"
+    GUI_AUTH_QR_URL="$(gui_auth_qr_url "$bind" "$port" "$fragment")"
     printf 'MAIA GUI: %s\n' "$GUI_AUTH_URL"
+    printf 'MAIA QR:  %s\n' "$GUI_AUTH_QR_URL"
 }
 
 gui_server_is_running() {
@@ -390,6 +400,9 @@ gui_start() {
         url="http://$(gui_url_host "$bind"):$stored_port/"
         [[ -n "$auth_fragment" ]] && url+="#auth=$auth_fragment"
         printf 'MAIA GUI is already running at %s\n' "$url"
+        if [[ -n "$auth_fragment" ]]; then
+            printf 'MAIA QR:  %s\n' "$(gui_auth_qr_url "$bind" "$stored_port" "$auth_fragment")"
+        fi
         if [[ "$launch" == true ]]; then
             gui_launch_browser "$url"
         fi
@@ -416,6 +429,9 @@ gui_start() {
             url="http://$(gui_url_host "$bind"):$port/"
             [[ -n "$auth_fragment" ]] && url+="#auth=$auth_fragment"
             printf 'MAIA GUI started at %s\n' "$url"
+            if [[ -n "$auth_fragment" ]]; then
+                printf 'MAIA QR:  %s\n' "$(gui_auth_qr_url "$bind" "$port" "$auth_fragment")"
+            fi
             if [[ "$launch" == true ]]; then
                 gui_launch_browser "$url"
             fi

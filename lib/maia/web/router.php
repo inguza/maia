@@ -64,6 +64,11 @@ if ($path === '/home') {
     return true;
 }
 
+if ($path === '/qr') {
+    require __DIR__ . '/qr.php';
+    return true;
+}
+
 $routes = [
     '/api/send' => __DIR__ . '/api/send.php',
     '/api/history/show' => __DIR__ . '/api/history/show.php',
