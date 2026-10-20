@@ -2195,7 +2195,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             let query = '';
             const render = () => {
                 menu.replaceChildren();
-                if (candidates.length === 0 || input.value === '') {
+                if (candidates.length === 0) {
                     menu.hidden = true;
                     return;
                 }
@@ -2217,7 +2217,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const refresh = () => {
                 query = input.value;
                 const names = getNames();
-                candidates = query === '' || query.includes('*') || query.includes('?')
+                candidates = query.includes('*') || query.includes('?')
                     ? []
                     : names.filter((name) => name.startsWith(query));
                 render();
@@ -2237,9 +2237,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             };
             input.addEventListener('input', refresh);
             input.addEventListener('keydown', (event) => {
-                if (event.key === 'Tab' && candidates.length > 0 && query === input.value) {
+                if (event.key === 'Tab' && (input.value === '' ||
+                    (candidates.length > 0 && query === input.value))) {
                     event.preventDefault();
-                    complete();
+                    if (candidates.length > 0 && query === input.value) {
+                        complete();
+                    } else {
+                        refresh();
+                    }
                 } else if (event.key === 'Escape') {
                     menu.hidden = true;
                 }
