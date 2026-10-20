@@ -110,6 +110,8 @@ function maia_web_refresh_auth_cookie(): void
 
 function maia_web_auth_bootstrap(): never
 {
+    $cookiePath = maia_web_base_path() . '/' ?: '/';
+    $cookiePathJson = json_encode($cookiePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     header('Content-Type: text/html; charset=utf-8');
     http_response_code(401);
     echo <<<HTML
@@ -124,7 +126,8 @@ function maia_web_auth_bootstrap(): never
         message.innerHTML = 'Authentication failed. Run "<code>maia gui create</code>" and use the generated authentication URL.';
         return;
     }
-    document.cookie = 'MAIA_GUI_AUTH=' + value + '; Path=/; SameSite=Lax';
+    const cookiePath = {$cookiePathJson};
+    document.cookie = 'MAIA_GUI_AUTH=' + value + '; Path=' + cookiePath + '; SameSite=Lax';
     message.textContent = 'Authentication token received. Reloading...';
     history.replaceState({}, '', location.pathname + location.search);
     location.reload();
