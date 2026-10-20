@@ -129,8 +129,9 @@ COMMANDS
   launch [<url>]
      Open the supplied URL, or http://localhost:<port>/ when no URL is supplied.
 
-  create [<name>] [--launch]
+  create [<name>] [--url <url>] [--launch]
      Create an authentication token and print an authenticated URL.
+     --url specifies the public MAIA URL, including an optional subpath.
 
   list
      List authentication token identifiers.
@@ -184,16 +185,26 @@ gui_auth_qr_url() {
 
 gui_auth_create_and_print_url() {
     local name="${1:-auto}"
+    local public_url="${2:-}"
     local gui_dir="$(resolve_home_dir)"
     local gui_meta="$gui_dir/gui.myl"
     local bind="$(myl_get "$gui_meta" bind 2>/dev/null || true)"
     local port="$(myl_get "$gui_meta" port 2>/dev/null || true)"
     bind="${bind:-${MAIA_GUI_BIND:-$GUI_DEFAULT_BIND}}"
     port="${port:-$GUI_DEFAULT_PORT}"
+    if [[ -n "$public_url" && ! "$public_url" =~ ^https?://[^[:space:]]+$ ]]; then
+        die "Invalid public URL '$public_url'. Expected http:// or https:// URL."
+    fi
+    public_url="${public_url%/}"
     gui_auth_create_token "$name"
     local fragment="$(gui_auth_fragment)"
-    GUI_AUTH_URL="http://$(gui_url_host "$bind"):$port/#auth=$fragment"
-    GUI_AUTH_QR_URL="$(gui_auth_qr_url "$bind" "$port" "$fragment")"
+    if [[ -n "$public_url" ]]; then
+        GUI_AUTH_URL="$public_url/#auth=$fragment"
+        GUI_AUTH_QR_URL="$public_url/qr#auth=$fragment"
+    else
+        GUI_AUTH_URL="http://$(gui_url_host "$bind"):$port/#auth=$fragment"
+        GUI_AUTH_QR_URL="$(gui_auth_qr_url "$bind" "$port" "$fragment")"
+    fi
     printf 'MAIA GUI: %s\n' "$GUI_AUTH_URL"
     printf 'MAIA QR:  %s\n' "$GUI_AUTH_QR_URL"
 }
@@ -462,11 +473,17 @@ handle_gui_command() {
         create)
             local launch=false
             local name=auto
+            local public_url=""
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     --launch)
                         launch=true
                         shift
+                        ;;
+                    --url)
+                        [[ -n "${2:-}" ]] || die "Option --url requires a URL."
+                        public_url="$2"
+                        shift 2
                         ;;
                     -h|--help)
                         gui_usage
@@ -478,7 +495,7 @@ handle_gui_command() {
                         ;;
                 esac
             done
-            gui_auth_create_and_print_url "$name"
+            gui_auth_create_and_print_url "$name" "$public_url"
             if [[ "$launch" == true ]]; then
                 gui_launch_browser "$GUI_AUTH_URL"
             fi

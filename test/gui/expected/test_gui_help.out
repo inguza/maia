@@ -17,8 +17,9 @@ COMMANDS
   launch [<url>]
      Open the supplied URL, or http://localhost:<port>/ when no URL is supplied.
 
-  create [<name>] [--launch]
+  create [<name>] [--url <url>] [--launch]
      Create an authentication token and print an authenticated URL.
+     --url specifies the public MAIA URL, including an optional subpath.
 
   list
      List authentication token identifiers.
