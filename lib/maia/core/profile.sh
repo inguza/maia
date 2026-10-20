@@ -143,13 +143,25 @@ handle_profile_command() {
 		;;
 	esac
     done
-    prompt_type="toolset"
+    profile_definition_scope() {
+        init_profile_search_dirs
+        local active_profile="$(resolve_profile_name)"
+        if [[ -n "$active_profile" ]]; then
+            local active_scope="$(resolve_profile_path scope "$active_profile")"
+            if [[ -n "$active_scope" ]]; then
+                printf '%s\n' "$active_scope"
+                return
+            fi
+        fi
+        printf 'home\n'
+    }
 
-    # default scope if none given
-    determine_implicit_scope "$prompt_type"
+    # With no scope value, report the scope where the active profile is
+    # defined. Profiles are directories containing profile.myl, so use the
+    # profile search/resolve functions rather than determine_implicit_scope.
     if [[ "$scopearg" = "yes" && -z "$scope" ]] ; then
-	echo "$implicit_scope"
-	return
+        profile_definition_scope
+        return
     fi
 
     local subcmd="${1:-}"
@@ -157,12 +169,12 @@ handle_profile_command() {
 
     # Special default scope handling
     case "$subcmd" in
-	list)
-	    scope="$implicit_scope"
-	    ;;
-	*)
-	    :
-	    ;;
+        list)
+            scope="$(profile_definition_scope)"
+            ;;
+        *)
+            :
+            ;;
     esac
 
     if [[ -z "$scope" ]]; then
@@ -171,7 +183,7 @@ handle_profile_command() {
 
     validate_scope "$scope"
     if [[ "$scope" == "profile" ]] ; then
-	die "Scope '$scope' not valid for profile actions."
+        die "Scope 'profile' is not a storage scope. Use the parent profile name with its defining scope."
     fi
 
     load_config "$scope" CONFIG
