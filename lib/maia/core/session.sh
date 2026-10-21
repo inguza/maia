@@ -20,6 +20,9 @@ COMMANDS
   create [options] <name> [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
+  rename <new-name> <old-name>
+    Rename a session and its session-associated fileset.
+
   list
     List all sessions (active one marked with *).
 
@@ -159,6 +162,58 @@ parse_session_options() {
                 shift
                 ;;
         esac
+    done
+}
+
+rename_session_fileset_value() {
+    local value="$1"
+    local old_name="$2"
+    local new_name="$3"
+
+    if [[ "$value" == "$old_name" ]]; then
+        printf '%s' "$new_name"
+        return
+    fi
+
+    # Session metadata normally stores filesets as a JSON array, but older
+    # metadata may contain a single name or a whitespace/comma-separated list.
+    if [[ "$value" == \[*\] ]] && jq -e . >/dev/null 2>&1 <<< "$value"; then
+        jq -c --arg old "$old_name" --arg new "$new_name" '
+            if type == "array" then
+                map(if . == $old then $new else . end)
+            elif type == "string" and . == $old then
+                $new
+            else
+                .
+            end
+        ' <<< "$value"
+        return
+    fi
+
+    local -a values=()
+    local value_item
+    read -ra values <<< "${value//,/ }"
+    local result=""
+    for value_item in "${values[@]}"; do
+        [[ -n "$value_item" ]] || continue
+        [[ "$value_item" == "$old_name" ]] && value_item="$new_name"
+        result+="${result:+ }$value_item"
+    done
+    printf '%s' "$result"
+}
+
+rename_session_fileset_references() {
+    local meta="$1"
+    local old_name="$2"
+    local new_name="$3"
+    local field value updated
+
+    for field in filesets extra_send_filesets; do
+        value="$(myl_get "$meta" "$field" 2>/dev/null || true)"
+        updated="$(rename_session_fileset_value "$value" "$old_name" "$new_name")"
+        if [[ "$updated" != "$value" ]]; then
+            myl_update "$meta" "$field" "$updated"
+        fi
     done
 }
 
@@ -528,6 +583,73 @@ handle_session_command() {
 	    shift
 	    init_task_search_dirs
 	    session_task_extract
+            ;;
+
+        rename)
+            shift
+            [[ $# -eq 2 ]] || die "Usage: maia session rename <new-name> <old-name>"
+            local new_name="$1"
+            local old_name="$2"
+            [[ "$new_name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid new session name '$new_name'."
+            [[ "$old_name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid old session name '$old_name'."
+            [[ "$new_name" != "_EMPTY_" && "$old_name" != "_EMPTY_" ]] || die "Session name _EMPTY_ is not allowed."
+            [[ "$new_name" != "$old_name" ]] || die "The new and old session names must differ."
+
+            local old_path="$(resolve_session_path "$old_name")"
+            local new_path="$(resolve_session_path "$new_name")"
+            [[ -d "$old_path" ]] || die "Session '$old_name' does not exist."
+            [[ ! -e "$new_path" ]] || die "Session '$new_name' already exists."
+            [[ ! -e "$old_path/lock" ]] || die "Session '$old_name' is currently locked."
+
+            local old_meta="$(resolve_session_meta "$old_name")"
+            [[ -f "$old_meta" ]] || die "Session '$old_name' does not have metadata."
+            local workspace="$(read_session_workspace_raw "$old_name")"
+            local workspace_dir=""
+            local old_fileset=""
+            local new_fileset=""
+            local fileset_moved=false
+            if [[ -n "$workspace" ]]; then
+                workspace_dir="$(resolve_workspace_path "$workspace")"
+                if [[ -d "$workspace_dir" ]]; then
+                    old_fileset="$workspace_dir/${old_name}.fileset"
+                    new_fileset="$workspace_dir/${new_name}.fileset"
+                    [[ ! -e "$old_fileset" || ! -e "$new_fileset" ]] || \
+                        die "Cannot rename fileset: '$new_name.fileset' already exists."
+                fi
+            fi
+
+            trigger_event "pre-session-rename $old_name $new_name"
+            local metadata_backup="${old_meta}.rename-backup.$$"
+            cp -p -- "$old_meta" "$metadata_backup" || die "Unable to prepare session metadata for rename."
+
+            if [[ -n "$old_fileset" && -e "$old_fileset" ]]; then
+                mv -- "$old_fileset" "$new_fileset" || {
+                    rm -f -- "$metadata_backup"
+                    die "Unable to rename fileset '$old_name' to '$new_name'."
+                }
+                fileset_moved=true
+            fi
+
+            if ! rename_session_fileset_references "$old_meta" "$old_name" "$new_name"; then
+                cp -p -- "$metadata_backup" "$old_meta"
+                if [[ "$fileset_moved" == true ]]; then
+                    mv -- "$new_fileset" "$old_fileset" || true
+                fi
+                rm -f -- "$metadata_backup"
+                die "Unable to update fileset references in session metadata."
+            fi
+
+            if ! mv -- "$old_path" "$new_path"; then
+                cp -p -- "$metadata_backup" "$old_meta"
+                if [[ "$fileset_moved" == true ]]; then
+                    mv -- "$new_fileset" "$old_fileset" || true
+                fi
+                rm -f -- "$metadata_backup"
+                die "Unable to rename session '$old_name' to '$new_name'."
+            fi
+            rm -f -- "$new_path/$(basename "$metadata_backup")"
+            notice "Renamed session '$old_name' to '$new_name'."
+            trigger_event "post-session-rename $old_name $new_name"
             ;;
 
 	set)

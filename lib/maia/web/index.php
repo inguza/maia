@@ -284,6 +284,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             color: #991b1b;
         }
 
+        .session-rename {
+            color: #6b7280;
+            flex: 0 0 auto;
+            font-size: 0.95rem;
+            padding: 0.25rem 0.45rem !important;
+            width: auto !important;
+        }
+
+        .session-rename:hover {
+            background: #e5e7eb !important;
+            color: #111827;
+        }
+
         .session-delete-dialog {
             border: 1px solid #d1d5db;
             border-radius: 0.6rem;
@@ -1170,6 +1183,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         </form>
     </dialog>
 
+    <dialog id="session-rename-dialog" class="resource-create-dialog">
+        <form id="session-rename-form" method="dialog">
+            <h2>Rename session</h2>
+            <label for="session-rename-name">
+                New session name
+                <input id="session-rename-name" name="name" type="text"
+                       pattern="[A-Za-z0-9_.%+\\-]+" required autocomplete="off">
+            </label>
+            <p id="session-rename-error" class="error" role="alert" hidden></p>
+            <div class="resource-create-actions">
+                <button type="submit" value="cancel">Cancel</button>
+                <button id="session-rename-submit" type="submit" value="rename">Rename</button>
+            </div>
+        </form>
+    </dialog>
+
     <dialog id="resource-delete-dialog" class="session-delete-dialog">
         <form method="dialog">
             <h2 id="resource-delete-title">Delete resource?</h2>
@@ -1230,6 +1259,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
+            <button id="session-rename-button" class="session-rename" type="button"
+                    aria-label="Rename session" title="Rename session"<?= $isResourcePage ? ' hidden' : '' ?>>✎</button>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button">Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
@@ -1493,6 +1524,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         sessionCreateAction.hidden = true;
         const sessionDeleteDialog = document.getElementById('session-delete-dialog');
         const sessionDeleteMessage = document.getElementById('session-delete-message');
+        const sessionRenameButton = document.getElementById('session-rename-button');
+        const sessionRenameDialog = document.getElementById('session-rename-dialog');
+        const sessionRenameForm = document.getElementById('session-rename-form');
+        const sessionRenameName = document.getElementById('session-rename-name');
+        const sessionRenameError = document.getElementById('session-rename-error');
+        const sessionRenameSubmit = document.getElementById('session-rename-submit');
         const resourceDeleteDialog = document.getElementById('resource-delete-dialog');
         const resourceDeleteTitle = document.getElementById('resource-delete-title');
         const resourceDeleteMessage = document.getElementById('resource-delete-message');
@@ -3312,10 +3349,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     deleteSession(session.name, remove);
                 });
 
+                const rename = document.createElement('button');
+                rename.type = 'button';
+                rename.className = 'session-rename';
+                rename.textContent = '✎';
+                rename.title = `Rename session ${session.name}`;
+                rename.setAttribute('aria-label', `Rename session ${session.name}`);
+                rename.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openSessionRename(session.name);
+                });
+
                 const settings = document.createElement('button');
                 settings.type = 'button';
                 settings.className = 'sidebar-settings';
-                settings.textContent = '⚙';
+                               settings.textContent = '⚙';
                 settings.title = `Settings for session ${session.name}`;
                 settings.setAttribute('aria-label', `Settings for session ${session.name}`);
                 settings.addEventListener('click', (event) => {
@@ -3323,7 +3371,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     openSessionSettings(session.name);
                 });
 
-                item.append(button, settings, remove);
+                item.append(button, rename, settings, remove);
                 sessionList.appendChild(item);
             }
 
@@ -3346,6 +3394,67 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }, { once: true });
             });
         }
+
+        function openSessionRename(name) {
+            sessionRenameName.value = name;
+            sessionRenameError.hidden = true;
+            sessionRenameError.textContent = '';
+            sessionRenameDialog.dataset.oldName = name;
+            sessionRenameDialog.showModal();
+            sessionRenameName.focus();
+            sessionRenameName.select();
+        }
+
+        sessionRenameButton?.addEventListener('click', () => {
+            if (selectedSessionName) {
+                openSessionRename(selectedSessionName);
+            }
+        });
+
+        sessionRenameForm?.addEventListener('submit', async (event) => {
+            if (event.submitter?.value !== 'rename') {
+                return;
+            }
+            event.preventDefault();
+            const oldName = sessionRenameDialog.dataset.oldName || '';
+            const newName = sessionRenameName.value.trim();
+            sessionRenameError.hidden = true;
+            sessionRenameSubmit.disabled = true;
+            try {
+                const response = await fetch('/api/session/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldName, newName })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to rename the session.');
+                }
+
+                knownSessions = knownSessions.map((session) =>
+                    session.name === oldName ? { ...session, name: newName } : session
+                );
+                displayedSessions = displayedSessions.map((session) =>
+                    session.name === oldName ? { ...session, name: newName } : session
+                );
+                if (selectedSessionName === oldName) {
+                    selectedSessionName = newName;
+                    urlSessionName = newName;
+                    history.replaceState({}, '', maiaUrl(`/session/${encodeURIComponent(newName)}`));
+                    sessionTitle.textContent = `session: ${newName}`;
+                    if (messageSessionName) {
+                        messageSessionName.textContent = newName;
+                    }
+                }
+                renderSessions(displayedSessions, selectedSessionName);
+                sessionRenameDialog.close('renamed');
+            } catch (requestError) {
+                sessionRenameError.textContent = requestError.message || 'Unable to rename the session.';
+                sessionRenameError.hidden = false;
+            } finally {
+                sessionRenameSubmit.disabled = false;
+            }
+        });
 
         async function deleteSession(name, button) {
             if (!await confirmSessionDelete(name)) {

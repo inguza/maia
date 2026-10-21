@@ -84,6 +84,7 @@ $routes = [
     '/api/session/list' => __DIR__ . '/api/session/list.php',
     '/api/session/select' => __DIR__ . '/api/session/select.php',
     '/api/session/delete' => __DIR__ . '/api/session/delete.php',
+    '/api/session/rename' => __DIR__ . '/api/session/rename.php',
     '/api/session/create' => __DIR__ . '/api/session/create.php',
     '/api/session/settings' => __DIR__ . '/api/session/settings.php',
     '/api/workspace/create' => __DIR__ . '/api/workspace/create.php',
