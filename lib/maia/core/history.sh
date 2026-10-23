@@ -35,6 +35,9 @@ COMMANDS
   unhide [<range>]
     Make entries in n–m inclusive for given range.
 
+  replace <index>
+    Replace the content of one history entry. Replacement content is read from stdin.
+
   prune [role-option] [--reduce|--edit|--cut] [<role range>...]
     Prune history entries by role and mode.
 
@@ -551,6 +554,25 @@ handle_history_command() {
 	    local tmp=$(mktemp)
 	    exclusive_json_modify "$history_file" ".[ $n :]"
 	    info "Popped the first $n entr$([ "$n" -eq 1 ] && echo "y" || echo "ies") from history '$history_name'."
+	    ;;
+
+	replace)
+	    shift
+	    [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || die "Usage: maia history replace <index>"
+	    local replace_index="$1"
+	    local replacement
+	    replacement="$(cat)"
+	    exclusive_json_modify "$history_file" --arg replacement "$replacement" --argjson index "$replace_index" '
+	      .[$index] as $entry
+	      | if ($entry | has("backup") | not) then
+	          .[$index].backup = ({ }
+	            + (if $entry | has("content") then {content: $entry.content} else {} end)
+	            + (if $entry | has("tool_calls") then {tool_calls: $entry.tool_calls} else {} end)
+	            + (if $entry | has("data") then {data: $entry.data} else {} end))
+	        else . end
+	      | .[$index].content = $replacement
+	    '
+	    info "History entry $replace_index replaced."
 	    ;;
 
 	restore)
