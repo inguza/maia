@@ -3041,37 +3041,33 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 types.includes('application/x-maia-workspace-file');
         }
 
-        workspaceFileList?.addEventListener('dragover', (event) => {
+        workspaceFilesPanel?.addEventListener('dragover', (event) => {
+            // Always cancel the browser's default navigation behavior. This
+            // is important for drops carrying text/uri-list data.
+            event.preventDefault();
             if (isMaiaRemoteDrag(event)) {
-                // Do not allow a remote-file download URL to navigate the page
-                // when it is dropped back onto the workspace browser.
-                event.preventDefault();
                 event.dataTransfer.dropEffect = 'none';
-                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+                workspaceFilesPanel.classList.remove('workspace-drop-target');
                 return;
             }
-            if (event.dataTransfer?.files?.length > 0) {
-                event.preventDefault();
+            if (event.dataTransfer?.types.includes('Files')) {
                 event.dataTransfer.dropEffect = 'copy';
-                workspaceFilesPanel?.classList.add('workspace-drop-target');
+                workspaceFilesPanel.classList.add('workspace-drop-target');
             }
         });
-        workspaceFileList?.addEventListener('dragleave', (event) => {
-            if (!workspaceFileList.contains(event.relatedTarget)) {
-                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+        workspaceFilesPanel?.addEventListener('dragleave', (event) => {
+            if (!workspaceFilesPanel.contains(event.relatedTarget)) {
+                workspaceFilesPanel.classList.remove('workspace-drop-target');
             }
         });
-        workspaceFileList?.addEventListener('drop', async (event) => {
+        workspaceFilesPanel?.addEventListener('drop', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            workspaceFilesPanel.classList.remove('workspace-drop-target');
             if (isMaiaRemoteDrag(event)) {
-                event.preventDefault();
-                event.stopPropagation();
-                workspaceFilesPanel?.classList.remove('workspace-drop-target');
                 return;
             }
             if (event.dataTransfer?.files?.length > 0) {
-                event.preventDefault();
-                event.stopPropagation();
-                workspaceFilesPanel?.classList.remove('workspace-drop-target');
                 await uploadWorkspaceFiles(event.dataTransfer.files);
             }
         });
