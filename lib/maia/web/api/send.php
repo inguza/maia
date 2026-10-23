@@ -5,7 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/web.php';
 
 header('Content-Type: text/plain; charset=utf-8');
-header('Cache-Control: no-cache');
+header('Cache-Control: no-cache, no-transform');
+header('Content-Encoding: none');
 header('X-Accel-Buffering: no');
 
 // Send output to the client as soon as it is available.
@@ -82,8 +83,9 @@ while ($stdoutOpen || $stderrOpen) {
     }
 
     foreach ($read as $stream) {
-        $chunk = fgets($stream);
-        if ($chunk === false) {
+        // IMPORTANT! We want to do line-read and not read a large chunk.
+	$chunk = fgets($stream);
+        if ($chunk === false || $chunk === '') {
             if (feof($stream)) {
                 if ($stream === $pipes[1]) {
                     $stdoutOpen = false;
