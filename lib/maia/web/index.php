@@ -720,6 +720,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin: 0 0 0.75rem;
         }
 
+        #workspace-file-path a,
+        #workspace-file-path a:visited {
+            color: inherit;
+            text-decoration: none !important;
+        }
+
+        #workspace-file-path a:hover,
+        #workspace-file-path a:focus {
+            color: inherit;
+            text-decoration: underline !important;
+        }
+
         .workspace-file-page-mode h2,
         .workspace-file-page-mode .workspace-files-toolbar,
         .workspace-file-page-mode #workspace-file-status,
@@ -3622,6 +3634,39 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return maiaUrl(`/workspace/${encodeURIComponent(urlWorkspaceName)}${suffix}`);
         }
 
+        function renderWorkspacePath(path) {
+            if (!workspaceFilePath) {
+                return;
+            }
+            workspaceFilePath.replaceChildren();
+            const parts = path.split('/').filter(Boolean);
+            const addLink = (label, target) => {
+                const link = document.createElement('a');
+                link.href = workspaceLocation(target);
+                link.textContent = label;
+                link.addEventListener('click', (event) => {
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                        return;
+                    }
+                    event.preventDefault();
+                    workspaceRelativePath = target;
+                    loadWorkspaceFiles();
+                });
+                workspaceFilePath.appendChild(link);
+            };
+
+            addLink('/', '');
+            let current = '';
+            for (const [index, part] of parts.entries()) {
+                current = current === '' ? part : `${current}/${part}`;
+                const separator = document.createElement('span');
+                separator.className = 'workspace-path-separator';
+                separator.textContent = ' ';
+                workspaceFilePath.appendChild(separator);
+                addLink(`${part}${index < parts.length - 1 ? '/' : ''}`, current);
+            }
+        }
+
         async function loadWorkspaceFiles(updateUrl = true) {
             if (!workspaceFileList || !workspaceFilePath) {
                 return;
@@ -3639,7 +3684,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     throw new Error(result.error || 'Unable to list workspace files.');
                 }
                 workspaceEntries = Array.isArray(result.entries) ? result.entries : [];
-                workspaceFilePath.textContent = `/${workspaceRelativePath}`;
+                renderWorkspacePath(workspaceRelativePath);
                 workspaceFileUp.disabled = workspaceRelativePath === '';
                 renderWorkspaceEntries();
                 workspaceFileStatus.textContent = '';
@@ -5583,9 +5628,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 conversation.hidden = true;
                 error.hidden = true;
                 if (urlWorkspaceName && workspaceFileList) {
-                    workspaceFilePath.textContent = workspaceRelativePath === ''
-                        ? '/'
-                        : `/${workspaceRelativePath}`;
+                    renderWorkspacePath(workspaceRelativePath);
                     workspaceFileUp.disabled = workspaceRelativePath === '';
                     if (workspaceRelativePath !== '') {
                         const viewed = await viewWorkspaceFile({
