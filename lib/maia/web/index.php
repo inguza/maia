@@ -1043,15 +1043,91 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .message-label-row {
             align-items: center;
+            background: Canvas;
+            border-top: 1px solid #d1d5db;
+            bottom: 0;
             display: flex;
             justify-content: space-between;
+            padding: 0.35rem 0;
+            position: sticky;
+            z-index: 4;
+        }
+
+        .session-action-group {
+            align-items: center;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .session-action-group button,
+        .session-more-menu > button {
+            align-items: center;
+            box-sizing: border-box;
+            color: CanvasText;
+            display: inline-flex;
+            height: 2.25rem;
+            justify-content: center;
+            margin: 0;
+            min-width: 2.25rem;
+            padding: 0;
+            width: 2.25rem;
+        }
+
+        .session-action-group button:hover,
+        .session-more-menu > button:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .session-more-menu {
+            position: relative;
+        }
+
+        .session-more-menu > div {
+            background: Canvas;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            bottom: calc(100% + 0.35rem);
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            display: flex;
+            flex-direction: column;
+            max-width: calc(100vw - 2rem);
+            min-width: 12rem;
+            overflow: hidden;
+            padding: 0.25rem;
+            position: absolute;
+            right: 0;
+            z-index: 8;
+        }
+
+        .session-more-menu > div[hidden] {
+            display: none;
+        }
+
+        .session-more-menu > div button {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            box-sizing: border-box;
+            color: CanvasText;
+            display: flex;
+            justify-content: flex-start;
+            margin: 0;
+            min-width: 0;
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .session-more-menu > div button:hover {
+            background: #e5e7eb;
         }
 
         .history-refresh {
-            color: #6b7280;
-            font-size: 0.9rem;
+            color: CanvasText;
+            font-size: 1rem;
             margin: 0;
-            padding: 0.2rem 0.45rem;
         }
 
         .history-refresh:hover {
@@ -1504,6 +1580,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .history-actions button {
+            color: CanvasText;
             margin: 0;
         }
 
@@ -1523,7 +1600,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .history-entry-action {
-            color: #6b7280;
+            color: CanvasText;
             font-size: 0.9rem;
             margin: 0;
             padding: 0.2rem 0.4rem;
@@ -1799,9 +1876,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
             <button id="session-copy-button" class="session-copy" type="button"
-                    aria-label="Copy session" title="Copy session"<?= $isResourcePage ? ' hidden' : '' ?>>⧉</button>
+                    aria-label="Copy session" title="Copy session" hidden<?= $isResourcePage ? ' hidden' : '' ?>>⧉</button>
             <button id="session-rename-button" class="session-rename" type="button"
-                    aria-label="Rename session" title="Rename session"<?= $isResourcePage ? ' hidden' : '' ?>>✎</button>
+                    aria-label="Rename session" title="Rename session" hidden>✎</button>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
@@ -1887,8 +1964,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <?php if (!$isResourcePage): ?>
             <div class="message-label-row">
                 <label for="message">Continue in session: <span id="message-session-name"><?= escape($initialSessionName) ?></span></label>
-                <button id="history-refresh" class="history-refresh" type="button"
-                        aria-label="Refresh history" title="Refresh history">↻</button>
+                <div class="session-action-group">
+                    <button id="history-refresh" class="history-refresh" type="button"
+                            aria-label="Refresh history" title="Refresh history">↻</button>
+                    <button id="session-action-copy" type="button"
+                            aria-label="Copy session" title="Copy session">⧉</button>
+                    <button id="session-action-rename" type="button"
+                            aria-label="Rename session" title="Rename session">✎</button>
+                    <button id="session-action-settings" type="button"
+                            aria-label="Session settings" title="Session settings">⚙</button>
+                    <div id="session-more-menu" class="session-more-menu">
+                        <button id="session-more-toggle" type="button"
+                                aria-label="More session tools" title="More session tools"
+                                aria-expanded="false">≡</button>
+                        <div id="session-more-tools" hidden></div>
+                    </div>
+                </div>
             </div>
             <textarea id="message" name="message" required autofocus></textarea>
 <?php endif; ?>
@@ -2118,6 +2209,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const historyEditError = document.getElementById('history-edit-error');
         const historyEditSubmit = document.getElementById('history-edit-submit');
         const historyRefresh = document.getElementById('history-refresh');
+        const sessionActionCopy = document.getElementById('session-action-copy');
+        const sessionActionRename = document.getElementById('session-action-rename');
+        const sessionActionSettings = document.getElementById('session-action-settings');
+        const sessionMoreToggle = document.getElementById('session-more-toggle');
+        const sessionMoreTools = document.getElementById('session-more-tools');
+        const historyActions = document.querySelector('.history-actions');
         const loadEarlier = document.getElementById('load-earlier');
         const turnCount = document.getElementById('turn-count');
         const turnCountControl = document.getElementById('turn-count-control');
@@ -4561,7 +4658,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'history-entry-action';
-                button.textContent = icon;
+                button.textContent = action === 'hide'
+                    ? '\u2298'
+                    : (action === 'unhide' ? '\u2299' : icon);
                 button.title = label;
                 button.setAttribute('aria-label', label);
                 button.addEventListener('click', async (event) => {
@@ -4981,6 +5080,39 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         sessionRenameButton?.addEventListener('click', () => {
             if (selectedSessionName) {
                 openSessionRename(selectedSessionName);
+            }
+        });
+
+        sessionActionCopy?.addEventListener('click', () => {
+            if (selectedSessionName) {
+                openSessionCopy(selectedSessionName);
+            }
+        });
+
+        sessionActionRename?.addEventListener('click', () => {
+            if (selectedSessionName) {
+                openSessionRename(selectedSessionName);
+            }
+        });
+
+        sessionActionSettings?.addEventListener('click', async () => {
+            settingsPanel.showModal();
+            settingsToggle.setAttribute('aria-expanded', 'true');
+            if (!settingsLoaded) {
+                await loadSettings();
+            }
+        });
+
+        sessionMoreToggle?.addEventListener('click', () => {
+            const expanded = sessionMoreTools.hidden;
+            sessionMoreTools.hidden = !expanded;
+            sessionMoreToggle.setAttribute('aria-expanded', String(expanded));
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#session-more-menu')) {
+                sessionMoreTools.hidden = true;
+                sessionMoreToggle.setAttribute('aria-expanded', 'false');
             }
         });
 
@@ -5510,6 +5642,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 ? `${Number(firstIndex)}-`
                 : 'turn';
             historyRefresh.disabled = true;
+            historyRefresh.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            historyRefresh.appendChild(spinner);
+            historyRefresh.setAttribute('aria-label', 'Refreshing history');
+            historyRefresh.title = 'Refreshing history';
             error.hidden = true;
             try {
                 const result = await fetchHistory(range);
@@ -5521,7 +5660,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 showError(requestError.message || 'Unable to refresh MAIA history.');
             } finally {
+                historyRefresh.replaceChildren(document.createTextNode('↻'));
                 historyRefresh.disabled = false;
+                historyRefresh.setAttribute('aria-label', 'Refresh history');
+                historyRefresh.title = 'Refresh history';
             }
         }
 
@@ -5655,6 +5797,25 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             historyClear.hidden = false;
             historyHideLastTurn.hidden = false;
             historyHideAll.hidden = false;
+            historyHideAll.textContent = '\u2298 Hide history';
+            historyHideLastTurn.textContent = '\u2298 Hide last turn';
+            settingsToggle.hidden = true;
+            if (historyActions && sessionMoreTools) {
+                sessionActionCopy.textContent = '⧉ Copy session';
+                sessionActionRename.textContent = '✎ Rename session';
+                sessionActionSettings.textContent = '⚙ Session settings';
+                historyRefresh.textContent = '↻ Refresh history';
+                sessionMoreTools.append(
+                    historyRefresh,
+                    sessionActionCopy,
+                    sessionActionRename,
+                    sessionActionSettings,
+                    historyClear,
+                    historyHideAll,
+                    historyHideLastTurn
+                );
+                historyActions.hidden = false;
+            }
             showHistoryLoading();
             try {
                 await Promise.all([
