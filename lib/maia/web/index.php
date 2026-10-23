@@ -106,9 +106,70 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
     return $entries;
 }
 
+function maia_web_initial_workspace_file(string $workspaceName, string $relativePath): ?array
+{
+    if ($relativePath === '') {
+        return null;
+    }
+    $home = maia_web_home_dir();
+    if ($home === null || $home === '') {
+        return null;
+    }
+    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR
+        . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
+    if (!is_file($metadata)) {
+        return null;
+    }
+    $workspaceRoot = '';
+    foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+        if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
+            $workspaceRoot = trim($match[1]);
+            break;
+        }
+    }
+    if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
+        !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
+        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
+    }
+    $workspaceRoot = realpath($workspaceRoot);
+    if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
+        return null;
+    }
+    $parts = [];
+    foreach (explode('/', str_replace('\\\\', '/', $relativePath)) as $part) {
+        if ($part === '' || $part === '.') {
+            continue;
+        }
+        if ($part === '..') {
+            return null;
+        }
+        $parts[] = $part;
+    }
+    $relative = implode('/', $parts);
+    $file = realpath($workspaceRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative));
+    $prefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if ($file === false || !is_file($file) ||
+        ($file !== $workspaceRoot && !str_starts_with($file, $prefix)) ||
+        filesize($file) > 2 * 1024 * 1024) {
+        return null;
+    }
+    $content = file_get_contents($file);
+    if ($content === false || strpos($content, "\\0") !== false) {
+        return null;
+    }
+    return [
+        'path' => $relative,
+        'name' => basename($file),
+        'content' => $content,
+    ];
+}
+
 $initialWorkspaceEntries = $workspacePageName === ''
     ? []
     : maia_web_initial_workspace_entries($workspacePageName, $workspacePagePath);
+$initialWorkspaceFile = $workspacePageName === ''
+    ? null
+    : maia_web_initial_workspace_file($workspacePageName, $workspacePagePath);
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
@@ -684,6 +745,34 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-bottom: 0.75rem;
         }
 
+        .workspace-files-toolbar > button[id^="workspace-file-"] {
+            font-size: 0;
+            line-height: 1;
+            min-width: 2.25rem;
+            padding-left: 0.55rem;
+            padding-right: 0.55rem;
+        }
+
+        .workspace-files-toolbar > button[id^="workspace-file-"]::before {
+            font-size: 1.15rem;
+        }
+
+        #workspace-file-up::before { content: "\2191"; }
+        #workspace-file-refresh::before { content: "\21BB"; }
+        #workspace-file-copy-selected::before { content: "\29C9"; }
+        #workspace-file-move-selected::before { content: "\21AA"; }
+        #workspace-file-delete-selected::before { content: "\2715"; }
+        #workspace-file-new-directory::before { content: "\1F4C1\002B"; }
+        #workspace-file-new-file::before { content: "\1F4C4\002B"; }
+        #workspace-file-upload::before { content: "\21E1"; }
+
+        .workspace-session-target { 
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
         .workspace-session-target {
             position: relative;
         }
@@ -846,11 +935,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .workspace-file-actions button {
+            align-items: center;
             background: transparent;
             border: 0;
+            display: flex;
+            gap: 0.55rem;
             margin: 0;
             padding: 0.4rem 0.55rem;
             text-align: left;
+            width: 100%;
+        }
+
+        .workspace-action-icon {
+            display: inline-flex;
+            flex: 0 0 1.15rem;
+            justify-content: center;
+            width: 1.15rem;
         }
 
         .workspace-file-actions button:hover {
@@ -1127,7 +1227,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         button:disabled {
-            cursor: wait;
+            cursor: not-allowed;
             opacity: 0.6;
         }
 
@@ -1725,8 +1825,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <h2 class="workspace-files-heading">Workspace files</h2>
             <div class="workspace-files-toolbar">
                 <strong id="workspace-file-path">/</strong>
-                <button id="workspace-file-up" type="button" disabled>Up</button>
-                <button id="workspace-file-refresh" type="button">Refresh</button>
+                <button id="workspace-file-up" type="button" disabled aria-label="Go up" title="Go up">&#8593;</button>
+                <button id="workspace-file-refresh" type="button" aria-label="Refresh" title="Refresh">&#8635;</button>
                 <button id="workspace-file-copy-selected" type="button" disabled
                         aria-label="Copy selected files" title="Copy selected files">â§</button>
                 <button id="workspace-file-move-selected" type="button" disabled
@@ -1738,7 +1838,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <input id="workspace-file-upload-input" type="file" multiple hidden>
                 <button id="workspace-file-upload" type="button" aria-label="Upload files" title="Upload files">⇧</button>
             </div>
-            <p id="workspace-file-status" class="settings-status" role="status"></p>
+            <p id="workspace-file-status" class="settings-status files-status" role="status"></p>
             <ul id="workspace-file-list" class="workspace-file-list"<?= $workspacePagePath !== '' ? ' hidden' : '' ?>></ul>
             <p id="workspace-file-drag-help" class="settings-status">Drag a file onto a matching session in the sidebar to add it to that session.</p>
             <p id="workspace-file-view-help" class="settings-status" hidden>Mark lines below to add to a session.</p>
@@ -1950,6 +2050,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const maiaBasePath = <?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspacePath = <?= json_encode($workspacePagePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const initialWorkspaceFile = <?= json_encode($initialWorkspaceFile, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const maiaUrl = (path) => `${maiaBasePath}${path}`;
         const form = document.getElementById('message-form');
         const input = document.getElementById('message');
@@ -3078,6 +3179,28 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return button;
         }
 
+        function closeWorkspaceFileMenus() {
+            document.querySelectorAll('.workspace-file-actions').forEach((menu) => {
+                menu.hidden = true;
+            });
+        }
+
+        const closeWorkspaceMenusUnlessInside = (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target?.closest('.workspace-file-menu, .workspace-file-actions')) {
+                closeWorkspaceFileMenus();
+            }
+        };
+
+        document.addEventListener('pointerdown', closeWorkspaceMenusUnlessInside, true);
+        document.addEventListener('click', closeWorkspaceMenusUnlessInside, true);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeWorkspaceFileMenus();
+            }
+        });
+        window.addEventListener('blur', closeWorkspaceFileMenus);
+
         function workspaceEntryMenu(entry) {
             const wrapper = document.createElement('span');
             wrapper.style.position = 'relative';
@@ -3093,7 +3216,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const addAction = (label, handler) => {
                 const action = document.createElement('button');
                 action.type = 'button';
-                action.textContent = label;
+                const icons = {
+                    Rename: '\u21C4',
+                    Edit: '\u270E',
+                    Copy: '\u29C9',
+                    Move: '\u21AA',
+                    Delete: '\u2715',
+                    Download: '\u21E9'
+                };
+                const icon = document.createElement('span');
+                icon.className = 'workspace-action-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = icons[label] || '';
+                const labelText = document.createElement('span');
+                labelText.textContent = label;
+                action.append(icon, labelText);
                 action.addEventListener('click', (event) => {
                     event.stopPropagation();
                     menu.hidden = true;
@@ -3320,14 +3457,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
             updateWorkspaceSelectionActions();
             try {
-                const response = await fetch(`/api/workspace/operation?view=1&path=${encodeURIComponent(entry.path)}`);
-                const result = await response.json();
-                if (!response.ok || !result.ok) {
-                    workspaceViewStatus.textContent = result.error || 'Unable to view file.';
-                    workspaceFileView.hidden = true;
-                    workspaceFilesPanel.classList.remove('workspace-file-page-mode');
-                    workspaceFileList.hidden = false;
-                    return false;
+                let result;
+                if (initialWorkspaceFile && initialWorkspaceFile.path === entry.path) {
+                    result = initialWorkspaceFile;
+                } else {
+                    const response = await fetch(`/api/workspace/operation?view=1&path=${encodeURIComponent(entry.path)}`);
+                    result = await response.json();
+                    if (!response.ok || !result.ok) {
+                        workspaceViewStatus.textContent = result.error || 'Unable to view file.';
+                        workspaceFileView.hidden = true;
+                        workspaceFilesPanel.classList.remove('workspace-file-page-mode');
+                        workspaceFileList.hidden = false;
+                        return false;
+                    }
                 }
                 const content = String(result.content ?? '');
                 workspaceFileView.dataset.path = entry.path;
@@ -3450,8 +3592,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const parts = workspaceRelativePath.split('/').filter(Boolean);
             parts.pop();
             workspaceRelativePath = parts.join('/');
+            workspaceViewStart = null;
+            workspaceViewEnd = null;
+            workspaceViewContent?.querySelectorAll('.workspace-view-line.selected').forEach((line) => line.classList.remove('selected'));
+            if (workspaceFileViewHelp) {
+                workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+            }
             workspaceFileView.hidden = true;
             workspaceFilesPanel.hidden = false;
+            workspaceFilesPanel.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
             workspaceFileList.hidden = false;
             loadWorkspaceFiles();
         });
@@ -3480,6 +3629,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (updateUrl && urlWorkspaceName) {
                 history.pushState({}, '', workspaceLocation(workspaceRelativePath));
             }
+            workspaceFileStatus.classList.remove('error');
+            workspaceFileStatus.hidden = false;
             workspaceFileStatus.textContent = 'Loading workspace files...';
             try {
                 const response = await fetch(`/api/workspace/files?path=${encodeURIComponent(workspaceRelativePath)}`);
@@ -3492,6 +3643,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 workspaceFileUp.disabled = workspaceRelativePath === '';
                 renderWorkspaceEntries();
                 workspaceFileStatus.textContent = '';
+                workspaceFileStatus.classList.remove('error');
             } catch (requestError) {
                 workspaceFileStatus.textContent = requestError.message || 'Unable to list workspace files.';
                 workspaceFileList.replaceChildren();
@@ -3519,17 +3671,23 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             loadWorkspaceFiles();
         });
         workspaceFileRefresh?.addEventListener('click', () => loadWorkspaceFiles(false));
+        function showWorkspaceFileError(requestError) {
+            workspaceFileStatus.classList.add('error');
+            workspaceFileStatus.textContent = requestError.message || 'Workspace operation failed.';
+            workspaceFileStatus.hidden = false;
+        }
+
         workspaceFileNewDirectory?.addEventListener('click', async () => {
             const name = window.prompt('Directory name:');
             if (!name) return;
             try { await workspaceOperation('mkdir', { path: workspaceRelativePath, name }); }
-            catch (requestError) { workspaceFileStatus.textContent = requestError.message; }
+            catch (requestError) { showWorkspaceFileError(requestError); }
         });
         workspaceFileNewFile?.addEventListener('click', async () => {
             const name = window.prompt('File name:');
             if (!name) return;
             try { await workspaceOperation('create', { path: workspaceRelativePath ? `${workspaceRelativePath}/${name}` : name }); }
-            catch (requestError) { workspaceFileStatus.textContent = requestError.message; }
+            catch (requestError) { showWorkspaceFileError(requestError); }
         });
         workspaceFileUpload?.addEventListener('click', () => workspaceFileUploadInput?.click());
         async function uploadWorkspaceFiles(files) {
@@ -5433,7 +5591,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         const viewed = await viewWorkspaceFile({
                             path: workspaceRelativePath,
                             name: workspaceRelativePath.split('/').pop()
-                        }, new URLSearchParams(window.location.search).get('edit') === '1');
+                        }, new URLSearchParams(window.location.search).get('edit') === '1', initialWorkspaceFile?.content ?? null);
                         if (!viewed) {
                             workspaceFileList.hidden = false;
                             renderWorkspaceEntries();
