@@ -165,8 +165,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .app {
-            margin: 0 auto;
-            max-width: 60rem;
+            margin: 0;
+            max-width: none;
+            width: 100%;
         }
 
         .sidebar-rail {
