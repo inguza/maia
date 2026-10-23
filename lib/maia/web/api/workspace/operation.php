@@ -12,7 +12,7 @@ function workspace_operation_error(int $status, string $message): never
     exit;
 }
 
-$workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+$workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? $_GET['workspace'] ?? ''));
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_operation_error(400, 'A workspace is required.');
 }
@@ -60,6 +60,13 @@ if ($method === 'GET') {
     $path = $relative($_GET['path'] ?? '');
     $file = $existing($path);
     if (!is_file($file)) workspace_operation_error(400, 'Only files can be downloaded.');
+    if (isset($_GET['view'])) {
+        if (filesize($file) > 2 * 1024 * 1024) workspace_operation_error(413, 'Files larger than 2 MB cannot be viewed.');
+        $content = file_get_contents($file);
+        if ($content === false || strpos($content, "\0") !== false) workspace_operation_error(415, 'This file cannot be viewed as text.');
+        echo json_encode(['ok' => true, 'path' => $path, 'name' => basename($file), 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        exit;
+    }
     header('Content-Type: application/octet-stream');
     header('Content-Disposition: attachment; filename="' . addslashes(basename($file)) . '"');
     readfile($file);
@@ -78,6 +85,9 @@ $source = $path === '' ? $root : $existing($path);
 $destinationPath = $relative($input['destination'] ?? '');
 $name = trim((string) ($input['name'] ?? ''));
 if ($action === 'mkdir') {
+    if ($name !== '' && (str_contains($name, '/') || str_contains($name, '\\') || $name === '.' || $name === '..')) {
+        workspace_operation_error(400, 'A valid directory name is required.');
+    }
     $target = $parent($path);
     if ($name !== '') $target .= DIRECTORY_SEPARATOR . $name;
     elseif ($path !== '') $target = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);

@@ -15,6 +15,7 @@ function escape(string $value): string
 
 $workspacePageName = trim((string) ($_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
 $workspacePagePath = trim(str_replace('\\', '/', (string) ($_SERVER['MAIA_URL_WORKSPACE_PATH'] ?? '')), '/');
+$workspacePageEdit = (string) ($_GET['edit'] ?? '') === '1';
 $profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
 $homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
 $webBasePath = maia_web_base_path();
@@ -657,6 +658,23 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin: 0 0 0.75rem;
         }
 
+        .workspace-file-page-mode h2,
+        .workspace-file-page-mode .workspace-files-toolbar,
+        .workspace-file-page-mode #workspace-file-status,
+        .workspace-file-page-mode #workspace-file-list,
+        .workspace-file-page-mode #workspace-file-drag-help {
+            display: none;
+        }
+
+        .workspace-file-page-mode #workspace-file-view-help {
+            display: block;
+            margin: 0 0 0.75rem;
+        }
+
+        .workspace-edit-page-mode {
+            display: none;
+        }
+
         .workspace-files-toolbar,
         .workspace-session-target {
             align-items: center;
@@ -737,9 +755,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .workspace-file-list li {
             align-items: center;
-            display: flex;
+            border-radius: 0.25rem;
+            display: grid;
             gap: 0.5rem;
-            padding: 0.3rem 0;
+            grid-template-columns: auto auto minmax(0, 1fr);
+            min-height: 2.5rem;
+            padding: 0.45rem;
+        }
+
+        .workspace-file-list li:nth-child(even) {
+            background: color-mix(in srgb, CanvasText 3%, Canvas);
+        }
+
+        .workspace-file-list li:hover {
+            background: color-mix(in srgb, #2563eb 10%, Canvas);
         }
 
         .workspace-file-list input {
@@ -747,29 +776,173 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .workspace-file-name {
+            align-items: center;
             background: transparent;
             border: 0;
-            color: #111827;
+            color: CanvasText;
             cursor: pointer;
+            display: inline-flex;
+            font-size: 1rem;
+            gap: 0.35rem;
+            justify-self: start;
             margin: 0;
-            opacity: 1;
+            min-width: 0;
             overflow-wrap: anywhere;
             padding: 0.15rem 0;
             text-align: left;
+            text-decoration: none;
         }
 
-        .workspace-file-name:disabled {
-            color: #111827;
-            cursor: default;
-            opacity: 1;
+        .workspace-file-rename-input {
+            align-self: stretch;
+            box-sizing: border-box;
+            font: inherit;
+            min-width: 0;
+            padding: 0.25rem 0.4rem;
+            width: 100%;
+        }
+
+        .workspace-file-name:hover {
+            text-decoration: underline;
         }
 
         .workspace-file-directory {
             font-weight: 600;
         }
 
+        .workspace-file-menu {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: #6b7280;
+            cursor: pointer;
+            display: inline-flex;
+            font-size: 1.1rem;
+            justify-content: center;
+            margin: 0;
+            padding: 0.15rem 0.35rem;
+        }
+
+        .workspace-file-menu:hover {
+            color: CanvasText;
+        }
+
+        .workspace-file-actions {
+            background: Canvas;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            display: flex;
+            flex-direction: column;
+            min-width: 9rem;
+            padding: 0.25rem;
+            position: absolute;
+            z-index: 5;
+        }
+
+        .workspace-file-actions[hidden] {
+            display: none;
+        }
+
+        .workspace-file-actions button {
+            background: transparent;
+            border: 0;
+            margin: 0;
+            padding: 0.4rem 0.55rem;
+            text-align: left;
+        }
+
+        .workspace-file-actions button:hover {
+            background: color-mix(in srgb, #2563eb 12%, Canvas);
+        }
+
+        .workspace-view-page {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .workspace-view-page-header {
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            padding: 0.65rem 0.75rem;
+        }
+
+        .workspace-view-content {
+            border-top: 1px solid #d1d5db;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            max-height: 70vh;
+            overflow: auto;
+            padding: 0.5rem 0;
+            user-select: none;
+        }
+
+        #workspace-view-edit-content {
+            border: 0;
+            border-top: 1px solid #d1d5db;
+            border-radius: 0;
+            box-sizing: border-box;
+            font: 0.95rem/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            min-height: 70vh;
+            padding: 0.75rem;
+            resize: vertical;
+            width: 100%;
+        }
+
+        .workspace-view-line {
+            cursor: pointer;
+            display: grid;
+            grid-template-columns: 4rem max-content;
+            min-width: max-content;
+            white-space: pre;
+        }
+
+        .workspace-view-line:hover {
+            background: color-mix(in srgb, #2563eb 8%, Canvas);
+        }
+
+        .workspace-view-line.selected {
+            background: color-mix(in srgb, #2563eb 24%, Canvas);
+        }
+
+        #workspace-view-edit-content[hidden],
+        #workspace-view-save[hidden],
+        #workspace-view-cancel[hidden] {
+            display: none;
+        }
+
+        .workspace-view-line-number {
+            color: #9ca3af;
+            padding-right: 0.75rem;
+            text-align: right;
+        }
+
+        .workspace-view-line-text {
+            padding-right: 1rem;
+        }
+
         .history-loading[hidden] {
             display: none;
+        }
+
+        .message-label-row {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .history-refresh {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 0;
+            padding: 0.2rem 0.45rem;
+        }
+
+        .history-refresh:hover {
+            color: #111827;
         }
 
         .message {
@@ -939,6 +1112,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             padding: 0.75rem;
             resize: vertical;
             width: 100%;
+        }
+
+        #message {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-variant-ligatures: none;
         }
 
         button {
@@ -1534,39 +1712,63 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </form>
         </dialog>
 <?php if ($workspacePageName !== ''): ?>
-        <section id="workspace-files" class="workspace-files">
-            <h2>Workspace files</h2>
+        <section id="workspace-files" class="workspace-files<?= $workspacePagePath !== '' ? ' workspace-file-page-mode' : '' ?><?= $workspacePageEdit ? ' workspace-edit-page-mode' : '' ?>">
+            <h2 class="workspace-files-heading">Workspace files</h2>
             <div class="workspace-files-toolbar">
                 <strong id="workspace-file-path">/</strong>
                 <button id="workspace-file-up" type="button" disabled>Up</button>
                 <button id="workspace-file-refresh" type="button">Refresh</button>
+                <button id="workspace-file-copy-selected" type="button" disabled
+                        aria-label="Copy selected files" title="Copy selected files">â§</button>
+                <button id="workspace-file-move-selected" type="button" disabled
+                        aria-label="Move selected files" title="Move selected files">âª</button>
+                <button id="workspace-file-delete-selected" type="button" disabled
+                        aria-label="Delete selected files" title="Delete selected files">Ã</button>
                 <button id="workspace-file-new-directory" type="button" aria-label="Create directory" title="Create directory">📁+</button>
                 <button id="workspace-file-new-file" type="button" aria-label="Create file" title="Create file">📄+</button>
                 <input id="workspace-file-upload-input" type="file" multiple hidden>
                 <button id="workspace-file-upload" type="button" aria-label="Upload files" title="Upload files">⇧</button>
             </div>
             <p id="workspace-file-status" class="settings-status" role="status"></p>
-            <ul id="workspace-file-list" class="workspace-file-list"></ul>
-            <p class="settings-status">Drag a file onto a matching session in the sidebar to add it to that session.</p>
+            <ul id="workspace-file-list" class="workspace-file-list"<?= $workspacePagePath !== '' ? ' hidden' : '' ?>></ul>
+            <p id="workspace-file-drag-help" class="settings-status">Drag a file onto a matching session in the sidebar to add it to that session.</p>
+            <p id="workspace-file-view-help" class="settings-status" hidden>Mark lines below to add to a session.</p>
             <div class="workspace-session-target">
-                <label class="visually-hidden" for="workspace-session-input">Add selected files to session</label>
-                <input id="workspace-session-input" type="text" autocomplete="off"
-                       placeholder="Select a session">
+                <label class="visually-hidden" for="workspace-session-input">Select a session</label>
+                <input id="workspace-session-input" type="text" autocomplete="off" placeholder="Select a session">
                 <span id="workspace-session-status" class="workspace-session-status" role="status">
                     <span class="spinner" aria-hidden="true"></span>
                     Loading sessions...
                 </span>
                 <div id="workspace-session-menu" class="workspace-session-target-menu" role="listbox" hidden></div>
-                <button id="workspace-add-files" type="button" disabled>Add selected files</button>
+                <button id="workspace-add-files" type="button" disabled>Add selected</button>
             </div>
         </section>
 <?php endif; ?>
+        <section id="workspace-file-view" class="workspace-view-page" hidden>
+            <div class="workspace-view-page-header">
+                <strong id="workspace-view-title"></strong>
+                <span>
+                    <button id="workspace-view-edit" type="button">Edit</button>
+                    <button id="workspace-view-save" type="button" hidden>Save</button>
+                    <button id="workspace-view-cancel" type="button" hidden>Cancel</button>
+                    <button id="workspace-view-back" type="button">Back to directory</button>
+                </span>
+            </div>
+            <div id="workspace-view-content" class="workspace-view-content" tabindex="0"></div>
+            <textarea id="workspace-view-edit-content" hidden spellcheck="false"></textarea>
+            <p id="workspace-view-status" class="settings-status" role="status"></p>
+        </section>
         <main id="conversation" class="conversation" aria-live="polite"></main>
         <div id="error" class="error" role="alert" hidden></div>
 
         <form id="message-form">
 <?php if (!$isResourcePage): ?>
-            <label for="message">Continue in session: <span id="message-session-name"><?= escape($initialSessionName) ?></span></label>
+            <div class="message-label-row">
+                <label for="message">Continue in session: <span id="message-session-name"><?= escape($initialSessionName) ?></span></label>
+                <button id="history-refresh" class="history-refresh" type="button"
+                        aria-label="Refresh history" title="Refresh history">↻</button>
+            </div>
             <textarea id="message" name="message" required autofocus></textarea>
 <?php endif; ?>
 
@@ -1721,11 +1923,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             };
 
             window.addEventListener('error', (event) => {
-                reportJavaScriptError(event.message || 'Unknown JavaScript error.');
+                const location = event.filename
+                    ? ` (${event.filename}:${event.lineno}:${event.colno})`
+                    : '';
+                reportJavaScriptError(`${event.message || 'Unknown JavaScript error.'}${location}`);
             });
             window.addEventListener('unhandledrejection', (event) => {
                 const reason = event.reason instanceof Error
-                    ? event.reason.message
+                    ? `${event.reason.message}${event.reason.stack ? `\n${event.reason.stack}` : ''}`
                     : String(event.reason || 'Unknown rejected promise.');
                 reportJavaScriptError(reason);
             });
@@ -1790,6 +1995,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const historyEditContent = document.getElementById('history-edit-content');
         const historyEditError = document.getElementById('history-edit-error');
         const historyEditSubmit = document.getElementById('history-edit-submit');
+        const historyRefresh = document.getElementById('history-refresh');
         const loadEarlier = document.getElementById('load-earlier');
         const turnCount = document.getElementById('turn-count');
         const turnCountControl = document.getElementById('turn-count-control');
@@ -1845,16 +2051,34 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const workspaceFilePath = document.getElementById('workspace-file-path');
         const workspaceFileUp = document.getElementById('workspace-file-up');
         const workspaceFileRefresh = document.getElementById('workspace-file-refresh');
+        const workspaceFileCopySelected = document.getElementById('workspace-file-copy-selected');
+        const workspaceFileMoveSelected = document.getElementById('workspace-file-move-selected');
+        const workspaceFileDeleteSelected = document.getElementById('workspace-file-delete-selected');
         const workspaceFileNewDirectory = document.getElementById('workspace-file-new-directory');
         const workspaceFileNewFile = document.getElementById('workspace-file-new-file');
         const workspaceFileUpload = document.getElementById('workspace-file-upload');
         const workspaceFileUploadInput = document.getElementById('workspace-file-upload-input');
         const workspaceFileStatus = document.getElementById('workspace-file-status');
         const workspaceFileList = document.getElementById('workspace-file-list');
+        const workspaceFileDragHelp = document.getElementById('workspace-file-drag-help');
+        const workspaceFileViewHelp = document.getElementById('workspace-file-view-help');
         const workspaceSessionInput = document.getElementById('workspace-session-input');
         const workspaceSessionMenu = document.getElementById('workspace-session-menu');
         const workspaceSessionStatus = document.getElementById('workspace-session-status');
         const workspaceAddFiles = document.getElementById('workspace-add-files');
+        const workspaceFileView = document.getElementById('workspace-file-view');
+        const workspaceViewTitle = document.getElementById('workspace-view-title');
+        const workspaceViewBack = document.getElementById('workspace-view-back');
+        const workspaceViewEdit = document.getElementById('workspace-view-edit');
+        const workspaceViewSave = document.getElementById('workspace-view-save');
+        const workspaceViewCancel = document.getElementById('workspace-view-cancel');
+        const workspaceViewContent = document.getElementById('workspace-view-content');
+        const workspaceViewEditContent = document.getElementById('workspace-view-edit-content');
+        const workspaceViewStatus = document.getElementById('workspace-view-status');
+        // Kept as inert compatibility objects for older markup/cache variants;
+        // file viewing is now a normal workspace URL, not a dialog.
+        const workspaceViewAddSelection = { addEventListener() {} };
+        const workspaceViewDialog = { close() {}, showModal() {} };
         const workspaceSearch = document.getElementById('workspace-search');
         const workspaceSearchInput = document.getElementById('workspace-search-input');
         const workspaceSearchAction = document.getElementById('workspace-search-action');
@@ -2779,6 +3003,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let workspaceEntries = Array.isArray(initialWorkspaceEntries) ? initialWorkspaceEntries : [];
         const workspaceSelectedFiles = new Set();
         let workspaceTargetSession = '';
+        let workspaceViewStart = null;
+        let workspaceViewEnd = null;
+        let workspaceViewPointerSelecting = false;
+        let workspaceViewPointerDragged = false;
+
+        // A non-root workspace URL may be either a directory or a file. Start
+        // in the file-page layout immediately; viewWorkspaceFile() restores
+        // the directory layout if the path turns out to be a directory.
+        if (workspaceRelativePath !== '' && workspaceFilesPanel && workspaceFileList) {
+            workspaceFilesPanel.classList.add('workspace-file-page-mode');
+            workspaceFileList.hidden = true;
+        }
 
         function renderWorkspaceSessionMenu() {
             if (!workspaceSessionMenu || !workspaceSessionInput) {
@@ -2801,7 +3037,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     workspaceTargetSession = name;
                     workspaceSessionInput.value = name;
                     workspaceSessionMenu.hidden = true;
-                    workspaceAddFiles.disabled = workspaceSelectedFiles.size === 0;
+                    updateWorkspaceSelectionActions();
                 });
                 workspaceSessionMenu.appendChild(option);
             }
@@ -2833,6 +3069,162 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return button;
         }
 
+        function workspaceEntryMenu(entry) {
+            const wrapper = document.createElement('span');
+            wrapper.style.position = 'relative';
+            const menuButton = document.createElement('button');
+            menuButton.type = 'button';
+            menuButton.className = 'workspace-file-menu';
+            menuButton.textContent = '⋮';
+            menuButton.title = `Actions for ${entry.name}`;
+            menuButton.setAttribute('aria-label', `Actions for ${entry.name}`);
+            const menu = document.createElement('span');
+            menu.className = 'workspace-file-actions';
+            menu.hidden = true;
+            const addAction = (label, handler) => {
+                const action = document.createElement('button');
+                action.type = 'button';
+                action.textContent = label;
+                action.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    menu.hidden = true;
+                    handler(action);
+                });
+                menu.appendChild(action);
+            };
+            addAction('Rename', (button) => {
+                workspaceInlineRename(entry, button);
+            });
+            addAction('Edit', () => {
+                window.location.href = `${workspaceLocation(entry.path)}?edit=1`;
+            });
+            addAction('Copy', async (button) => {
+                const destination = window.prompt('Copy to workspace-relative path:', entry.path);
+                if (!destination || destination === entry.path) return;
+                button.disabled = true;
+                try { await workspaceOperation('copy', { path: entry.path, destination }); }
+                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to copy path.'; button.disabled = false; }
+            });
+            addAction('Move', async (button) => {
+                const destination = window.prompt('Move to workspace-relative path:', entry.path);
+                if (!destination || destination === entry.path) return;
+                button.disabled = true;
+                try { await workspaceOperation('move', { path: entry.path, destination }); }
+                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to move path.'; button.disabled = false; }
+            });
+            addAction('Delete', async (button) => {
+                if (!window.confirm(`Delete ${entry.name}?`)) return;
+                button.disabled = true;
+                try { await workspaceOperation('delete', { path: entry.path }); }
+                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete path.'; button.disabled = false; }
+            });
+            if (entry.type === 'file') {
+                addAction('Download', () => {
+                    window.location.href = maiaUrl(`/api/workspace/operation?workspace=${encodeURIComponent(urlWorkspaceName)}&path=${encodeURIComponent(entry.path)}&download=1`);
+                });
+            }
+            menuButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                document.querySelectorAll('.workspace-file-actions').forEach((other) => {
+                    if (other !== menu) other.hidden = true;
+                });
+                menu.hidden = !menu.hidden;
+            });
+            wrapper.append(menuButton, menu);
+            return wrapper;
+        }
+
+        function workspaceInlineRename(entry, menuAction) {
+            const row = [...(workspaceFileList?.children || [])].find((candidate) => candidate.dataset.path === entry.path);
+            const link = row?.querySelector('.workspace-file-name');
+            if (!row || !link || row.querySelector('.workspace-file-rename-input')) {
+                return;
+            }
+            const input = document.createElement('input');
+            input.className = 'workspace-file-rename-input';
+            input.type = 'text';
+            input.value = entry.name;
+            input.setAttribute('aria-label', `New name for ${entry.name}`);
+            link.replaceWith(input);
+            input.focus();
+            input.select();
+            let finished = false;
+            const restore = () => {
+                if (finished) return;
+                finished = true;
+                input.replaceWith(link);
+            };
+            const save = async () => {
+                if (finished) return;
+                const name = input.value.trim();
+                if (name === '' || name === entry.name || name.includes('/') || name === '.' || name === '..') {
+                    restore();
+                    return;
+                }
+                finished = true;
+                input.disabled = true;
+                menuAction.disabled = true;
+                try {
+                    await workspaceOperation('rename', { path: entry.path, name });
+                } catch (requestError) {
+                    workspaceFileStatus.textContent = requestError.message || 'Unable to rename path.';
+                    input.disabled = false;
+                    menuAction.disabled = false;
+                    finished = false;
+                    input.focus();
+                    input.select();
+                }
+            };
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    save();
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    restore();
+                }
+            });
+            input.addEventListener('blur', () => {
+                if (!finished) restore();
+            });
+        }
+
+        function updateWorkspaceSelectionActions() {
+            const hasSelection = workspaceSelectedFiles.size > 0 || (workspaceViewStart !== null && workspaceViewEnd !== null);
+            if (workspaceAddFiles) {
+                workspaceAddFiles.disabled = !hasSelection || workspaceTargetSession === '';
+            }
+            if (workspaceFileCopySelected) workspaceFileCopySelected.disabled = !hasSelection;
+            if (workspaceFileMoveSelected) workspaceFileMoveSelected.disabled = !hasSelection;
+            if (workspaceFileDeleteSelected) workspaceFileDeleteSelected.disabled = !hasSelection;
+        }
+
+        async function operateOnSelectedWorkspaceFiles(action) {
+            const paths = [...workspaceSelectedFiles];
+            if (paths.length === 0) return;
+            if (action === 'delete' && !window.confirm(`Delete ${paths.length} selected file${paths.length === 1 ? '' : 's'}?`)) return;
+            let destination = '';
+            if (action === 'copy' || action === 'move') {
+                destination = window.prompt(`${action === 'copy' ? 'Copy' : 'Move'} selected files to directory:`, workspaceRelativePath);
+                if (destination === null) return;
+                destination = destination.trim();
+            }
+            for (const path of paths) {
+                const name = path.split('/').pop();
+                try {
+                    await workspaceOperation(action, action === 'delete'
+                        ? { path }
+                        : { path, destination: `${destination ? `${destination.replace(/\\\\+$/, '')}/` : ''}${name}` });
+                } catch (requestError) {
+                    workspaceFileStatus.textContent = requestError.message || `Unable to ${action} selected files.`;
+                    return;
+                }
+            }
+            workspaceSelectedFiles.clear();
+            updateWorkspaceSelectionActions();
+            renderWorkspaceEntries();
+        }
+
         function renderWorkspaceEntries() {
             if (!workspaceFileList) {
                 return;
@@ -2840,6 +3232,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             workspaceFileList.replaceChildren();
             for (const entry of workspaceEntries) {
                 const item = document.createElement('li');
+                item.dataset.path = entry.path;
                 if (entry.type === 'file') {
                     item.draggable = true;
                     item.addEventListener('dragstart', (event) => {
@@ -2855,7 +3248,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         if (event.dataTransfer) {
                             event.dataTransfer.effectAllowed = 'copy';
                             const downloadUrl = new URL(
-                                maiaUrl(`/api/workspace/operation?path=${encodeURIComponent(entry.path)}&download=1`),
+                                maiaUrl(`/api/workspace/operation?workspace=${encodeURIComponent(urlWorkspaceName)}&path=${encodeURIComponent(entry.path)}&download=1`),
                                 window.location.href
                             ).href;
                             event.dataTransfer.setData(
@@ -2874,7 +3267,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         } else {
                             workspaceSelectedFiles.delete(entry.path);
                         }
-                        workspaceAddFiles.disabled = workspaceSelectedFiles.size === 0 || workspaceTargetSession === '';
+                        updateWorkspaceSelectionActions();
                     });
                     item.appendChild(checkbox);
                 }
@@ -2890,46 +3283,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 } else {
                     name.disabled = true;
                 }
-                item.appendChild(name);
-                item.appendChild(workspaceEntryActionButton('✎', `Rename ${entry.name}`, async (button) => {
-                    const newName = window.prompt('New name:', entry.name);
-                    if (!newName || newName === entry.name) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('rename', { path: entry.path, name: newName }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
-                }));
-                item.appendChild(workspaceEntryActionButton('⧉', `Copy ${entry.name}`, async (button) => {
-                    const destination = window.prompt('Copy to workspace-relative path:', entry.path);
-                    if (!destination || destination === entry.path) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('copy', { path: entry.path, destination }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
-                }));
-                item.appendChild(workspaceEntryActionButton('↪', `Move ${entry.name}`, async (button) => {
-                    const destination = window.prompt('Move to workspace-relative path:', entry.path);
-                    if (!destination || destination === entry.path) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('move', { path: entry.path, destination }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
-                }));
-                item.appendChild(workspaceEntryActionButton('×', `Delete ${entry.name}`, async (button) => {
-                    if (!window.confirm(`Delete ${entry.name}?`)) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('delete', { path: entry.path }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
-                }));
-                if (entry.type === 'file') {
-                    item.appendChild(workspaceEntryActionButton('⇩', `Download ${entry.name}`, () => {
-                        window.location.href = maiaUrl(`/api/workspace/operation?path=${encodeURIComponent(entry.path)}&download=1`);
-                    }));
-                    item.appendChild(workspaceEntryActionButton('✎', `Edit ${entry.name}`, async (button) => {
-                        const content = window.prompt(`Edit ${entry.name}:`, '');
-                        if (content === null) return;
-                        button.disabled = true;
-                        try { await workspaceOperation('write', { path: entry.path, content }); }
-                        catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
-                    }));
-                }
+                const menu = workspaceEntryMenu(entry);
+                const link = document.createElement('a');
+                link.className = `workspace-file-name${entry.type === 'directory' ? ' workspace-file-directory' : ''}`;
+                link.href = workspaceLocation(entry.path);
+                link.innerHTML = `<span aria-hidden="true">${entry.type === 'directory' ? '📁' : '📄'}</span>`;
+                link.appendChild(document.createTextNode(` ${entry.name}`));
+                item.replaceChildren(...(entry.type === 'file' ? [item.querySelector('input')] : []), menu, link);
                 workspaceFileList.appendChild(item);
             }
             if (workspaceEntries.length === 0) {
@@ -2937,6 +3297,164 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 item.textContent = 'No files or directories.';
                 workspaceFileList.appendChild(item);
             }
+        }
+
+        async function viewWorkspaceFile(entry, editMode = false) {
+            workspaceViewTitle.textContent = entry.path;
+            workspaceViewContent.replaceChildren();
+            workspaceViewEditContent.value = '';
+            workspaceViewStatus.textContent = 'Loading...';
+            workspaceViewStart = null;
+            workspaceViewEnd = null;
+            if (workspaceFileViewHelp) {
+                workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+            }
+            updateWorkspaceSelectionActions();
+            try {
+                const response = await fetch(`/api/workspace/operation?view=1&path=${encodeURIComponent(entry.path)}`);
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    workspaceViewStatus.textContent = result.error || 'Unable to view file.';
+                    workspaceFileView.hidden = true;
+                    workspaceFilesPanel.classList.remove('workspace-file-page-mode');
+                    workspaceFileList.hidden = false;
+                    return false;
+                }
+                const content = String(result.content ?? '');
+                workspaceFileView.dataset.path = entry.path;
+                workspaceFileView.dataset.editing = editMode ? '1' : '0';
+                workspaceViewEdit.hidden = editMode;
+                workspaceViewSave.hidden = !editMode;
+                workspaceViewCancel.hidden = !editMode;
+                workspaceViewContent.hidden = editMode;
+                workspaceViewEditContent.hidden = !editMode;
+                if (editMode) {
+                    workspaceViewEditContent.value = content;
+                    workspaceViewEditContent.focus();
+                } else {
+                    // Split on actual Unix, Windows, or classic Mac line endings.
+                    // Keeping empty elements is important: blank lines have line
+                    // numbers too.
+                    const lines = content.split(/\r\n|\n|\r/);
+                    const selectLineRange = (lineNumber, extend = false) => {
+                        if (extend && workspaceViewStart !== null) {
+                            workspaceViewEnd = lineNumber;
+                        } else {
+                            workspaceViewStart = lineNumber;
+                            workspaceViewEnd = lineNumber;
+                        }
+                        const first = Math.min(workspaceViewStart, workspaceViewEnd);
+                        const last = Math.max(workspaceViewStart, workspaceViewEnd);
+                        workspaceViewContent.querySelectorAll('.workspace-view-line').forEach((candidate) => {
+                            const value = Number(candidate.dataset.line);
+                            candidate.classList.toggle('selected', value >= first && value <= last);
+                        });
+                        if (workspaceFileViewHelp) {
+                            workspaceFileViewHelp.textContent = `Marked lines: ${first}-${last}`;
+                        }
+                        updateWorkspaceSelectionActions();
+                    };
+                    lines.forEach((line, index) => {
+                        const row = document.createElement('div');
+                        row.className = 'workspace-view-line';
+                        row.dataset.line = String(index + 1);
+                        const number = document.createElement('span');
+                        number.className = 'workspace-view-line-number';
+                        number.textContent = String(index + 1);
+                        const text = document.createElement('span');
+                        text.className = 'workspace-view-line-text';
+                        text.textContent = line;
+                        row.append(number, text);
+                        row.addEventListener('pointerdown', (event) => {
+                            event.preventDefault();
+                            workspaceViewPointerSelecting = true;
+                            workspaceViewPointerDragged = false;
+                            selectLineRange(Number(row.dataset.line), event.shiftKey);
+                        });
+                        row.addEventListener('pointerenter', () => {
+                            if (workspaceViewPointerSelecting) {
+                                workspaceViewPointerDragged = true;
+                                selectLineRange(Number(row.dataset.line), true);
+                            }
+                        });
+                        row.addEventListener('pointerup', () => {
+                            workspaceViewPointerSelecting = false;
+                        });
+                        row.addEventListener('click', (event) => {
+                            if (!event.shiftKey && !workspaceViewPointerDragged) {
+                                selectLineRange(Number(row.dataset.line));
+                            }
+                            workspaceViewPointerSelecting = false;
+                            workspaceViewPointerDragged = false;
+                        });
+                        workspaceViewContent.appendChild(row);
+                    });
+                    workspaceViewStatus.textContent = '';
+                }
+                workspaceFileView.hidden = false;
+                workspaceFilesPanel.hidden = editMode;
+                workspaceFilesPanel.classList.toggle('workspace-edit-page-mode', editMode);
+                workspaceFilesPanel.classList.add('workspace-file-page-mode');
+                workspaceFileList.hidden = true;
+                workspaceFileView.scrollIntoView({ block: 'start' });
+                return true;
+            } catch (requestError) {
+                workspaceViewStatus.textContent = requestError.message || 'Unable to view file.';
+                return false;
+            }
+        }
+
+        async function saveWorkspaceFileEdit() {
+            const path = workspaceFileView.dataset.path || workspaceRelativePath;
+            workspaceViewSave.disabled = true;
+            workspaceViewStatus.textContent = 'Saving...';
+            try {
+                const response = await fetch('/api/workspace/operation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'write', path, content: workspaceViewEditContent.value })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to save file.');
+                }
+                await viewWorkspaceFile({ path, name: path.split('/').pop() }, false);
+                workspaceViewStatus.textContent = 'Saved.';
+            } catch (requestError) {
+                workspaceViewStatus.textContent = requestError.message || 'Unable to save file.';
+            } finally {
+                workspaceViewSave.disabled = false;
+            }
+        }
+
+        workspaceViewEdit?.addEventListener('click', () => {
+            const path = workspaceFileView.dataset.path || workspaceRelativePath;
+            viewWorkspaceFile({ path, name: path.split('/').pop() }, true);
+        });
+        workspaceViewSave?.addEventListener('click', saveWorkspaceFileEdit);
+        workspaceViewCancel?.addEventListener('click', () => {
+            const path = workspaceFileView.dataset.path || workspaceRelativePath;
+            viewWorkspaceFile({ path, name: path.split('/').pop() }, false);
+        });
+
+        workspaceViewBack?.addEventListener('click', () => {
+            const parts = workspaceRelativePath.split('/').filter(Boolean);
+            parts.pop();
+            workspaceRelativePath = parts.join('/');
+            workspaceFileView.hidden = true;
+            workspaceFilesPanel.hidden = false;
+            workspaceFileList.hidden = false;
+            loadWorkspaceFiles();
+        });
+
+        function addSelectedWorkspaceLines() {
+            if (workspaceViewStart === null || workspaceViewEnd === null || workspaceTargetSession === '') {
+                workspaceViewStatus.textContent = 'Select a session and a whole-line range first.';
+                return;
+            }
+            const first = Math.min(workspaceViewStart, workspaceViewEnd);
+            const last = Math.max(workspaceViewStart, workspaceViewEnd);
+            addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession);
         }
 
         function workspaceLocation(path) {
@@ -2973,7 +3491,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         workspaceSessionInput?.addEventListener('input', () => {
             workspaceTargetSession = '';
-            workspaceAddFiles.disabled = true;
+            updateWorkspaceSelectionActions();
             renderWorkspaceSessionMenu();
         });
         workspaceSessionInput?.addEventListener('focus', renderWorkspaceSessionMenu);
@@ -3112,16 +3630,36 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         workspaceAddFiles?.addEventListener('click', async () => {
-            if (workspaceTargetSession === '' || workspaceSelectedFiles.size === 0) {
+            if (workspaceTargetSession === '') {
                 return;
             }
-            workspaceAddFiles.disabled = true;
+            updateWorkspaceSelectionActions();
+            if (workspaceViewStart !== null && workspaceViewEnd !== null) {
+                const first = Math.min(workspaceViewStart, workspaceViewEnd);
+                const last = Math.max(workspaceViewStart, workspaceViewEnd);
+                await addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession);
+                workspaceViewStart = null;
+                workspaceViewEnd = null;
+                workspaceViewContent?.querySelectorAll('.workspace-view-line.selected').forEach((line) => line.classList.remove('selected'));
+                if (workspaceFileViewHelp) {
+                    workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+                }
+                updateWorkspaceSelectionActions();
+                return;
+            }
+            if (workspaceSelectedFiles.size === 0) {
+                return;
+            }
             const paths = [...workspaceSelectedFiles];
             await addWorkspaceFilesToSession(paths, workspaceTargetSession);
             workspaceSelectedFiles.clear();
             renderWorkspaceEntries();
-            workspaceAddFiles.disabled = false;
+            updateWorkspaceSelectionActions();
         });
+
+        workspaceFileCopySelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('copy'));
+        workspaceFileMoveSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('move'));
+        workspaceFileDeleteSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('delete'));
 
         function showToolsLoading(message = 'Loading tools...') {
             toolsStatus.replaceChildren();
@@ -4752,6 +5290,31 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             updateEarlierButton();
         }
 
+        async function refreshHistory() {
+            if (!historyRefresh || historyRefresh.disabled) {
+                return;
+            }
+            const range = Number.isInteger(Number(firstIndex))
+                ? `${Number(firstIndex)}-`
+                : 'turn';
+            historyRefresh.disabled = true;
+            error.hidden = true;
+            try {
+                const result = await fetchHistory(range);
+                historyItems = result.items;
+                firstIndex = result.firstIndex;
+                lastIndex = result.lastIndex;
+                renderHistory(historyItems);
+                updateEarlierButton();
+            } catch (requestError) {
+                showError(requestError.message || 'Unable to refresh MAIA history.');
+            } finally {
+                historyRefresh.disabled = false;
+            }
+        }
+
+        historyRefresh?.addEventListener('click', refreshHistory);
+
         function getTurnCount() {
             const value = turnCount.value.replace(/[^0-9]/g, '').slice(0, 3);
             const count = Math.max(1, Number.parseInt(value || '1', 10));
@@ -4839,15 +5402,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         // The profile page remains usable if scope display fails.
                     }
                 }
-                if (urlHomeName) {
+                if (urlHomeName && profilePageSettings) {
                     profilePageSettings.hidden = true;
                 }
-                profilePageSettings.hidden = !urlProfileName;
-                createProfileButton.hidden = true;
-                profileCreateAction.hidden = true;
-                settingsToggle.hidden = true;
-                filesToggle.hidden = true;
-                send.hidden = true;
+                if (profilePageSettings) profilePageSettings.hidden = !urlProfileName;
+                if (createProfileButton) createProfileButton.hidden = true;
+                if (profileCreateAction) profileCreateAction.hidden = true;
+                if (settingsToggle) settingsToggle.hidden = true;
+                if (filesToggle) filesToggle.hidden = true;
+                if (historyRefresh) historyRefresh.hidden = true;
+                if (send) send.hidden = true;
                 document.querySelector('.history-actions')?.setAttribute('hidden', '');
                 conversation.hidden = true;
                 error.hidden = true;
@@ -4856,7 +5420,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         ? '/'
                         : `/${workspaceRelativePath}`;
                     workspaceFileUp.disabled = workspaceRelativePath === '';
-                    renderWorkspaceEntries();
+                    if (workspaceRelativePath !== '') {
+                        const viewed = await viewWorkspaceFile({
+                            path: workspaceRelativePath,
+                            name: workspaceRelativePath.split('/').pop()
+                        }, new URLSearchParams(window.location.search).get('edit') === '1');
+                        if (!viewed) {
+                            workspaceFileList.hidden = false;
+                            renderWorkspaceEntries();
+                        }
+                    } else {
+                        workspaceFileList.hidden = false;
+                        renderWorkspaceEntries();
+                    }
                 }
                 await Promise.allSettled([
                     loadSessions(),

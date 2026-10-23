@@ -111,6 +111,7 @@ $routes = [
     '/api/profile/settings' => __DIR__ . '/api/profile/settings.php',
     '/api/file/list' => __DIR__ . '/api/file/list.php',
     '/api/file/add' => __DIR__ . '/api/file/add.php',
+    '/api/file/add-selection' => __DIR__ . '/api/file/add-selection.php',
     '/api/file/complete' => __DIR__ . '/api/file/complete.php',
     '/api/file/forget' => __DIR__ . '/api/file/forget.php',
     '/api/tool/context' => __DIR__ . '/api/tool/context.php',
