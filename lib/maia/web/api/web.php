@@ -6,6 +6,27 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+function maia_web_validate_environment(): void
+{
+    $home = getenv('MAIA_HOME');
+    if (!$home || !is_dir($home)) {
+    header('Content-Type: text/html; charset=utf-8');
+        http_response_code(500);
+        echo '<h1>MAIA configuration error</h1>';
+        echo '<p>MAIA_HOME is not set to a valid MAIA directory.</p>';
+        exit;
+    }
+
+    $bin = getenv('MAIA_BIN');
+    if (!$bin || !is_file($bin) || !is_executable($bin)) {
+    header('Content-Type: text/html; charset=utf-8');
+        http_response_code(500);
+        echo '<h1>MAIA configuration error</h1>';
+        echo '<p>MAIA_BIN is not set to an executable MAIA binary.</p>';
+        exit;
+    }
+}
+
 function maia_web_base_path(): string
 {
     $script = parse_url((string) ($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
@@ -240,6 +261,44 @@ function maia_web_relative_home_path(string $path): string
         array_slice($pathParts, $common)
     );
     return $relative === [] ? '.' : implode('/', $relative);
+}
+
+function maia_web_ensure_session(string $name): bool
+{
+    if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name) || $name === '_EMPTY_') {
+        return false;
+    }
+
+    $environment = maia_web_environment();
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
+    $run = static function (array $arguments) use ($descriptors, $environment): int {
+        $process = proc_open(
+            array_merge([maia_web_binary()], $arguments),
+            $descriptors,
+            $pipes,
+            null,
+            $environment
+        );
+        if (!is_resource($process)) {
+            return 1;
+        }
+        fclose($pipes[0]);
+        stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        return proc_close($process);
+    };
+
+    if ($run(['session', 'exist', $name]) === 0) {
+        return true;
+    }
+
+    return $run(['session', 'create', $name]) === 0;
 }
 
 /** @return array<int, string> */

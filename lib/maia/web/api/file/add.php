@@ -81,10 +81,6 @@ $workspaceRoot = realpath($workspaceRoot);
 if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
     files_add_error(400, 'The workspace root does not exist.');
 }
-if (!maia_web_path_within_home($workspaceRoot)) {
-    files_add_error(403, 'The workspace root is outside MAIA home.');
-}
-
 // Keep the boundary check here because the CLI accepts paths outside the
 // workspace. File existence, file type, and workspace-relative conversion
 // remain the responsibility of `maia file add`.

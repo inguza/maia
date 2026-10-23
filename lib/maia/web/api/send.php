@@ -82,19 +82,17 @@ while ($stdoutOpen || $stderrOpen) {
     }
 
     foreach ($read as $stream) {
-        $chunk = fread($stream, 8192);
-        if ($chunk === '' && feof($stream)) {
-            if ($stream === $pipes[1]) {
-                $stdoutOpen = false;
-                fclose($pipes[1]);
-            } else {
-                $stderrOpen = false;
-                fclose($pipes[2]);
+        $chunk = fgets($stream);
+        if ($chunk === false) {
+            if (feof($stream)) {
+                if ($stream === $pipes[1]) {
+                    $stdoutOpen = false;
+                    fclose($pipes[1]);
+                } else {
+                    $stderrOpen = false;
+                    fclose($pipes[2]);
+                }
             }
-            continue;
-        }
-
-        if ($chunk === false || $chunk === '') {
             continue;
         }
 

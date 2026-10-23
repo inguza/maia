@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../web.php';
+header('Content-Type: application/json; charset=utf-8');
+
+function workspace_operation_error(int $status, string $message): never
+{
+    http_response_code($status);
+    echo json_encode(['ok' => false, 'error' => $message], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    exit;
+}
+
+$workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
+    workspace_operation_error(400, 'A workspace is required.');
+}
+$home = maia_web_home_dir();
+$meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
+$root = '';
+foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
+    if (preg_match('/^path:\s*(.*)$/', $line, $match)) { $root = trim($match[1]); break; }
+}
+if ($root !== '' && $root[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\/]/', $root)) {
+    $root = $home . DIRECTORY_SEPARATOR . $root;
+}
+$root = realpath($root);
+if ($root === false || !is_dir($root)) {
+    workspace_operation_error(403, 'The workspace root is unavailable.');
+}
+$prefix = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+$relative = static function ($value): string {
+    $value = str_replace('\\', '/', trim((string) $value));
+    if ($value === '' || $value === '.') return '';
+    if ($value[0] === '/' || preg_match('/^[A-Za-z]:\//', $value)) workspace_operation_error(400, 'Paths must be relative.');
+    $parts = [];
+    foreach (explode('/', $value) as $part) {
+        if ($part === '' || $part === '.') continue;
+        if ($part === '..' || str_contains($part, "\0") || str_contains($part, "\n") || str_contains($part, "\r")) workspace_operation_error(400, 'Invalid workspace path.');
+        $parts[] = $part;
+    }
+    return implode('/', $parts);
+};
+$existing = static function (string $path) use ($root, $prefix): string {
+    $full = $path === '' ? $root : $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    $resolved = realpath($full);
+    if ($resolved === false || ($resolved !== $root && !str_starts_with($resolved, $prefix))) workspace_operation_error(403, 'Path is outside the workspace.');
+    return $resolved;
+};
+$parent = static function (string $path) use ($root, $prefix): string {
+    $full = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    $resolved = realpath(dirname($full));
+    if ($resolved === false || ($resolved !== $root && !str_starts_with($resolved, $prefix))) workspace_operation_error(403, 'Destination is outside the workspace.');
+    return $full;
+};
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ($method === 'GET') {
+    $path = $relative($_GET['path'] ?? '');
+    $file = $existing($path);
+    if (!is_file($file)) workspace_operation_error(400, 'Only files can be downloaded.');
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="' . addslashes(basename($file)) . '"');
+    readfile($file);
+    exit;
+}
+if ($method !== 'POST' && $method !== 'PUT' && $method !== 'DELETE') {
+    header('Allow: GET, POST, PUT, DELETE');
+    workspace_operation_error(405, 'Method not allowed.');
+}
+$input = json_decode((string) (file_get_contents('php://input') ?: ''), true);
+if (!is_array($input)) $input = [];
+$action = (string) ($input['action'] ?? ($method === 'DELETE' ? 'delete' : ''));
+$path = $relative($input['path'] ?? '');
+if ($action !== 'mkdir' && $path === '') workspace_operation_error(400, 'A path is required.');
+$source = $path === '' ? $root : $existing($path);
+$destinationPath = $relative($input['destination'] ?? '');
+$name = trim((string) ($input['name'] ?? ''));
+if ($action === 'mkdir') {
+    $target = $parent($path);
+    if ($name !== '') $target .= DIRECTORY_SEPARATOR . $name;
+    elseif ($path !== '') $target = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    if (file_exists($target)) workspace_operation_error(409, 'Destination already exists.');
+    if (!mkdir($target, 0775, true)) workspace_operation_error(500, 'Unable to create directory.');
+} elseif ($action === 'create') {
+    $target = $parent($path);
+    if (file_exists($target)) workspace_operation_error(409, 'File already exists.');
+    if (file_put_contents($target, '') === false) workspace_operation_error(500, 'Unable to create file.');
+} elseif ($action === 'rename') {
+    if ($path === '' || $name === '' || str_contains($name, '/') || $name === '.' || $name === '..') workspace_operation_error(400, 'A valid new name is required.');
+    $target = dirname($source) . DIRECTORY_SEPARATOR . $name;
+    if (file_exists($target)) workspace_operation_error(409, 'Destination already exists.');
+    if (!rename($source, $target)) workspace_operation_error(500, 'Unable to rename path.');
+} elseif ($action === 'copy' || $action === 'move') {
+    if ($destinationPath === '') workspace_operation_error(400, 'A destination is required.');
+    $target = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $destinationPath);
+    $targetParent = realpath(dirname($target));
+    if ($targetParent === false || ($targetParent !== $root && !str_starts_with($targetParent, $prefix))) workspace_operation_error(403, 'Destination is outside the workspace.');
+    if (file_exists($target)) workspace_operation_error(409, 'Destination already exists.');
+    if ($action === 'copy') {
+        $ok = is_dir($source) ? mkdir($target, 0775, true) && (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST)) !== null : copy($source, $target);
+        if (is_dir($source)) { $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST); foreach ($it as $item) { $dest = $target . DIRECTORY_SEPARATOR . $it->getSubPathName(); $item->isDir() ? mkdir($dest, 0775, true) : copy($item->getPathname(), $dest); } }
+    } else $ok = rename($source, $target);
+    if (!$ok) workspace_operation_error(500, "Unable to $action path.");
+} elseif ($action === 'delete') {
+    if ($path === '') workspace_operation_error(400, 'The workspace root cannot be deleted.');
+    $ok = is_dir($source) ? (function () use ($source) { $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST); foreach ($it as $item) $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname()); return rmdir($source); })() : unlink($source);
+    if (!$ok) workspace_operation_error(500, 'Unable to delete path.');
+} elseif ($action === 'write') {
+    if (!is_file($source) || strlen((string) ($input['content'] ?? '')) > 5 * 1024 * 1024) workspace_operation_error(400, 'Only text files up to 5 MB can be edited.');
+    if (file_put_contents($source, (string) $input['content']) === false) workspace_operation_error(500, 'Unable to save file.');
+} else workspace_operation_error(400, 'Unknown workspace file operation.');
+
+echo json_encode(['ok' => true, 'path' => $path], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";

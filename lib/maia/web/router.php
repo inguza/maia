@@ -24,9 +24,16 @@ if ($path === '/status') {
 // before the authentication bootstrap has run.
 if ($path === '/' || $path === '') {
     require_once __DIR__ . '/api/web.php';
+    maia_web_validate_environment();
     maia_web_authenticate_page();
 
     $session = trim((string) (getenv('MAIA_SESSION') ?: 'default'));
+    if (!maia_web_ensure_session($session)) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Unable to ensure the default MAIA session exists.\n";
+        exit;
+    }
     header('Location: ' . ($basePath ?: '') . '/session/' . rawurlencode($session), true, 302);
     exit;
 }
@@ -43,14 +50,18 @@ if (preg_match('#^/session/(.+)$#', $path, $matches)) {
     return true;
 }
 
-if (preg_match('#^/workspace/(.+)$#', $path, $matches)) {
+if (preg_match('#^/workspace/([^/]+)(?:/(.*))?$#', $path, $matches)) {
     $workspace = rawurldecode($matches[1]);
-    if ($workspace === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspace)) {
+    $relativePath = rawurldecode($matches[2] ?? '');
+    if ($workspace === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspace) ||
+        str_contains($relativePath, "\0") || str_contains($relativePath, "\n") ||
+        str_contains($relativePath, "\r")) {
         http_response_code(404);
         echo "Workspace not found.\n";
         return true;
     }
     $_SERVER['MAIA_URL_WORKSPACE'] = $workspace;
+    $_SERVER['MAIA_URL_WORKSPACE_PATH'] = trim(str_replace('\\', '/', $relativePath), '/');
     require __DIR__ . '/index.php';
     return true;
 }
@@ -81,6 +92,7 @@ if ($path === '/qr') {
 $routes = [
     '/api/send' => __DIR__ . '/api/send.php',
     '/api/history/show' => __DIR__ . '/api/history/show.php',
+    '/api/history/action' => __DIR__ . '/api/history/action.php',
     '/api/session/list' => __DIR__ . '/api/session/list.php',
     '/api/session/select' => __DIR__ . '/api/session/select.php',
     '/api/session/delete' => __DIR__ . '/api/session/delete.php',
@@ -91,6 +103,9 @@ $routes = [
     '/api/workspace/delete' => __DIR__ . '/api/workspace/delete.php',
     '/api/workspace/settings' => __DIR__ . '/api/workspace/settings.php',
     '/api/workspace/complete' => __DIR__ . '/api/workspace/complete.php',
+    '/api/workspace/files' => __DIR__ . '/api/workspace/files.php',
+    '/api/workspace/operation' => __DIR__ . '/api/workspace/operation.php',
+    '/api/workspace/upload' => __DIR__ . '/api/workspace/upload.php',
     '/api/profile/create' => __DIR__ . '/api/profile/create.php',
     '/api/profile/delete' => __DIR__ . '/api/profile/delete.php',
     '/api/profile/settings' => __DIR__ . '/api/profile/settings.php',

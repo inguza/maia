@@ -38,11 +38,28 @@ $selected = $headerSelected !== ''
         ? $cookieSelected
         : (in_array($environmentSession, $sessions, true) ? $environmentSession : ($environmentSession ?: null)));
 
+$home = maia_web_home_dir();
 $items = array_map(
-    static fn (string $name): array => [
-        'name' => $name,
-        'selected' => $name === $selected,
-    ],
+    static function (string $name) use ($home, $selected): array {
+        $workspace = '';
+        if ($home !== null && $home !== '') {
+            $metadata = $home . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR
+                . $name . DIRECTORY_SEPARATOR . 'session.myl';
+            if (is_file($metadata)) {
+                foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+                    if (preg_match('/^workspace:\s*(.*)$/', $line, $match)) {
+                        $workspace = trim($match[1]);
+                        break;
+                    }
+                }
+            }
+        }
+        return [
+            'name' => $name,
+            'workspace' => $workspace,
+            'selected' => $name === $selected,
+        ];
+    },
     $sessions
 );
 

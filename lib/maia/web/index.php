@@ -14,6 +14,7 @@ function escape(string $value): string
 }
 
 $workspacePageName = trim((string) ($_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+$workspacePagePath = trim(str_replace('\\', '/', (string) ($_SERVER['MAIA_URL_WORKSPACE_PATH'] ?? '')), '/');
 $profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
 $homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
 $webBasePath = maia_web_base_path();
@@ -27,6 +28,86 @@ $initialTitle = $workspacePageName !== ''
         : ($homePage
             ? 'home'
             : 'session: ' . $initialSessionName));
+
+/** @return list<array{name: string, path: string, type: string, size: int|null, modified: int|null}> */
+function maia_web_initial_workspace_entries(string $workspaceName, string $relativePath = ''): array
+{
+    $home = maia_web_home_dir();
+    if ($home === null || $home === '') {
+        return [];
+    }
+
+    // Workspace manifests are stored below MAIA home. Read the manifest
+    // directly instead of starting the CLI for every workspace page load.
+    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR
+        . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
+    if (!is_file($metadata)) {
+        return [];
+    }
+
+    $workspaceRoot = '';
+    foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+        if (preg_match('/^path:\\s*(.*)$/', $line, $match)) {
+            $workspaceRoot = trim($match[1]);
+            break;
+        }
+    }
+    if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
+        !preg_match('/^[A-Za-z]:[\\\\\\/]/', $workspaceRoot)) {
+        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
+    }
+    $workspaceRoot = realpath($workspaceRoot);
+    if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
+        return [];
+    }
+
+    $rootPrefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    $relativeParts = [];
+    foreach (explode('/', str_replace('\\', '/', $relativePath)) as $part) {
+        if ($part === '' || $part === '.') {
+            continue;
+        }
+        if ($part === '..') {
+            return [];
+        }
+        $relativeParts[] = $part;
+    }
+    $relativePath = implode('/', $relativeParts);
+    $directory = $relativePath === ''
+        ? $workspaceRoot
+        : realpath($workspaceRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath));
+    if ($directory === false || !is_dir($directory) ||
+        ($directory !== $workspaceRoot && !str_starts_with($directory, $rootPrefix))) {
+        return [];
+    }
+    foreach (scandir($directory) ?: [] as $name) {
+        if ($name === '.' || $name === '..') {
+            continue;
+        }
+        $fullPath = $directory . DIRECTORY_SEPARATOR . $name;
+        $resolved = realpath($fullPath);
+        if ($resolved === false || ($resolved !== $workspaceRoot && !str_starts_with($resolved, $rootPrefix))) {
+            continue;
+        }
+        $isDirectory = is_dir($fullPath);
+        $entries[] = [
+            'name' => $name,
+            'path' => ($relativePath === '' ? '' : $relativePath . '/') . $name,
+            'type' => $isDirectory ? 'directory' : 'file',
+            'size' => $isDirectory ? null : (is_file($fullPath) ? filesize($fullPath) : null),
+            'modified' => @filemtime($fullPath) ?: null,
+        ];
+    }
+    usort($entries, static function (array $a, array $b): int {
+        return [$a['type'] !== 'directory', strtolower($a['name'])]
+            <=> [$b['type'] !== 'directory', strtolower($b['name'])];
+    });
+    return $entries;
+}
+
+$initialWorkspaceEntries = $workspacePageName === ''
+    ? []
+    : maia_web_initial_workspace_entries($workspacePageName, $workspacePagePath);
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
@@ -266,6 +347,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             gap: 0.25rem;
         }
 
+        .session-item.session-drop-target {
+            outline: 2px dashed #2563eb;
+            outline-offset: 2px;
+        }
+
         .session-item > button:first-child {
             flex: 1;
             min-width: 0;
@@ -284,7 +370,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             color: #991b1b;
         }
 
-        .session-rename {
+        .session-rename,
+        .session-copy {
             color: #6b7280;
             flex: 0 0 auto;
             font-size: 0.95rem;
@@ -292,7 +379,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             width: auto !important;
         }
 
-        .session-rename:hover {
+        .session-rename:hover,
+        .session-copy:hover {
             background: #e5e7eb !important;
             color: #111827;
         }
@@ -550,6 +638,134 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-top: 0.5rem;
             padding: 0.6rem 0.75rem;
             white-space: pre-wrap;
+        }
+
+        .workspace-files {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+        }
+
+        .workspace-files.workspace-drop-target {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+
+        .workspace-files h2 {
+            font-size: 1rem;
+            margin: 0 0 0.75rem;
+        }
+
+        .workspace-files-toolbar,
+        .workspace-session-target {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .workspace-session-target {
+            position: relative;
+        }
+
+        .workspace-session-target input {
+            box-sizing: border-box;
+            font: inherit;
+            min-width: 0;
+            padding: 0.4rem 0.5rem;
+            width: 100%;
+        }
+
+        .workspace-session-status {
+            align-items: center;
+            color: #6b7280;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.85rem;
+            gap: 0.35rem;
+        }
+
+        .workspace-session-status[hidden] {
+            display: none;
+        }
+
+        .workspace-session-target button {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .workspace-session-target-menu {
+            background: #ffffff;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            left: 0;
+            max-height: 14rem;
+            overflow-y: auto;
+            position: absolute;
+            right: 5rem;
+            top: calc(100% - 0.5rem);
+            z-index: 6;
+        }
+
+        .workspace-session-target-menu[hidden] {
+            display: none;
+        }
+
+        .workspace-session-option {
+            background: transparent;
+            border: 0;
+            color: #111827;
+            cursor: pointer;
+            display: block;
+            margin: 0;
+            padding: 0.4rem 0.55rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .workspace-session-option:hover {
+            background: #dbeafe;
+        }
+
+        .workspace-file-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .workspace-file-list li {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+        }
+
+        .workspace-file-list input {
+            flex: 0 0 auto;
+        }
+
+        .workspace-file-name {
+            background: transparent;
+            border: 0;
+            color: #111827;
+            cursor: pointer;
+            margin: 0;
+            opacity: 1;
+            overflow-wrap: anywhere;
+            padding: 0.15rem 0;
+            text-align: left;
+        }
+
+        .workspace-file-name:disabled {
+            color: #111827;
+            cursor: default;
+            opacity: 1;
+        }
+
+        .workspace-file-directory {
+            font-weight: 600;
         }
 
         .history-loading[hidden] {
@@ -813,6 +1029,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         .files-list {
             list-style: none;
             margin: 0;
+            max-height: none;
             padding: 0;
         }
 
@@ -993,6 +1210,29 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .history-actions button[hidden] {
             display: none;
+        }
+
+        .history-entry-actions {
+            align-items: center;
+            display: none;
+            gap: 0.35rem;
+            margin-top: 0.6rem;
+        }
+
+        .message.history-entry-selected .history-entry-actions {
+            display: flex;
+        }
+
+        .history-entry-action {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 0;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .history-entry-action:hover {
+            background: #e5e7eb;
+            color: #111827;
         }
 
         .history-turn-count {
@@ -1259,15 +1499,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
+            <button id="session-copy-button" class="session-copy" type="button"
+                    aria-label="Copy session" title="Copy session"<?= $isResourcePage ? ' hidden' : '' ?>>⧉</button>
             <button id="session-rename-button" class="session-rename" type="button"
                     aria-label="Rename session" title="Rename session"<?= $isResourcePage ? ' hidden' : '' ?>>✎</button>
             <span id="profile-page-scope" class="settings-status" hidden></span>
-            <button id="create-profile" type="button">Create profile</button>
+            <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
                     aria-label="Profile settings">⚙</button>
         </header>
 
         <div class="history-actions">
+            <button id="history-hide-all" type="button" hidden title="Hide entire history">◉ Hide history</button>
+            <button id="history-clear" type="button" hidden title="Delete entire history">× Delete history</button>
+            <button id="history-hide-last-turn" type="button" hidden title="Hide last turn">◉ Hide last turn</button>
             <button id="load-earlier" type="button" hidden>Load previous turns</button>
             <label id="turn-count-control" class="history-turn-count" hidden>
                 Turns
@@ -1277,6 +1522,45 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <span id="history-remaining" class="history-remaining" hidden></span>
             <button id="load-all-history" type="button" hidden>Load entire history</button>
         </div>
+        <dialog id="history-edit-dialog" class="resource-create-dialog">
+            <form id="history-edit-form" method="dialog">
+                <h2>Edit history entry</h2>
+                <textarea id="history-edit-content" required></textarea>
+                <p id="history-edit-error" class="error" role="alert" hidden></p>
+                <div class="resource-create-actions">
+                    <button type="submit" value="cancel">Cancel</button>
+                    <button id="history-edit-submit" type="submit" value="save">Save</button>
+                </div>
+            </form>
+        </dialog>
+<?php if ($workspacePageName !== ''): ?>
+        <section id="workspace-files" class="workspace-files">
+            <h2>Workspace files</h2>
+            <div class="workspace-files-toolbar">
+                <strong id="workspace-file-path">/</strong>
+                <button id="workspace-file-up" type="button" disabled>Up</button>
+                <button id="workspace-file-refresh" type="button">Refresh</button>
+                <button id="workspace-file-new-directory" type="button" aria-label="Create directory" title="Create directory">📁+</button>
+                <button id="workspace-file-new-file" type="button" aria-label="Create file" title="Create file">📄+</button>
+                <input id="workspace-file-upload-input" type="file" multiple hidden>
+                <button id="workspace-file-upload" type="button" aria-label="Upload files" title="Upload files">⇧</button>
+            </div>
+            <p id="workspace-file-status" class="settings-status" role="status"></p>
+            <ul id="workspace-file-list" class="workspace-file-list"></ul>
+            <p class="settings-status">Drag a file onto a matching session in the sidebar to add it to that session.</p>
+            <div class="workspace-session-target">
+                <label class="visually-hidden" for="workspace-session-input">Add selected files to session</label>
+                <input id="workspace-session-input" type="text" autocomplete="off"
+                       placeholder="Select a session">
+                <span id="workspace-session-status" class="workspace-session-status" role="status">
+                    <span class="spinner" aria-hidden="true"></span>
+                    Loading sessions...
+                </span>
+                <div id="workspace-session-menu" class="workspace-session-target-menu" role="listbox" hidden></div>
+                <button id="workspace-add-files" type="button" disabled>Add selected files</button>
+            </div>
+        </section>
+<?php endif; ?>
         <main id="conversation" class="conversation" aria-live="polite"></main>
         <div id="error" class="error" role="alert" hidden></div>
 
@@ -1450,6 +1734,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     </script>
     <script>
         const maiaBasePath = <?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const initialWorkspacePath = <?= json_encode($workspacePagePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const maiaUrl = (path) => `${maiaBasePath}${path}`;
         const form = document.getElementById('message-form');
         const input = document.getElementById('message');
@@ -1496,6 +1782,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const toolPatternList = document.getElementById('tool-pattern-list');
         const availableToolsDetails = document.getElementById('available-tools-details');
         const availableToolsList = document.getElementById('available-tools-list');
+        const historyClear = document.getElementById('history-clear');
+        const historyHideLastTurn = document.getElementById('history-hide-last-turn');
+        const historyHideAll = document.getElementById('history-hide-all');
+        const historyEditDialog = document.getElementById('history-edit-dialog');
+        const historyEditForm = document.getElementById('history-edit-form');
+        const historyEditContent = document.getElementById('history-edit-content');
+        const historyEditError = document.getElementById('history-edit-error');
+        const historyEditSubmit = document.getElementById('history-edit-submit');
         const loadEarlier = document.getElementById('load-earlier');
         const turnCount = document.getElementById('turn-count');
         const turnCountControl = document.getElementById('turn-count-control');
@@ -1525,6 +1819,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sessionDeleteDialog = document.getElementById('session-delete-dialog');
         const sessionDeleteMessage = document.getElementById('session-delete-message');
         const sessionRenameButton = document.getElementById('session-rename-button');
+        const sessionCopyButton = document.getElementById('session-copy-button');
         const sessionRenameDialog = document.getElementById('session-rename-dialog');
         const sessionRenameForm = document.getElementById('session-rename-form');
         const sessionRenameName = document.getElementById('session-rename-name');
@@ -1546,6 +1841,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const workspaceListPlaceholder = document.getElementById('workspace-list-placeholder');
         const profileList = document.getElementById('profile-list');
         const profileListPlaceholder = document.getElementById('profile-list-placeholder');
+        const workspaceFilesPanel = document.getElementById('workspace-files');
+        const workspaceFilePath = document.getElementById('workspace-file-path');
+        const workspaceFileUp = document.getElementById('workspace-file-up');
+        const workspaceFileRefresh = document.getElementById('workspace-file-refresh');
+        const workspaceFileNewDirectory = document.getElementById('workspace-file-new-directory');
+        const workspaceFileNewFile = document.getElementById('workspace-file-new-file');
+        const workspaceFileUpload = document.getElementById('workspace-file-upload');
+        const workspaceFileUploadInput = document.getElementById('workspace-file-upload-input');
+        const workspaceFileStatus = document.getElementById('workspace-file-status');
+        const workspaceFileList = document.getElementById('workspace-file-list');
+        const workspaceSessionInput = document.getElementById('workspace-session-input');
+        const workspaceSessionMenu = document.getElementById('workspace-session-menu');
+        const workspaceSessionStatus = document.getElementById('workspace-session-status');
+        const workspaceAddFiles = document.getElementById('workspace-add-files');
         const workspaceSearch = document.getElementById('workspace-search');
         const workspaceSearchInput = document.getElementById('workspace-search-input');
         const workspaceSearchAction = document.getElementById('workspace-search-action');
@@ -1590,7 +1899,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const urlHomeName = maiaPath === '/home' ? 'home' : null;
         if (maiaPath.startsWith('/workspace/')) {
             try {
-                urlWorkspaceName = decodeURIComponent(maiaPath.slice('/workspace/'.length));
+                const workspaceUrlPart = maiaPath.slice('/workspace/'.length).split('/');
+                urlWorkspaceName = decodeURIComponent(workspaceUrlPart.shift() || '');
             } catch (_) {
                 urlWorkspaceName = null;
             }
@@ -1614,7 +1924,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         window.fetch = (resource, options = {}) => {
             const headers = new Headers(options.headers || {});
             const session = selectedSessionName || urlSessionName;
-            if (session) {
+            if (session && !headers.has('X-MAIA-Session')) {
                 headers.set('X-MAIA-Session', session);
             }
             if (urlWorkspaceName) {
@@ -1748,7 +2058,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             action.textContent = '🔍';
             action.setAttribute('aria-label', `Search ${label}`);
             if (createAction) {
-                createAction.hidden = !canCreate;
+                createAction.hidden = !canCreate || (label === 'profile' && !urlWorkspaceName && !urlProfileName && !urlHomeName);
             }
         }
 
@@ -1804,8 +2114,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 workspaceListPlaceholder.hidden = false;
                 profileListPlaceholder.hidden = false;
-                workspaceListPlaceholder.textContent = 'Unable to load workspaces.';
-                profileListPlaceholder.textContent = 'Unable to load profiles.';
+                workspaceListPlaceholder.textContent = `Unable to load workspaces: ${requestError.message || 'unknown error.'}`;
+                profileListPlaceholder.textContent = `Unable to load profiles: ${requestError.message || 'unknown error.'}`;
                 sidebarOptionsLoaded = false;
             }
         }
@@ -2465,6 +2775,358 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         });
         fileAddButton.addEventListener('click', addFile);
 
+        let workspaceRelativePath = initialWorkspacePath;
+        let workspaceEntries = Array.isArray(initialWorkspaceEntries) ? initialWorkspaceEntries : [];
+        const workspaceSelectedFiles = new Set();
+        let workspaceTargetSession = '';
+
+        function renderWorkspaceSessionMenu() {
+            if (!workspaceSessionMenu || !workspaceSessionInput) {
+                return;
+            }
+            const query = workspaceSessionInput.value.trim();
+            const sessionCandidates = urlWorkspaceName
+                ? knownSessions.filter((session) => session.workspace === urlWorkspaceName)
+                : knownSessions;
+            const names = sessionCandidates.map((session) => session.name);
+            const matches = resourceMatches(names, query);
+            workspaceSessionMenu.replaceChildren();
+            for (const name of matches) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'workspace-session-option';
+                option.textContent = name;
+                option.addEventListener('mousedown', (event) => {
+                    event.preventDefault();
+                    workspaceTargetSession = name;
+                    workspaceSessionInput.value = name;
+                    workspaceSessionMenu.hidden = true;
+                    workspaceAddFiles.disabled = workspaceSelectedFiles.size === 0;
+                });
+                workspaceSessionMenu.appendChild(option);
+            }
+            workspaceSessionMenu.hidden = matches.length === 0;
+        }
+
+        async function workspaceOperation(action, values = {}) {
+            const response = await fetch('/api/workspace/operation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...values })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.ok) {
+                throw new Error(result.error || `Unable to ${action} workspace path.`);
+            }
+            await loadWorkspaceFiles(false);
+        }
+
+        function workspaceEntryActionButton(label, title, handler) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = label;
+            button.title = title;
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                handler(button);
+            });
+            return button;
+        }
+
+        function renderWorkspaceEntries() {
+            if (!workspaceFileList) {
+                return;
+            }
+            workspaceFileList.replaceChildren();
+            for (const entry of workspaceEntries) {
+                const item = document.createElement('li');
+                if (entry.type === 'file') {
+                    item.draggable = true;
+                    item.addEventListener('dragstart', (event) => {
+                        const paths = workspaceSelectedFiles.has(entry.path)
+                            ? [...workspaceSelectedFiles]
+                            : [entry.path];
+                        event.dataTransfer?.setData(
+                            'application/x-maia-workspace-files',
+                            JSON.stringify(paths)
+                        );
+                        event.dataTransfer?.setData('application/x-maia-workspace-file', entry.path);
+                        event.dataTransfer?.setData('text/plain', paths.join('\n'));
+                        if (event.dataTransfer) {
+                            event.dataTransfer.effectAllowed = 'copy';
+                            const downloadUrl = new URL(
+                                maiaUrl(`/api/workspace/operation?path=${encodeURIComponent(entry.path)}&download=1`),
+                                window.location.href
+                            ).href;
+                            event.dataTransfer.setData(
+                                'DownloadURL',
+                                `application/octet-stream:${entry.name}:${downloadUrl}`
+                            );
+                            event.dataTransfer.setData('text/uri-list', downloadUrl);
+                        }
+                    });
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = workspaceSelectedFiles.has(entry.path);
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) {
+                            workspaceSelectedFiles.add(entry.path);
+                        } else {
+                            workspaceSelectedFiles.delete(entry.path);
+                        }
+                        workspaceAddFiles.disabled = workspaceSelectedFiles.size === 0 || workspaceTargetSession === '';
+                    });
+                    item.appendChild(checkbox);
+                }
+                const name = document.createElement('button');
+                name.type = 'button';
+                name.className = `workspace-file-name${entry.type === 'directory' ? ' workspace-file-directory' : ''}`;
+                name.textContent = `${entry.type === 'directory' ? '📁 ' : '📄 '}${entry.name}`;
+                if (entry.type === 'directory') {
+                    name.addEventListener('click', () => {
+                        workspaceRelativePath = entry.path;
+                        loadWorkspaceFiles();
+                    });
+                } else {
+                    name.disabled = true;
+                }
+                item.appendChild(name);
+                item.appendChild(workspaceEntryActionButton('✎', `Rename ${entry.name}`, async (button) => {
+                    const newName = window.prompt('New name:', entry.name);
+                    if (!newName || newName === entry.name) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('rename', { path: entry.path, name: newName }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
+                }));
+                item.appendChild(workspaceEntryActionButton('⧉', `Copy ${entry.name}`, async (button) => {
+                    const destination = window.prompt('Copy to workspace-relative path:', entry.path);
+                    if (!destination || destination === entry.path) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('copy', { path: entry.path, destination }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
+                }));
+                item.appendChild(workspaceEntryActionButton('↪', `Move ${entry.name}`, async (button) => {
+                    const destination = window.prompt('Move to workspace-relative path:', entry.path);
+                    if (!destination || destination === entry.path) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('move', { path: entry.path, destination }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
+                }));
+                item.appendChild(workspaceEntryActionButton('×', `Delete ${entry.name}`, async (button) => {
+                    if (!window.confirm(`Delete ${entry.name}?`)) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('delete', { path: entry.path }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
+                }));
+                if (entry.type === 'file') {
+                    item.appendChild(workspaceEntryActionButton('⇩', `Download ${entry.name}`, () => {
+                        window.location.href = maiaUrl(`/api/workspace/operation?path=${encodeURIComponent(entry.path)}&download=1`);
+                    }));
+                    item.appendChild(workspaceEntryActionButton('✎', `Edit ${entry.name}`, async (button) => {
+                        const content = window.prompt(`Edit ${entry.name}:`, '');
+                        if (content === null) return;
+                        button.disabled = true;
+                        try { await workspaceOperation('write', { path: entry.path, content }); }
+                        catch (requestError) { workspaceFileStatus.textContent = requestError.message; button.disabled = false; }
+                    }));
+                }
+                workspaceFileList.appendChild(item);
+            }
+            if (workspaceEntries.length === 0) {
+                const item = document.createElement('li');
+                item.textContent = 'No files or directories.';
+                workspaceFileList.appendChild(item);
+            }
+        }
+
+        function workspaceLocation(path) {
+            const suffix = path === ''
+                ? ''
+                : '/' + path.split('/').filter(Boolean).map((part) => encodeURIComponent(part)).join('/');
+            return maiaUrl(`/workspace/${encodeURIComponent(urlWorkspaceName)}${suffix}`);
+        }
+
+        async function loadWorkspaceFiles(updateUrl = true) {
+            if (!workspaceFileList || !workspaceFilePath) {
+                return;
+            }
+            if (updateUrl && urlWorkspaceName) {
+                history.pushState({}, '', workspaceLocation(workspaceRelativePath));
+            }
+            workspaceFileStatus.textContent = 'Loading workspace files...';
+            try {
+                const response = await fetch(`/api/workspace/files?path=${encodeURIComponent(workspaceRelativePath)}`);
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to list workspace files.');
+                }
+                workspaceEntries = Array.isArray(result.entries) ? result.entries : [];
+                workspaceFilePath.textContent = `/${workspaceRelativePath}`;
+                workspaceFileUp.disabled = workspaceRelativePath === '';
+                renderWorkspaceEntries();
+                workspaceFileStatus.textContent = '';
+            } catch (requestError) {
+                workspaceFileStatus.textContent = requestError.message || 'Unable to list workspace files.';
+                workspaceFileList.replaceChildren();
+            }
+        }
+
+        workspaceSessionInput?.addEventListener('input', () => {
+            workspaceTargetSession = '';
+            workspaceAddFiles.disabled = true;
+            renderWorkspaceSessionMenu();
+        });
+        workspaceSessionInput?.addEventListener('focus', renderWorkspaceSessionMenu);
+        workspaceSessionInput?.addEventListener('click', renderWorkspaceSessionMenu);
+        workspaceSessionInput?.addEventListener('blur', () => {
+            window.setTimeout(() => {
+                if (workspaceSessionMenu) {
+                    workspaceSessionMenu.hidden = true;
+                }
+            }, 100);
+        });
+        workspaceFileUp?.addEventListener('click', () => {
+            const parts = workspaceRelativePath.split('/').filter(Boolean);
+            parts.pop();
+            workspaceRelativePath = parts.join('/');
+            loadWorkspaceFiles();
+        });
+        workspaceFileRefresh?.addEventListener('click', () => loadWorkspaceFiles(false));
+        workspaceFileNewDirectory?.addEventListener('click', async () => {
+            const name = window.prompt('Directory name:');
+            if (!name) return;
+            try { await workspaceOperation('mkdir', { path: workspaceRelativePath, name }); }
+            catch (requestError) { workspaceFileStatus.textContent = requestError.message; }
+        });
+        workspaceFileNewFile?.addEventListener('click', async () => {
+            const name = window.prompt('File name:');
+            if (!name) return;
+            try { await workspaceOperation('create', { path: workspaceRelativePath ? `${workspaceRelativePath}/${name}` : name }); }
+            catch (requestError) { workspaceFileStatus.textContent = requestError.message; }
+        });
+        workspaceFileUpload?.addEventListener('click', () => workspaceFileUploadInput?.click());
+        async function uploadWorkspaceFiles(files) {
+            const fileList = Array.from(files || []);
+            if (fileList.length === 0) {
+                return;
+            }
+            workspaceFileStatus.textContent = `Uploading ${fileList.length} file${fileList.length === 1 ? '' : 's'}...`;
+            for (const file of fileList) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('path', workspaceRelativePath);
+                try {
+                    const response = await fetch('/api/workspace/upload', { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (!response.ok || !result.ok) {
+                        throw new Error(result.error || `Unable to upload ${file.name}.`);
+                    }
+                } catch (requestError) {
+                    workspaceFileStatus.textContent = requestError.message || `Unable to upload ${file.name}.`;
+                    return;
+                }
+            }
+            workspaceFileStatus.textContent = 'Upload complete.';
+            await loadWorkspaceFiles(false);
+        }
+
+        workspaceFileUploadInput?.addEventListener('change', async () => {
+            await uploadWorkspaceFiles(workspaceFileUploadInput.files);
+            workspaceFileUploadInput.value = '';
+        });
+
+        function isMaiaRemoteDrag(event) {
+            const types = event.dataTransfer?.types || [];
+            return types.includes('application/x-maia-workspace-files') ||
+                types.includes('application/x-maia-workspace-file');
+        }
+
+        workspaceFileList?.addEventListener('dragover', (event) => {
+            if (isMaiaRemoteDrag(event)) {
+                // Do not allow a remote-file download URL to navigate the page
+                // when it is dropped back onto the workspace browser.
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'none';
+                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+                return;
+            }
+            if (event.dataTransfer?.files?.length > 0) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+                workspaceFilesPanel?.classList.add('workspace-drop-target');
+            }
+        });
+        workspaceFileList?.addEventListener('dragleave', (event) => {
+            if (!workspaceFileList.contains(event.relatedTarget)) {
+                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+            }
+        });
+        workspaceFileList?.addEventListener('drop', async (event) => {
+            if (isMaiaRemoteDrag(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+                return;
+            }
+            if (event.dataTransfer?.files?.length > 0) {
+                event.preventDefault();
+                event.stopPropagation();
+                workspaceFilesPanel?.classList.remove('workspace-drop-target');
+                await uploadWorkspaceFiles(event.dataTransfer.files);
+            }
+        });
+        window.addEventListener('popstate', () => {
+            if (!urlWorkspaceName) {
+                return;
+            }
+            const currentPagePath = location.pathname.startsWith(maiaBasePath)
+                ? location.pathname.slice(maiaBasePath.length) || '/'
+                : location.pathname;
+            const workspacePrefix = `/workspace/${encodeURIComponent(urlWorkspaceName)}`;
+            const currentPath = currentPagePath.startsWith(workspacePrefix)
+                ? currentPagePath.slice(workspacePrefix.length).replace(/^\//, '')
+                : '';
+            workspaceRelativePath = decodeURIComponent(currentPath);
+            loadWorkspaceFiles(false);
+        });
+        async function addWorkspaceFilesToSession(paths, targetSession) {
+            if (targetSession === '' || paths.length === 0) {
+                return;
+            }
+            workspaceFileStatus.textContent = `Adding files to ${targetSession}...`;
+            try {
+                for (const path of paths) {
+                    const response = await fetch('/api/file/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain; charset=utf-8',
+                            'X-MAIA-Session': targetSession
+                        },
+                        body: path
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.ok) {
+                        throw new Error(result.error || `Unable to add ${path}.`);
+                    }
+                }
+                workspaceFileStatus.textContent = `Files added to ${targetSession}.`;
+            } catch (requestError) {
+                workspaceFileStatus.textContent = requestError.message || 'Unable to add files.';
+            }
+        }
+
+        workspaceAddFiles?.addEventListener('click', async () => {
+            if (workspaceTargetSession === '' || workspaceSelectedFiles.size === 0) {
+                return;
+            }
+            workspaceAddFiles.disabled = true;
+            const paths = [...workspaceSelectedFiles];
+            await addWorkspaceFilesToSession(paths, workspaceTargetSession);
+            workspaceSelectedFiles.clear();
+            renderWorkspaceEntries();
+            workspaceAddFiles.disabled = false;
+        });
+
         function showToolsLoading(message = 'Loading tools...') {
             toolsStatus.replaceChildren();
             const spinner = document.createElement('span');
@@ -3101,6 +3763,102 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return item.hidden === true || item.hidden === 1 || item.hidden === 'true';
         }
 
+        async function refreshHistoryAfterMutation() {
+            const result = await fetchHistory('all');
+            historyItems = result.items;
+            firstIndex = result.firstIndex;
+            lastIndex = result.lastIndex;
+            renderHistory(historyItems);
+            updateEarlierButton();
+        }
+
+        async function performHistoryAction(action, item, content = null) {
+            const body = {
+                action,
+                index: Number(item.index)
+            };
+            if (action === 'prune' || action === 'cut') {
+                body.role = item.role;
+                body.roleIndex = Number(item[`${item.role}_index`]);
+            }
+            if (action === 'replace') {
+                body.content = content ?? '';
+            }
+            const response = await fetch('/api/history/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (!response.ok || !result.ok) {
+                throw new Error(result.error || 'Unable to update history.');
+            }
+            await refreshHistoryAfterMutation();
+        }
+
+        function appendHistoryActions(element, item) {
+            if (!element || element.querySelector('.history-entry-actions')) {
+                return;
+            }
+            element.classList.add('history-entry');
+            const actions = document.createElement('div');
+            actions.className = 'history-entry-actions';
+            const definitions = [
+                ['edit', '✎', 'Edit this entry'],
+                [isHiddenHistoryItem(item) ? 'unhide' : 'hide', isHiddenHistoryItem(item) ? '◎' : '◉', isHiddenHistoryItem(item) ? 'Unhide this entry' : 'Hide this entry'],
+                ['prune', '✂', 'Prune this entry'],
+                ['cut', '⌫', 'Clear/cut this entry'],
+                ['delete', '×', 'Delete this entry'],
+                ['delete-below', '⇣', 'Delete this entry and all below']
+            ];
+            for (const [action, icon, label] of definitions) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'history-entry-action';
+                button.textContent = icon;
+                button.title = label;
+                button.setAttribute('aria-label', label);
+                button.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    if (action === 'edit') {
+                        historyEditDialog.dataset.index = String(item.index);
+                        historyEditContent.value = String(item.content ?? '');
+                        historyEditError.hidden = true;
+                        historyEditDialog.showModal();
+                        historyEditContent.focus();
+                        return;
+                    }
+                    const confirmation = action === 'delete-below'
+                        ? 'Delete this history entry and all entries below it? This cannot be undone.'
+                        : action === 'delete'
+                            ? 'Delete this history entry? This cannot be undone.'
+                            : action === 'cut'
+                                ? 'Clear/cut this history entry? Its original content will be retained as a backup.'
+                                : action === 'prune'
+                                    ? 'Prune this history entry? Its original content will be retained as a backup.'
+                                    : '';
+                    if (confirmation && !window.confirm(confirmation)) {
+                        return;
+                    }
+                    button.disabled = true;
+                    try {
+                        await performHistoryAction(action, item);
+                    } catch (requestError) {
+                        showError(requestError.message || 'Unable to update history.');
+                        button.disabled = false;
+                    }
+                });
+                actions.appendChild(button);
+            }
+            element.appendChild(actions);
+            element.addEventListener('click', () => {
+                conversation.querySelectorAll('.history-entry-selected').forEach((entry) => {
+                    entry.classList.remove('history-entry-selected');
+                });
+                element.classList.add('history-entry-selected');
+            });
+        }
+
         function renderHistoryItem(item) {
             const elementBefore = conversation.lastElementChild;
 
@@ -3150,8 +3908,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             // Mark the element produced for a hidden history item without
             // changing its normal role-specific background color.
-            if (isHiddenHistoryItem(item) && conversation.lastElementChild !== elementBefore) {
-                conversation.lastElementChild.classList.add('hidden-entry');
+            if (conversation.lastElementChild !== elementBefore && conversation.lastElementChild?.classList.contains('message')) {
+                appendHistoryActions(conversation.lastElementChild, item);
+                if (isHiddenHistoryItem(item)) {
+                    conversation.lastElementChild.classList.add('hidden-entry');
+                }
             }
         }
 
@@ -3338,6 +4099,44 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     selectSession(session.name);
                 });
 
+                if (urlWorkspaceName && session.workspace === urlWorkspaceName) {
+                    item.addEventListener('dragover', (event) => {
+                        if (event.dataTransfer?.types.includes('application/x-maia-workspace-file')) {
+                            event.preventDefault();
+                            if (event.dataTransfer) {
+                                event.dataTransfer.dropEffect = 'copy';
+                            }
+                            item.classList.add('session-drop-target');
+                        }
+                    });
+                    item.addEventListener('dragleave', () => item.classList.remove('session-drop-target'));
+                    item.addEventListener('drop', (event) => {
+                        event.preventDefault();
+                        item.classList.remove('session-drop-target');
+                        let paths = [];
+                        const encodedPaths = event.dataTransfer?.getData('application/x-maia-workspace-files') || '';
+                        if (encodedPaths !== '') {
+                            try {
+                                const decodedPaths = JSON.parse(encodedPaths);
+                                if (Array.isArray(decodedPaths)) {
+                                    paths = decodedPaths.filter((path) => typeof path === 'string' && path !== '');
+                                }
+                            } catch (_) {
+                                paths = [];
+                            }
+                        }
+                        if (paths.length === 0) {
+                            const path = event.dataTransfer?.getData('application/x-maia-workspace-file') || '';
+                            if (path !== '') {
+                                paths = [path];
+                            }
+                        }
+                        if (paths.length > 0) {
+                            addWorkspaceFilesToSession(paths, session.name);
+                        }
+                    });
+                }
+
                 const remove = document.createElement('button');
                 remove.type = 'button';
                 remove.className = 'session-delete';
@@ -3371,7 +4170,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     openSessionSettings(session.name);
                 });
 
-                item.append(button, rename, settings, remove);
+                const copy = document.createElement('button');
+                copy.type = 'button';
+                copy.className = 'session-copy';
+                copy.textContent = '⧉';
+                copy.title = `Copy session ${session.name}`;
+                copy.setAttribute('aria-label', `Copy session ${session.name}`);
+                copy.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openSessionCopy(session.name);
+                });
+
+                item.append(button, rename, copy, settings, remove);
                 sessionList.appendChild(item);
             }
 
@@ -3394,6 +4204,23 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }, { once: true });
             });
         }
+
+        function openSessionCopy(name) {
+            const base = `${name}-copy`;
+            let suggested = base;
+            let suffix = 2;
+            const names = new Set(knownSessions.map((session) => session.name));
+            while (names.has(suggested)) {
+                suggested = `${base}-${suffix++}`;
+            }
+            openResourceCreate('session', suggested, true, name);
+        }
+
+        sessionCopyButton?.addEventListener('click', () => {
+            if (selectedSessionName) {
+                openSessionCopy(selectedSessionName);
+            }
+        });
 
         function openSessionRename(name) {
             sessionRenameName.value = name;
@@ -3615,7 +4442,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         });
 
-        function openResourceCreate(type, name = '', editable = false) {
+        function openResourceCreate(type, name = '', editable = false, source = '') {
             resourceCreateError.hidden = true;
             resourceCreateName.value = name;
             resourceCreateName.readOnly = !editable;
@@ -3633,6 +4460,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             resourceCreateDescriptionLabel.hidden = type !== 'profile';
             resourceCreateSubmit.disabled = false;
             resourceCreateDialog.dataset.type = type;
+            resourceCreateDialog.dataset.source = source;
+            if (type === 'session' && source !== '') {
+                resourceCreateTitle.textContent = `Copy session '${source}'`;
+            }
             resourceCreateDialog.showModal();
         }
 
@@ -3643,7 +4474,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 profile: '/api/profile/create'
             };
             const body = { name };
-            if (type === 'workspace') {
+            if (type === 'session' && resourceCreateDialog.dataset.source) {
+                body.source = resourceCreateDialog.dataset.source;
+            } else if (type === 'workspace') {
                 body.path = path;
             } else if (type === 'profile') {
                 body.description = description;
@@ -3821,7 +4654,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
             knownSessions = result.sessions || [];
             visibleSessionCount = 10;
-            renderSessions(knownSessions, result.selected || null);
+            renderSessions(knownSessions, urlWorkspaceName ? null : (result.selected || null));
+            if (workspaceSessionStatus) {
+                workspaceSessionStatus.hidden = true;
+            }
         }
 
         async function selectSession(name) {
@@ -4011,12 +4847,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     profilePageSettings.hidden = true;
                 }
                 profilePageSettings.hidden = !urlProfileName;
+                createProfileButton.hidden = true;
+                profileCreateAction.hidden = true;
                 settingsToggle.hidden = true;
                 filesToggle.hidden = true;
                 send.hidden = true;
                 document.querySelector('.history-actions')?.setAttribute('hidden', '');
                 conversation.hidden = true;
                 error.hidden = true;
+                if (urlWorkspaceName && workspaceFileList) {
+                    workspaceFilePath.textContent = workspaceRelativePath === ''
+                        ? '/'
+                        : `/${workspaceRelativePath}`;
+                    workspaceFileUp.disabled = workspaceRelativePath === '';
+                    renderWorkspaceEntries();
+                }
                 await Promise.allSettled([
                     loadSessions(),
                     loadSidebarOptions(),
@@ -4025,6 +4870,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 ]);
                 return;
             }
+            historyClear.hidden = false;
+            historyHideLastTurn.hidden = false;
+            historyHideAll.hidden = false;
             showHistoryLoading();
             try {
                 await Promise.all([
@@ -4072,6 +4920,65 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 loadAllHistory.textContent = originalText;
             }
         }
+
+        async function runWholeHistoryAction(action, confirmation) {
+            if (!window.confirm(confirmation)) {
+                return;
+            }
+            historyClear.disabled = true;
+            historyHideLastTurn.disabled = true;
+            historyHideAll.disabled = true;
+            error.hidden = true;
+            try {
+                const response = await fetch('/api/history/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to update history.');
+                }
+                await refreshHistoryAfterMutation();
+            } catch (requestError) {
+                showError(requestError.message || 'Unable to update history.');
+            } finally {
+                historyClear.disabled = false;
+                historyHideLastTurn.disabled = false;
+                historyHideAll.disabled = false;
+            }
+        }
+
+        historyEditForm.addEventListener('submit', async (event) => {
+            if (event.submitter?.value !== 'save') {
+                return;
+            }
+            event.preventDefault();
+            historyEditSubmit.disabled = true;
+            historyEditError.hidden = true;
+            try {
+                await performHistoryAction('replace', { index: historyEditDialog.dataset.index }, historyEditContent.value);
+                historyEditDialog.close('saved');
+            } catch (requestError) {
+                historyEditError.textContent = requestError.message || 'Unable to replace history entry.';
+                historyEditError.hidden = false;
+            } finally {
+                historyEditSubmit.disabled = false;
+            }
+        });
+
+        historyClear.addEventListener('click', () => runWholeHistoryAction(
+            'clear',
+            'Clear the entire history? This cannot be undone.'
+        ));
+        historyHideLastTurn.addEventListener('click', () => runWholeHistoryAction(
+            'hide-turn',
+            'Hide the last turn? It can be unhidden later.'
+        ));
+        historyHideAll.addEventListener('click', () => runWholeHistoryAction(
+            'hide-all',
+            'Hide the entire history? It can be unhidden later.'
+        ));
 
         loadEarlier.addEventListener('click', loadEarlierHistory);
         loadAllHistory.addEventListener('click', loadEntireHistory);

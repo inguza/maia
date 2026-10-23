@@ -24,6 +24,10 @@ if (!is_array($input) || trim((string) ($input['name'] ?? '')) === '') {
 }
 
 $name = trim((string) $input['name']);
+$source = trim((string) ($input['source'] ?? ''));
+if ($source !== '' && !preg_match('/^[A-Za-z0-9_.%+-]+$/', $source)) {
+    session_create_error(400, 'Invalid source session name.');
+}
 $arguments = [maia_web_binary(), 'session', 'create'];
 if (isset($input['workspace']) && (string) $input['workspace'] !== '') {
     array_push($arguments, '--workspace', (string) $input['workspace']);
@@ -32,6 +36,9 @@ if (isset($input['profile']) && (string) $input['profile'] !== '') {
     array_push($arguments, '--profile', (string) $input['profile']);
 }
 $arguments[] = $name;
+if ($source !== '') {
+    $arguments[] = $source;
+}
 
 $process = proc_open($arguments, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, maia_web_environment());
 if (!is_resource($process)) {
@@ -45,4 +52,9 @@ if ($status !== 0) {
     session_create_error(502, trim($error) ?: trim($output) ?: 'Unable to create the session.');
 }
 
-echo json_encode(['ok' => true, 'name' => $name, 'message' => trim($output) ?: 'Session created.'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+echo json_encode([
+    'ok' => true,
+    'name' => $name,
+    'source' => $source !== '' ? $source : null,
+    'message' => trim($output) ?: 'Session created.',
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
