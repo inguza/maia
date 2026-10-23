@@ -101,8 +101,18 @@ forget_entries() {
     for i in "${!patterns[@]}"; do
 	if [[ -n "${patterns[i]}" && "${patterns[i]}" != *[\*\?\[]* ]]; then
 	    local relative_path
-            if relative_path=$(realpath --relative-to="$ws_root" "${patterns[i]}" 2>/dev/null); then
-		patterns[i]="$relative_path"
+            local pattern_file="${patterns[i]}"
+            local pattern_suffix=""
+            if [[ "$pattern_file" == *'|'* ]]; then
+                pattern_suffix="|${pattern_file#*|}"
+                pattern_file="${pattern_file%%|*}"
+            fi
+            if [[ "$pattern_file" == *:* ]]; then
+                pattern_suffix=":${pattern_file#*:}${pattern_suffix}"
+                pattern_file="${pattern_file%%:*}"
+            fi
+            if relative_path=$(realpath --relative-to="$ws_root" "$pattern_file" 2>/dev/null); then
+		patterns[i]="${relative_path}${pattern_suffix}"
             fi
 	fi
     done

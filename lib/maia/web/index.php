@@ -1215,7 +1215,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             align-items: center;
             display: flex;
             gap: 0.5rem;
-            padding: 0.2rem 0;
+            padding: 0.2rem 0.45rem;
+        }
+
+        .files-list > li:nth-child(even) {
+            background: color-mix(in srgb, CanvasText 3%, Canvas);
+        }
+
+        .files-list > li:hover {
+            background: color-mix(in srgb, #2563eb 10%, Canvas);
         }
 
         .known-file-path {
