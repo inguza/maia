@@ -1969,7 +1969,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </div>
             <p id="workspace-file-status" class="settings-status files-status" role="status"></p>
             <ul id="workspace-file-list" class="workspace-file-list"<?= $workspacePagePath !== '' ? ' hidden' : '' ?>></ul>
-            <p id="workspace-file-drag-help" class="settings-status">Drag a file onto a matching session in the sidebar to add it to that session.</p>
+            <p id="workspace-file-drag-help" class="settings-status">Drag a file into a matching session (in another window) to add it to that session, or use the below.</p>
             <p id="workspace-file-view-help" class="settings-status" hidden>Mark lines below to add to a session.</p>
             <div class="workspace-session-target">
                 <label class="visually-hidden" for="workspace-session-input">Select a session</label>
