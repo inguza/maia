@@ -2555,7 +2555,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         async function loadSidebarOptions() {
             try {
-                const response = await fetch('/api/session/settings');
+                // Navigation lists are global and must not inherit the
+                // selected profile/workspace resource headers.
+                const response = await nativeFetch(maiaUrl('/api/session/settings'));
                 const result = await response.json();
                 if (!response.ok || !result.ok) {
                     throw new Error(result.error || 'Unable to load workspaces and profiles.');
@@ -2898,6 +2900,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         settingsToggle.addEventListener('click', async () => {
+            if (urlProfileName) {
+                await openResourceSettings('profile', urlProfileName);
+                return;
+            }
+            if (urlWorkspaceName) {
+                await openResourceSettings('workspace', urlWorkspaceName);
+                return;
+            }
             if (settingsPanel.open) {
                 settingsPanel.close();
                 return;
@@ -4384,7 +4394,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         });
 
         function currentContextScope() {
-            return urlProfileName ? 'profile'
+            // Profiles are resources, not CLI definition scopes. Their page
+            // uses the home-level tool and skill context.
+            return urlProfileName ? 'home'
                 : (urlWorkspaceName ? 'workspace'
                     : (urlHomeName ? 'home' : 'session'));
         }
@@ -5929,10 +5941,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (urlHomeName && profilePageSettings) {
                     profilePageSettings.hidden = true;
                 }
-                if (profilePageSettings) profilePageSettings.hidden = !urlProfileName;
+                if (profilePageSettings) profilePageSettings.hidden = true;
                 if (createProfileButton) createProfileButton.hidden = true;
                 if (profileCreateAction) profileCreateAction.hidden = true;
-                if (settingsToggle) settingsToggle.hidden = true;
+                if (settingsToggle) {
+                    settingsToggle.hidden = false;
+                    settingsToggle.setAttribute('aria-label', urlProfileName ? 'Profile settings' : 'Workspace settings');
+                    settingsToggle.title = urlProfileName ? 'Profile settings' : 'Workspace settings';
+                }
                 if (filesToggle) filesToggle.hidden = true;
                 if (historyRefresh) historyRefresh.hidden = true;
                 if (send) send.hidden = true;
