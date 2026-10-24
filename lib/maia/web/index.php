@@ -1540,6 +1540,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             min-height: 1.2rem;
         }
 
+        .panel-heading {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .resource-refresh {
+            font-size: 1rem;
+            margin: 0;
+            min-width: 2.25rem;
+            padding: 0.25rem 0.5rem;
+        }
+
         .credential-created {
             align-items: flex-start;
             display: flex;
@@ -2028,7 +2041,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </dialog>
 
             <section id="files-panel" class="composer-panel" hidden>
-                <h2>Known files</h2>
+                <h2 class="panel-heading">Known files <button id="files-refresh" class="resource-refresh" type="button" aria-label="Refresh files" title="Refresh files">&#8635;</button></h2>
                 <div class="file-add">
                     <label class="visually-hidden" for="file-path">Add file relative to workspace root</label>
                     <input id="file-path" type="text" autocomplete="off"
@@ -2041,7 +2054,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </section>
 
             <section id="tools-panel" class="composer-panel" hidden>
-                <h2>Tools</h2>
+                <h2 class="panel-heading">Tools <button id="tools-refresh" class="resource-refresh" type="button" aria-label="Refresh tools" title="Refresh tools">&#8635;</button></h2>
                 <p id="tools-scope" class="settings-status"></p>
                 <div class="file-add">
                     <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
@@ -2067,7 +2080,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </section>
 
             <section id="skills-panel" class="composer-panel" hidden>
-                <h2>Skills</h2>
+                <h2 class="panel-heading">Skills <button id="skills-refresh" class="resource-refresh" type="button" aria-label="Refresh skills" title="Refresh skills">&#8635;</button></h2>
                 <p id="skills-scope" class="settings-status"></p>
                 <div class="file-add">
                     <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
@@ -2123,27 +2136,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
             };
 
-            const reportJavaScriptError = (message) => {
-                const element = document.getElementById('error');
-                if (!element) {
-                    return;
-                }
-                element.textContent = `JavaScript error: ${message}`;
-                element.hidden = false;
-            };
-
-            window.addEventListener('error', (event) => {
-                const location = event.filename
-                    ? ` (${event.filename}:${event.lineno}:${event.colno})`
-                    : '';
-                reportJavaScriptError(`${event.message || 'Unknown JavaScript error.'}${location}`);
-            });
-            window.addEventListener('unhandledrejection', (event) => {
-                const reason = event.reason instanceof Error
-                    ? `${event.reason.message}${event.reason.stack ? `\n${event.reason.stack}` : ''}`
-                    : String(event.reason || 'Unknown rejected promise.');
-                reportJavaScriptError(reason);
-            });
             setInitialLoadingState();
         })();
     </script>
@@ -2169,15 +2161,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const filesPanel = document.getElementById('files-panel');
         const filesStatus = document.getElementById('files-status');
         const filesList = document.getElementById('files-list');
+        const filesRefresh = document.getElementById('files-refresh');
         const filePath = document.getElementById('file-path');
         const fileCompletionMenu = document.getElementById('file-completion-menu');
         const fileAddButton = document.getElementById('file-add-button');
         const toolsToggle = document.getElementById('tools-toggle');
         const toolsPanel = document.getElementById('tools-panel');
+        const toolsRefresh = document.getElementById('tools-refresh');
         const credentialsToggle = document.getElementById('credentials-toggle');
         const credentialsPanel = document.getElementById('credentials-panel');
         const skillsToggle = document.getElementById('skills-toggle');
         const skillsPanel = document.getElementById('skills-panel');
+        const skillsRefresh = document.getElementById('skills-refresh');
         const skillsStatus = document.getElementById('skills-status');
         const skillsScope = document.getElementById('skills-scope');
         const skillPattern = document.getElementById('skill-pattern');
@@ -2291,10 +2286,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const workspaceViewContent = document.getElementById('workspace-view-content');
         const workspaceViewEditContent = document.getElementById('workspace-view-edit-content');
         const workspaceViewStatus = document.getElementById('workspace-view-status');
-        // Kept as inert compatibility objects for older markup/cache variants;
-        // file viewing is now a normal workspace URL, not a dialog.
-        const workspaceViewAddSelection = { addEventListener() {} };
-        const workspaceViewDialog = { close() {}, showModal() {} };
+        const workspaceViewReady = [
+            workspaceFileView,
+            workspaceViewTitle,
+            workspaceViewEdit,
+            workspaceViewSave,
+            workspaceViewCancel,
+            workspaceViewContent,
+            workspaceViewEditContent,
+            workspaceViewStatus
+        ].every(Boolean);
         const workspaceSearch = document.getElementById('workspace-search');
         const workspaceSearchInput = document.getElementById('workspace-search-input');
         const workspaceSearchAction = document.getElementById('workspace-search-action');
@@ -2922,6 +2923,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 settingsSave.disabled = false;
             }
         });
+
+        async function refreshFiles() {
+            filesRefresh.disabled = true;
+            try {
+                await loadFiles();
+            } finally {
+                filesRefresh.disabled = false;
+            }
+        }
+
+        filesRefresh.addEventListener('click', refreshFiles);
 
         filesToggle.addEventListener('click', async () => {
             const expanded = filesPanel.hidden;
@@ -3571,9 +3583,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     result = await response.json();
                     if (!response.ok || !result.ok) {
                         workspaceViewStatus.textContent = result.error || 'Unable to view file.';
-                        workspaceFileView.hidden = true;
-                        workspaceFilesPanel.classList.remove('workspace-file-page-mode');
-                        workspaceFileList.hidden = false;
+                        if (workspaceFileView) {
+                            workspaceFileView.hidden = true;
+                        }
+                        workspaceFilesPanel?.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
+                        if (workspaceFileList) {
+                            workspaceFileList.hidden = false;
+                        }
                         return false;
                     }
                 }
@@ -3648,11 +3664,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     });
                     workspaceViewStatus.textContent = '';
                 }
-                workspaceFileView.hidden = false;
-                workspaceFilesPanel.hidden = editMode;
-                workspaceFilesPanel.classList.toggle('workspace-edit-page-mode', editMode);
-                workspaceFilesPanel.classList.add('workspace-file-page-mode');
-                workspaceFileList.hidden = true;
+                if (workspaceFileView) {
+                    workspaceFileView.hidden = false;
+                }
+                if (workspaceFilesPanel) {
+                    workspaceFilesPanel.hidden = editMode;
+                    workspaceFilesPanel.classList.toggle('workspace-edit-page-mode', editMode);
+                    workspaceFilesPanel.classList.add('workspace-file-page-mode');
+                }
+                if (workspaceFileList) {
+                    workspaceFileList.hidden = true;
+                }
                 workspaceFileView.scrollIntoView({ block: 'start' });
                 return true;
             } catch (requestError) {
@@ -3704,10 +3726,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (workspaceFileViewHelp) {
                 workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
             }
-            workspaceFileView.hidden = true;
-            workspaceFilesPanel.hidden = false;
-            workspaceFilesPanel.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
-            workspaceFileList.hidden = false;
+            if (workspaceFileView) {
+                workspaceFileView.hidden = true;
+            }
+            if (workspaceFilesPanel) {
+                workspaceFilesPanel.hidden = false;
+                workspaceFilesPanel.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
+            }
+            if (workspaceFileList) {
+                workspaceFileList.hidden = false;
+            }
             loadWorkspaceFiles();
         });
 
@@ -4239,6 +4267,31 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         toolClear.addEventListener('click', () => updateToolDefinitions('clear', toolClear));
         toolDelete.addEventListener('click', () => updateToolDefinitions('delete', toolDelete));
 
+        async function refreshTools() {
+            toolsRefresh.disabled = true;
+            showToolsLoading('Refreshing tools...');
+            try {
+                const scope = currentContextScope();
+                const response = await fetch('/api/tool/context', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'refresh', scope })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to refresh tools.');
+                }
+                toolsLoaded = false;
+                await loadTools();
+            } catch (requestError) {
+                toolsStatus.textContent = requestError.message || 'Unable to refresh tools.';
+            } finally {
+                toolsRefresh.disabled = false;
+            }
+        }
+
+        toolsRefresh.addEventListener('click', refreshTools);
+
         toolsToggle.addEventListener('click', async () => {
             const expanded = toolsPanel.hidden;
             toolsPanel.hidden = !expanded;
@@ -4430,6 +4483,30 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
             }
         }
+
+        async function refreshSkills() {
+            skillsRefresh.disabled = true;
+            showSkillsLoading('Refreshing skills...');
+            try {
+                const scope = currentContextScope();
+                const response = await fetch('/api/skill/context', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'refresh', scope })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to refresh skills.');
+                }
+                await loadSkills();
+            } catch (requestError) {
+                skillsStatus.textContent = requestError.message || 'Unable to refresh skills.';
+            } finally {
+                skillsRefresh.disabled = false;
+            }
+        }
+
+        skillsRefresh.addEventListener('click', refreshSkills);
 
         skillsToggle.addEventListener('click', async () => {
             const expanded = skillsPanel.hidden;
@@ -5768,11 +5845,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                             name: workspaceRelativePath.split('/').pop()
                         }, new URLSearchParams(window.location.search).get('edit') === '1', initialWorkspaceFile?.content ?? null);
                         if (!viewed) {
-                            workspaceFileList.hidden = false;
+                            if (workspaceFileList) {
+                                workspaceFileList.hidden = false;
+                            }
                             renderWorkspaceEntries();
                         }
                     } else {
-                        workspaceFileList.hidden = false;
+                        if (workspaceFileList) {
+                            workspaceFileList.hidden = false;
+                        }
                         renderWorkspaceEntries();
                     }
                 }
@@ -5904,21 +5985,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         });
 
-        historyClear.addEventListener('click', () => runWholeHistoryAction(
+        historyClear?.addEventListener('click', () => runWholeHistoryAction(
             'clear',
             'Clear the entire history? This cannot be undone.'
         ));
-        historyHideLastTurn.addEventListener('click', () => runWholeHistoryAction(
+        historyHideLastTurn?.addEventListener('click', () => runWholeHistoryAction(
             'hide-turn',
             'Hide the last turn? It can be unhidden later.'
         ));
-        historyHideAll.addEventListener('click', () => runWholeHistoryAction(
+        historyHideAll?.addEventListener('click', () => runWholeHistoryAction(
             'hide-all',
             'Hide the entire history? It can be unhidden later.'
         ));
 
-        loadEarlier.addEventListener('click', loadEarlierHistory);
-        loadAllHistory.addEventListener('click', loadEntireHistory);
+        loadEarlier?.addEventListener('click', loadEarlierHistory);
+        loadAllHistory?.addEventListener('click', loadEntireHistory);
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();

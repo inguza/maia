@@ -107,6 +107,15 @@ if (!is_array($input)) {
 }
 $action = (string) ($input['action'] ?? '');
 
+if ($action === 'refresh') {
+    $refresh = skill_context_run(['skill', '--scope', $scope, 'refresh']);
+    if ($refresh['status'] !== 0) {
+        skill_context_error(502, trim($refresh['error']) ?: trim($refresh['output']) ?: 'Unable to refresh skills.');
+    }
+    echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    exit;
+}
+
 if ($action === 'memory') {
     $name = trim((string) ($input['name'] ?? ''));
     $remember = (bool) ($input['remember'] ?? false);
