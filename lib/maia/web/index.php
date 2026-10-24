@@ -5846,6 +5846,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             historyClear.disabled = true;
             historyHideLastTurn.disabled = true;
             historyHideAll.disabled = true;
+            const compactHistoryNodes = action === 'compact' && compactHistory
+                ? Array.from(compactHistory.childNodes).map((node) => node.cloneNode(true))
+                : [];
+            if (action === 'compact' && compactHistory) {
+                compactHistory.replaceChildren();
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner';
+                spinner.setAttribute('aria-hidden', 'true');
+                compactHistory.append(spinner, document.createTextNode(' Compacting...'));
+                compactHistory.setAttribute('aria-label', 'Compacting history');
+                compactHistory.title = 'Compacting history';
+                compactHistory.disabled = true;
+            }
             error.hidden = true;
             try {
                 const response = await fetch('/api/history/action', {
@@ -5864,6 +5877,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 historyClear.disabled = false;
                 historyHideLastTurn.disabled = false;
                 historyHideAll.disabled = false;
+                if (action === 'compact' && compactHistory) {
+                    compactHistory.replaceChildren(...compactHistoryNodes);
+                    compactHistory.setAttribute('aria-label', 'Compact history');
+                    compactHistory.title = 'Compact history';
+                    compactHistory.disabled = false;
+                }
             }
         }
 
