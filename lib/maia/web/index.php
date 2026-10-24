@@ -1404,7 +1404,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             padding: 0;
         }
 
-        .files-list li {
+        .files-list:not(.available-resources-list) li {
             align-items: center;
             display: flex;
             gap: 0.5rem;
@@ -1432,28 +1432,58 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-
-        .available-resource-heading {
+.available-resources-list {
             align-items: center;
-            color: #6b7280;
-            display: flex;
-            font-size: 0.8rem;
-            font-weight: 600;
-            gap: 0.75rem;
+            column-gap: 0.75rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) max-content max-content;
+            row-gap: 0.2rem;
+        }
+
+        .available-resources-list li {
+            display: contents;
+        }
+
+        .available-resources-list li > * {
+            min-width: 0;
             padding: 0.2rem 0;
         }
 
-        .available-resource-heading > :first-child,
-        .available-resource-heading > .available-resource-name {
-            flex: 1;
+        .available-resource-heading {
+            color: #6b7280;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .available-resource-name {
             min-width: 0;
         }
 
-        .available-resource-heading > :not(:first-child),
+        .available-resources-list > li > :nth-child(2),
+        .available-resources-list > li > :nth-child(3) {
+            justify-self: end;
+            text-align: right;
+        }
+
         .available-resource-effects,
         .available-resource-state {
-            flex: 0 0 auto;
+            color: CanvasText;
             white-space: nowrap;
+        }
+
+        button.available-resource-state {
+            border: 0;
+            margin: 0;
+            padding: 0.1rem 0;
+        }
+
+        button.available-resource-state.busy:disabled {
+            cursor: default;
+        }
+
+        .available-resource-state.allowed {
+            color: CanvasText;
+            cursor: default;
         }
 
         .file-remove {
@@ -2069,7 +2099,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <ul id="tool-pattern-list" class="files-list"></ul>
                 <details id="available-tools-details">
                     <summary>Available tools</summary>
-                    <ul id="available-tools-list" class="files-list">
+                    <ul id="available-tools-list" class="files-list available-resources-list">
                         <li class="available-resource-heading">
                             <span class="available-resource-name">Name - Description</span>
                             <span>Effect</span>
@@ -2095,7 +2125,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <ul id="skill-pattern-list" class="files-list"></ul>
                 <details id="available-skills-details">
                     <summary>Available skills</summary>
-                    <ul id="available-skills-list" class="files-list">
+                    <ul id="available-skills-list" class="files-list available-resources-list">
                         <li class="available-resource-heading">
                             <span class="available-resource-name">Name - Description</span>
                             <span>Allowed</span>
@@ -4058,20 +4088,43 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 availableToolNames = [...new Set(availableToolNames)];
                 for (const tool of tools) {
                     const item = document.createElement('li');
+                    item.className = 'available-resource-row';
                     const value = document.createElement('span');
                     value.className = 'known-file-path available-resource-name';
                     value.textContent = tool.description
                         ? `${tool.name} - ${tool.description}`
                         : tool.name;
                     value.title = value.textContent;
+                    const effectNames = Array.isArray(tool.effects) ? tool.effects.filter(Boolean) : [];
                     const effects = document.createElement('span');
-                    effects.className = 'settings-status available-resource-effects';
-                    effects.textContent = Array.isArray(tool.effects) && tool.effects.length > 0
-                        ? tool.effects.join(', ')
+                    effects.className = 'available-resource-effects';
+                    effects.textContent = effectNames.length > 0
+                        ? effectNames.join(', ')
                         : '(none)';
-                    const state = document.createElement('span');
-                    state.textContent = tool.allowed ? 'Yes' : 'No';
-                    state.className = 'settings-status available-resource-state';
+                    const toolPatternValue = effectNames.length > 0
+                        ? `${tool.name}:${effectNames.join('+')}`
+                        : tool.name;
+                    const toolAllowed = Boolean(tool.allowed) || patterns.includes(toolPatternValue) || patterns.includes(tool.name);
+                    let state;
+                    if (toolAllowed) {
+                        state = document.createElement('span');
+                        state.textContent = 'Yes';
+                        state.className = 'settings-status available-resource-state allowed';
+                    } else {
+                        state = document.createElement('button');
+                        state.type = 'button';
+                        state.textContent = 'No';
+                        state.className = 'settings-status available-resource-state';
+                        state.title = `Allow ${tool.name}`;
+                        state.addEventListener('click', () => {
+                            runAvailablePatternAction(
+                                state,
+                                toolPatternValue,
+                                toolPattern,
+                                addToolPattern
+                            );
+                        });
+                    }
                     item.append(value, effects, state);
                     availableToolsList.appendChild(item);
                 }
@@ -4184,6 +4237,27 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             document.getElementById('skill-completion-menu'),
             () => availableSkillNames
         );
+
+        async function runAvailablePatternAction(button, pattern, input, action) {
+            const originalText = button.textContent;
+            button.classList.add('busy');
+            button.disabled = true;
+            button.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            button.appendChild(spinner);
+            input.value = pattern;
+            try {
+                await action();
+            } finally {
+                if (button.isConnected) {
+                    button.replaceChildren(document.createTextNode(originalText));
+                    button.classList.remove('busy');
+                    button.disabled = false;
+                }
+            }
+        }
 
         async function addToolPattern() {
             const pattern = toolPattern.value.trim();
@@ -4362,27 +4436,45 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 availableSkillNames = skills.map((skill) => skill.name).filter(Boolean);
                 for (const skill of skills) {
                     const item = document.createElement('li');
+                    item.className = 'available-resource-row';
                     const value = document.createElement('span');
                     value.className = 'known-file-path available-resource-name';
                     value.textContent = skill.description
                         ? `${skill.name} - ${skill.description}`
                         : skill.name;
                     value.title = value.textContent;
-                    const state = document.createElement('span');
-                    state.className = 'settings-status available-resource-state';
-                    state.textContent = skill.allowed ? 'Yes' : 'No';
-                    const memoryLabel = document.createElement('label');
-                    memoryLabel.className = 'skill-memory';
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = Boolean(skill.memory);
-                    checkbox.disabled = !skill.allowed;
-                    checkbox.title = skill.allowed
-                        ? 'Load this skill into memory'
-                        : 'The skill must be allowed before it can be loaded into memory';
-                    checkbox.addEventListener('change', () => updateSkillMemory(skill.name, checkbox));
-                    memoryLabel.append(checkbox, document.createTextNode(' In memory'));
-                    item.append(value, state, memoryLabel);
+                    let state;
+                    if (skill.allowed) {
+                        state = document.createElement('span');
+                        state.textContent = 'Yes';
+                        state.className = 'settings-status available-resource-state allowed';
+                    } else {
+                        state = document.createElement('button');
+                        state.type = 'button';
+                        state.textContent = 'No';
+                        state.className = 'settings-status available-resource-state';
+                        state.title = `Allow ${skill.name}`;
+                        state.addEventListener('click', () => {
+                            runAvailablePatternAction(
+                                state,
+                                skill.name,
+                                skillPattern,
+                                addSkillPattern
+                            );
+                        });
+                    }
+                    const memoryButton = document.createElement('button');
+                    memoryButton.type = 'button';
+                    memoryButton.className = 'settings-status available-resource-state skill-memory-state';
+                    memoryButton.disabled = !skill.allowed;
+                    memoryButton.textContent = skill.memory ? 'Yes' : 'No';
+                    memoryButton.title = skill.memory
+                        ? `Remove ${skill.name} from memory`
+                        : `Load ${skill.name} into memory`;
+                    memoryButton.addEventListener('click', () => {
+                        updateSkillMemory(skill.name, memoryButton, !skill.memory);
+                    });
+                    item.append(value, state, memoryButton);
                     availableSkillsList.appendChild(item);
                 }
                 if ((result.skills || []).length === 0) {
@@ -4398,9 +4490,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        async function updateSkillMemory(name, checkbox) {
-            const desired = checkbox.checked;
-            checkbox.disabled = true;
+        async function updateSkillMemory(name, button, desired) {
+            const originalText = button.textContent;
+            button.classList.add('busy');
+            button.disabled = true;
+            button.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            button.appendChild(spinner);
             skillsStatus.textContent = desired
                 ? `Remembering ${name}...`
                 : `Forgetting ${name}...`;
@@ -4414,12 +4512,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (!response.ok || !result.ok) {
                     throw new Error(result.error || 'Unable to update skill memory.');
                 }
-                checkbox.disabled = false;
+                button.textContent = desired ? 'Yes' : 'No';
+                button.title = desired
+                    ? `Remove ${name} from memory`
+                    : `Load ${name} into memory`;
                 skillsStatus.textContent = desired ? `${name} is in memory.` : `${name} removed from memory.`;
             } catch (requestError) {
-                checkbox.checked = !desired;
-                checkbox.disabled = false;
+                button.textContent = originalText;
                 skillsStatus.textContent = requestError.message || 'Unable to update skill memory.';
+            } finally {
+                button.classList.remove('busy');
+                button.disabled = false;
             }
         }
 
