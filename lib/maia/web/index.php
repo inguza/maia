@@ -1104,6 +1104,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             display: none;
         }
 
+        .session-more-menu > div button[hidden] {
+            display: flex !important;
+        }
+
         .session-more-menu > div button {
             align-items: center;
             background: transparent;
@@ -1875,10 +1879,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
-            <button id="session-copy-button" class="session-copy" type="button"
-                    aria-label="Copy session" title="Copy session" hidden<?= $isResourcePage ? ' hidden' : '' ?>>⧉</button>
-            <button id="session-rename-button" class="session-rename" type="button"
-                    aria-label="Rename session" title="Rename session" hidden>✎</button>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
@@ -1886,9 +1886,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         </header>
 
         <div class="history-actions">
-            <button id="history-hide-all" type="button" hidden title="Hide entire history">◉ Hide history</button>
-            <button id="history-clear" type="button" hidden title="Delete entire history">× Delete history</button>
-            <button id="history-hide-last-turn" type="button" hidden title="Hide last turn">◉ Hide last turn</button>
             <button id="load-earlier" type="button" hidden>Load previous turns</button>
             <label id="turn-count-control" class="history-turn-count" hidden>
                 Turns
@@ -1965,19 +1962,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <div class="message-label-row">
                 <label for="message">Continue in session: <span id="message-session-name"><?= escape($initialSessionName) ?></span></label>
                 <div class="session-action-group">
-                    <button id="history-refresh" class="history-refresh" type="button"
-                            aria-label="Refresh history" title="Refresh history">↻</button>
-                    <button id="session-action-copy" type="button"
-                            aria-label="Copy session" title="Copy session">⧉</button>
-                    <button id="session-action-rename" type="button"
-                            aria-label="Rename session" title="Rename session">✎</button>
-                    <button id="session-action-settings" type="button"
-                            aria-label="Session settings" title="Session settings">⚙</button>
                     <div id="session-more-menu" class="session-more-menu">
                         <button id="session-more-toggle" type="button"
                                 aria-label="More session tools" title="More session tools"
                                 aria-expanded="false">≡</button>
-                        <div id="session-more-tools" hidden></div>
+                        <div id="session-more-tools" hidden>
+                            <button id="history-refresh" class="history-refresh" type="button" aria-label="Refresh history" title="Refresh history">↻ Refresh history</button>
+                            <button id="session-action-copy" type="button" aria-label="Copy session" title="Copy session">⧉ Copy session</button>
+                            <button id="session-action-rename" type="button" aria-label="Rename session" title="Rename session">✎ Rename session</button>
+                            <button id="session-action-settings" type="button" aria-label="Session settings" title="Session settings">⚙ Session settings</button>
+                            <button id="compact-history" type="button" aria-label="Compact history" title="Compact history">≋ Compact history</button>
+                            <button id="history-clear" type="button" title="Delete entire history">× Delete history</button>
+                            <button id="history-hide-all" type="button" title="Hide entire history">⊘ Hide history</button>
+                            <button id="history-hide-last-turn" type="button" title="Hide last turn">⊘ Hide last turn</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2203,6 +2201,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const historyClear = document.getElementById('history-clear');
         const historyHideLastTurn = document.getElementById('history-hide-last-turn');
         const historyHideAll = document.getElementById('history-hide-all');
+        const compactHistory = document.getElementById('compact-history');
         const historyEditDialog = document.getElementById('history-edit-dialog');
         const historyEditForm = document.getElementById('history-edit-form');
         const historyEditContent = document.getElementById('history-edit-content');
@@ -2243,8 +2242,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         sessionCreateAction.hidden = true;
         const sessionDeleteDialog = document.getElementById('session-delete-dialog');
         const sessionDeleteMessage = document.getElementById('session-delete-message');
-        const sessionRenameButton = document.getElementById('session-rename-button');
-        const sessionCopyButton = document.getElementById('session-copy-button');
         const sessionRenameDialog = document.getElementById('session-rename-dialog');
         const sessionRenameForm = document.getElementById('session-rename-form');
         const sessionRenameName = document.getElementById('session-rename-name');
@@ -5061,12 +5058,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             openResourceCreate('session', suggested, true, name);
         }
 
-        sessionCopyButton?.addEventListener('click', () => {
-            if (selectedSessionName) {
-                openSessionCopy(selectedSessionName);
-            }
-        });
-
         function openSessionRename(name) {
             sessionRenameName.value = name;
             sessionRenameError.hidden = true;
@@ -5076,12 +5067,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sessionRenameName.focus();
             sessionRenameName.select();
         }
-
-        sessionRenameButton?.addEventListener('click', () => {
-            if (selectedSessionName) {
-                openSessionRename(selectedSessionName);
-            }
-        });
 
         sessionActionCopy?.addEventListener('click', () => {
             if (selectedSessionName) {
@@ -5102,6 +5087,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await loadSettings();
             }
         });
+
+        compactHistory?.addEventListener('click', () => runWholeHistoryAction(
+            'compact',
+            'Compact the conversation history? The original entries will be retained as hidden summarized history.'
+        ));
 
         sessionMoreToggle?.addEventListener('click', () => {
             const expanded = sessionMoreTools.hidden;
@@ -5800,22 +5790,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             historyHideAll.textContent = '\u2298 Hide history';
             historyHideLastTurn.textContent = '\u2298 Hide last turn';
             settingsToggle.hidden = true;
-            if (historyActions && sessionMoreTools) {
-                sessionActionCopy.textContent = '⧉ Copy session';
-                sessionActionRename.textContent = '✎ Rename session';
-                sessionActionSettings.textContent = '⚙ Session settings';
-                historyRefresh.textContent = '↻ Refresh history';
-                sessionMoreTools.append(
-                    historyRefresh,
-                    sessionActionCopy,
-                    sessionActionRename,
-                    sessionActionSettings,
-                    historyClear,
-                    historyHideAll,
-                    historyHideLastTurn
-                );
-                historyActions.hidden = false;
-            }
+            historyActions.hidden = false;
             showHistoryLoading();
             try {
                 await Promise.all([
