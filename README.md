@@ -24,6 +24,11 @@ The final A can be interpreted as:
 - Assistant - because it is primarily intended to be used with direct user interaction
 - Agent - because it can operate agentically when permitted
 
+## Development Status
+
+MAIA is available for testing and under active development. Core functionality is approaching release maturity,
+while some features continue to evolve. Interfaces and functionality may change before the first stable release.
+
 ## Why MAIA
 
 MAIA was developed around the following design principles.
