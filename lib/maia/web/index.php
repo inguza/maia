@@ -5461,7 +5461,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             resourceSettingsDialog.dataset.name = name;
             resourceSettingsDialog.showModal();
             try {
-                const response = await fetch(`/api/${type}/settings?name=${encodeURIComponent(name)}`);
+                const response = await nativeFetch(maiaUrl(`/api/${type}/settings?name=${encodeURIComponent(name)}`));
                 const result = await response.json();
                 if (!response.ok || !result.ok) {
                     throw new Error(result.error || `Unable to load ${type} settings.`);
@@ -5486,7 +5486,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 : { description: resourceSettingsDescription.value };
             resourceSettingsStatus.textContent = 'Saving...';
             try {
-                const response = await fetch(`/api/${type}/settings?name=${encodeURIComponent(name)}`, {
+                const response = await nativeFetch(maiaUrl(`/api/${type}/settings?name=${encodeURIComponent(name)}`), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
