@@ -4780,9 +4780,52 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${match[6]}`;
         }
 
+        const historyUrlPattern = /https?:\/\/[^\s<>"']+/gi;
+
+        function appendHistoryPlainText(parent, text) {
+            let offset = 0;
+            historyUrlPattern.lastIndex = 0;
+            for (const match of text.matchAll(historyUrlPattern)) {
+                const rawUrl = match[0];
+                let url = rawUrl;
+                let trailing = '';
+                while (/[.,!?;:)\\]}]$/.test(url)) {
+                    trailing = url.slice(-1) + trailing;
+                    url = url.slice(0, -1);
+                }
+                const start = match.index ?? offset;
+                if (start > offset) {
+                    parent.appendChild(document.createTextNode(text.slice(offset, start)));
+                }
+                if (url === '') {
+                    parent.appendChild(document.createTextNode(rawUrl));
+                } else {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = url;
+                    parent.appendChild(link);
+                    if (trailing !== '') {
+                        parent.appendChild(document.createTextNode(trailing));
+                    }
+                }
+                offset = start + rawUrl.length;
+            }
+            if (offset < text.length) {
+                parent.appendChild(document.createTextNode(text.slice(offset)));
+            }
+        }
+
         function appendHistoryText(parent, text, parts = null) {
+            const sessionHistory = Boolean(urlSessionName || selectedSessionName);
             if (!Array.isArray(parts) || parts.length === 0) {
-                parent.textContent = text;
+                if (sessionHistory) {
+                    parent.replaceChildren();
+                    appendHistoryPlainText(parent, text);
+                } else {
+                    parent.textContent = text;
+                }
                 return;
             }
             parent.replaceChildren();
@@ -4793,6 +4836,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     link.href = workspaceLocation(part.path, typeof part.session === 'string' ? part.session : null);
                     link.textContent = value;
                     parent.appendChild(link);
+                } else if (sessionHistory) {
+                    appendHistoryPlainText(parent, value);
                 } else {
                     parent.appendChild(document.createTextNode(value));
                 }

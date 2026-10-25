@@ -514,6 +514,11 @@ function maia_web_history_text_parts(string $text, ?string $workspaceRoot, ?stri
     $offset = 0;
     $prefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR . '/\\') . DIRECTORY_SEPARATOR;
     foreach ($matches[0] as [$candidate, $byteOffset]) {
+        // Do not split the host/path portion out of an HTTP(S) URL. The
+        // session-history renderer handles URLs separately in JavaScript.
+        if ($byteOffset >= 3 && substr($text, $byteOffset - 3, 3) === '://') {
+            continue;
+        }
         $candidateLength = strlen($candidate);
         if ($byteOffset > $offset) {
             $parts[] = ['text' => substr($text, $offset, $byteOffset - $offset), 'path' => null, 'session' => null];
