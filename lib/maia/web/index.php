@@ -3848,12 +3848,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession);
         }
 
-        function workspaceLocation(path) {
+        function workspaceLocation(path, sessionName = null) {
             const suffix = path === ''
                 ? ''
                 : '/' + path.split('/').filter(Boolean).map((part) => encodeURIComponent(part)).join('/');
-            if (sessionWorkspaceActive) {
-                return maiaUrl(`/session/${encodeURIComponent(urlSessionName)}${suffix}${path === '' ? '?workspace=1' : ''}`);
+            if (sessionName || sessionWorkspaceActive) {
+                const targetSession = sessionName || urlSessionName;
+                return maiaUrl(`/session/${encodeURIComponent(targetSession)}${suffix}${path === '' ? '?workspace=1' : ''}`);
             }
             return maiaUrl(`/workspace/${encodeURIComponent(urlWorkspaceName)}${suffix}`);
         }
@@ -4779,6 +4780,25 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${match[6]}`;
         }
 
+        function appendHistoryText(parent, text, parts = null) {
+            if (!Array.isArray(parts) || parts.length === 0) {
+                parent.textContent = text;
+                return;
+            }
+            parent.replaceChildren();
+            for (const part of parts) {
+                const value = String(part?.text ?? '');
+                if (typeof part?.path === 'string' && part.path !== '') {
+                    const link = document.createElement('a');
+                    link.href = workspaceLocation(part.path, typeof part.session === 'string' ? part.session : null);
+                    link.textContent = value;
+                    parent.appendChild(link);
+                } else {
+                    parent.appendChild(document.createTextNode(value));
+                }
+            }
+        }
+
         function createToolCallElement(name, argumentsText) {
             const element = document.createElement('div');
             element.className = 'tool-call';
@@ -4810,7 +4830,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (Object.prototype.hasOwnProperty.call(item.backup, 'content') &&
                 item.backup.content !== null && item.backup.content !== undefined) {
                 const content = document.createElement('div');
-                content.textContent = String(item.backup.content);
+                appendHistoryText(content, String(item.backup.content), item.backup.contentParts);
                 backupContent.appendChild(content);
             }
 
@@ -4873,7 +4893,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const element = document.createElement('div');
             element.className = `message ${type}`;
             const content = document.createElement('div');
-            content.textContent = text;
+            appendHistoryText(content, text, item.contentParts);
             element.appendChild(content);
             appendFooter(element, item);
             conversation.appendChild(element);
@@ -5012,7 +5032,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
                     if (item.content !== null && item.content !== undefined && item.content !== '') {
                         const content = document.createElement('div');
-                        content.textContent = String(item.content);
+                        appendHistoryText(content, String(item.content), item.contentParts);
                         element.appendChild(content);
                     }
 

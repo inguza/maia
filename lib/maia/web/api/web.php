@@ -499,3 +499,105 @@ $maiaWebRequestPath = maia_web_request_path();
 if (str_starts_with($maiaWebRequestPath, '/api/')) {
     maia_web_require_auth();
 }
+
+/** @return list<array{text: string, path: string|null, session: string|null}> */
+function maia_web_history_text_parts(string $text, ?string $workspaceRoot, ?string $sessionName = null): array
+{
+    $pattern = '/[A-Za-z0-9_-]+(?:[.\\/][A-Za-z0-9_-]+)+/';
+    if ($workspaceRoot === null || $workspaceRoot === '' ||
+        preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE) === false ||
+        empty($matches[0])) {
+        return [['text' => $text, 'path' => null, 'session' => null]];
+    }
+
+    $parts = [];
+    $offset = 0;
+    $prefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR . '/\\') . DIRECTORY_SEPARATOR;
+    foreach ($matches[0] as [$candidate, $byteOffset]) {
+        $candidateLength = strlen($candidate);
+        if ($byteOffset > $offset) {
+            $parts[] = ['text' => substr($text, $offset, $byteOffset - $offset), 'path' => null, 'session' => null];
+        }
+        $resolved = false;
+        if ($candidate !== '' && !str_contains($candidate, "\0") &&
+            !str_contains($candidate, '..')) {
+            $candidatePath = realpath($workspaceRoot . DIRECTORY_SEPARATOR .
+                str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate));
+            if ($candidatePath !== false &&
+                ($candidatePath === $workspaceRoot || str_starts_with($candidatePath, $prefix))) {
+                $resolved = trim(str_replace('\\', '/', substr($candidatePath, strlen($workspaceRoot))), '/');
+            }
+        }
+        $parts[] = [
+            'text' => $candidate,
+            'path' => $resolved === false ? null : $resolved,
+            'session' => $resolved === false ? null : $sessionName,
+        ];
+        $offset = $byteOffset + $candidateLength;
+    }
+    if ($offset < strlen($text)) {
+        $parts[] = ['text' => substr($text, $offset), 'path' => null, 'session' => null];
+    }
+    return $parts;
+}
+
+function maia_web_history_workspace_root(): ?string
+{
+    $workspace = trim((string) (getenv('MAIA_WORKSPACE') ?: ''));
+    if ($workspace === '') {
+        $session = maia_web_selected_session();
+        $workspace = $session === null ? '' : (maia_web_session_workspace($session) ?: '');
+    }
+    if ($workspace === '') {
+        return null;
+    }
+    $home = maia_web_home_dir();
+    if ($home === null || $home === '') {
+        return null;
+    }
+    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR .
+        $workspace . DIRECTORY_SEPARATOR . 'workspace.myl';
+    if (!is_file($metadata)) {
+        return null;
+    }
+    $root = '';
+    foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+        if (preg_match('/^path:\\s*(.*)$/', $line, $match)) {
+            $root = trim($match[1]);
+            break;
+        }
+    }
+    if ($root !== '' && $root[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\\\\/]/', $root)) {
+        $root = $home . DIRECTORY_SEPARATOR . $root;
+    }
+    $root = realpath($root);
+    return $root !== false && is_dir($root) ? $root : null;
+}
+
+function maia_web_annotate_history_response(string $output): string
+{
+    $response = json_decode($output, true);
+    if (!is_array($response) || !is_array($response['items'] ?? null)) {
+        return $output;
+    }
+    $root = maia_web_history_workspace_root();
+    $sessionName = maia_web_selected_session();
+    foreach ($response['items'] as &$item) {
+        if (is_array($item) && ($item['hidden'] ?? false) !== true &&
+            ($item['hidden'] ?? 0) !== 1 && ($item['hidden'] ?? '') !== 'true') {
+            if (array_key_exists('content', $item) && is_string($item['content'])) {
+                $item['contentParts'] = maia_web_history_text_parts($item['content'], $root, $sessionName);
+            }
+            if (is_array($item['backup'] ?? null) &&
+                is_string($item['backup']['content'] ?? null)) {
+                $item['backup']['contentParts'] = maia_web_history_text_parts($item['backup']['content'], $root, $sessionName);
+            }
+        }
+    }
+    unset($item);
+    return json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+}
+
+if ($maiaWebRequestPath === '/api/history/show') {
+    ob_start('maia_web_annotate_history_response');
+}
