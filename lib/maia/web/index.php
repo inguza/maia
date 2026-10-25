@@ -3604,7 +3604,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         function updateWorkspaceSelectionActions() {
-            const hasSelection = workspaceSelectedFiles.size > 0 || (workspaceViewStart !== null && workspaceViewEnd !== null);
+            const binaryFile = workspaceFileView?.dataset.binary === '1';
+            const hasSelection = binaryFile || workspaceSelectedFiles.size > 0 || (workspaceViewStart !== null && workspaceViewEnd !== null);
             if (workspaceAddFiles) {
                 workspaceAddFiles.disabled = !hasSelection || workspaceTargetSession === '';
             }
@@ -3718,6 +3719,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             workspaceViewContent.replaceChildren();
             workspaceViewEditContent.value = '';
             workspaceViewStatus.textContent = 'Loading...';
+            workspaceFileView.dataset.binary = '0';
+            if (workspaceAddFiles) workspaceAddFiles.textContent = 'Add selected';
             workspaceViewStart = null;
             workspaceViewEnd = null;
             if (workspaceFileViewHelp) {
@@ -3743,15 +3746,54 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         return false;
                     }
                 }
-                const content = String(result.content ?? '');
                 workspaceFileView.dataset.path = entry.path;
                 workspaceFileView.dataset.editing = editMode ? '1' : '0';
-                workspaceViewEdit.hidden = editMode;
-                workspaceViewSave.hidden = !editMode;
-                workspaceViewCancel.hidden = !editMode;
+                workspaceViewEdit.hidden = editMode || result.kind === 'binary';
+                workspaceViewSave.hidden = !editMode || result.kind === 'binary';
+                workspaceViewCancel.hidden = !editMode || result.kind === 'binary';
                 workspaceViewContent.hidden = editMode;
                 workspaceViewEditContent.hidden = !editMode;
-                if (editMode) {
+                if (result.kind === 'binary') {
+                    workspaceFileView.dataset.binary = '1';
+                    if (workspaceAddFiles) workspaceAddFiles.textContent = 'Add file';
+                    if (workspaceFileViewHelp) {
+                        workspaceFileViewHelp.hidden = false;
+                        workspaceFileViewHelp.textContent = 'Add this file to the selected session.';
+                    }
+                    workspaceViewContent.replaceChildren();
+                    const rawUrl = maiaUrl(`/api/workspace/operation?workspace=${encodeURIComponent(urlWorkspaceName)}&path=${encodeURIComponent(entry.path)}&raw=1`);
+                    let preview;
+                    if (result.mime?.startsWith('image/')) {
+                        preview = document.createElement('img');
+                        preview.alt = entry.name;
+                        preview.style.maxWidth = '100%';
+                    } else if (result.mime?.startsWith('audio/')) {
+                        preview = document.createElement('audio');
+                        preview.controls = true;
+                    } else if (result.mime?.startsWith('video/')) {
+                        preview = document.createElement('video');
+                        preview.controls = true;
+                        preview.style.maxWidth = '100%';
+                    } else if (result.mime === 'application/pdf') {
+                        preview = document.createElement('iframe');
+                        preview.title = entry.name;
+                        preview.style.height = '70vh';
+                        preview.style.width = '100%';
+                    }
+                    if (preview) {
+                        preview.src = rawUrl;
+                        workspaceViewContent.appendChild(preview);
+                    } else {
+                        const download = document.createElement('a');
+                        download.href = rawUrl;
+                        download.textContent = `Download ${entry.name} (${result.mime || 'binary file'})`;
+                        workspaceViewContent.appendChild(download);
+                    }
+                    workspaceViewContent.hidden = false;
+                    workspaceViewEditContent.hidden = true;
+                    workspaceViewStatus.textContent = result.mime || 'Binary file';
+                } else if (editMode) {
+                    const content = String(result.content ?? '');
                     workspaceViewEditContent.value = content;
                     workspaceViewEditContent.focus();
                 } else {
@@ -3813,7 +3855,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         workspaceViewContent.appendChild(row);
                     });
                     workspaceViewStatus.textContent = '';
+                    if (workspaceFileViewHelp) {
+                        workspaceFileViewHelp.hidden = false;
+                        workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+                    }
                 }
+                updateWorkspaceSelectionActions();
                 if (workspaceFileView) {
                     workspaceFileView.hidden = false;
                 }
@@ -3878,6 +3925,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
             if (workspaceFileView) {
                 workspaceFileView.hidden = true;
+                workspaceFileView.dataset.binary = '0';
+            }
+            if (workspaceAddFiles) workspaceAddFiles.textContent = 'Add selected';
+            if (workspaceFileViewHelp) {
+                workspaceFileViewHelp.hidden = true;
+                workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
             }
             if (workspaceFilesPanel) {
                 workspaceFilesPanel.hidden = false;
@@ -4165,6 +4218,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
             updateWorkspaceSelectionActions();
+            if (workspaceFileView?.dataset.binary === '1') {
+                const path = workspaceFileView.dataset.path || workspaceRelativePath;
+                await addWorkspaceFilesToSession([path], workspaceTargetSession);
+                return;
+            }
             if (workspaceViewStart !== null && workspaceViewEnd !== null) {
                 const first = Math.min(workspaceViewStart, workspaceViewEnd);
                 const last = Math.max(workspaceViewStart, workspaceViewEnd);

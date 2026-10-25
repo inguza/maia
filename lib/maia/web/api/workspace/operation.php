@@ -12,6 +12,54 @@ function workspace_operation_error(int $status, string $message): never
     exit;
 }
 
+/** @return array{kind: string, mime: string} */
+function workspace_operation_file_type(string $file): array
+{
+    $sample = @file_get_contents($file, false, null, 0, 65536);
+    if ($sample !== false) {
+        $binary = str_contains($sample, "\0") || preg_match('//u', $sample) !== 1;
+        if (!$binary && preg_match_all('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $sample, $matches) > max(1, (int) (strlen($sample) / 100))) {
+            $binary = true;
+        }
+        if (!$binary) {
+            return ['kind' => 'text', 'mime' => 'text/plain'];
+        }
+    }
+
+    $mime = '';
+    $process = proc_open(
+        ['file', '--brief', '--mime-type', '--', $file],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $pipes
+    );
+    if (is_resource($process)) {
+        fclose($pipes[0]);
+        $mime = trim((string) stream_get_contents($pipes[1]));
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+    }
+
+    if ($mime === '') {
+        $header = @file_get_contents($file, false, null, 0, 16) ?: '';
+        if (str_starts_with($header, "\x89PNG\r\n\x1a\n")) $mime = 'image/png';
+        elseif (str_starts_with($header, "\xff\xd8\xff")) $mime = 'image/jpeg';
+        elseif (str_starts_with($header, 'GIF87a') || str_starts_with($header, 'GIF89a')) $mime = 'image/gif';
+        elseif (substr($header, 0, 4) === 'RIFF' && substr($header, 8, 4) === 'WEBP') $mime = 'image/webp';
+        elseif (str_starts_with($header, '%PDF-')) $mime = 'application/pdf';
+    }
+
+    return ['kind' => 'binary', 'mime' => $mime !== '' ? $mime : 'application/octet-stream'];
+}
+
+function workspace_operation_inline_mime(string $mime): bool
+{
+    return str_starts_with($mime, 'image/') ||
+        str_starts_with($mime, 'audio/') ||
+        str_starts_with($mime, 'video/') ||
+        $mime === 'application/pdf';
+}
+
 $workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? $_GET['workspace'] ?? ''));
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_operation_error(400, 'A workspace is required.');
@@ -60,14 +108,36 @@ if ($method === 'GET') {
     $path = $relative($_GET['path'] ?? '');
     $file = $existing($path);
     if (!is_file($file)) workspace_operation_error(400, 'Only files can be downloaded.');
-    if (isset($_GET['view'])) {
-        if (filesize($file) > 2 * 1024 * 1024) workspace_operation_error(413, 'Files larger than 2 MB cannot be viewed.');
-        $content = file_get_contents($file);
-        if ($content === false || strpos($content, "\0") !== false) workspace_operation_error(415, 'This file cannot be viewed as text.');
-        echo json_encode(['ok' => true, 'path' => $path, 'name' => basename($file), 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    $fileType = workspace_operation_file_type($file);
+    $kind = $fileType['kind'];
+    $mime = $fileType['mime'];
+    if (isset($_GET['raw'])) {
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Type: ' . $mime);
+        $inline = workspace_operation_inline_mime($mime);
+        header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . addslashes(basename($file)) . '"');
+        readfile($file);
         exit;
     }
-    header('Content-Type: application/octet-stream');
+    if (isset($_GET['view'])) {
+        if ($kind !== 'text') {
+            echo json_encode([
+                'ok' => true,
+                'path' => $path,
+                'name' => basename($file),
+                'kind' => 'binary',
+                'mime' => $mime,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+            exit;
+        }
+        if (filesize($file) > 2 * 1024 * 1024) workspace_operation_error(413, 'Files larger than 2 MB cannot be viewed.');
+        $content = file_get_contents($file);
+        if ($content === false) workspace_operation_error(415, 'This file cannot be viewed as text.');
+        echo json_encode(['ok' => true, 'path' => $path, 'name' => basename($file), 'kind' => 'text', 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        exit;
+    }
+    header('X-Content-Type-Options: nosniff');
+    header('Content-Type: ' . $mime);
     header('Content-Disposition: attachment; filename="' . addslashes(basename($file)) . '"');
     readfile($file);
     exit;
