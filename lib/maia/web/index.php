@@ -15,20 +15,27 @@ function escape(string $value): string
 
 $workspacePageName = trim((string) ($_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
 $workspacePagePath = trim(str_replace('\\', '/', (string) ($_SERVER['MAIA_URL_WORKSPACE_PATH'] ?? '')), '/');
+$sessionWorkspacePage = (string) ($_SERVER['MAIA_URL_SESSION_WORKSPACE'] ?? '') === '1';
 $workspacePageEdit = (string) ($_GET['edit'] ?? '') === '1';
+$pureWorkspaceBrowserPage = $workspacePagePath !== '';
 $profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
 $homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
 $webBasePath = maia_web_base_path();
 $resourcePageName = $workspacePageName !== '' ? $workspacePageName : $profilePageName;
 $isResourcePage = $resourcePageName !== '' || $homePage;
 $initialSessionName = maia_web_initial_session() ?: 'No session selected';
-$initialTitle = $workspacePageName !== ''
-    ? 'workspace: ' . $workspacePageName
-    : ($profilePageName !== ''
+$sessionWorkspaceName = (!$isResourcePage && $initialSessionName !== 'No session selected')
+    ? (maia_web_session_workspace($initialSessionName) ?: '')
+    : '';
+$initialTitle = $sessionWorkspacePage
+    ? 'session: ' . $initialSessionName . ' / workspace'
+    : ($workspacePageName !== ''
+        ? 'workspace: ' . $workspacePageName
+        : ($profilePageName !== ''
         ? 'profile: ' . $profilePageName
-        : ($homePage
-            ? 'home'
-            : 'session: ' . $initialSessionName));
+            : ($homePage
+                ? 'home'
+                : 'session: ' . $initialSessionName)));
 
 /** @return list<array{name: string, path: string, type: string, size: int|null, modified: int|null}> */
 function maia_web_initial_workspace_entries(string $workspaceName, string $relativePath = ''): array
@@ -164,12 +171,13 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
     ];
 }
 
-$initialWorkspaceEntries = $workspacePageName === ''
+$initialWorkspaceName = $workspacePageName !== '' ? $workspacePageName : $sessionWorkspaceName;
+$initialWorkspaceEntries = $initialWorkspaceName === ''
     ? []
-    : maia_web_initial_workspace_entries($workspacePageName, $workspacePagePath);
-$initialWorkspaceFile = $workspacePageName === ''
+    : maia_web_initial_workspace_entries($initialWorkspaceName, $workspacePagePath);
+$initialWorkspaceFile = $initialWorkspaceName === ''
     ? null
-    : maia_web_initial_workspace_file($workspacePageName, $workspacePagePath);
+    : maia_web_initial_workspace_file($initialWorkspaceName, $workspacePagePath);
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
@@ -260,6 +268,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         .topbar h1 {
             font-size: 1.5rem;
             margin: 0;
+        }
+
+        .session-workspace-session-link,
+        .session-workspace-session-link:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .session-workspace-session-link:hover,
+        .session-workspace-session-link:focus {
+            color: #000000;
+            text-decoration: underline;
         }
 
         .sidebar-toggle,
@@ -1921,7 +1941,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         <header class="topbar">
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
                     aria-label="Open sidebar" aria-expanded="false">☰</button>
+<?php if ($sessionWorkspacePage): ?>
+            <h1 id="session-title">session: <a class="session-workspace-session-link" href="<?= escape($webBasePath) ?>/session/<?= rawurlencode($initialSessionName) ?>"><?= escape($initialSessionName) ?></a> / workspace</h1>
+<?php else: ?>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
+<?php endif; ?>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
@@ -1949,8 +1973,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 </div>
             </form>
         </dialog>
-<?php if ($workspacePageName !== ''): ?>
-        <section id="workspace-files" class="workspace-files<?= $workspacePagePath !== '' ? ' workspace-file-page-mode' : '' ?><?= $workspacePageEdit ? ' workspace-edit-page-mode' : '' ?>">
+<?php if ($workspacePageName !== '' || !$isResourcePage): ?>
+        <section id="workspace-files" class="workspace-files<?= !$sessionWorkspacePage && !$isResourcePage ? ' composer-panel' : '' ?><?= $initialWorkspaceFile !== null ? ' workspace-file-page-mode' : '' ?><?= $workspacePageEdit ? ' workspace-edit-page-mode' : '' ?>"<?= !$sessionWorkspacePage && !$isResourcePage ? ' hidden' : '' ?>>
             <h2 class="workspace-files-heading">Workspace files</h2>
             <div class="workspace-files-toolbar">
                 <strong id="workspace-file-path">/</strong>
@@ -1967,11 +1991,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <input id="workspace-file-upload-input" type="file" multiple hidden>
                 <button id="workspace-file-upload" type="button" aria-label="Upload files" title="Upload files">⇧</button>
             </div>
-            <p id="workspace-file-status" class="settings-status files-status" role="status"></p>
-            <ul id="workspace-file-list" class="workspace-file-list"<?= $workspacePagePath !== '' ? ' hidden' : '' ?>></ul>
+            <p id="workspace-file-status" class="settings-status files-status" role="status"><?= $initialWorkspaceName === '' && !$sessionWorkspacePage ? 'This session has no workspace configured.' : '' ?></p>
+            <ul id="workspace-file-list" class="workspace-file-list"<?= $initialWorkspaceFile !== null ? ' hidden' : '' ?>></ul>
             <p id="workspace-file-drag-help" class="settings-status">Drag a file into a matching session (in another window) to add it to that session, or use the below.</p>
             <p id="workspace-file-view-help" class="settings-status" hidden>Mark lines below to add to a session.</p>
             <div class="workspace-session-target">
+<?php if ($sessionWorkspacePage): ?>
+                <span id="workspace-session-fixed">Adding to session <?= escape($initialSessionName) ?></span>
+<?php else: ?>
                 <label class="visually-hidden" for="workspace-session-input">Select a session</label>
                 <input id="workspace-session-input" type="text" autocomplete="off" placeholder="Select a session">
                 <span id="workspace-session-status" class="workspace-session-status" role="status">
@@ -1979,6 +2006,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     Loading sessions...
                 </span>
                 <div id="workspace-session-menu" class="workspace-session-target-menu" role="listbox" hidden></div>
+<?php endif; ?>
                 <button id="workspace-add-files" type="button" disabled>Add selected</button>
             </div>
         </section>
@@ -2025,20 +2053,24 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <textarea id="message" name="message" required autofocus></textarea>
 <?php endif; ?>
 
-            <div class="composer-actions">
+            <div class="composer-actions"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>>
                 <div class="composer-actions-left">
 <?php if ($homePage): ?>
                     <button id="credentials-toggle" type="button"
                             aria-expanded="false">Credentials ▾</button>
 <?php endif; ?>
-                    <button id="settings-toggle" type="button"
+                    <button id="settings-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">⚙</button>
-                    <button id="files-toggle" type="button"
+                    <button id="files-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Files ▾</button>
-                    <button id="skills-toggle" type="button"
+                    <button id="skills-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Skills ▾</button>
-                    <button id="tools-toggle" type="button"
+                    <button id="tools-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Tools ▾</button>
+<?php if (!$isResourcePage): ?>
+                    <button id="workspace-toggle" type="button"
+                            aria-expanded="false">Workspace ▾</button>
+<?php endif; ?>
                 </div>
                 <button id="send" type="submit" disabled>Send</button>
             </div>
@@ -2174,6 +2206,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspacePath = <?= json_encode($workspacePagePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspaceFile = <?= json_encode($initialWorkspaceFile, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const serverWorkspaceName = <?= json_encode($workspacePageName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const serverSessionWorkspaceName = <?= json_encode($sessionWorkspaceName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const sessionWorkspacePage = <?= $sessionWorkspacePage ? 'true' : 'false' ?>;
+        const pureWorkspaceBrowserPage = <?= $pureWorkspaceBrowserPage ? 'true' : 'false' ?>;
         const maiaUrl = (path) => `${maiaBasePath}${path}`;
         const form = document.getElementById('message-form');
         const input = document.getElementById('message');
@@ -2197,6 +2233,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const fileAddButton = document.getElementById('file-add-button');
         const toolsToggle = document.getElementById('tools-toggle');
         const toolsPanel = document.getElementById('tools-panel');
+        const workspaceToggle = document.getElementById('workspace-toggle');
         const toolsRefresh = document.getElementById('tools-refresh');
         const credentialsToggle = document.getElementById('credentials-toggle');
         const credentialsPanel = document.getElementById('credentials-panel');
@@ -2252,6 +2289,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sidebarBackdrop = document.getElementById('sidebar-backdrop');
         const sessionTitle = document.getElementById('session-title');
         const messageSessionName = document.getElementById('message-session-name');
+
+        function renderSessionWorkspaceTitle() {
+            if (!sessionTitle || !sessionWorkspacePage || !urlSessionName) {
+                return;
+            }
+            sessionTitle.replaceChildren();
+            sessionTitle.append(document.createTextNode('session: '));
+            const link = document.createElement('a');
+            link.className = 'session-workspace-session-link';
+            link.href = maiaUrl(`/session/${encodeURIComponent(urlSessionName)}`);
+            link.textContent = urlSessionName;
+            sessionTitle.append(link, document.createTextNode(' / workspace'));
+        }
         const sessionList = document.getElementById('session-list');
         const sessionListPlaceholder = document.getElementById('session-list-placeholder');
         const sessionMore = document.getElementById('session-more');
@@ -2289,6 +2339,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const profileList = document.getElementById('profile-list');
         const profileListPlaceholder = document.getElementById('profile-list-placeholder');
         const workspaceFilesPanel = document.getElementById('workspace-files');
+        const composerActions = document.querySelector('.composer-actions');
+        if (workspaceFilesPanel && composerActions && !sessionWorkspacePage) {
+            composerActions.insertAdjacentElement('afterend', workspaceFilesPanel);
+        }
         const workspaceFilePath = document.getElementById('workspace-file-path');
         const workspaceFileUp = document.getElementById('workspace-file-up');
         const workspaceFileRefresh = document.getElementById('workspace-file-refresh');
@@ -2363,6 +2417,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let credentialsLoaded = false;
         let urlSessionName = null;
         let urlWorkspaceName = null;
+        let sessionWorkspaceActive = sessionWorkspacePage;
         let urlProfileName = null;
         const maiaPath = maiaBasePath && location.pathname.startsWith(maiaBasePath)
             ? location.pathname.slice(maiaBasePath.length) || '/'
@@ -2385,10 +2440,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
         if (maiaPath.startsWith('/session/')) {
             try {
-                urlSessionName = decodeURIComponent(maiaPath.slice('/session/'.length));
+                urlSessionName = decodeURIComponent(maiaPath.slice('/session/'.length).split('/')[0]);
             } catch (_) {
                 urlSessionName = null;
             }
+        }
+        if (sessionWorkspacePage && serverWorkspaceName !== '') {
+            urlWorkspaceName = serverWorkspaceName;
         }
 
         const nativeFetch = window.fetch.bind(window);
@@ -2398,8 +2456,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (session && !headers.has('X-MAIA-Session')) {
                 headers.set('X-MAIA-Session', session);
             }
-            if (urlWorkspaceName) {
-                headers.set('X-MAIA-Workspace', urlWorkspaceName);
+            const requestWorkspaceName = urlWorkspaceName || (sessionWorkspaceActive ? serverSessionWorkspaceName : '');
+            if (requestWorkspaceName) {
+                headers.set('X-MAIA-Workspace', requestWorkspaceName);
             }
             if (urlProfileName) {
                 headers.set('X-MAIA-Profile', urlProfileName);
@@ -3270,7 +3329,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let workspaceRelativePath = initialWorkspacePath;
         let workspaceEntries = Array.isArray(initialWorkspaceEntries) ? initialWorkspaceEntries : [];
         const workspaceSelectedFiles = new Set();
-        let workspaceTargetSession = '';
+        let workspaceTargetSession = sessionWorkspacePage ? (urlSessionName || '') : '';
         let workspaceViewStart = null;
         let workspaceViewEnd = null;
         let workspaceViewPointerSelecting = false;
@@ -3793,6 +3852,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const suffix = path === ''
                 ? ''
                 : '/' + path.split('/').filter(Boolean).map((part) => encodeURIComponent(part)).join('/');
+            if (sessionWorkspaceActive) {
+                return maiaUrl(`/session/${encodeURIComponent(urlSessionName)}${suffix}${path === '' ? '?workspace=1' : ''}`);
+            }
             return maiaUrl(`/workspace/${encodeURIComponent(urlWorkspaceName)}${suffix}`);
         }
 
@@ -3829,11 +3891,24 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
+        function updateWorkspaceBrowserChrome() {
+            const pureBrowser = workspaceRelativePath !== '';
+            [settingsToggle, filesToggle, skillsToggle, toolsToggle].forEach((button) => {
+                if (button) {
+                    button.hidden = pureBrowser;
+                }
+            });
+            if (composerActions && !sessionWorkspacePage) {
+                composerActions.hidden = pureBrowser;
+            }
+        }
+
         async function loadWorkspaceFiles(updateUrl = true) {
             if (!workspaceFileList || !workspaceFilePath) {
                 return;
             }
-            if (updateUrl && urlWorkspaceName) {
+            updateWorkspaceBrowserChrome();
+            if (updateUrl && (urlWorkspaceName || sessionWorkspaceActive)) {
                 history.pushState({}, '', workspaceLocation(workspaceRelativePath));
             }
             workspaceFileStatus.classList.remove('error');
@@ -3970,9 +4045,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const currentPagePath = location.pathname.startsWith(maiaBasePath)
                 ? location.pathname.slice(maiaBasePath.length) || '/'
                 : location.pathname;
-            const workspacePrefix = `/workspace/${encodeURIComponent(urlWorkspaceName)}`;
-            const currentPath = currentPagePath.startsWith(workspacePrefix)
-                ? currentPagePath.slice(workspacePrefix.length).replace(/^\//, '')
+            const prefix = sessionWorkspacePage
+                ? `/session/${encodeURIComponent(urlSessionName)}`
+                : `/workspace/${encodeURIComponent(urlWorkspaceName)}`;
+            const currentPath = currentPagePath.startsWith(prefix)
+                ? currentPagePath.slice(prefix.length).replace(/^\//, '')
                 : '';
             workspaceRelativePath = decodeURIComponent(currentPath);
             loadWorkspaceFiles(false);
@@ -4002,6 +4079,34 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 workspaceFileStatus.textContent = requestError.message || 'Unable to add files.';
             }
         }
+
+        workspaceToggle?.addEventListener('click', async (event) => {
+            event.preventDefault();
+            if (!workspaceFilesPanel) {
+                return;
+            }
+            const expanded = workspaceFilesPanel.hidden;
+            workspaceFilesPanel.hidden = !expanded;
+            workspaceToggle.setAttribute('aria-expanded', String(expanded));
+            workspaceToggle.textContent = expanded ? 'Workspace \u25B4' : 'Workspace \u25BE';
+            if (!expanded) {
+                return;
+            }
+            if (serverSessionWorkspaceName === '' && !urlWorkspaceName) {
+                workspaceFileStatus.textContent = 'This session has no workspace configured.';
+                workspaceFileStatus.classList.add('error');
+                return;
+            }
+            sessionWorkspaceActive = true;
+            workspaceTargetSession = urlSessionName || '';
+            renderWorkspacePath(workspaceRelativePath);
+            workspaceFileUp.disabled = workspaceRelativePath === '';
+            if (workspaceRelativePath === '') {
+                renderWorkspaceEntries();
+            } else {
+                await loadWorkspaceFiles(false);
+            }
+        });
 
         workspaceAddFiles?.addEventListener('click', async () => {
             if (workspaceTargetSession === '') {
@@ -5924,7 +6029,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     : (urlWorkspaceName ? 'workspace-page' : 'home-page'));
                 const resourceName = urlProfileName || urlWorkspaceName;
                 if (resourceName) {
-                    sessionTitle.textContent = `${urlProfileName ? 'profile' : 'workspace'}: ${resourceName}`;
+                    if (sessionWorkspacePage) {
+                        renderSessionWorkspaceTitle();
+                    } else {
+                        sessionTitle.textContent = `${urlProfileName ? 'profile' : 'workspace'}: ${resourceName}`;
+                    }
                 }
                 if (urlProfileName) {
                     try {
@@ -5950,6 +6059,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     settingsToggle.title = urlProfileName ? 'Profile settings' : 'Workspace settings';
                 }
                 if (filesToggle) filesToggle.hidden = true;
+                if (pureWorkspaceBrowserPage) {
+                    [settingsToggle, filesToggle, skillsToggle, toolsToggle].forEach((button) => {
+                        if (button) button.hidden = true;
+                    });
+                }
                 if (historyRefresh) historyRefresh.hidden = true;
                 if (send) send.hidden = true;
                 document.querySelector('.history-actions')?.setAttribute('hidden', '');
@@ -5958,29 +6072,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (urlWorkspaceName && workspaceFileList) {
                     renderWorkspacePath(workspaceRelativePath);
                     workspaceFileUp.disabled = workspaceRelativePath === '';
-                    if (workspaceRelativePath !== '') {
-                        const viewed = await viewWorkspaceFile({
+                    if (workspaceRelativePath !== '' && initialWorkspaceFile) {
+                        await viewWorkspaceFile({
                             path: workspaceRelativePath,
                             name: workspaceRelativePath.split('/').pop()
-                        }, new URLSearchParams(window.location.search).get('edit') === '1', initialWorkspaceFile?.content ?? null);
-                        if (!viewed) {
-                            if (workspaceFileList) {
-                                workspaceFileList.hidden = false;
-                            }
-                            renderWorkspaceEntries();
-                        }
+                        }, new URLSearchParams(window.location.search).get('edit') === '1', initialWorkspaceFile.content);
                     } else {
-                        if (workspaceFileList) {
-                            workspaceFileList.hidden = false;
-                        }
+                        workspaceFilesPanel?.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
+                        workspaceFileList.hidden = false;
                         renderWorkspaceEntries();
                     }
+                    updateWorkspaceBrowserChrome();
                 }
                 await Promise.allSettled([
                     loadSessions(),
                     loadSidebarOptions(),
-                    loadTools(),
-                    loadSkills()
+                    ...(pureWorkspaceBrowserPage ? [] : [loadTools(), loadSkills()])
                 ]);
                 return;
             }

@@ -340,6 +340,37 @@ function maia_web_sessions(): array
     return array_keys($sessions);
 }
 
+function maia_web_session_workspace(string $session): ?string
+{
+    if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $session) || $session === '_EMPTY_') {
+        return null;
+    }
+    $process = proc_open(
+        [maia_web_binary(), 'session', 'show', '--raw', $session],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $pipes,
+        null,
+        maia_web_environment()
+    );
+    if (!is_resource($process)) {
+        return null;
+    }
+    fclose($pipes[0]);
+    $output = (string) stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    if (proc_close($process) !== 0) {
+        return null;
+    }
+    foreach (preg_split('/\\R/', $output) as $line) {
+        if (preg_match('/^workspace:\\s*(.*)$/', $line, $match)) {
+            $workspace = trim($match[1]);
+            return preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $workspace) ? $workspace : null;
+        }
+    }
+    return null;
+}
+
 function maia_web_selected_session(): ?string
 {
     $headerSession = trim((string) ($_SERVER['HTTP_X_MAIA_SESSION'] ?? ''));

@@ -38,14 +38,30 @@ if ($path === '/' || $path === '') {
     exit;
 }
 
-if (preg_match('#^/session/(.+)$#', $path, $matches)) {
+if (preg_match('#^/session/([^/]+)(?:/(.*))?$#', $path, $matches)) {
     $session = rawurldecode($matches[1]);
-    if ($session === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $session)) {
+    $relativePath = rawurldecode($matches[2] ?? '');
+    if ($session === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $session) ||
+        str_contains($relativePath, "\0") || str_contains($relativePath, "\n") ||
+        str_contains($relativePath, "\r")) {
         http_response_code(404);
         echo "Session not found.\n";
         return true;
     }
     $_SERVER['MAIA_URL_SESSION'] = $session;
+    if ($relativePath !== '' || (string) ($_GET['workspace'] ?? '') === '1') {
+        require_once __DIR__ . '/api/web.php';
+        maia_web_validate_environment();
+        $workspace = maia_web_session_workspace($session);
+        if ($workspace === null) {
+            http_response_code(404);
+            echo "Session workspace not found.\n";
+            return true;
+        }
+        $_SERVER['MAIA_URL_WORKSPACE'] = $workspace;
+        $_SERVER['MAIA_URL_WORKSPACE_PATH'] = trim(str_replace('\\', '/', $relativePath), '/');
+        $_SERVER['MAIA_URL_SESSION_WORKSPACE'] = '1';
+    }
     require __DIR__ . '/index.php';
     return true;
 }
