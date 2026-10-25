@@ -797,9 +797,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         #workspace-file-path a:hover,
-        #workspace-file-path a:focus {
-            color: inherit;
+        #workspace-file-path a:focus,
+        #workspace-view-title a:hover,
+        #workspace-view-title a:focus {
+            color: #000000;
             text-decoration: underline !important;
+        }
+
+        #workspace-view-title a,
+        #workspace-view-title a:visited {
+            color: inherit;
+            text-decoration: none !important;
         }
 
         .workspace-file-page-mode h2,
@@ -3714,8 +3722,36 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
+        function renderWorkspaceBreadcrumb(container, path, onClick = null) {
+            if (!container) {
+                return;
+            }
+            container.replaceChildren();
+            const addLink = (label, target) => {
+                const link = document.createElement('a');
+                link.href = workspaceLocation(target);
+                link.textContent = label;
+                if (onClick) {
+                    link.addEventListener('click', (event) => onClick(event, target));
+                }
+                container.appendChild(link);
+            };
+
+            addLink('/', '');
+            let current = '';
+            for (const [index, part] of path.split('/').filter(Boolean).entries()) {
+                current = current === '' ? part : `${current}/${part}`;
+                container.appendChild(document.createTextNode(' '));
+                addLink(`${part}${index < path.split('/').filter(Boolean).length - 1 ? '/' : ''}`, current);
+            }
+        }
+
+        function renderWorkspaceViewTitle(path) {
+            renderWorkspaceBreadcrumb(workspaceViewTitle, path);
+        }
+
         async function viewWorkspaceFile(entry, editMode = false) {
-            workspaceViewTitle.textContent = entry.path;
+            renderWorkspaceViewTitle(entry.path);
             workspaceViewContent.replaceChildren();
             workspaceViewEditContent.value = '';
             workspaceViewStatus.textContent = 'Loading...';
@@ -3966,36 +4002,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         function renderWorkspacePath(path) {
-            if (!workspaceFilePath) {
-                return;
-            }
-            workspaceFilePath.replaceChildren();
-            const parts = path.split('/').filter(Boolean);
-            const addLink = (label, target) => {
-                const link = document.createElement('a');
-                link.href = workspaceLocation(target);
-                link.textContent = label;
-                link.addEventListener('click', (event) => {
-                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                        return;
-                    }
-                    event.preventDefault();
-                    workspaceRelativePath = target;
-                    loadWorkspaceFiles();
-                });
-                workspaceFilePath.appendChild(link);
-            };
-
-            addLink('/', '');
-            let current = '';
-            for (const [index, part] of parts.entries()) {
-                current = current === '' ? part : `${current}/${part}`;
-                const separator = document.createElement('span');
-                separator.className = 'workspace-path-separator';
-                separator.textContent = ' ';
-                workspaceFilePath.appendChild(separator);
-                addLink(`${part}${index < parts.length - 1 ? '/' : ''}`, current);
-            }
+            renderWorkspaceBreadcrumb(workspaceFilePath, path, (event, target) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+                event.preventDefault();
+                workspaceRelativePath = target;
+                loadWorkspaceFiles();
+            });
         }
 
         function updateWorkspaceBrowserChrome() {
