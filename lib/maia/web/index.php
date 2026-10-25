@@ -6072,11 +6072,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (urlWorkspaceName && workspaceFileList) {
                     renderWorkspacePath(workspaceRelativePath);
                     workspaceFileUp.disabled = workspaceRelativePath === '';
-                    if (workspaceRelativePath !== '' && initialWorkspaceFile) {
+                    if (workspaceRelativePath !== '') {
                         await viewWorkspaceFile({
                             path: workspaceRelativePath,
                             name: workspaceRelativePath.split('/').pop()
-                        }, new URLSearchParams(window.location.search).get('edit') === '1', initialWorkspaceFile.content);
+                        }, new URLSearchParams(window.location.search).get('edit') === '1');
                     } else {
                         workspaceFilesPanel?.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
                         workspaceFileList.hidden = false;
