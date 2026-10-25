@@ -171,6 +171,53 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
     ];
 }
 
+function maia_web_initial_workspace_path_type(string $workspaceName, string $relativePath): string
+{
+    if ($relativePath === '') {
+        return 'root';
+    }
+    $home = maia_web_home_dir();
+    if ($home === null || $home === '') {
+        return 'missing';
+    }
+    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR
+        . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
+    if (!is_file($metadata)) {
+        return 'missing';
+    }
+    $workspaceRoot = '';
+    foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+        if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
+            $workspaceRoot = trim($match[1]);
+            break;
+        }
+    }
+    if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
+        !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
+        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
+    }
+    $workspaceRoot = realpath($workspaceRoot);
+    if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
+        return 'missing';
+    }
+    $parts = [];
+    foreach (explode('/', str_replace('\\\\', '/', $relativePath)) as $part) {
+        if ($part === '' || $part === '.') {
+            continue;
+        }
+        if ($part === '..') {
+            return 'missing';
+        }
+        $parts[] = $part;
+    }
+    $target = realpath($workspaceRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, implode('/', $parts)));
+    $prefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if ($target === false || ($target !== $workspaceRoot && !str_starts_with($target, $prefix))) {
+        return 'missing';
+    }
+    return is_dir($target) ? 'directory' : (is_file($target) ? 'file' : 'missing');
+}
+
 $initialWorkspaceName = $workspacePageName !== '' ? $workspacePageName : $sessionWorkspaceName;
 $initialWorkspaceEntries = $initialWorkspaceName === ''
     ? []
@@ -178,6 +225,9 @@ $initialWorkspaceEntries = $initialWorkspaceName === ''
 $initialWorkspaceFile = $initialWorkspaceName === ''
     ? null
     : maia_web_initial_workspace_file($initialWorkspaceName, $workspacePagePath);
+$initialWorkspacePathType = $initialWorkspaceName === ''
+    ? 'missing'
+    : maia_web_initial_workspace_path_type($initialWorkspaceName, $workspacePagePath);
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
@@ -1974,7 +2024,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </form>
         </dialog>
 <?php if ($workspacePageName !== '' || !$isResourcePage): ?>
-        <section id="workspace-files" class="workspace-files<?= !$sessionWorkspacePage && !$isResourcePage ? ' composer-panel' : '' ?><?= $initialWorkspaceFile !== null ? ' workspace-file-page-mode' : '' ?><?= $workspacePageEdit ? ' workspace-edit-page-mode' : '' ?>"<?= !$sessionWorkspacePage && !$isResourcePage ? ' hidden' : '' ?>>
+        <section id="workspace-files" class="workspace-files<?= !$sessionWorkspacePage && !$isResourcePage ? ' composer-panel' : '' ?><?= $initialWorkspacePathType === 'file' ? ' workspace-file-page-mode' : '' ?><?= $workspacePageEdit ? ' workspace-edit-page-mode' : '' ?>"<?= !$sessionWorkspacePage && !$isResourcePage ? ' hidden' : '' ?>>
             <h2 class="workspace-files-heading">Workspace files</h2>
             <div class="workspace-files-toolbar">
                 <strong id="workspace-file-path">/</strong>
@@ -1992,7 +2042,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <button id="workspace-file-upload" type="button" aria-label="Upload files" title="Upload files">⇧</button>
             </div>
             <p id="workspace-file-status" class="settings-status files-status" role="status"><?= $initialWorkspaceName === '' && !$sessionWorkspacePage ? 'This session has no workspace configured.' : '' ?></p>
-            <ul id="workspace-file-list" class="workspace-file-list"<?= $initialWorkspaceFile !== null ? ' hidden' : '' ?>></ul>
+            <ul id="workspace-file-list" class="workspace-file-list"<?= $initialWorkspacePathType === 'file' ? ' hidden' : '' ?>></ul>
             <p id="workspace-file-drag-help" class="settings-status">Drag a file into a matching session (in another window) to add it to that session, or use the below.</p>
             <p id="workspace-file-view-help" class="settings-status" hidden>Mark lines below to add to a session.</p>
             <div class="workspace-session-target">
@@ -2206,6 +2256,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspacePath = <?= json_encode($workspacePagePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspaceFile = <?= json_encode($initialWorkspaceFile, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const initialWorkspacePathType = <?= json_encode($initialWorkspacePathType) ?>;
         const serverWorkspaceName = <?= json_encode($workspacePageName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const serverSessionWorkspaceName = <?= json_encode($sessionWorkspaceName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const sessionWorkspacePage = <?= $sessionWorkspacePage ? 'true' : 'false' ?>;
@@ -6137,12 +6188,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (urlWorkspaceName && workspaceFileList) {
                     renderWorkspacePath(workspaceRelativePath);
                     workspaceFileUp.disabled = workspaceRelativePath === '';
-                    if (workspaceRelativePath !== '') {
+                    if (initialWorkspacePathType === 'file') {
                         await viewWorkspaceFile({
                             path: workspaceRelativePath,
                             name: workspaceRelativePath.split('/').pop()
                         }, new URLSearchParams(window.location.search).get('edit') === '1');
+                    } else if (initialWorkspacePathType === 'directory' || initialWorkspacePathType === 'root') {
+                        workspaceFilesPanel?.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
+                        workspaceFileList.hidden = false;
+                        renderWorkspaceEntries();
                     } else {
+                        workspaceFileStatus.textContent = 'The requested workspace path does not exist.';
+                        workspaceFileStatus.classList.add('error');
                         workspaceFilesPanel?.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
                         workspaceFileList.hidden = false;
                         renderWorkspaceEntries();
