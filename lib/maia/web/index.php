@@ -3792,12 +3792,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     workspaceViewContent.hidden = false;
                     workspaceViewEditContent.hidden = true;
                     workspaceViewStatus.textContent = result.mime || 'Binary file';
-                } else if (editMode) {
-                    const content = String(result.content ?? '');
-                    workspaceViewEditContent.value = content;
-                    workspaceViewEditContent.focus();
                 } else {
-                    // Split on actual Unix, Windows, or classic Mac line endings.
+                    const content = String(result.content ?? '');
+                    if (editMode) {
+                        workspaceViewEditContent.value = content;
+                        workspaceViewEditContent.focus();
+                    } else {
+                        // Split on actual Unix, Windows, or classic Mac line endings.
                     // Keeping empty elements is important: blank lines have line
                     // numbers too.
                     const lines = content.split(/\r\n|\n|\r/);
@@ -3854,10 +3855,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         });
                         workspaceViewContent.appendChild(row);
                     });
-                    workspaceViewStatus.textContent = '';
-                    if (workspaceFileViewHelp) {
-                        workspaceFileViewHelp.hidden = false;
-                        workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+                        workspaceViewStatus.textContent = '';
+                        if (workspaceFileViewHelp) {
+                            workspaceFileViewHelp.hidden = false;
+                            workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
+                        }
                     }
                 }
                 updateWorkspaceSelectionActions();
