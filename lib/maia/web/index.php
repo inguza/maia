@@ -161,7 +161,7 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
         return null;
     }
     $content = file_get_contents($file);
-    if ($content === false || strpos($content, "\\0") !== false) {
+    if ($content === false || strpos($content, "\0") !== false) {
         return null;
     }
     return [
@@ -2255,7 +2255,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const maiaBasePath = <?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspacePath = <?= json_encode($workspacePagePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-        const initialWorkspaceFile = <?= json_encode($initialWorkspaceFile, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        const initialWorkspaceFile = <?= json_encode($initialWorkspaceFile, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         const initialWorkspacePathType = <?= json_encode($initialWorkspacePathType) ?>;
         const serverWorkspaceName = <?= json_encode($workspacePageName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const serverSessionWorkspaceName = <?= json_encode($sessionWorkspaceName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
