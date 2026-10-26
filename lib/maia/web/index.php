@@ -453,6 +453,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         .sidebar-list {
             list-style: none;
             margin: 0;
+            max-height: min(16vh, 8rem);
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding: 0;
         }
 
@@ -722,6 +725,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         .sidebar-list button.selected,
+        .sidebar-list a.sidebar-resource-name.selected,
         .sidebar-list li.selected {
             background: #e5e7eb;
             color: #111827;
@@ -1965,7 +1969,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             </form>
             <ul id="session-list" class="sidebar-list" aria-label="MAIA sessions"></ul>
             <p id="session-list-placeholder" class="sidebar-placeholder">Pending sessions...</p>
-            <button id="session-more" class="sidebar-more" type="button" hidden>...</button>
             <p id="session-loading" class="session-loading" hidden aria-live="polite">
                 <span class="spinner" aria-hidden="true"></span>
                 Selecting session...
@@ -2448,7 +2451,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
         const sessionList = document.getElementById('session-list');
         const sessionListPlaceholder = document.getElementById('session-list-placeholder');
-        const sessionMore = document.getElementById('session-more');
         const sessionLoading = document.getElementById('session-loading');
         const sessionSearch = document.getElementById('session-search');
         const sessionSearchInput = document.getElementById('session-search-input');
@@ -2482,6 +2484,29 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const workspaceListPlaceholder = document.getElementById('workspace-list-placeholder');
         const profileList = document.getElementById('profile-list');
         const profileListPlaceholder = document.getElementById('profile-list-placeholder');
+
+        function revealSelectedSidebarItems() {
+            const lists = [
+                [sessionList, '.session-item > .sidebar-resource-name.selected'],
+                [workspaceList, 'li.selected'],
+                [profileList, 'li.selected']
+            ];
+            for (const [list, selector] of lists) {
+                const selected = list?.querySelector(selector);
+                const row = selected?.closest('li');
+                if (!list || !row) {
+                    continue;
+                }
+                const listRect = list.getBoundingClientRect();
+                const rowRect = row.getBoundingClientRect();
+                if (rowRect.top < listRect.top) {
+                    list.scrollTop -= listRect.top - rowRect.top;
+                } else if (rowRect.bottom > listRect.bottom) {
+                    list.scrollTop += rowRect.bottom - listRect.bottom;
+                }
+            }
+        }
+
         const workspaceFilesPanel = document.getElementById('workspace-files');
         const composerActions = document.querySelector('.composer-actions');
         if (workspaceFilesPanel && composerActions && !sessionWorkspacePage) {
@@ -2622,6 +2647,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sidebarBackdrop.classList.toggle('visible', open);
             sidebar.setAttribute('aria-hidden', String(!open));
             sidebarToggle.setAttribute('aria-expanded', String(open));
+            if (open) {
+                requestAnimationFrame(revealSelectedSidebarItems);
+            }
         }
 
         sidebarToggle.addEventListener('click', () => setSidebarOpen(true));
@@ -2639,6 +2667,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let sidebarOptionsLoaded = false;
         let workspaceNames = [];
         let profileNames = [];
+        let selectedWorkspaceName = null;
+        let selectedProfileName = null;
         let availableToolNames = [];
         let availableSkillNames = [];
 
@@ -2773,6 +2803,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
                 list.appendChild(item);
             }
+            if (sidebar.classList.contains('open')) {
+                requestAnimationFrame(revealSelectedSidebarItems);
+            }
         }
 
         function updateResourceSearchAction(input, action, names, label, createAction) {
@@ -2798,10 +2831,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         function updateSidebarResourceSearch(type) {
             if (type === 'workspace') {
-                renderSidebarNames(workspaceList, workspaceListPlaceholder, workspaceNames, null, workspaceSearchInput.value.trim(), 'workspace');
+                renderSidebarNames(workspaceList, workspaceListPlaceholder, workspaceNames, selectedWorkspaceName, workspaceSearchInput.value.trim(), 'workspace');
                 updateResourceSearchAction(workspaceSearchInput, workspaceSearchAction, workspaceNames, 'workspace', workspaceCreateAction);
             } else {
-                renderSidebarNames(profileList, profileListPlaceholder, profileNames, null, profileSearchInput.value.trim(), 'profile');
+                renderSidebarNames(profileList, profileListPlaceholder, profileNames, selectedProfileName, profileSearchInput.value.trim(), 'profile');
                 updateResourceSearchAction(profileSearchInput, profileSearchAction, profileNames, 'profile', profileCreateAction);
             }
         }
@@ -2810,7 +2843,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             try {
                 // Navigation lists are global and must not inherit the
                 // selected profile/workspace resource headers.
-                const response = await nativeFetch(maiaUrl('/api/session/settings'));
+                const response = await nativeFetch(maiaUrl('/api/session/settings'), {
+                    headers: selectedSessionName ? { 'X-MAIA-Session': selectedSessionName } : {}
+                });
                 const result = await response.json();
                 if (!response.ok || !result.ok) {
                     throw new Error(result.error || 'Unable to load workspaces and profiles.');
@@ -2818,11 +2853,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
                 workspaceNames = Array.isArray(result.workspaces) ? result.workspaces : [];
                 profileNames = Array.isArray(result.profiles) ? result.profiles : [];
+                selectedWorkspaceName = urlWorkspaceName || result.workspace || null;
+                selectedProfileName = urlProfileName || result.profile || null;
                 renderSidebarNames(
                     workspaceList,
                     workspaceListPlaceholder,
                     workspaceNames,
-                    result.workspace,
+                    selectedWorkspaceName,
                     workspaceSearchInput.value.trim(),
                     'workspace'
                 );
@@ -2830,13 +2867,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     profileList,
                     profileListPlaceholder,
                     profileNames,
-                    result.profile,
+                    selectedProfileName,
                     profileSearchInput.value.trim(),
                     'profile'
                 );
                 updateSidebarResourceSearch('workspace');
                 updateSidebarResourceSearch('profile');
                 sidebarOptionsLoaded = true;
+                if (sidebar.classList.contains('open')) {
+                    requestAnimationFrame(revealSelectedSidebarItems);
+                }
             } catch (requestError) {
                 workspaceListPlaceholder.hidden = false;
                 profileListPlaceholder.hidden = false;
@@ -5558,7 +5598,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let knownSessions = [];
         let displayedSessions = [];
         let selectedSessionName = urlSessionName;
-        let visibleSessionCount = 10;
         let selectionController = null;
         let selectionRequestId = 0;
 
@@ -5578,9 +5617,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
             }
 
-            for (const session of sessions.slice(0, visibleSessionCount)) {
+            for (const session of sessions) {
                 const item = document.createElement('li');
                 item.className = 'session-item';
+                item.classList.toggle('selected', session.name === selected);
 
                 const button = document.createElement('a');
                 button.href = maiaUrl(`/session/${encodeURIComponent(session.name)}`);
@@ -5723,14 +5763,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 sessionList.appendChild(item);
             }
 
-            sessionMore.hidden = sessions.length <= visibleSessionCount;
             updateSessionSearchAction();
+            if (sidebar.classList.contains('open')) {
+                requestAnimationFrame(revealSelectedSidebarItems);
+            }
         }
-
-        sessionMore.addEventListener('click', () => {
-            visibleSessionCount += 10;
-            renderSessions(displayedSessions, selectedSessionName);
-        });
 
         function confirmSessionDelete(name) {
             sessionDeleteMessage.textContent = `Permanently delete session “${name}”? Its history and other session data will be removed and cannot be recovered.`;
@@ -6146,7 +6183,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             error.hidden = true;
 
             if (query === '') {
-                visibleSessionCount = 10;
                 renderSessions(knownSessions, selectedSessionName);
                 return;
             }
@@ -6160,7 +6196,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
 
             const matches = knownSessions.filter((session) => pattern.test(session.name));
-            visibleSessionCount = 10;
             renderSessions(matches, selectedSessionName);
         }
 
@@ -6203,7 +6238,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         function setSelectionBusy(busy) {
             sessionLoading.hidden = !busy;
-            sessionMore.disabled = busy;
             sessionList.querySelectorAll('button').forEach((button) => {
                 button.disabled = busy;
             });
@@ -6224,7 +6258,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 throw new Error(result.error || 'Unable to load MAIA sessions.');
             }
             knownSessions = result.sessions || [];
-            visibleSessionCount = 10;
             renderSessions(knownSessions, urlWorkspaceName ? null : (result.selected || null));
             if (workspaceSessionStatus) {
                 workspaceSessionStatus.hidden = true;
@@ -6276,7 +6309,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 showHistoryLoading();
                 filesLoaded = false;
                 updateEarlierButton();
-                await loadLastTurn(controller.signal);
+                await Promise.all([
+                    loadLastTurn(controller.signal),
+                    loadSidebarOptions()
+                ]);
                 setSidebarOpen(false);
             } catch (requestError) {
                 if (requestError.name !== 'AbortError' && requestId === selectionRequestId) {
