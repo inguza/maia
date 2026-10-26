@@ -411,7 +411,7 @@ history_restore_range() {
 
     local status=0
     json_modify "$history_file" --argjson indexes "$selected_indexes" \
-        "${jq_add_indexes} | ${restore_filter} | map(del(.index, .user_index, .assistant_index, .tool_index))" || status=$?
+        "${jq_add_indexes} | ${restore_filter} | map(del(.index, .user_index, .assistant_index, .tool_index, .reasoning_index))" || status=$?
     release_lock "${history_file}.lock"
     return "$status"
 }
