@@ -5310,10 +5310,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const details = document.createElement('details');
             const summary = document.createElement('summary');
             const summaryLabel = `Tool call: ${name}`;
-            summary.textContent = `\u25B8 ${summaryLabel}`;
-            details.addEventListener('toggle', () => {
-                summary.textContent = `${details.open ? '\u25BE' : '\u25B8'} ${summaryLabel}`;
-            });
+            summary.textContent = summaryLabel;
 
             const argumentsElement = document.createElement('pre');
             argumentsElement.textContent = argumentsText;
@@ -5595,10 +5592,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             );
             const turnCount = turns.size || items.filter((item) => item.role === 'user').length;
             const summaryLabel = `Show ${items.length} hidden ${items.length === 1 ? 'entry' : 'entries'} · ${turnCount} ${turnCount === 1 ? 'turn' : 'turns'} affected`;
-            summary.textContent = `\u25B8 ${summaryLabel}`;
-            group.addEventListener('toggle', () => {
-                summary.textContent = `${group.open ? '\u25BE' : '\u25B8'} ${summaryLabel}`;
-            });
+            summary.textContent = summaryLabel;
 
             const contents = document.createElement('div');
             contents.className = 'hidden-group-items';
