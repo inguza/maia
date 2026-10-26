@@ -46,6 +46,8 @@ maia-${VERSION}: bin/maia README.md LICENSE*.txt CONTRIBUTING.md \
 	cp -a lib/maia/plugins/* $@/lib/maia/plugins
 	mkdir -p $@/lib/maia/hooks
 	cp -a lib/maia/hooks/* $@/lib/maia/hooks
+	mkdir -p $@/lib/maia/web
+	cp -a lib/maia/web/* $@/lib/maia/web
 
 publish: maia-${VERSION}.tar.gz
 	if [ -e /srv/web/inguza.com/root/tools/maia-${VERSION}.tar.gz ] ; then echo "Already published"; exit 1; fi
