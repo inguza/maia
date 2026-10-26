@@ -218,6 +218,33 @@ history_update_tool_relationships() {
         return 1
     fi
 
+    if [[ "$action" == "unhide" ]]; then
+        local missing_call_results
+        if ! missing_call_results="$(jq --argjson indexes "$selected_indexes" '
+            . as $messages
+            | [ $indexes[] as $index
+                | $messages[$index] as $assistant
+                | select($assistant.role == "assistant"
+                         and ($assistant.tool_calls? | type) == "array")
+                | $assistant.tool_calls[] as $call
+                | select(
+                    [ $messages[($index + 1):][]
+                      | select(.role == "tool" and .tool_call_id == $call.id)
+                    ] | length == 0
+                  )
+              ]
+            | length > 0
+        ' <<<"$indexed_history")"; then
+            release_lock "${history_file}.lock"
+            return 1
+        fi
+        if [[ "$missing_call_results" == "true" ]]; then
+            warn "Cannot unhide this assistant response: one or more tool results are missing or deleted."
+            release_lock "${history_file}.lock"
+            return 1
+        fi
+    fi
+
     local blocked
     if ! blocked="$(jq --arg action "$action" \
         --argjson indexes "$selected_indexes" \
