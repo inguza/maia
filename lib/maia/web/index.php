@@ -88,6 +88,7 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
         ($directory !== $workspaceRoot && !str_starts_with($directory, $rootPrefix))) {
         return [];
     }
+    $entries = [];
     foreach (scandir($directory) ?: [] as $name) {
         if ($name === '.' || $name === '..') {
             continue;
