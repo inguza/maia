@@ -318,13 +318,7 @@ history_update_tool_relationships() {
                     $item
                 end
               elif $selected then
-                if $item.role == "tool"
-                   and ($call_ids | index($item.tool_call_id)) != null
-                then
-                    $item + {hidden: true}
-                else
-                    empty
-                end
+                empty
               elif $item.role == "tool"
                    and ($call_ids | index($item.tool_call_id)) != null
               then
