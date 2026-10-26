@@ -70,7 +70,7 @@ foreach (preg_split('/\R/', $output) as $line) {
         break;
     }
 }
-$workspaceRoot = realpath($workspaceRoot);
+$workspaceRoot = realpath(maia_web_expand_home_path($workspaceRoot));
 if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
     workspace_files_error(403, 'The workspace root is unavailable.');
 }
@@ -100,12 +100,15 @@ foreach (scandir($directory) ?: [] as $name) {
         continue;
     }
     $isDirectory = is_dir($fullPath);
+    $children = $isDirectory ? @scandir($fullPath) : false;
+    $isEmptyDirectory = $isDirectory && $children !== false && count(array_diff($children, ['.', '..'])) === 0;
     $entries[] = [
         'name' => $name,
         'path' => ($relativePath === '' ? '' : $relativePath . '/') . $name,
         'type' => $isDirectory ? 'directory' : 'file',
         'size' => $isDirectory ? null : (is_file($fullPath) ? filesize($fullPath) : null),
         'modified' => @filemtime($fullPath) ?: null,
+        'empty' => $isEmptyDirectory,
     ];
 }
 usort($entries, static function (array $a, array $b): int {

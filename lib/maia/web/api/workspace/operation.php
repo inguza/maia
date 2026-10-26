@@ -70,10 +70,7 @@ $root = '';
 foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
     if (preg_match('/^path:\s*(.*)$/', $line, $match)) { $root = trim($match[1]); break; }
 }
-if ($root !== '' && $root[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\/]/', $root)) {
-    $root = $home . DIRECTORY_SEPARATOR . $root;
-}
-$root = realpath($root);
+$root = realpath(maia_web_expand_home_path($root));
 if ($root === false || !is_dir($root)) {
     workspace_operation_error(403, 'The workspace root is unavailable.');
 }
@@ -151,16 +148,15 @@ if (!is_array($input)) $input = [];
 $action = (string) ($input['action'] ?? ($method === 'DELETE' ? 'delete' : ''));
 $path = $relative($input['path'] ?? '');
 if ($action !== 'mkdir' && $path === '') workspace_operation_error(400, 'A path is required.');
-$source = $path === '' ? $root : $existing($path);
+$source = $path === '' || $action === 'create' ? $root : $existing($path);
 $destinationPath = $relative($input['destination'] ?? '');
 $name = trim((string) ($input['name'] ?? ''));
 if ($action === 'mkdir') {
-    if ($name !== '' && (str_contains($name, '/') || str_contains($name, '\\') || $name === '.' || $name === '..')) {
+    if ($name === '' || str_contains($name, '/') || str_contains($name, '\\') || $name === '.' || $name === '..') {
         workspace_operation_error(400, 'A valid directory name is required.');
     }
-    $target = $parent($path);
-    if ($name !== '') $target .= DIRECTORY_SEPARATOR . $name;
-    elseif ($path !== '') $target = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    if (!is_dir($source)) workspace_operation_error(400, 'The parent path is not a directory.');
+    $target = $source . DIRECTORY_SEPARATOR . $name;
     if (file_exists($target)) workspace_operation_error(409, 'Destination already exists.');
     if (!mkdir($target, 0775, true)) workspace_operation_error(500, 'Unable to create directory.');
 } elseif ($action === 'create') {
@@ -185,8 +181,27 @@ if ($action === 'mkdir') {
     if (!$ok) workspace_operation_error(500, "Unable to $action path.");
 } elseif ($action === 'delete') {
     if ($path === '') workspace_operation_error(400, 'The workspace root cannot be deleted.');
-    $ok = is_dir($source) ? (function () use ($source) { $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST); foreach ($it as $item) $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname()); return rmdir($source); })() : unlink($source);
-    if (!$ok) workspace_operation_error(500, 'Unable to delete path.');
+    if (is_dir($source)) workspace_operation_error(400, 'Use remove for an empty directory or delete-tree to delete a directory recursively.');
+    if (!is_file($source) || !unlink($source)) workspace_operation_error(500, 'Unable to delete file.');
+} elseif ($action === 'remove') {
+    if ($path === '') workspace_operation_error(400, 'The workspace root cannot be removed.');
+    if (!is_dir($source)) workspace_operation_error(400, 'Only directories can be removed with this operation.');
+    $contents = @scandir($source);
+    if ($contents === false) workspace_operation_error(500, 'Unable to inspect directory.');
+    if (count(array_diff($contents, ['.', '..'])) > 0) workspace_operation_error(409, 'Directory is not empty.');
+    if (!rmdir($source)) workspace_operation_error(500, 'Unable to remove directory.');
+} elseif ($action === 'delete-tree') {
+    if ($path === '') workspace_operation_error(400, 'The workspace root cannot be deleted.');
+    if (!is_dir($source)) workspace_operation_error(400, 'Only directories can be deleted with this operation.');
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($iterator as $item) {
+        $removed = $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        if (!$removed) workspace_operation_error(500, 'Unable to delete directory tree.');
+    }
+    if (!rmdir($source)) workspace_operation_error(500, 'Unable to delete directory tree.');
 } elseif ($action === 'write') {
     if (!is_file($source) || strlen((string) ($input['content'] ?? '')) > 5 * 1024 * 1024) workspace_operation_error(400, 'Only text files up to 5 MB can be edited.');
     if (file_put_contents($source, (string) $input['content']) === false) workspace_operation_error(500, 'Unable to save file.');

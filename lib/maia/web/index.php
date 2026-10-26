@@ -37,7 +37,7 @@ $initialTitle = $sessionWorkspacePage
                 ? 'home'
                 : 'session: ' . $initialSessionName)));
 
-/** @return list<array{name: string, path: string, type: string, size: int|null, modified: int|null}> */
+/** @return list<array{name: string, path: string, type: string, size: int|null, modified: int|null, empty: bool}> */
 function maia_web_initial_workspace_entries(string $workspaceName, string $relativePath = ''): array
 {
     $home = maia_web_home_dir();
@@ -60,11 +60,7 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
             break;
         }
     }
-    if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
-        !preg_match('/^[A-Za-z]:[\\\\\\/]/', $workspaceRoot)) {
-        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
-    }
-    $workspaceRoot = realpath($workspaceRoot);
+    $workspaceRoot = realpath(maia_web_expand_home_path($workspaceRoot));
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
         return [];
     }
@@ -99,12 +95,15 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
             continue;
         }
         $isDirectory = is_dir($fullPath);
+        $children = $isDirectory ? @scandir($fullPath) : false;
+        $isEmptyDirectory = $isDirectory && $children !== false && count(array_diff($children, ['.', '..'])) === 0;
         $entries[] = [
             'name' => $name,
             'path' => ($relativePath === '' ? '' : $relativePath . '/') . $name,
             'type' => $isDirectory ? 'directory' : 'file',
             'size' => $isDirectory ? null : (is_file($fullPath) ? filesize($fullPath) : null),
             'modified' => @filemtime($fullPath) ?: null,
+            'empty' => $isEmptyDirectory,
         ];
     }
     usort($entries, static function (array $a, array $b): int {
@@ -137,7 +136,7 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
     }
     if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
         !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
-        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
+        $workspaceRoot = maia_web_expand_home_path($workspaceRoot);
     }
     $workspaceRoot = realpath($workspaceRoot);
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
@@ -195,7 +194,7 @@ function maia_web_initial_workspace_path_type(string $workspaceName, string $rel
     }
     if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
         !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
-        $workspaceRoot = $home . DIRECTORY_SEPARATOR . $workspaceRoot;
+        $workspaceRoot = maia_web_expand_home_path($workspaceRoot);
     }
     $workspaceRoot = realpath($workspaceRoot);
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
@@ -1042,6 +1041,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             flex: 0 0 1.15rem;
             justify-content: center;
             width: 1.15rem;
+        }
+
+        .workspace-action-icon-delete-tree {
+            align-items: center;
+            border: 1px solid currentColor;
+            box-sizing: border-box;
+            flex-basis: 0.9rem;
+            font-size: 0.7rem;
+            height: 0.9rem;
+            justify-content: center;
+            line-height: 1;
+            width: 0.9rem;
         }
 
         .workspace-file-actions button:hover {
@@ -3499,10 +3510,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     Copy: '\u29C9',
                     Move: '\u21AA',
                     Delete: '\u2715',
+                    Remove: '\u2715',
+                    'Delete tree': '\u2715',
                     Download: '\u21E9'
                 };
                 const icon = document.createElement('span');
                 icon.className = 'workspace-action-icon';
+                if (label === 'Delete tree') {
+                    icon.classList.add('workspace-action-icon-delete-tree');
+                }
                 icon.setAttribute('aria-hidden', 'true');
                 icon.textContent = icons[label] || '';
                 const labelText = document.createElement('span');
@@ -3535,12 +3551,29 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 try { await workspaceOperation('move', { path: entry.path, destination }); }
                 catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to move path.'; button.disabled = false; }
             });
-            addAction('Delete', async (button) => {
-                if (!window.confirm(`Delete ${entry.name}?`)) return;
-                button.disabled = true;
-                try { await workspaceOperation('delete', { path: entry.path }); }
-                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete path.'; button.disabled = false; }
-            });
+            if (entry.type === 'directory') {
+                if (entry.empty === true) {
+                    addAction('Remove', async (button) => {
+                        if (!window.confirm(`Remove empty directory ${entry.name}?`)) return;
+                        button.disabled = true;
+                        try { await workspaceOperation('remove', { path: entry.path }); }
+                        catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to remove directory.'; button.disabled = false; }
+                    });
+                }
+                addAction('Delete tree', async (button) => {
+                    if (!window.confirm(`Delete directory tree ${entry.name} and all of its contents? This cannot be undone.`)) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('delete-tree', { path: entry.path }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete directory tree.'; button.disabled = false; }
+                });
+            } else {
+                addAction('Delete', async (button) => {
+                    if (!window.confirm(`Delete file ${entry.name}?`)) return;
+                    button.disabled = true;
+                    try { await workspaceOperation('delete', { path: entry.path }); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete file.'; button.disabled = false; }
+                });
+            }
             if (entry.type === 'file') {
                 addAction('Download', () => {
                     window.location.href = maiaUrl(`/api/workspace/operation?workspace=${encodeURIComponent(urlWorkspaceName)}&path=${encodeURIComponent(entry.path)}&download=1`);
