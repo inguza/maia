@@ -1464,7 +1464,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         button:disabled {
-            cursor: not-allowed;
+            cursor: default;
             opacity: 0.6;
         }
 
@@ -1714,6 +1714,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .file-add button {
             flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .resource-pattern-controls {
+            margin-bottom: 0.75rem;
+        }
+
+        .resource-definition-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .resource-definition-actions button {
             margin: 0;
         }
 
@@ -2052,7 +2065,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <p id="resource-settings-status" class="settings-status" role="status"></p>
             <div class="resource-settings-actions">
                 <button type="submit" value="cancel">Cancel</button>
-                <button type="submit" value="save">Save</button>
+                <button id="resource-settings-save" type="submit" value="save">Save</button>
             </div>
         </form>
     </dialog>
@@ -2264,14 +2277,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <section id="tools-panel" class="composer-panel" hidden>
                 <h2 class="panel-heading">Tools <button id="tools-refresh" class="resource-refresh" type="button" aria-label="Refresh tools" title="Refresh tools">&#8635;</button></h2>
                 <p id="tools-scope" class="settings-status"></p>
-                <div class="file-add">
-                    <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
-                    <input id="tool-pattern" type="text" autocomplete="off"
-                           placeholder="tool pattern, e.g. * or *:write">
-                    <div id="tool-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
-                    <button id="tool-pattern-add" type="button">Add</button>
-                    <button id="tool-clear" type="button">Clear</button>
-                    <button id="tool-delete" type="button">Delete</button>
+                <div class="resource-pattern-controls">
+                    <div class="file-add">
+                        <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
+                        <input id="tool-pattern" type="text" autocomplete="off"
+                               placeholder="tool pattern, e.g. * or *:write">
+                        <div id="tool-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
+                        <button id="tool-pattern-add" type="button">Add</button>
+                    </div>
+                    <div class="resource-definition-actions">
+                        <button id="tool-clear" type="button">Clear</button>
+                        <button id="tool-delete" type="button">Delete</button>
+                    </div>
                 </div>
                 <p id="tools-status" class="files-status" role="status"></p>
                 <ul id="tool-pattern-list" class="files-list"></ul>
@@ -2290,14 +2307,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <section id="skills-panel" class="composer-panel" hidden>
                 <h2 class="panel-heading">Skills <button id="skills-refresh" class="resource-refresh" type="button" aria-label="Refresh skills" title="Refresh skills">&#8635;</button></h2>
                 <p id="skills-scope" class="settings-status"></p>
-                <div class="file-add">
-                    <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
-                    <input id="skill-pattern" type="text" autocomplete="off"
-                           placeholder="skill pattern, e.g. *">
-                    <div id="skill-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
-                    <button id="skill-pattern-add" type="button">Add</button>
-                    <button id="skill-clear" type="button">Clear</button>
-                    <button id="skill-delete" type="button">Delete</button>
+                <div class="resource-pattern-controls">
+                    <div class="file-add">
+                        <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
+                        <input id="skill-pattern" type="text" autocomplete="off"
+                               placeholder="skill pattern, e.g. *">
+                        <div id="skill-completion-menu" class="file-completion-menu resource-completion-menu" role="listbox" hidden></div>
+                        <button id="skill-pattern-add" type="button">Add</button>
+                    </div>
+                    <div class="resource-definition-actions">
+                        <button id="skill-clear" type="button">Clear</button>
+                        <button id="skill-delete" type="button">Delete</button>
+                    </div>
                 </div>
                 <p id="skills-status" class="files-status" role="status"></p>
                 <ul id="skill-pattern-list" class="files-list"></ul>
@@ -2339,7 +2360,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 for (const [id, text] of states) {
                     const element = document.getElementById(id);
                     if (element) {
-                        element.textContent = text;
+                        const spinner = document.createElement('span');
+                        spinner.className = 'spinner';
+                        spinner.setAttribute('aria-hidden', 'true');
+                        const label = document.createElement('span');
+                        label.textContent = text;
+                        element.replaceChildren(spinner, label);
                     }
                 }
             };
@@ -2480,6 +2506,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const resourceSettingsDescriptionLabel = document.getElementById('resource-settings-description-label');
         const resourceSettingsDescription = document.getElementById('resource-settings-description');
         const resourceSettingsStatus = document.getElementById('resource-settings-status');
+        const resourceSettingsSave = document.getElementById('resource-settings-save');
         const workspaceList = document.getElementById('workspace-list');
         const workspaceListPlaceholder = document.getElementById('workspace-list-placeholder');
         const profileList = document.getElementById('profile-list');
@@ -2640,6 +2667,66 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
             return nativeFetch(resource, { ...options, headers });
         };
+
+        const busyButtonStates = new WeakMap();
+
+        function setButtonBusy(button, message = 'Working...') {
+            if (!button || busyButtonStates.has(button)) {
+                return;
+            }
+            busyButtonStates.set(button, {
+                children: Array.from(button.childNodes, (node) => node.cloneNode(true)),
+                disabled: button.disabled,
+                ariaLabel: button.getAttribute('aria-label'),
+                title: button.getAttribute('title')
+            });
+            const accessibleName = button.getAttribute('aria-label') ||
+                button.getAttribute('title') || button.textContent.trim() || 'Action';
+            button.disabled = true;
+            button.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const hiddenLabel = document.createElement('span');
+            hiddenLabel.className = 'visually-hidden';
+            hiddenLabel.textContent = `${accessibleName}: ${message}`;
+            button.append(spinner, hiddenLabel);
+            button.setAttribute('aria-label', `${accessibleName}: ${message}`);
+        }
+
+        function clearButtonBusy(button) {
+            const state = button ? busyButtonStates.get(button) : null;
+            if (!state) {
+                return;
+            }
+            button.replaceChildren(...state.children);
+            button.disabled = state.disabled;
+            if (state.ariaLabel === null) {
+                button.removeAttribute('aria-label');
+            } else {
+                button.setAttribute('aria-label', state.ariaLabel);
+            }
+            if (state.title === null) {
+                button.removeAttribute('title');
+            } else {
+                button.setAttribute('title', state.title);
+            }
+            busyButtonStates.delete(button);
+        }
+
+        function setLoadingStatus(element, message) {
+            if (!element) {
+                return;
+            }
+            element.replaceChildren();
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const text = document.createElement('span');
+            text.textContent = message;
+            element.append(spinner, text);
+            element.hidden = false;
+        }
 
         function setSidebarOpen(open) {
             document.body.classList.toggle('sidebar-open', open);
@@ -2840,6 +2927,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function loadSidebarOptions() {
+            setLoadingStatus(workspaceListPlaceholder, 'Loading workspaces...');
+            setLoadingStatus(profileListPlaceholder, 'Loading profiles...');
             try {
                 // Navigation lists are global and must not inherit the
                 // selected profile/workspace resource headers.
@@ -2959,9 +3048,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 credentialName.focus();
                 return;
             }
-            credentialCreate.disabled = true;
+            setButtonBusy(credentialCreate, 'Creating credential...');
             credentialName.disabled = true;
-            credentialsStatus.textContent = 'Creating credential...';
+            setLoadingStatus(credentialsStatus, 'Creating credential...');
             try {
                 const response = await fetch('/api/auth/context', {
                     method: 'POST',
@@ -3038,7 +3127,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 credentialsStatus.textContent = requestError.message || 'Unable to create credential.';
             } finally {
-                credentialCreate.disabled = false;
+                clearButtonBusy(credentialCreate);
                 credentialName.disabled = false;
                 credentialName.focus();
             }
@@ -3048,8 +3137,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (!window.confirm(`Delete credential '${credential.name}'? Existing links using it will stop working.`)) {
                 return;
             }
-            button.disabled = true;
-            credentialsStatus.textContent = `Deleting ${credential.name}...`;
+            setButtonBusy(button, `Deleting ${credential.name}...`);
+            setLoadingStatus(credentialsStatus, `Deleting ${credential.name}...`);
             try {
                 const response = await fetch('/api/auth/context', {
                     method: 'POST',
@@ -3064,7 +3153,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await loadCredentials();
             } catch (requestError) {
                 credentialsStatus.textContent = requestError.message || 'Unable to delete credential.';
-                button.disabled = false;
+            } finally {
+                clearButtonBusy(button);
             }
         }
 
@@ -3126,8 +3216,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function removeFile(file, button) {
-            button.disabled = true;
-            filesStatus.textContent = `Removing ${file}...`;
+            setButtonBusy(button, `Removing ${file}...`);
+            setLoadingStatus(filesStatus, `Removing ${file}...`);
             try {
                 const response = await fetch('/api/file/forget', {
                     method: 'POST',
@@ -3146,7 +3236,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 filesStatus.textContent = `Removed ${file}.`;
             } catch (requestError) {
                 filesStatus.textContent = requestError.message || 'Unable to remove file.';
-                button.disabled = false;
+            } finally {
+                clearButtonBusy(button);
             }
         }
 
@@ -3171,7 +3262,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function loadSettings() {
-            settingsStatus.textContent = 'Loading...';
+            setLoadingStatus(settingsStatus, 'Loading...');
             settingsSave.disabled = true;
             try {
                 const response = await fetch('/api/session/settings');
@@ -3220,7 +3311,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         settingsSave.addEventListener('click', async () => {
             settingsStatus.textContent = 'Saving...';
-            settingsSave.disabled = true;
+            setButtonBusy(settingsSave, 'Saving settings...');
             const filesets = Array.from(settingFilesets.selectedOptions).map((option) => option.value).filter(Boolean);
             const extraSendFilesets = Array.from(settingExtraFilesets.selectedOptions).map((option) => option.value).filter(Boolean);
 
@@ -3254,7 +3345,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 settingsStatus.textContent = requestError.message || 'Unable to save settings.';
             } finally {
-                settingsSave.disabled = false;
+                clearButtonBusy(settingsSave);
             }
         });
 
@@ -3402,9 +3493,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
 
-            fileAddButton.disabled = true;
+            setButtonBusy(fileAddButton, 'Adding file...');
             filePath.disabled = true;
-            filesStatus.textContent = 'Adding file...';
+            setLoadingStatus(filesStatus, 'Adding file...');
             try {
                 const response = await fetch('/api/file/add', {
                     method: 'POST',
@@ -3425,7 +3516,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 filesStatus.textContent = requestError.message || 'Unable to add file.';
             } finally {
-                fileAddButton.disabled = false;
+                clearButtonBusy(fileAddButton);
                 filePath.disabled = false;
                 filePath.focus();
             }
@@ -3607,17 +3698,25 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             workspaceSessionMenu.hidden = matches.length === 0;
         }
 
-        async function workspaceOperation(action, values = {}) {
-            const response = await fetch('/api/workspace/operation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, ...values })
-            });
-            const result = await response.json();
-            if (!response.ok || !result.ok) {
-                throw new Error(result.error || `Unable to ${action} workspace path.`);
+        async function workspaceOperation(action, values = {}, triggerButton = null) {
+            if (triggerButton) {
+                setButtonBusy(triggerButton, `${action[0].toUpperCase()}${action.slice(1)}...`);
             }
-            await loadWorkspaceFiles(false);
+            setLoadingStatus(workspaceFileStatus, `${action[0].toUpperCase()}${action.slice(1)}...`);
+            try {
+                const response = await fetch('/api/workspace/operation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...values })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || `Unable to ${action} workspace path.`);
+                }
+                await loadWorkspaceFiles(false);
+            } finally {
+                clearButtonBusy(triggerButton);
+            }
         }
 
         function workspaceEntryActionButton(label, title, handler) {
@@ -3705,38 +3804,33 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             addAction('Copy', async (button) => {
                 const destination = window.prompt('Copy to workspace-relative path:', entry.path);
                 if (!destination || destination === entry.path) return;
-                button.disabled = true;
-                try { await workspaceOperation('copy', { path: entry.path, destination }); }
-                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to copy path.'; button.disabled = false; }
+                try { await workspaceOperation('copy', { path: entry.path, destination }, button); }
+                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to copy path.'; }
             });
             addAction('Move', async (button) => {
                 const destination = window.prompt('Move to workspace-relative path:', entry.path);
                 if (!destination || destination === entry.path) return;
-                button.disabled = true;
-                try { await workspaceOperation('move', { path: entry.path, destination }); }
-                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to move path.'; button.disabled = false; }
+                try { await workspaceOperation('move', { path: entry.path, destination }, button); }
+                catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to move path.'; }
             });
             if (entry.type === 'directory') {
                 if (entry.empty === true) {
                     addAction('Remove', async (button) => {
                         if (!window.confirm(`Remove empty directory ${entry.name}?`)) return;
-                        button.disabled = true;
-                        try { await workspaceOperation('remove', { path: entry.path }); }
-                        catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to remove directory.'; button.disabled = false; }
+                        try { await workspaceOperation('remove', { path: entry.path }, button); }
+                        catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to remove directory.'; }
                     });
                 }
                 addAction('Delete tree', async (button) => {
                     if (!window.confirm(`Delete directory tree ${entry.name} and all of its contents? This cannot be undone.`)) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('delete-tree', { path: entry.path }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete directory tree.'; button.disabled = false; }
+                    try { await workspaceOperation('delete-tree', { path: entry.path }, button); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete directory tree.'; }
                 });
             } else {
                 addAction('Delete', async (button) => {
                     if (!window.confirm(`Delete file ${entry.name}?`)) return;
-                    button.disabled = true;
-                    try { await workspaceOperation('delete', { path: entry.path }); }
-                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete file.'; button.disabled = false; }
+                    try { await workspaceOperation('delete', { path: entry.path }, button); }
+                    catch (requestError) { workspaceFileStatus.textContent = requestError.message || 'Unable to delete file.'; }
                 });
             }
             if (entry.type === 'file') {
@@ -3784,13 +3878,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
                 finished = true;
                 input.disabled = true;
-                menuAction.disabled = true;
                 try {
-                    await workspaceOperation('rename', { path: entry.path, name });
+                    await workspaceOperation('rename', { path: entry.path, name }, menuAction);
                 } catch (requestError) {
                     workspaceFileStatus.textContent = requestError.message || 'Unable to rename path.';
                     input.disabled = false;
-                    menuAction.disabled = false;
                     finished = false;
                     input.focus();
                     input.select();
@@ -3821,7 +3913,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (workspaceFileDeleteSelected) workspaceFileDeleteSelected.disabled = !hasSelection;
         }
 
-        async function operateOnSelectedWorkspaceFiles(action) {
+        async function operateOnSelectedWorkspaceFiles(action, triggerButton = null) {
             const paths = [...workspaceSelectedFiles];
             if (paths.length === 0) return;
             if (action === 'delete' && !window.confirm(`Delete ${paths.length} selected file${paths.length === 1 ? '' : 's'}?`)) return;
@@ -3831,20 +3923,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (destination === null) return;
                 destination = destination.trim();
             }
-            for (const path of paths) {
-                const name = path.split('/').pop();
-                try {
+            setButtonBusy(triggerButton, `${action[0].toUpperCase()}${action.slice(1)} selected files...`);
+            try {
+                for (const path of paths) {
+                    const name = path.split('/').pop();
                     await workspaceOperation(action, action === 'delete'
                         ? { path }
                         : { path, destination: `${destination ? `${destination.replace(/\\\\+$/, '')}/` : ''}${name}` });
-                } catch (requestError) {
-                    workspaceFileStatus.textContent = requestError.message || `Unable to ${action} selected files.`;
-                    return;
                 }
+                workspaceSelectedFiles.clear();
+                updateWorkspaceSelectionActions();
+                renderWorkspaceEntries();
+            } catch (requestError) {
+                workspaceFileStatus.textContent = requestError.message || `Unable to ${action} selected files.`;
+            } finally {
+                clearButtonBusy(triggerButton);
             }
-            workspaceSelectedFiles.clear();
-            updateWorkspaceSelectionActions();
-            renderWorkspaceEntries();
         }
 
         function renderWorkspaceEntries() {
@@ -3949,11 +4043,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             renderWorkspaceBreadcrumb(workspaceViewTitle, path);
         }
 
-        async function viewWorkspaceFile(entry, editMode = false) {
+        async function viewWorkspaceFile(entry, editMode = false, triggerButton = null) {
             renderWorkspaceViewTitle(entry.path);
             workspaceViewContent.replaceChildren();
             workspaceViewEditContent.value = '';
-            workspaceViewStatus.textContent = 'Loading...';
+            workspaceViewStatus.textContent = '';
             workspaceFileView.dataset.binary = '0';
             if (workspaceAddFiles) workspaceAddFiles.textContent = 'Add selected';
             workspaceViewStart = null;
@@ -3967,6 +4061,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (initialWorkspaceFile && initialWorkspaceFile.path === entry.path) {
                     result = initialWorkspaceFile;
                 } else {
+                    setLoadingStatus(workspaceViewStatus, 'Loading file...');
+                    if (triggerButton) setButtonBusy(triggerButton, 'Loading file...');
                     const response = await fetch(`/api/workspace/operation?view=1&path=${encodeURIComponent(entry.path)}`);
                     result = await response.json();
                     if (!response.ok || !result.ok) {
@@ -4114,13 +4210,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 workspaceViewStatus.textContent = requestError.message || 'Unable to view file.';
                 return false;
+            } finally {
+                clearButtonBusy(triggerButton);
             }
         }
 
         async function saveWorkspaceFileEdit() {
             const path = workspaceFileView.dataset.path || workspaceRelativePath;
-            workspaceViewSave.disabled = true;
-            workspaceViewStatus.textContent = 'Saving...';
+            setButtonBusy(workspaceViewSave, 'Saving file...');
+            setLoadingStatus(workspaceViewStatus, 'Saving file...');
             try {
                 const response = await fetch('/api/workspace/operation', {
                     method: 'POST',
@@ -4136,18 +4234,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 workspaceViewStatus.textContent = requestError.message || 'Unable to save file.';
             } finally {
-                workspaceViewSave.disabled = false;
+                clearButtonBusy(workspaceViewSave);
             }
         }
 
         workspaceViewEdit?.addEventListener('click', () => {
             const path = workspaceFileView.dataset.path || workspaceRelativePath;
-            viewWorkspaceFile({ path, name: path.split('/').pop() }, true);
+            viewWorkspaceFile({ path, name: path.split('/').pop() }, true, workspaceViewEdit);
         });
         workspaceViewSave?.addEventListener('click', saveWorkspaceFileEdit);
         workspaceViewCancel?.addEventListener('click', () => {
             const path = workspaceFileView.dataset.path || workspaceRelativePath;
-            viewWorkspaceFile({ path, name: path.split('/').pop() }, false);
+            viewWorkspaceFile({ path, name: path.split('/').pop() }, false, workspaceViewCancel);
         });
 
         workspaceViewBack?.addEventListener('click', () => {
@@ -4223,7 +4321,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        async function loadWorkspaceFiles(updateUrl = true) {
+        async function loadWorkspaceFiles(updateUrl = true, triggerButton = null) {
             if (!workspaceFileList || !workspaceFilePath) {
                 return;
             }
@@ -4232,8 +4330,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 history.pushState({}, '', workspaceLocation(workspaceRelativePath));
             }
             workspaceFileStatus.classList.remove('error');
-            workspaceFileStatus.hidden = false;
-            workspaceFileStatus.textContent = 'Loading workspace files...';
+            const busyButtons = [...new Set([workspaceFileRefresh, triggerButton].filter(Boolean))];
+            busyButtons.forEach((button) => setButtonBusy(button, 'Loading workspace files...'));
+            setLoadingStatus(workspaceFileStatus, 'Loading workspace files...');
             try {
                 const response = await fetch(`/api/workspace/files?path=${encodeURIComponent(workspaceRelativePath)}`);
                 const result = await response.json();
@@ -4242,13 +4341,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
                 workspaceEntries = Array.isArray(result.entries) ? result.entries : [];
                 renderWorkspacePath(workspaceRelativePath);
-                workspaceFileUp.disabled = workspaceRelativePath === '';
                 renderWorkspaceEntries();
                 workspaceFileStatus.textContent = '';
                 workspaceFileStatus.classList.remove('error');
             } catch (requestError) {
                 workspaceFileStatus.textContent = requestError.message || 'Unable to list workspace files.';
                 workspaceFileList.replaceChildren();
+            } finally {
+                busyButtons.forEach(clearButtonBusy);
+                if (workspaceFileUp) {
+                    workspaceFileUp.disabled = workspaceRelativePath === '';
+                }
             }
         }
 
@@ -4270,9 +4373,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const parts = workspaceRelativePath.split('/').filter(Boolean);
             parts.pop();
             workspaceRelativePath = parts.join('/');
-            loadWorkspaceFiles();
+            loadWorkspaceFiles(true, workspaceFileUp);
         });
-        workspaceFileRefresh?.addEventListener('click', () => loadWorkspaceFiles(false));
+        workspaceFileRefresh?.addEventListener('click', () => loadWorkspaceFiles(false, workspaceFileRefresh));
         function showWorkspaceFileError(requestError) {
             workspaceFileStatus.classList.add('error');
             workspaceFileStatus.textContent = requestError.message || 'Workspace operation failed.';
@@ -4282,43 +4385,46 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         workspaceFileNewDirectory?.addEventListener('click', async () => {
             const name = window.prompt('Directory name:');
             if (!name) return;
-            try { await workspaceOperation('mkdir', { path: workspaceRelativePath, name }); }
+            try { await workspaceOperation('mkdir', { path: workspaceRelativePath, name }, workspaceFileNewDirectory); }
             catch (requestError) { showWorkspaceFileError(requestError); }
         });
         workspaceFileNewFile?.addEventListener('click', async () => {
             const name = window.prompt('File name:');
             if (!name) return;
-            try { await workspaceOperation('create', { path: workspaceRelativePath ? `${workspaceRelativePath}/${name}` : name }); }
+            try { await workspaceOperation('create', { path: workspaceRelativePath ? `${workspaceRelativePath}/${name}` : name }, workspaceFileNewFile); }
             catch (requestError) { showWorkspaceFileError(requestError); }
         });
         workspaceFileUpload?.addEventListener('click', () => workspaceFileUploadInput?.click());
-        async function uploadWorkspaceFiles(files) {
+        async function uploadWorkspaceFiles(files, triggerButton = null) {
             const fileList = Array.from(files || []);
             if (fileList.length === 0) {
                 return;
             }
-            workspaceFileStatus.textContent = `Uploading ${fileList.length} file${fileList.length === 1 ? '' : 's'}...`;
-            for (const file of fileList) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('path', workspaceRelativePath);
-                try {
+            const busyButton = triggerButton || workspaceFileUpload;
+            setButtonBusy(busyButton, 'Uploading files...');
+            setLoadingStatus(workspaceFileStatus, `Uploading ${fileList.length} file${fileList.length === 1 ? '' : 's'}...`);
+            try {
+                for (const file of fileList) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('path', workspaceRelativePath);
                     const response = await fetch('/api/workspace/upload', { method: 'POST', body: formData });
                     const result = await response.json();
                     if (!response.ok || !result.ok) {
                         throw new Error(result.error || `Unable to upload ${file.name}.`);
                     }
-                } catch (requestError) {
-                    workspaceFileStatus.textContent = requestError.message || `Unable to upload ${file.name}.`;
-                    return;
                 }
+                await loadWorkspaceFiles(false);
+                workspaceFileStatus.textContent = 'Upload complete.';
+            } catch (requestError) {
+                workspaceFileStatus.textContent = requestError.message || 'Unable to upload files.';
+            } finally {
+                clearButtonBusy(busyButton);
             }
-            workspaceFileStatus.textContent = 'Upload complete.';
-            await loadWorkspaceFiles(false);
         }
 
         workspaceFileUploadInput?.addEventListener('change', async () => {
-            await uploadWorkspaceFiles(workspaceFileUploadInput.files);
+            await uploadWorkspaceFiles(workspaceFileUploadInput.files, workspaceFileUpload);
             workspaceFileUploadInput.value = '';
         });
 
@@ -4374,11 +4480,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             workspaceRelativePath = decodeURIComponent(currentPath);
             loadWorkspaceFiles(false);
         });
-        async function addWorkspaceFilesToSession(paths, targetSession) {
+        async function addWorkspaceFilesToSession(paths, targetSession, triggerButton = null) {
             if (targetSession === '' || paths.length === 0) {
                 return;
             }
-            workspaceFileStatus.textContent = `Adding files to ${targetSession}...`;
+            if (triggerButton) setButtonBusy(triggerButton, `Adding files to ${targetSession}...`);
+            setLoadingStatus(workspaceFileStatus, `Adding files to ${targetSession}...`);
             try {
                 for (const path of paths) {
                     const response = await fetch('/api/file/add', {
@@ -4397,6 +4504,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 workspaceFileStatus.textContent = `Files added to ${targetSession}.`;
             } catch (requestError) {
                 workspaceFileStatus.textContent = requestError.message || 'Unable to add files.';
+            } finally {
+                clearButtonBusy(triggerButton);
             }
         }
 
@@ -4435,13 +4544,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             updateWorkspaceSelectionActions();
             if (workspaceFileView?.dataset.binary === '1') {
                 const path = workspaceFileView.dataset.path || workspaceRelativePath;
-                await addWorkspaceFilesToSession([path], workspaceTargetSession);
+                await addWorkspaceFilesToSession([path], workspaceTargetSession, workspaceAddFiles);
                 return;
             }
             if (workspaceViewStart !== null && workspaceViewEnd !== null) {
                 const first = Math.min(workspaceViewStart, workspaceViewEnd);
                 const last = Math.max(workspaceViewStart, workspaceViewEnd);
-                await addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession);
+                await addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession, workspaceAddFiles);
                 workspaceViewStart = null;
                 workspaceViewEnd = null;
                 workspaceViewContent?.querySelectorAll('.workspace-view-line.selected').forEach((line) => line.classList.remove('selected'));
@@ -4455,15 +4564,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
             const paths = [...workspaceSelectedFiles];
-            await addWorkspaceFilesToSession(paths, workspaceTargetSession);
+            await addWorkspaceFilesToSession(paths, workspaceTargetSession, workspaceAddFiles);
             workspaceSelectedFiles.clear();
             renderWorkspaceEntries();
             updateWorkspaceSelectionActions();
         });
 
-        workspaceFileCopySelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('copy'));
-        workspaceFileMoveSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('move'));
-        workspaceFileDeleteSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('delete'));
+        workspaceFileCopySelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('copy', workspaceFileCopySelected));
+        workspaceFileMoveSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('move', workspaceFileMoveSelected));
+        workspaceFileDeleteSelected?.addEventListener('click', () => operateOnSelectedWorkspaceFiles('delete', workspaceFileDeleteSelected));
 
         function showToolsLoading(message = 'Loading tools...') {
             toolsStatus.replaceChildren();
@@ -4706,9 +4815,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 toolPattern.focus();
                 return;
             }
-            toolPatternAdd.disabled = true;
+            setButtonBusy(toolPatternAdd, 'Adding tool pattern...');
             toolPattern.disabled = true;
-            toolsStatus.textContent = 'Adding tool pattern...';
+            setLoadingStatus(toolsStatus, 'Adding tool pattern...');
             try {
                 const scope = currentContextScope();
                 const response = await fetch(`/api/tool/append?scope=${encodeURIComponent(scope)}`, {
@@ -4726,15 +4835,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 toolsStatus.textContent = requestError.message || 'Unable to add tool pattern.';
             } finally {
-                toolPatternAdd.disabled = false;
+                clearButtonBusy(toolPatternAdd);
                 toolPattern.disabled = false;
                 toolPattern.focus();
             }
         }
 
         async function removeToolPattern(pattern, button) {
-            button.disabled = true;
-            toolsStatus.textContent = `Removing ${pattern}...`;
+            setButtonBusy(button, `Removing ${pattern}...`);
+            setLoadingStatus(toolsStatus, `Removing ${pattern}...`);
             try {
                 const scope = currentContextScope();
                 const response = await fetch(`/api/tool/disable?scope=${encodeURIComponent(scope)}`, {
@@ -4750,7 +4859,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await loadTools();
             } catch (requestError) {
                 toolsStatus.textContent = requestError.message || 'Unable to remove tool pattern.';
-                button.disabled = false;
+            } finally {
+                clearButtonBusy(button);
             }
         }
 
@@ -4760,8 +4870,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 : 'Delete the session tool definitions? The effective definition will be inherited from another scope.')) {
                 return;
             }
-            button.disabled = true;
-            toolsStatus.textContent = action === 'clear' ? 'Clearing tool definitions...' : 'Deleting tool definitions...';
+            const otherButton = button === toolClear ? toolDelete : toolClear;
+            otherButton.disabled = true;
+            setButtonBusy(button, action === 'clear' ? 'Clearing tool definitions...' : 'Deleting tool definitions...');
+            setLoadingStatus(toolsStatus, action === 'clear' ? 'Clearing tool definitions...' : 'Deleting tool definitions...');
             try {
                 const scope = currentContextScope();
                 const response = await fetch(`/api/tool/${action}?scope=${encodeURIComponent(scope)}`, { method: 'POST' });
@@ -4774,7 +4886,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 toolsStatus.textContent = requestError.message || `Unable to ${action} tool definitions.`;
             } finally {
-                button.disabled = false;
+                clearButtonBusy(button);
+                otherButton.disabled = false;
             }
         }
 
@@ -4976,9 +5089,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 skillPattern.focus();
                 return;
             }
-            skillPatternAdd.disabled = true;
+            setButtonBusy(skillPatternAdd, 'Adding skill pattern...');
             skillPattern.disabled = true;
-            skillsStatus.textContent = 'Adding skill pattern...';
+            setLoadingStatus(skillsStatus, 'Adding skill pattern...');
             try {
                 const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(currentContextScope())}`, {
                     method: 'POST',
@@ -4994,7 +5107,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 skillsStatus.textContent = requestError.message || 'Unable to add skill pattern.';
             } finally {
-                skillPatternAdd.disabled = false;
+                clearButtonBusy(skillPatternAdd);
                 skillPattern.disabled = false;
                 skillPattern.focus();
             }
@@ -5003,14 +5116,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         async function updateSkillContext(action, patternOrButton, maybeButton) {
             const pattern = typeof patternOrButton === 'string' ? patternOrButton : '';
             const button = maybeButton || patternOrButton;
-            if (action === 'disable') {
-                button.disabled = true;
-            } else if (!window.confirm(action === 'clear'
+            if (action !== 'disable' && !window.confirm(action === 'clear'
                 ? 'Clear the skill definitions at this scope?'
                 : 'Delete the skill definitions at this scope?')) {
                 return;
             }
-            skillsStatus.textContent = `${action === 'disable' ? 'Removing' : action === 'clear' ? 'Clearing' : 'Deleting'} skill definitions...`;
+            const otherButton = action === 'clear' ? skillDelete
+                : (action === 'delete' ? skillClear : null);
+            if (otherButton) otherButton.disabled = true;
+            const message = `${action === 'disable' ? 'Removing' : action === 'clear' ? 'Clearing' : 'Deleting'} skill definitions...`;
+            setButtonBusy(button, `${message}`);
+            setLoadingStatus(skillsStatus, message);
             try {
                 const response = await fetch(`/api/skill/context?scope=${encodeURIComponent(currentContextScope())}`, {
                     method: 'POST',
@@ -5024,9 +5140,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await loadSkills();
             } catch (requestError) {
                 skillsStatus.textContent = requestError.message || `Unable to ${action} skill definitions.`;
-                if (action === 'disable') {
-                    button.disabled = false;
-                }
+            } finally {
+                clearButtonBusy(button);
+                if (otherButton) otherButton.disabled = false;
             }
         }
 
@@ -5372,12 +5488,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     if (confirmation && !window.confirm(confirmation)) {
                         return;
                     }
-                    button.disabled = true;
+                    setButtonBusy(button, `${label}...`);
                     try {
                         await performHistoryAction(action, item);
                     } catch (requestError) {
                         showError(requestError.message || 'Unable to update history.');
-                        button.disabled = false;
+                    } finally {
+                        clearButtonBusy(button);
                     }
                 });
                 actions.appendChild(button);
@@ -5823,7 +5940,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         compactHistory?.addEventListener('click', () => runWholeHistoryAction(
             'compact',
-            'Compact the conversation history? The original entries will be retained as hidden summarized history.'
+            'Compact the conversation history? The original entries will be retained as hidden summarized history.',
+            compactHistory
         ));
 
         sessionMoreToggle?.addEventListener('click', () => {
@@ -5854,7 +5972,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const oldName = sessionRenameDialog.dataset.oldName || '';
             const newName = sessionRenameName.value.trim();
             sessionRenameError.hidden = true;
-            sessionRenameSubmit.disabled = true;
+            setButtonBusy(sessionRenameSubmit, 'Renaming session...');
             try {
                 const response = await fetch('/api/session/rename', {
                     method: 'POST',
@@ -5887,7 +6005,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 sessionRenameError.textContent = requestError.message || 'Unable to rename the session.';
                 sessionRenameError.hidden = false;
             } finally {
-                sessionRenameSubmit.disabled = false;
+                clearButtonBusy(sessionRenameSubmit);
             }
         });
 
@@ -5965,7 +6083,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 workspace: '/api/workspace/delete',
                 profile: '/api/profile/delete'
             };
-            button.disabled = true;
+            setButtonBusy(button, `Deleting ${type}...`);
             error.hidden = true;
             try {
                 const response = await fetch(endpoints[type], {
@@ -5983,7 +6101,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 settingsLoaded = false;
             } catch (requestError) {
                 showError(requestError.message || `Unable to delete the ${type}.`);
-                button.disabled = false;
+            } finally {
+                clearButtonBusy(button);
             }
         }
 
@@ -6000,7 +6119,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function openResourceSettings(type, name) {
-            resourceSettingsStatus.textContent = 'Loading...';
+            setLoadingStatus(resourceSettingsStatus, 'Loading settings...');
+            resourceSettingsSave.disabled = true;
             resourceSettingsPathLabel.hidden = type !== 'workspace';
             resourceSettingsDescriptionLabel.hidden = type !== 'profile';
             resourceSettingsPath.required = type === 'workspace';
@@ -6019,6 +6139,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 resourceSettingsStatus.textContent = '';
             } catch (requestError) {
                 resourceSettingsStatus.textContent = requestError.message || `Unable to load ${type} settings.`;
+            } finally {
+                resourceSettingsSave.disabled = false;
             }
         }
 
@@ -6032,7 +6154,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const body = type === 'workspace'
                 ? { path: resourceSettingsPath.value.trim() }
                 : { description: resourceSettingsDescription.value };
-            resourceSettingsStatus.textContent = 'Saving...';
+            setButtonBusy(resourceSettingsSave, 'Saving settings...');
+            setLoadingStatus(resourceSettingsStatus, 'Saving settings...');
             try {
                 const response = await nativeFetch(maiaUrl(`/api/${type}/settings?name=${encodeURIComponent(name)}`), {
                     method: 'POST',
@@ -6047,6 +6170,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await loadSidebarOptions();
             } catch (requestError) {
                 resourceSettingsStatus.textContent = requestError.message || `Unable to save ${type} settings.`;
+            } finally {
+                clearButtonBusy(resourceSettingsSave);
             }
         });
 
@@ -6123,7 +6248,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const name = resourceCreateName.value.trim();
             const path = resourceCreatePath.value.trim();
             const description = resourceCreateDescription.value;
-            resourceCreateSubmit.disabled = true;
+            setButtonBusy(resourceCreateSubmit, `Creating ${type}...`);
             resourceCreateError.hidden = true;
 
             try {
@@ -6131,7 +6256,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 resourceCreateError.textContent = requestError.message || `Unable to create ${type}.`;
                 resourceCreateError.hidden = false;
-                resourceCreateSubmit.disabled = false;
+            } finally {
+                clearButtonBusy(resourceCreateSubmit);
             }
         });
 
@@ -6223,14 +6349,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             const exactMatch = knownSessions.some((session) => session.name === query);
             if (!exactMatch && validResourceName(query)) {
-                sessionSearchAction.disabled = true;
+                setButtonBusy(sessionSearchAction, 'Creating session...');
                 error.hidden = true;
                 try {
                     await createResource('session', query);
                 } catch (requestError) {
                     showError(requestError.message || 'Unable to create the session.');
                 } finally {
-                    sessionSearchAction.disabled = false;
+                    clearButtonBusy(sessionSearchAction);
                     updateSessionSearchAction();
                 }
             }
@@ -6252,15 +6378,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
 
         async function loadSessions(signal) {
-            const response = await fetch('/api/session/list', { signal });
-            const result = await response.json();
-            if (!response.ok || !result.ok) {
-                throw new Error(result.error || 'Unable to load MAIA sessions.');
-            }
-            knownSessions = result.sessions || [];
-            renderSessions(knownSessions, urlWorkspaceName ? null : (result.selected || null));
-            if (workspaceSessionStatus) {
-                workspaceSessionStatus.hidden = true;
+            setLoadingStatus(sessionListPlaceholder, 'Loading sessions...');
+            try {
+                const response = await fetch('/api/session/list', { signal });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.error || 'Unable to load MAIA sessions.');
+                }
+                knownSessions = result.sessions || [];
+                renderSessions(knownSessions, urlWorkspaceName ? null : (result.selected || null));
+                if (workspaceSessionStatus) {
+                    workspaceSessionStatus.hidden = true;
+                }
+            } catch (requestError) {
+                sessionListPlaceholder.textContent = requestError.message || 'Unable to load MAIA sessions.';
+                sessionListPlaceholder.hidden = false;
+                throw requestError;
             }
         }
 
@@ -6428,8 +6561,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
 
             loadingEarlier = true;
-            loadEarlier.disabled = true;
+            setButtonBusy(loadEarlier, 'Loading earlier turns...');
             turnCount.disabled = true;
+            setLoadingStatus(historyRemaining, 'Loading earlier turns...');
             error.hidden = true;
 
             const numberOfTurns = getTurnCount();
@@ -6459,8 +6593,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 showError(requestError.message || 'Unable to load the previous turn.');
             } finally {
                 loadingEarlier = false;
-                loadEarlier.disabled = false;
+                clearButtonBusy(loadEarlier);
                 turnCount.disabled = false;
+                updateEarlierButton();
             }
         }
 
@@ -6567,9 +6702,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             loadingEarlier = true;
             loadEarlier.disabled = true;
-            loadAllHistory.disabled = true;
+            setButtonBusy(loadAllHistory, 'Loading entire history...');
             const originalTitle = loadAllHistory.title;
             loadAllHistory.title = 'Loading entire history...';
+            setLoadingStatus(historyRemaining, 'Loading entire history...');
             error.hidden = true;
 
             try {
@@ -6589,30 +6725,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } finally {
                 loadingEarlier = false;
                 loadEarlier.disabled = false;
-                loadAllHistory.disabled = false;
+                clearButtonBusy(loadAllHistory);
                 loadAllHistory.title = originalTitle;
+                updateEarlierButton();
             }
         }
 
-        async function runWholeHistoryAction(action, confirmation) {
+        async function runWholeHistoryAction(action, confirmation, triggerButton) {
             if (!window.confirm(confirmation)) {
                 return;
             }
-            historyClear.disabled = true;
-            historyHideLastTurn.disabled = true;
-            historyHideAll.disabled = true;
-            const compactHistoryNodes = action === 'compact' && compactHistory
-                ? Array.from(compactHistory.childNodes).map((node) => node.cloneNode(true))
-                : [];
-            if (action === 'compact' && compactHistory) {
-                compactHistory.replaceChildren();
-                const spinner = document.createElement('span');
-                spinner.className = 'spinner';
-                spinner.setAttribute('aria-hidden', 'true');
-                compactHistory.append(spinner, document.createTextNode(' Compacting...'));
-                compactHistory.setAttribute('aria-label', 'Compacting history');
-                compactHistory.title = 'Compacting history';
-                compactHistory.disabled = true;
+            const actionButtons = [historyClear, historyHideLastTurn, historyHideAll];
+            for (const button of actionButtons) {
+                if (button && button !== triggerButton) button.disabled = true;
+            }
+            if (triggerButton) {
+                setButtonBusy(triggerButton, action === 'compact' ? 'Compacting history...' : 'Updating history...');
             }
             error.hidden = true;
             try {
@@ -6629,15 +6757,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             } catch (requestError) {
                 showError(requestError.message || 'Unable to update history.');
             } finally {
-                historyClear.disabled = false;
-                historyHideLastTurn.disabled = false;
-                historyHideAll.disabled = false;
-                if (action === 'compact' && compactHistory) {
-                    compactHistory.replaceChildren(...compactHistoryNodes);
-                    compactHistory.setAttribute('aria-label', 'Compact history');
-                    compactHistory.title = 'Compact history';
-                    compactHistory.disabled = false;
+                for (const button of actionButtons) {
+                    if (button && button !== triggerButton) button.disabled = false;
                 }
+                if (triggerButton) clearButtonBusy(triggerButton);
             }
         }
 
@@ -6646,7 +6769,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
             event.preventDefault();
-            historyEditSubmit.disabled = true;
+            setButtonBusy(historyEditSubmit, 'Saving entry...');
             historyEditError.hidden = true;
             try {
                 await performHistoryAction('replace', { index: historyEditDialog.dataset.index }, historyEditContent.value);
@@ -6655,21 +6778,24 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 historyEditError.textContent = requestError.message || 'Unable to replace history entry.';
                 historyEditError.hidden = false;
             } finally {
-                historyEditSubmit.disabled = false;
+                clearButtonBusy(historyEditSubmit);
             }
         });
 
         historyClear?.addEventListener('click', () => runWholeHistoryAction(
             'clear',
-            'Clear the entire history? This cannot be undone.'
+            'Clear the entire history? This cannot be undone.',
+            historyClear
         ));
         historyHideLastTurn?.addEventListener('click', () => runWholeHistoryAction(
             'hide-turn',
-            'Hide the last turn? It can be unhidden later.'
+            'Hide the last turn? It can be unhidden later.',
+            historyHideLastTurn
         ));
         historyHideAll?.addEventListener('click', () => runWholeHistoryAction(
             'hide-all',
-            'Hide the entire history? It can be unhidden later.'
+            'Hide the entire history? It can be unhidden later.',
+            historyHideAll
         ));
 
         loadEarlier?.addEventListener('click', loadEarlierHistory);
