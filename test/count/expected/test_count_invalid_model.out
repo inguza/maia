@@ -1,12 +1,12 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
 0    SYSTEM       ->   36 tokens (chars: 141)
-0    USER[0]      ->   83 tokens (chars: 331)
+0    USER[0]      ->   92 tokens (chars: 368)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'invalid-model':
-Total:         119
-  Input:        83
+Total:         128
+  Input:        92
   Output:        0
 ──────────────────────────────
-  User:         83
+  User:         92
   Assistant:     0

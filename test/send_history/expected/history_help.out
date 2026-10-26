@@ -25,6 +25,9 @@ COMMANDS
   unhide [<range>]
     Make entries in n–m inclusive for given range.
 
+  replace <index>
+    Replace the content of one history entry. Replacement content is read from stdin.
+
   prune [role-option] [--reduce|--edit|--cut] [<role range>...]
     Prune history entries by role and mode.
 

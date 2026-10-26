@@ -5,6 +5,7 @@ default_agent_instruction_forget
 additional_instruction_paths
 default_allowed_tool_effects
 http_logging
+cost_output_gpt_6_sol
 cost_input_gpt_5_4_mini
 cost_output_gpt_5_6_luna
 default_agent_skill_remember
@@ -30,7 +31,9 @@ api_type
 cost_input_gpt_5_6_terra
 api_base_url
 mcp_servers
+cost_input_gpt_6_sol
 default_session_filesets
+cost_output_gpt_6_luna
 default_profile
 cost_output_gpt_5_4_nano
 max_input_tokens
@@ -46,6 +49,7 @@ prune_mode
 model
 cost_output_gpt_4_1_mini
 file_handling_mode
+cost_input_gpt_6_luna
 additional_skill_paths
 top_p
 prune_when_skipped

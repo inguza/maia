@@ -1,4 +1,5 @@
 cost_output_gpt_4_1
+cost_output_gpt_6_sol
 cost_input_gpt_5_4_mini
 cost_output_gpt_5_6_luna
 cost_input_gpt_4_1_mini
@@ -9,8 +10,11 @@ cost_input_gpt_5_6_luna
 cost_output_gpt_5_4
 cost_output_gpt_5_4_mini
 cost_input_gpt_5_6_terra
+cost_input_gpt_6_sol
+cost_output_gpt_6_luna
 cost_output_gpt_5_4_nano
 cost_input_gpt_5_4_nano
 cost_output_gpt_4_1_nano
 cost_output_gpt_4_1_mini
+cost_input_gpt_6_luna
 cost_output_gpt_5_6_terra
