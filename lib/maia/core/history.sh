@@ -182,6 +182,135 @@ add_original_reference() {
     echo -e "$content"
 }
 
+# Apply hide, unhide, and delete actions without leaving a visible tool result
+# separated from its assistant tool call. The selected range is evaluated
+# against indexed history, then the update is committed under the history lock.
+history_update_tool_relationships() {
+    local history_file="$1" action="$2" raw_range="$3"
+    local slice
+    slice="$(range_defaults "$raw_range")"
+
+    acquire_lock "${history_file}.lock" ""
+    local indexed_history
+    if ! indexed_history="$(jq "$jq_add_indexes" "$history_file")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local selected_indexes
+    if ! selected_indexes="$(jq "[.[${slice}][] | .index]" <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local selected_call_ids
+    if ! selected_call_ids="$(jq --argjson indexes "$selected_indexes" '
+        . as $messages
+        | [ $indexes[] as $index
+            | $messages[$index]
+            | select(.role == "assistant")
+            | .tool_calls[]?.id
+            | select(type == "string" and length > 0)
+          ]
+        | unique
+    ' <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local blocked
+    if ! blocked="$(jq --arg action "$action" \
+        --argjson indexes "$selected_indexes" \
+        --argjson call_ids "$selected_call_ids" '
+        . as $messages
+        | [ $indexes[] as $index
+            | $messages[$index] as $item
+            | select($item.role == "tool")
+            | $item.tool_call_id as $call_id
+            | [ $messages[]
+                | select(.role == "assistant"
+                         and any(.tool_calls[]?; .id == $call_id))
+              ] as $parents
+            | if $action == "unhide" then
+                select(($parents | length) == 0
+                       or (([$parents[] | select(.hidden != true)] | length) == 0
+                           and (($call_ids | index($call_id)) == null)))
+              else
+                select(($parents | length) > 0
+                       and (($call_ids | index($call_id)) == null))
+              end
+          ]
+        | length > 0
+    ' <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    if [[ "$blocked" == "true" ]]; then
+        case "$action" in
+            hide)
+                warn "Cannot hide a tool result while its assistant tool call remains in history. Hide the assistant entry instead."
+                ;;
+            delete)
+                warn "Cannot delete a tool result while its assistant tool call remains in history. Delete the assistant entry instead."
+                ;;
+            unhide)
+                warn "Cannot unhide a tool result unless its matching assistant tool call is visible or included in the same unhide range."
+                ;;
+        esac
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local status=0
+    json_modify "$history_file" \
+        --arg action "$action" \
+        --argjson indexes "$selected_indexes" \
+        --argjson call_ids "$selected_call_ids" '
+        to_entries
+        | map(
+            .key as $index
+            | .value as $item
+            | (($indexes | index($index)) != null) as $selected
+            | if $action == "hide" then
+                if $selected
+                   or ($item.role == "tool"
+                       and ($call_ids | index($item.tool_call_id)) != null)
+                then
+                    $item + {hidden: true}
+                else
+                    $item
+                end
+              elif $action == "unhide" then
+                if $selected
+                   or ($item.role == "tool"
+                       and ($call_ids | index($item.tool_call_id)) != null)
+                then
+                    $item | del(.hidden)
+                else
+                    $item
+                end
+              elif $selected then
+                if $item.role == "tool"
+                   and ($call_ids | index($item.tool_call_id)) != null
+                then
+                    $item + {hidden: true}
+                else
+                    empty
+                end
+              elif $item.role == "tool"
+                   and ($call_ids | index($item.tool_call_id)) != null
+              then
+                    $item + {hidden: true}
+              else
+                    $item
+              end
+        )
+    ' || status=$?
+    release_lock "${history_file}.lock"
+    return "$status"
+}
+
 history_prune() {
     local role=""
     local -a ranges=()
@@ -632,22 +761,25 @@ handle_history_command() {
 
 	hide)
 	    shift
-            local slice=$(range_defaults "${1:-}")
-            exclusive_json_modify "$history_file" ".[${slice}] |= map(.hidden = true)"
+            if ! history_update_tool_relationships "$history_file" hide "${1:-}"; then
+                return 1
+            fi
             info "Entries hidden in history '$history_name'."
 	    ;;
 
 	unhide)
 	    shift
-            local slice=$(range_defaults "${1:-}")
-            exclusive_json_modify "$history_file" ".[${slice}] |= map(del(.hidden))"
+            if ! history_update_tool_relationships "$history_file" unhide "${1:-}"; then
+                return 1
+            fi
             info "Entries unhidden in history '$history_name'."
 	    ;;
 
 	delete)
 	    shift
-	    local slice=$(range_defaults "${1:-}")
-	    exclusive_json_modify "$history_file" "del(.[${slice}])"
+	    if ! history_update_tool_relationships "$history_file" delete "${1:-}"; then
+                return 1
+            fi
 	    info "Entries deleted from history '$history_name'."
 	    ;;
 

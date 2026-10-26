@@ -5480,6 +5480,38 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 button.textContent = icon;
                 button.title = label;
                 button.setAttribute('aria-label', label);
+                if (item.role === 'tool') {
+                    const matchingCalls = historyItems.flatMap((candidate) =>
+                        candidate.role === 'assistant' && Array.isArray(candidate.tool_calls)
+                            ? candidate.tool_calls.filter((toolCall) => toolCall?.id === item.tool_call_id)
+                                .map(() => candidate)
+                            : []
+                    );
+                    const hasMatchingCall = matchingCalls.length > 0;
+                    const hasVisibleMatchingCall = matchingCalls.some((candidate) => !isHiddenHistoryItem(candidate));
+                    if (hasMatchingCall && ['hide', 'delete', 'delete-below'].includes(action)) {
+                        button.disabled = true;
+                        button.title = 'Tool results cannot be hidden or deleted directly; act on the assistant tool call instead.';
+                        button.setAttribute('aria-label', button.title);
+                    } else if (action === 'unhide' && !hasVisibleMatchingCall) {
+                        button.disabled = true;
+                        button.title = hasMatchingCall
+                            ? 'Unhide the assistant tool call first.'
+                            : 'This tool result has no matching assistant tool call.';
+                        button.setAttribute('aria-label', button.title);
+                    }
+                } else if (item.role === 'assistant' && action === 'unhide' && Array.isArray(item.tool_calls)) {
+                    const allResultsExist = item.tool_calls.every((toolCall) =>
+                        historyItems.some((candidate) =>
+                            candidate.role === 'tool' && candidate.tool_call_id === toolCall?.id
+                        )
+                    );
+                    if (!allResultsExist) {
+                        button.disabled = true;
+                        button.title = 'This assistant response has a tool call with no matching tool result.';
+                        button.setAttribute('aria-label', button.title);
+                    }
+                }
                 button.addEventListener('click', async (event) => {
                     event.stopPropagation();
                     if (action === 'edit') {
