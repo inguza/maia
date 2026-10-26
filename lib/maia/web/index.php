@@ -320,6 +320,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin: 0;
         }
 
+        .topbar .session-title-rename {
+            margin: 0;
+            padding: 0.25rem 0.45rem;
+        }
+
         .session-workspace-session-link,
         .session-workspace-session-link:visited {
             color: inherit;
@@ -2103,6 +2108,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <?php else: ?>
             <h1 id="session-title"><?= escape($initialTitle) ?></h1>
 <?php endif; ?>
+<?php if (!$isResourcePage && !$sessionWorkspacePage): ?>
+            <button id="session-title-rename" class="session-title-rename" type="button"
+                    aria-label="Rename session" title="Rename session"
+                    <?= $initialSessionName === 'No session selected' ? 'hidden' : '' ?>>&#x21C4;</button>
+<?php endif; ?>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
@@ -2461,6 +2471,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sidebarClose = document.getElementById('sidebar-close');
         const sidebarBackdrop = document.getElementById('sidebar-backdrop');
         const sessionTitle = document.getElementById('session-title');
+        const sessionTitleRename = document.getElementById('session-title-rename');
         const messageSessionName = document.getElementById('message-session-name');
 
         function updateBrowserTitle() {
@@ -5733,6 +5744,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sessionListPlaceholder.hidden = sessions.length > 0;
 
             selectedSessionName = selected || null;
+            if (sessionTitleRename) {
+                sessionTitleRename.hidden = !selectedSessionName;
+            }
             if (!urlWorkspaceName && !urlProfileName && !urlHomeName) {
                 sessionTitle.textContent = `session: ${selectedSessionName || 'No session selected'}`;
                 if (messageSessionName) {
@@ -5932,6 +5946,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         });
 
         sessionActionRename?.addEventListener('click', () => {
+            if (selectedSessionName) {
+                openSessionRename(selectedSessionName);
+            }
+        });
+
+        sessionTitleRename?.addEventListener('click', () => {
             if (selectedSessionName) {
                 openSessionRename(selectedSessionName);
             }
@@ -6377,6 +6397,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             });
             sidebarToggle.disabled = busy;
             sidebarClose.disabled = busy;
+            if (sessionTitleRename) {
+                sessionTitleRename.disabled = busy;
+            }
             if (busy) {
                 sessionTitle.textContent = 'session: Selecting session...';
                 if (messageSessionName) {
