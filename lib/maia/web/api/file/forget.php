@@ -29,6 +29,11 @@ if (strpos($entry, "\0") !== false || str_contains($entry, "\n") || str_contains
     files_remove_error(400, 'The known file entry contains an invalid character.');
 }
 
+// The CLI resolves the filename portion of filtered entries (for example,
+// file.txt:1-100) relative to its current working directory. Run from the
+// workspace root so relative entries resolve the same way in the GUI as in
+// the workspace command-line workflow.
+$workspaceRoot = maia_web_history_workspace_root();
 $process = proc_open(
     [maia_web_binary(), 'file', 'forget', $entry],
     [
@@ -37,7 +42,7 @@ $process = proc_open(
         2 => ['pipe', 'w'],
     ],
     $pipes,
-    null,
+    $workspaceRoot ?: null,
     maia_web_environment()
 );
 
