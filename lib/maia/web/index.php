@@ -1415,14 +1415,25 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .composer-actions {
             align-items: center;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 0.5rem;
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            margin-top: 1rem;
         }
 
         .composer-actions-left {
             display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
+            grid-column: 1 / -1;
+            grid-row: 2;
+            min-width: 0;
+        }
+
+        .composer-actions > #send {
+            grid-column: 2;
+            grid-row: 1;
+            justify-self: end;
         }
 
         .composer-actions button {
@@ -2129,7 +2140,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     <button id="credentials-toggle" type="button"
                             aria-expanded="false">Credentials ▾</button>
 <?php endif; ?>
-                    <button id="settings-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
+                    <button id="settings-toggle" type="button" hidden
                             aria-expanded="false">⚙</button>
                     <button id="files-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Files ▾</button>
@@ -5544,7 +5555,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     openSessionCopy(session.name);
                 });
 
-                item.append(button, rename, copy, settings, remove);
+                item.append(button, rename, copy, remove);
                 sessionList.appendChild(item);
             }
 
@@ -6278,9 +6289,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (createProfileButton) createProfileButton.hidden = true;
                 if (profileCreateAction) profileCreateAction.hidden = true;
                 if (settingsToggle) {
-                    settingsToggle.hidden = false;
-                    settingsToggle.setAttribute('aria-label', urlProfileName ? 'Profile settings' : 'Workspace settings');
-                    settingsToggle.title = urlProfileName ? 'Profile settings' : 'Workspace settings';
+                    settingsToggle.hidden = !(urlProfileName || urlWorkspaceName);
+                    if (!settingsToggle.hidden) {
+                        settingsToggle.setAttribute('aria-label', urlProfileName ? 'Profile settings' : 'Workspace settings');
+                        settingsToggle.title = urlProfileName ? 'Profile settings' : 'Workspace settings';
+                    }
                 }
                 if (filesToggle) filesToggle.hidden = true;
                 if (pureWorkspaceBrowserPage) {
