@@ -485,9 +485,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             outline-offset: 2px;
         }
 
-        .session-item > button:first-child {
+        .session-item > .sidebar-resource-name:first-child,
+        .sidebar-list li > a.sidebar-resource-name {
             flex: 1;
             min-width: 0;
+            width: auto;
         }
 
         .session-delete {
@@ -514,6 +516,55 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .session-rename:hover,
         .session-copy:hover {
+            background: #e5e7eb !important;
+            color: #111827;
+        }
+
+        .session-item-actions {
+            flex: 0 0 auto;
+            position: relative;
+        }
+
+        .session-item-actions-toggle {
+            color: #6b7280;
+            margin: 0;
+            padding: 0.25rem 0.45rem !important;
+            width: auto !important;
+        }
+
+        .session-item-actions-menu {
+            background: Canvas;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            display: flex;
+            flex-direction: column;
+            min-width: 10rem;
+            padding: 0.25rem;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.2rem);
+            z-index: 15;
+        }
+
+        .session-item-actions-menu[hidden] {
+            display: none;
+        }
+
+        .session-item-actions-menu button {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: CanvasText;
+            display: flex;
+            gap: 0.55rem;
+            margin: 0;
+            padding: 0.4rem 0.55rem !important;
+            text-align: left;
+            width: 100% !important;
+        }
+
+        .session-item-actions-menu button:hover {
             background: #e5e7eb !important;
             color: #111827;
         }
@@ -1779,9 +1830,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             width: 3.5rem;
         }
 
+        .history-stats {
+            margin: 0.5rem 0 1rem;
+        }
+
         .history-remaining {
-            color: #6b7280;
-            font-size: 0.85rem;
+            border-bottom: 1px solid #d1d5db;
+            color: #9ca3af;
+            display: block;
+            font-size: 0.8rem;
+            padding: 0.25rem 0 0.55rem;
+            text-align: center;
+            width: 100%;
         }
 
         .history-remaining[hidden] {
@@ -1892,7 +1952,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         <div class="sidebar-header">
             <h2>MAIA</h2>
             <a id="home-link" href="<?= escape($webBasePath) ?>/home">Home</a>
-            <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close sidebar">×</button>
+            <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close sidebar">&#x00D7;</button>
         </div>
 
         <section class="sidebar-section">
@@ -2021,7 +2081,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     <div class="app">
         <header class="topbar">
             <button id="sidebar-toggle" class="sidebar-toggle" type="button"
-                    aria-label="Open sidebar" aria-expanded="false">☰</button>
+                    aria-label="Open sidebar" aria-expanded="false">&#x2630;</button>
 <?php if ($sessionWorkspacePage): ?>
             <h1 id="session-title">session: <a class="session-workspace-session-link" href="<?= escape($webBasePath) ?>/session/<?= rawurlencode($initialSessionName) ?>"><?= escape($initialSessionName) ?></a> / workspace</h1>
 <?php else: ?>
@@ -2030,18 +2090,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
             <button id="profile-page-settings" class="sidebar-settings" type="button" hidden
-                    aria-label="Profile settings">⚙</button>
+                    aria-label="Profile settings">&#x2699;&#xFE0E;</button>
         </header>
 
         <div class="history-actions">
-            <button id="load-earlier" type="button" hidden>Load previous turns</button>
+            <button id="load-earlier" type="button" hidden title="Load previous turn(s)" aria-label="Load previous turns">&#x2B06;</button>
             <label id="turn-count-control" class="history-turn-count" hidden>
-                Turns
                 <input id="turn-count" type="text" inputmode="numeric" maxlength="3" value="1"
                        aria-label="Number of previous turns to load">
+                turns
             </label>
+            <button id="load-all-history" type="button" hidden title="Load entire history" aria-label="Load entire history">&#x21C8;</button>
+	</div>
+        <div class="history-stats">
             <span id="history-remaining" class="history-remaining" hidden></span>
-            <button id="load-all-history" type="button" hidden>Load entire history</button>
         </div>
         <dialog id="history-edit-dialog" class="resource-create-dialog">
             <form id="history-edit-form" method="dialog">
@@ -2117,16 +2179,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     <div id="session-more-menu" class="session-more-menu">
                         <button id="session-more-toggle" type="button"
                                 aria-label="More session tools" title="More session tools"
-                                aria-expanded="false">≡</button>
+                                aria-expanded="false">&#x2630;</button>
                         <div id="session-more-tools" hidden>
                             <button id="history-refresh" class="history-refresh" type="button" aria-label="Refresh history" title="Refresh history">↻ Refresh history</button>
                             <button id="session-action-copy" type="button" aria-label="Copy session" title="Copy session">⧉ Copy session</button>
-                            <button id="session-action-rename" type="button" aria-label="Rename session" title="Rename session">✎ Rename session</button>
-                            <button id="session-action-settings" type="button" aria-label="Session settings" title="Session settings">⚙ Session settings</button>
-                            <button id="compact-history" type="button" aria-label="Compact history" title="Compact history">≋ Compact history</button>
-                            <button id="history-clear" type="button" title="Delete entire history">× Delete history</button>
-                            <button id="history-hide-all" type="button" title="Hide entire history">⊘ Hide history</button>
-                            <button id="history-hide-last-turn" type="button" title="Hide last turn">⊘ Hide last turn</button>
+                            <button id="session-action-rename" type="button" aria-label="Rename session" title="Rename session">&#x21C4; Rename session</button>
+                            <button id="session-action-settings" type="button" aria-label="Session settings" title="Session settings">&#x2699;&#xFE0E; Session settings</button>
+                            <button id="compact-history" type="button" aria-label="Compact history" title="Compact history">&#x224B; Compact history</button>
+                            <button id="history-clear" type="button" title="Delete entire history">&#x2327; Delete history</button>
+                            <button id="history-hide-all" type="button" title="Hide entire history">&#x2298; Hide history</button>
+                            <button id="history-hide-last-turn" type="button" title="Hide last turn">&#x2298; Hide last turn</button>
                         </div>
                     </div>
                 </div>
@@ -2138,19 +2200,19 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <div class="composer-actions-left">
 <?php if ($homePage): ?>
                     <button id="credentials-toggle" type="button"
-                            aria-expanded="false">Credentials ▾</button>
+                            aria-expanded="false">Credentials ▸</button>
 <?php endif; ?>
                     <button id="settings-toggle" type="button" hidden
-                            aria-expanded="false">⚙</button>
+                            aria-expanded="false">&#x2699;&#xFE0E;</button>
                     <button id="files-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
-                            aria-expanded="false">Files ▾</button>
+                            aria-expanded="false">Files ▸</button>
                     <button id="skills-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
-                            aria-expanded="false">Skills ▾</button>
+                            aria-expanded="false">Skills ▸</button>
                     <button id="tools-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
-                            aria-expanded="false">Tools ▾</button>
+                            aria-expanded="false">Tools ▸</button>
 <?php if (!$isResourcePage): ?>
                     <button id="workspace-toggle" type="button"
-                            aria-expanded="false">Workspace ▾</button>
+                            aria-expanded="false">Workspace ▸</button>
 <?php endif; ?>
                 </div>
                 <button id="send" type="submit" disabled>Send</button>
@@ -2596,6 +2658,54 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
+        function createSidebarActionMenu(name, actions) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'session-item-actions';
+
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'session-item-actions-toggle';
+            toggle.textContent = '☰';
+            toggle.title = `Actions for ${name}`;
+            toggle.setAttribute('aria-label', `Actions for ${name}`);
+            toggle.setAttribute('aria-haspopup', 'menu');
+            toggle.setAttribute('aria-expanded', 'false');
+
+            const menu = document.createElement('div');
+            menu.className = 'session-item-actions-menu';
+            menu.setAttribute('role', 'menu');
+            menu.hidden = true;
+
+            for (const { button, label } of actions) {
+                const icon = button.textContent;
+                button.replaceChildren(
+                    document.createTextNode(icon),
+                    document.createTextNode(` ${label}`)
+                );
+                button.setAttribute('role', 'menuitem');
+                button.addEventListener('click', () => {
+                    menu.hidden = true;
+                    toggle.setAttribute('aria-expanded', 'false');
+                });
+                menu.appendChild(button);
+            }
+
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const expanded = menu.hidden;
+                document.querySelectorAll('.session-item-actions-menu').forEach((other) => {
+                    other.hidden = true;
+                    other.parentElement?.querySelector('.session-item-actions-toggle')
+                        ?.setAttribute('aria-expanded', 'false');
+                });
+                menu.hidden = !expanded;
+                toggle.setAttribute('aria-expanded', String(expanded));
+            });
+
+            wrapper.append(toggle, menu);
+            return wrapper;
+        }
+
         function renderSidebarNames(list, placeholder, names, selected, query = '', type = '') {
             list.replaceChildren();
             const values = resourceMatches(Array.isArray(names) ? names : [], query);
@@ -2639,14 +2749,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     const settings = document.createElement('button');
                     settings.type = 'button';
                     settings.className = 'sidebar-settings';
-                    settings.textContent = '⚙';
+                    settings.textContent = '⚙︎';
                     settings.title = `Settings for ${type} ${name}`;
                     settings.setAttribute('aria-label', `Settings for ${type} ${name}`);
                     settings.addEventListener('click', (event) => {
                         event.stopPropagation();
                         openResourceSettings(type, name);
                     });
-                    item.appendChild(settings);
                     const remove = document.createElement('button');
                     remove.type = 'button';
                     remove.className = 'session-delete';
@@ -2657,7 +2766,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         event.stopPropagation();
                         deleteResource(type, name, remove);
                     });
-                    item.appendChild(remove);
+                    item.appendChild(createSidebarActionMenu(`${type} ${name}`, [
+                        { button: settings, label: 'Settings' },
+                        { button: remove, label: 'Delete' }
+                    ]));
                 }
                 list.appendChild(item);
             }
@@ -2794,6 +2906,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const expanded = credentialsPanel.hidden;
             credentialsPanel.hidden = !expanded;
             credentialsToggle.setAttribute('aria-expanded', String(expanded));
+            credentialsToggle.textContent = expanded ? 'Credentials \u25BE' : 'Credentials \u25B8';
             if (expanded && !credentialsLoaded) {
                 await loadCredentials();
             }
@@ -3120,6 +3233,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const expanded = filesPanel.hidden;
             filesPanel.hidden = !expanded;
             filesToggle.setAttribute('aria-expanded', String(expanded));
+            filesToggle.textContent = expanded ? 'Files \u25BE' : 'Files \u25B8';
             if (expanded && !filesLoaded) {
                 await loadFiles();
             }
@@ -3506,7 +3620,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const menuButton = document.createElement('button');
             menuButton.type = 'button';
             menuButton.className = 'workspace-file-menu';
-            menuButton.textContent = '⋮';
+            menuButton.textContent = '☰';
             menuButton.title = `Actions for ${entry.name}`;
             menuButton.setAttribute('aria-label', `Actions for ${entry.name}`);
             const menu = document.createElement('span');
@@ -3520,9 +3634,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     Edit: '\u270E',
                     Copy: '\u29C9',
                     Move: '\u21AA',
-                    Delete: '\u2715',
-                    Remove: '\u2715',
-                    'Delete tree': '\u2715',
+                    Delete: '\u00D7',
+                    Remove: '\u00D7',
+                    'Delete tree': '\u2612',
                     Download: '\u21E9'
                 };
                 const icon = document.createElement('span');
@@ -4254,7 +4368,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const expanded = workspaceFilesPanel.hidden;
             workspaceFilesPanel.hidden = !expanded;
             workspaceToggle.setAttribute('aria-expanded', String(expanded));
-            workspaceToggle.textContent = expanded ? 'Workspace \u25B4' : 'Workspace \u25BE';
+            workspaceToggle.textContent = expanded ? 'Workspace \u25BE' : 'Workspace \u25B8';
             if (!expanded) {
                 return;
             }
@@ -4656,6 +4770,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const expanded = toolsPanel.hidden;
             toolsPanel.hidden = !expanded;
             toolsToggle.setAttribute('aria-expanded', String(expanded));
+            toolsToggle.textContent = expanded ? 'Tools \u25BE' : 'Tools \u25B8';
             if (expanded && !toolsLoaded) {
                 await loadTools();
             }
@@ -4903,6 +5018,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const expanded = skillsPanel.hidden;
             skillsPanel.hidden = !expanded;
             skillsToggle.setAttribute('aria-expanded', String(expanded));
+            skillsToggle.textContent = expanded ? 'Skills \u25BE' : 'Skills \u25B8';
             if (expanded) {
                 await loadSkills();
             }
@@ -5020,7 +5136,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
             const details = document.createElement('details');
             const summary = document.createElement('summary');
-            summary.textContent = `Tool call: ${name}`;
+            const summaryLabel = `Tool call: ${name}`;
+            summary.textContent = `\u25B8 ${summaryLabel}`;
+            details.addEventListener('toggle', () => {
+                summary.textContent = `${details.open ? '\u25BE' : '\u25B8'} ${summaryLabel}`;
+            });
 
             const argumentsElement = document.createElement('pre');
             argumentsElement.textContent = argumentsText;
@@ -5177,19 +5297,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             actions.className = 'history-entry-actions';
             const definitions = [
                 ['edit', '✎', 'Edit this entry'],
-                [isHiddenHistoryItem(item) ? 'unhide' : 'hide', isHiddenHistoryItem(item) ? '◎' : '◉', isHiddenHistoryItem(item) ? 'Unhide this entry' : 'Hide this entry'],
-                ['prune', '✂', 'Prune this entry'],
-                ['cut', '⌫', 'Clear/cut this entry'],
+                [isHiddenHistoryItem(item) ? 'unhide' : 'hide', isHiddenHistoryItem(item) ? '⊙' : '⊘', isHiddenHistoryItem(item) ? 'Unhide this entry' : 'Hide this entry'],
+                ['prune', '⊖', 'Prune this entry'],
+                ['cut', '⌧', 'Clear this entry'],
                 ['delete', '×', 'Delete this entry'],
-                ['delete-below', '⇣', 'Delete this entry and all below']
+                ['delete-below', '×↓', 'Delete this entry and all below']
             ];
             for (const [action, icon, label] of definitions) {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'history-entry-action';
-                button.textContent = action === 'hide'
-                    ? '\u2298'
-                    : (action === 'unhide' ? '\u2299' : icon);
+                button.textContent = icon;
                 button.title = label;
                 button.setAttribute('aria-label', label);
                 button.addEventListener('click', async (event) => {
@@ -5302,7 +5420,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     .filter((index) => index !== null && index !== undefined)
             );
             const turnCount = turns.size || items.filter((item) => item.role === 'user').length;
-            summary.textContent = `Show ${items.length} hidden ${items.length === 1 ? 'entry' : 'entries'} · ${turnCount} ${turnCount === 1 ? 'turn' : 'turns'} affected`;
+            const summaryLabel = `Show ${items.length} hidden ${items.length === 1 ? 'entry' : 'entries'} · ${turnCount} ${turnCount === 1 ? 'turn' : 'turns'} affected`;
+            summary.textContent = `\u25B8 ${summaryLabel}`;
+            group.addEventListener('toggle', () => {
+                summary.textContent = `${group.open ? '\u25BE' : '\u25B8'} ${summaryLabel}`;
+            });
 
             const contents = document.createElement('div');
             contents.className = 'hidden-group-items';
@@ -5514,7 +5636,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const remove = document.createElement('button');
                 remove.type = 'button';
                 remove.className = 'session-delete';
-                remove.textContent = 'X';
+                remove.textContent = '\u00D7';
                 remove.title = `Permanently delete session ${session.name}`;
                 remove.setAttribute('aria-label', `Permanently delete session ${session.name}`);
                 remove.addEventListener('click', (event) => {
@@ -5525,7 +5647,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const rename = document.createElement('button');
                 rename.type = 'button';
                 rename.className = 'session-rename';
-                rename.textContent = '✎';
+                rename.textContent = '\u21C4';
                 rename.title = `Rename session ${session.name}`;
                 rename.setAttribute('aria-label', `Rename session ${session.name}`);
                 rename.addEventListener('click', (event) => {
@@ -5536,7 +5658,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const settings = document.createElement('button');
                 settings.type = 'button';
                 settings.className = 'sidebar-settings';
-                               settings.textContent = '⚙';
+                settings.textContent = '\u2699\uFE0E';
                 settings.title = `Settings for session ${session.name}`;
                 settings.setAttribute('aria-label', `Settings for session ${session.name}`);
                 settings.addEventListener('click', (event) => {
@@ -5555,7 +5677,49 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     openSessionCopy(session.name);
                 });
 
-                item.append(button, rename, copy, remove);
+                const actions = document.createElement('div');
+                actions.className = 'session-item-actions';
+                const actionsToggle = document.createElement('button');
+                actionsToggle.type = 'button';
+                actionsToggle.className = 'session-item-actions-toggle';
+                actionsToggle.textContent = '\u2630';
+                actionsToggle.title = `Actions for session ${session.name}`;
+                actionsToggle.setAttribute('aria-label', `Actions for session ${session.name}`);
+                actionsToggle.setAttribute('aria-haspopup', 'menu');
+                actionsToggle.setAttribute('aria-expanded', 'false');
+
+                const actionsMenu = document.createElement('div');
+                actionsMenu.className = 'session-item-actions-menu';
+                actionsMenu.setAttribute('role', 'menu');
+                actionsMenu.hidden = true;
+                const addMenuAction = (actionButton, description) => {
+                    const icon = actionButton.textContent;
+                    actionButton.replaceChildren(
+                        document.createTextNode(icon),
+                        document.createTextNode(` ${description}`)
+                    );
+                    actionButton.setAttribute('role', 'menuitem');
+                    actionButton.addEventListener('click', () => {
+                        actionsMenu.hidden = true;
+                        actionsToggle.setAttribute('aria-expanded', 'false');
+                    });
+                    actionsMenu.appendChild(actionButton);
+                };
+                addMenuAction(rename, 'Rename');
+                addMenuAction(settings, 'Settings');
+                addMenuAction(copy, 'Copy');
+                addMenuAction(remove, 'Delete');
+                actionsToggle.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const expanded = actionsMenu.hidden;
+                    document.querySelectorAll('.session-item-actions-menu').forEach((menu) => {
+                        menu.hidden = true;
+                    });
+                    actionsMenu.hidden = !expanded;
+                    actionsToggle.setAttribute('aria-expanded', String(expanded));
+                });
+                actions.append(actionsToggle, actionsMenu);
+                item.append(button, actions);
                 sessionList.appendChild(item);
             }
 
@@ -5635,6 +5799,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (!event.target.closest('#session-more-menu')) {
                 sessionMoreTools.hidden = true;
                 sessionMoreToggle.setAttribute('aria-expanded', 'false');
+            }
+            if (!event.target.closest('.session-item-actions')) {
+                document.querySelectorAll('.session-item-actions-menu').forEach((menu) => {
+                    menu.hidden = true;
+                    menu.parentElement?.querySelector('.session-item-actions-toggle')
+                        ?.setAttribute('aria-expanded', 'false');
+                });
             }
         });
 
@@ -6337,8 +6508,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             historyClear.hidden = false;
             historyHideLastTurn.hidden = false;
             historyHideAll.hidden = false;
-            historyHideAll.textContent = '\u2298 Hide history';
-            historyHideLastTurn.textContent = '\u2298 Hide last turn';
             settingsToggle.hidden = true;
             historyActions.hidden = false;
             showHistoryLoading();
@@ -6363,8 +6532,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             loadingEarlier = true;
             loadEarlier.disabled = true;
             loadAllHistory.disabled = true;
-            const originalText = loadAllHistory.textContent;
-            loadAllHistory.textContent = 'Loading entire history...';
+            const originalTitle = loadAllHistory.title;
+            loadAllHistory.title = 'Loading entire history...';
             error.hidden = true;
 
             try {
@@ -6385,7 +6554,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 loadingEarlier = false;
                 loadEarlier.disabled = false;
                 loadAllHistory.disabled = false;
-                loadAllHistory.textContent = originalText;
+                loadAllHistory.title = originalTitle;
             }
         }
 
