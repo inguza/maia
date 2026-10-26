@@ -199,6 +199,17 @@ build_system_text() {
 	sys+=$'\n\n'"$smemh"$'\n'
 	sys+="$skill_memory"$'\n'
     fi
+    local instruction_list=""
+    local instruction_memory=""
+    if [[ "$no_instructions" != true ]]; then
+	local instructionset_file="$(file_for_scope "session" "instructionset.txt")"
+	local instruction_list_file="$(mktemp)"
+	local instruction_memory_file="$(mktemp)"
+	generate_instructionset_gen "session" "$instructionset_file" "$instruction_list_file" "$instruction_memory_file"
+	instruction_list="$(read_file "$instruction_list_file")"
+	instruction_memory="$(read_file "$instruction_memory_file")"
+	rm -f "$instruction_list_file" "$instruction_memory_file"
+    fi
     if [[ -n "$instruction_list" ]] ; then
 	local slisth="$(prompt_for_scope "session" "instructions")"
 	sys+=$'\n\n'"$slisth"$'\n'
@@ -330,7 +341,7 @@ build_messages_json() {
             APPEND)
 		# Outbox content plus appended files instructions and fenced files
 		# Prepare files instructions and fenced content if any
-		local files_section=$'\n\n'"$file_instruction"$'\n\n'"# Files"$'\n\n'"$filesinstr"$'\n\n'"$combined"
+		local files_section=$'\n\n\n\n# Files\n\n'"$filesinstr"$'\n\n'"$combined"
 		# Then append the files section to the end of the last user message
 		printf '%s' "$files_section" > "$tmpf"
 		msgs=$(jq --rawfile content "$tmpf" '

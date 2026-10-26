@@ -1,6 +1,6 @@
 ---
 description: How to read and manipulate files using file, util-* and change tools
-all-tool: file-*
+any-tool: file-* util-* context-file-* change-*
 loadable: false
 ---
 
