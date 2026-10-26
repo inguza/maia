@@ -53,6 +53,13 @@ if (!is_resource($process)) {
 fwrite($pipes[0], $message);
 fclose($pipes[0]);
 
+// Make sure the webserver do not close down things because of timeout or because
+// of client shutdown.
+// No PHP execution time limit
+set_time_limit(0);
+// Continue if client disconnects
+ignore_user_abort(true);
+
 // Both pipes must be consumed while MAIA is running. Otherwise a full stderr
 // pipe could block the process even when stdout is being read.
 stream_set_blocking($pipes[1], false);
