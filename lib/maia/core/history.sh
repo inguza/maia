@@ -338,6 +338,84 @@ history_update_tool_relationships() {
     return "$status"
 }
 
+history_restore_range() {
+    local history_file="$1" raw_range="$2"
+    local slice
+    slice="$(range_defaults "$raw_range")"
+
+    acquire_lock "${history_file}.lock" ""
+    local indexed_history
+    if ! indexed_history="$(jq "$jq_add_indexes" "$history_file")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local selected_indexes
+    if ! selected_indexes="$(jq "[.[${slice}][] | .index]" <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local restore_filter='
+        . as $history
+        | ([ $indexes[] as $index
+             | $history[$index]
+             | select(has("backup") and (.backup.tool_calls? | type) == "array")
+             | .backup.tool_calls[]?.id
+             | select(type == "string" and length > 0)
+           ] | unique) as $restored_tool_call_ids
+        | to_entries
+        | map(
+            .key as $index
+            | .value as $item
+            | if (($indexes | index($index)) != null) and ($item | has("backup")) then
+                ($item
+                 | if .backup | has("content") then .content = .backup.content else . end
+                 | if .backup | has("tool_calls") then .tool_calls = .backup.tool_calls else . end
+                 | if .backup | has("data") then .data = .backup.data else . end
+                 | if .call_pruned == true then
+                     del(.summarized)
+                   else
+                     del(.hidden, .summarized, .call_pruned)
+                   end)
+              else
+                $item
+              end
+          )
+        | map(
+            if .role == "tool"
+               and (.tool_call_id as $id | ($restored_tool_call_ids | index($id)) != null)
+            then del(.hidden, .call_pruned)
+            else .
+            end
+          )
+    '
+
+    local prospective
+    if ! prospective="$(jq --argjson indexes "$selected_indexes" "$restore_filter" <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local before_issues after_issues
+    if ! before_issues="$(jq -f "$MAIA_CORE_LIB_DIR/history-verify.jq" <<<"$indexed_history" | jq -S -s 'sort_by(.problem, .timestamp, .id, .tool_call_id)')" ||
+       ! after_issues="$(jq -f "$MAIA_CORE_LIB_DIR/history-verify.jq" <<<"$prospective" | jq -S -s 'sort_by(.problem, .timestamp, .id, .tool_call_id)')"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+    if [[ "$before_issues" != "$after_issues" ]]; then
+        warn "Cannot restore these entries: the restore would leave an assistant tool call without a later result, or a tool result without a visible call. Restore the complete tool exchange first."
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+
+    local status=0
+    json_modify "$history_file" --argjson indexes "$selected_indexes" \
+        "${jq_add_indexes} | ${restore_filter} | map(del(.index, .user_index, .assistant_index, .tool_index))" || status=$?
+    release_lock "${history_file}.lock"
+    return "$status"
+}
+
 history_prune() {
     local role=""
     local -a ranges=()
@@ -733,56 +811,9 @@ handle_history_command() {
 
 	restore)
 	    shift
-	    local slice=$(range_defaults "${1:-}")
-	    exclusive_json_modify "$history_file" "
-              (
-                [
-                  .[${slice}][]
-                  | select(
-                      has(\"backup\")
-                      and (.backup | has(\"tool_calls\"))
-                    )
-                  | .backup.tool_calls[].id
-                ] as \$restored_tool_call_ids
-
-                | .[${slice}] |= map(
-                    if has(\"backup\") then
-                      if .backup | has(\"content\") then
-                        .content = .backup.content
-                      else
-                        .
-                      end
-                      | if .backup | has(\"tool_calls\") then
-                        .tool_calls = .backup.tool_calls
-                      else
-                        .
-                      end
-                      | if .backup | has(\"data\") then
-                        .data = .backup.data
-                      else
-                        .
-                      end
-                      | if .call_pruned == true then
-                          del(.summarized)
-                        else
-                          del(.hidden, .summarized, .call_pruned)
-                        end
-                    else
-                      .
-                    end
-                  )
-                | map(
-                    if .role == \"tool\"
-                       and (.tool_call_id // \"\") as \$id
-                       | (\$restored_tool_call_ids | index(\$id)) != null
-                    then
-                      del(.hidden, .call_pruned)
-                    else
-                      .
-                    end
-                  )
-              )
-            "
+            if ! history_restore_range "$history_file" "${1:-}"; then
+                return 1
+            fi
 	    info "Entries restored in history '$history_name'."
 	    ;;
 
