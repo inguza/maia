@@ -238,7 +238,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MAIA</title>
+    <title>MAIA - <?= escape($initialTitle) ?></title>
     <style>
         :root {
             color-scheme: light dark;
@@ -2463,6 +2463,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sessionTitle = document.getElementById('session-title');
         const messageSessionName = document.getElementById('message-session-name');
 
+        function updateBrowserTitle() {
+            const pageTitle = sessionTitle?.textContent.trim();
+            document.title = pageTitle ? `MAIA - ${pageTitle}` : 'MAIA';
+        }
+
         function renderSessionWorkspaceTitle() {
             if (!sessionTitle || !sessionWorkspacePage || !urlSessionName) {
                 return;
@@ -2474,6 +2479,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             link.href = maiaUrl(`/session/${encodeURIComponent(urlSessionName)}`);
             link.textContent = urlSessionName;
             sessionTitle.append(link, document.createTextNode(' / workspace'));
+            updateBrowserTitle();
         }
         const sessionList = document.getElementById('session-list');
         const sessionListPlaceholder = document.getElementById('session-list-placeholder');
@@ -5732,6 +5738,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (messageSessionName) {
                     messageSessionName.textContent = selectedSessionName || 'No session selected';
                 }
+                updateBrowserTitle();
             }
 
             for (const session of sessions) {
@@ -5995,6 +6002,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     urlSessionName = newName;
                     history.replaceState({}, '', maiaUrl(`/session/${encodeURIComponent(newName)}`));
                     sessionTitle.textContent = `session: ${newName}`;
+                    updateBrowserTitle();
                     if (messageSessionName) {
                         messageSessionName.textContent = newName;
                     }
