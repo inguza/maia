@@ -23,8 +23,12 @@ COMMANDS
   pop [options] [<n>]
     Remove & print last n entries (default 1).
 
+    NOTE! Does not have any safety checks. Use with care.
+
   top [options] [<n>]
     Remove & print first n entries (default 1).
+
+    NOTE! Does not have any safety checks. Use with care.
 
   delete [<range>]
     Delete entries in n–m inclusive for given range.
