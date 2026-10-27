@@ -1852,6 +1852,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             width: 100%;
         }
 
+        .file-completion-loading {
+            align-items: center;
+            color: #6b7280;
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.45rem 0.55rem;
+        }
+
         .file-completion-option:hover,
         .file-completion-option.selected,
         .resource-completion-option:hover,
@@ -3816,6 +3824,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return prefix;
         }
 
+        function showFileCompletionLoading() {
+            fileCompletionMenu.replaceChildren();
+            const status = document.createElement('div');
+            status.className = 'file-completion-loading';
+            status.setAttribute('role', 'status');
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.textContent = 'Loading files...';
+            status.append(spinner, label);
+            fileCompletionMenu.appendChild(status);
+            fileCompletionMenu.hidden = false;
+        }
+
         function renderFileCompletionMenu() {
             fileCompletionMenu.replaceChildren();
             if (fileCompletionCandidates.length === 0) {
@@ -3844,6 +3867,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const requestId = ++fileCompletionRequest;
             fileCompletionQuery = value;
             fileCompletionPending = true;
+            showFileCompletionLoading();
             try {
                 const response = await fetch(`/api/file/complete?path=${encodeURIComponent(value)}`);
                 const result = await response.json();
@@ -3889,7 +3913,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             fileCompletionCandidates = [];
             fileCompletionQuery = filePath.value;
             fileCompletionPending = true;
-            renderFileCompletionMenu();
+            showFileCompletionLoading();
             window.clearTimeout(fileCompletionTimer);
             fileCompletionTimer = window.setTimeout(updateFileCompletions, 100);
         });
