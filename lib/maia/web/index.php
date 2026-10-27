@@ -2312,14 +2312,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <?php endif; ?>
                     <button id="settings-toggle" type="button" hidden
                             aria-expanded="false">&#x2699;&#xFE0E;</button>
-                    <button id="files-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
+                    <button id="files-toggle" type="button"<?= $pureWorkspaceBrowserPage || (!$sessionWorkspacePage && $sessionWorkspaceName === '') ? ' hidden' : '' ?>
                             aria-expanded="false">Files ▸</button>
                     <button id="skills-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Skills ▸</button>
                     <button id="tools-toggle" type="button"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>
                             aria-expanded="false">Tools ▸</button>
 <?php if (!$isResourcePage): ?>
-                    <button id="workspace-toggle" type="button"
+                    <button id="workspace-toggle" type="button"<?= !$sessionWorkspacePage && $sessionWorkspaceName === '' ? ' hidden' : '' ?>
                             aria-expanded="false">Workspace ▸</button>
 <?php endif; ?>
                 </div>
@@ -2716,6 +2716,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let urlSessionName = null;
         let urlWorkspaceName = null;
         let sessionWorkspaceActive = sessionWorkspacePage;
+        let selectedSessionWorkspaceName = serverSessionWorkspaceName;
         let urlProfileName = null;
         const maiaPath = maiaBasePath && location.pathname.startsWith(maiaBasePath)
             ? location.pathname.slice(maiaBasePath.length) || '/'
@@ -2754,7 +2755,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (session && !headers.has('X-MAIA-Session')) {
                 headers.set('X-MAIA-Session', session);
             }
-            const requestWorkspaceName = urlWorkspaceName || (sessionWorkspaceActive ? serverSessionWorkspaceName : '');
+            const requestWorkspaceName = urlWorkspaceName || (sessionWorkspaceActive ? selectedSessionWorkspaceName : '');
             if (requestWorkspaceName) {
                 headers.set('X-MAIA-Workspace', requestWorkspaceName);
             }
@@ -3439,6 +3440,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 setSelectOptions(settingWorkspace, result.workspaces, result.workspace);
                 setSelectOptions(settingFilesets, result.filesetOptions, result.filesets, true);
                 setSelectOptions(settingExtraFilesets, result.filesetOptions, result.extraSendFilesets, true);
+                if (selectedSessionName) {
+                    const workspaceName = String(result.workspace ?? '').trim();
+                    knownSessions = knownSessions.map((session) => session.name === selectedSessionName
+                        ? { ...session, workspace: workspaceName }
+                        : session);
+                    displayedSessions = displayedSessions.map((session) => session.name === selectedSessionName
+                        ? { ...session, workspace: workspaceName }
+                        : session);
+                    updateSessionWorkspaceControls();
+                }
                 settingsStatus.textContent = 'Saved.';
                 filesLoaded = false;
                 if (!filesPanel.hidden) {
@@ -4800,7 +4811,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             if (!expanded) {
                 return;
             }
-            if (serverSessionWorkspaceName === '' && !urlWorkspaceName) {
+            if (selectedSessionWorkspaceName === '' && !urlWorkspaceName) {
                 workspaceFileStatus.textContent = 'This session has no workspace configured.';
                 workspaceFileStatus.classList.add('error');
                 return;
@@ -6030,6 +6041,31 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let selectionController = null;
         let selectionRequestId = 0;
 
+        function updateSessionWorkspaceControls() {
+            if (urlWorkspaceName || urlProfileName || urlHomeName || sessionWorkspacePage) {
+                return;
+            }
+            const selectedSession = knownSessions.find((session) => session.name === selectedSessionName);
+            selectedSessionWorkspaceName = String(selectedSession?.workspace ?? '').trim();
+            const hasWorkspace = selectedSessionWorkspaceName !== '';
+            if (!hasWorkspace) {
+                if (filesPanel) filesPanel.hidden = true;
+                if (workspaceFilesPanel) workspaceFilesPanel.hidden = true;
+            }
+            const filesExpanded = hasWorkspace && Boolean(filesPanel && !filesPanel.hidden);
+            const workspaceExpanded = hasWorkspace && Boolean(workspaceFilesPanel && !workspaceFilesPanel.hidden);
+            if (filesToggle) {
+                filesToggle.hidden = !hasWorkspace;
+                filesToggle.setAttribute('aria-expanded', String(filesExpanded));
+                filesToggle.textContent = `Files ${String.fromCharCode(filesExpanded ? 0x25BE : 0x25B8)}`;
+            }
+            if (workspaceToggle) {
+                workspaceToggle.hidden = !hasWorkspace;
+                workspaceToggle.setAttribute('aria-expanded', String(workspaceExpanded));
+                workspaceToggle.textContent = `Workspace ${String.fromCharCode(workspaceExpanded ? 0x25BE : 0x25B8)}`;
+            }
+        }
+
         function renderSessions(sessions, selected) {
             displayedSessions = sessions;
             sessionList.replaceChildren();
@@ -6039,6 +6075,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             sessionListPlaceholder.hidden = sessions.length > 0;
 
             selectedSessionName = selected || null;
+            updateSessionWorkspaceControls();
             if (sessionTitleRename) {
                 sessionTitleRename.hidden = !selectedSessionName;
             }
@@ -6712,7 +6749,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     throw new Error(result.error || 'Unable to load MAIA sessions.');
                 }
                 knownSessions = result.sessions || [];
-                renderSessions(knownSessions, urlWorkspaceName ? null : (result.selected || null));
+                renderSessions(knownSessions, urlWorkspaceName ? null : (urlSessionName || result.selected || null));
                 if (workspaceSessionStatus) {
                     workspaceSessionStatus.hidden = true;
                 }
@@ -6753,6 +6790,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 history.pushState({}, '', maiaUrl(`/session/${encodeURIComponent(name)}`));
                 urlSessionName = name;
                 selectedSessionName = name;
+                sessionWorkspaceActive = false;
+                if (filesPanel) filesPanel.hidden = true;
+                if (workspaceFilesPanel) workspaceFilesPanel.hidden = true;
+                filesToggle?.setAttribute('aria-expanded', 'false');
+                filesToggle?.replaceChildren(document.createTextNode('Files ' + String.fromCharCode(0x25B8)));
+                workspaceToggle?.setAttribute('aria-expanded', 'false');
+                workspaceToggle?.replaceChildren(document.createTextNode('Workspace ' + String.fromCharCode(0x25B8)));
 
                 const selectedSessions = knownSessions.map((session) => ({
                     ...session,

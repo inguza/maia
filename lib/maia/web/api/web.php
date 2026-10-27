@@ -270,6 +270,30 @@ function maia_web_relative_home_path(string $path): string
     return $relative === [] ? '.' : implode('/', $relative);
 }
 
+function maia_web_session_exists(string $name): bool
+{
+    if (!preg_match('/^[A-Za-z0-9_.%+-]+$/', $name) || $name === '_EMPTY_') {
+        return false;
+    }
+
+    $process = proc_open(
+        [maia_web_binary(), 'session', 'exist', $name],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $pipes,
+        null,
+        maia_web_environment()
+    );
+    if (!is_resource($process)) {
+        return false;
+    }
+    fclose($pipes[0]);
+    stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+    return proc_close($process) === 0;
+}
+
 function maia_web_ensure_session(string $name): bool
 {
     if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name) || $name === '_EMPTY_') {

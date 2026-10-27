@@ -56,9 +56,16 @@ if (preg_match('#^/session/([^/]+)(?:/(.*))?$#', $path, $matches)) {
         return true;
     }
     $_SERVER['MAIA_URL_SESSION'] = $session;
+    require_once __DIR__ . '/api/web.php';
+    maia_web_validate_environment();
+    maia_web_authenticate_page();
+    if (!maia_web_session_exists($session)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Session ' . $session . ' does not exist.' . PHP_EOL;
+        return true;
+    }
     if ($relativePath !== '' || (string) ($_GET['workspace'] ?? '') === '1') {
-        require_once __DIR__ . '/api/web.php';
-        maia_web_validate_environment();
         $workspace = maia_web_session_workspace($session);
         if ($workspace === null) {
             http_response_code(404);
