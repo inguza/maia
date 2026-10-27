@@ -184,25 +184,8 @@ function maia_web_authenticate_page(): bool
 
 function maia_web_home_dir(): ?string
 {
-    $process = proc_open(
-        [maia_web_binary(), 'home', 'show'],
-        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-        $pipes,
-        null,
-        maia_web_environment()
-    );
-    if (!is_resource($process)) {
-        return null;
-    }
-    fclose($pipes[0]);
-    $output = trim((string) stream_get_contents($pipes[1]));
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-    $status = proc_close($process);
-    if ($status !== 0 || $output === '') {
-        return null;
-    }
-    return rtrim($output, DIRECTORY_SEPARATOR . '/\\');
+    $home = getenv('MAIA_HOME')."/.maia";
+    return is_string($home) && $home !== '' ? $home : null;
 }
 
 function maia_web_workspace_base(): ?string
