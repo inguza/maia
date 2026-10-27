@@ -1143,6 +1143,81 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             user-select: none;
         }
 
+        .workspace-view-content.workspace-markdown-content {
+            font-family: system-ui, sans-serif;
+            padding: 1rem;
+            user-select: text;
+        }
+
+        .workspace-markdown-block {
+            align-items: start;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: minmax(3.25rem, max-content) minmax(0, 1fr);
+            margin: 0 0 0.35rem;
+            overflow-wrap: anywhere;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .workspace-markdown-line-number {
+            color: #9ca3af;
+            font: 0.75rem/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            padding-top: 0.1rem;
+            text-align: right;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .workspace-markdown-block-content {
+            min-width: 0;
+        }
+
+        .workspace-markdown-block:hover {
+            background: color-mix(in srgb, #2563eb 8%, Canvas);
+        }
+
+        .workspace-markdown-block.selected {
+            background: color-mix(in srgb, #2563eb 24%, Canvas);
+        }
+
+        .workspace-markdown-block-content > :first-child {
+            margin-top: 0;
+        }
+
+        .workspace-markdown-block-content > :last-child {
+            margin-bottom: 0;
+        }
+
+        .workspace-markdown-block table {
+            border-collapse: collapse;
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+            width: max-content;
+        }
+
+        .workspace-markdown-block th,
+        .workspace-markdown-block td {
+            border: 1px solid #9ca3af;
+            padding: 0.3rem 0.55rem;
+            text-align: left;
+        }
+
+        .workspace-markdown-block pre {
+            overflow-x: auto;
+        }
+
+        .workspace-markdown-block img {
+            height: auto;
+            max-width: 100%;
+        }
+
+        .workspace-markdown-block input[type="checkbox"] {
+            margin-right: 0.4rem;
+        }
+
         #workspace-view-edit-content {
             border: 0;
             border-top: 1px solid #d1d5db;
@@ -2383,6 +2458,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             setInitialLoadingState();
         })();
     </script>
+    <script src="<?= escape($webBasePath) ?>/marked-18.0.14.umd.js"></script>
+    <script src="<?= escape($webBasePath) ?>/purify-3.4.17.min.js"></script>
+    <script src="<?= escape($webBasePath) ?>/markdown-viewer.js"></script>
     <script>
         const maiaBasePath = <?= json_encode($webBasePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const initialWorkspaceEntries = <?= json_encode($initialWorkspaceEntries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
@@ -3676,6 +3754,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let workspaceTargetSession = sessionWorkspacePage ? (urlSessionName || '') : '';
         let workspaceViewStart = null;
         let workspaceViewEnd = null;
+        let workspaceMarkdownAnchorStart = null;
+        let workspaceMarkdownAnchorEnd = null;
         let workspaceViewPointerSelecting = false;
         let workspaceViewPointerDragged = false;
 
@@ -4060,15 +4140,167 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             renderWorkspaceBreadcrumb(workspaceViewTitle, path);
         }
 
+        function normalizeMarkdownWorkspacePath(sourcePath, targetPath) {
+            let decoded;
+            try {
+                decoded = decodeURIComponent(targetPath);
+            } catch (_) {
+                return null;
+            }
+            decoded = decoded.replace(/\\/g, '/');
+            if (decoded === '') return sourcePath;
+            const parts = decoded.startsWith('/')
+                ? []
+                : sourcePath.split('/').filter(Boolean).slice(0, -1);
+            for (const part of decoded.split('/')) {
+                if (part === '' || part === '.') continue;
+                if (part === '..') {
+                    if (parts.length === 0) return null;
+                    parts.pop();
+                } else {
+                    parts.push(part);
+                }
+            }
+            return parts.join('/');
+        }
+
+        function resolveMarkdownDestination(sourcePath, rawDestination) {
+            const value = String(rawDestination || '').trim();
+            if (value === '') return { kind: 'workspace', path: sourcePath, suffix: '' };
+            if (value.startsWith('//')) return { kind: 'external', url: `https:${value}` };
+            const scheme = value.match(/^([a-z][a-z0-9+.-]*):/i);
+            if (scheme) {
+                const protocol = scheme[1].toLowerCase();
+                if (!['http', 'https', 'mailto', 'tel'].includes(protocol)) return null;
+                try {
+                    const url = new URL(value);
+                    return { kind: 'external', url: url.href };
+                } catch (_) {
+                    return null;
+                }
+            }
+            const suffixAt = value.search(/[?#]/);
+            const rawPath = suffixAt < 0 ? value : value.slice(0, suffixAt);
+            const suffix = suffixAt < 0 ? '' : value.slice(suffixAt);
+            const path = normalizeMarkdownWorkspacePath(sourcePath, rawPath);
+            return path === null ? null : { kind: 'workspace', path, suffix };
+        }
+
+        function renderMarkdownWorkspaceFile(content, path) {
+            if (typeof window.maiaRenderWorkspaceMarkdown !== 'function') {
+                throw new Error('The Markdown viewer could not be loaded.');
+            }
+            workspaceViewContent.classList.add('workspace-markdown-content');
+            workspaceViewContent.replaceChildren(window.maiaRenderWorkspaceMarkdown(content));
+
+            for (const link of workspaceViewContent.querySelectorAll('a[href]')) {
+                const destination = resolveMarkdownDestination(path, link.getAttribute('href'));
+                if (!destination) {
+                    link.removeAttribute('href');
+                    continue;
+                }
+                if (destination.kind === 'external') {
+                    link.href = destination.url;
+                    if (/^https?:/i.test(destination.url)) {
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                    }
+                } else {
+                    link.href = `${workspaceLocation(destination.path)}${destination.suffix}`;
+                }
+            }
+
+            for (const image of workspaceViewContent.querySelectorAll('img[src]')) {
+                const destination = resolveMarkdownDestination(path, image.getAttribute('src'));
+                if (!destination) {
+                    image.removeAttribute('src');
+                    continue;
+                }
+                image.loading = 'lazy';
+                if (destination.kind === 'external') {
+                    if (!/^https?:/i.test(destination.url)) {
+                        image.removeAttribute('src');
+                        continue;
+                    }
+                    image.referrerPolicy = 'no-referrer';
+                    image.src = destination.url;
+                } else {
+                    image.src = maiaUrl(`/api/workspace/operation?workspace=${encodeURIComponent(urlWorkspaceName)}&path=${encodeURIComponent(destination.path)}&raw=1`);
+                }
+            }
+
+            workspaceViewContent.querySelectorAll('.workspace-markdown-block').forEach((block) => {
+                const selectBlock = (extend = false) => {
+                    const blockStart = Number(block.dataset.lineStart);
+                    const blockEnd = Number(block.dataset.lineEnd);
+                    if (!Number.isInteger(blockStart) || !Number.isInteger(blockEnd)) return;
+                    if (extend && workspaceMarkdownAnchorStart !== null) {
+                        if (blockStart < workspaceMarkdownAnchorStart) {
+                            workspaceViewStart = blockStart;
+                            workspaceViewEnd = workspaceMarkdownAnchorEnd;
+                        } else {
+                            workspaceViewStart = workspaceMarkdownAnchorStart;
+                            workspaceViewEnd = blockEnd;
+                        }
+                    } else {
+                        workspaceMarkdownAnchorStart = blockStart;
+                        workspaceMarkdownAnchorEnd = blockEnd;
+                        workspaceViewStart = blockStart;
+                        workspaceViewEnd = blockEnd;
+                    }
+                    const first = Math.min(workspaceViewStart, workspaceViewEnd);
+                    const last = Math.max(workspaceViewStart, workspaceViewEnd);
+                    workspaceViewContent.querySelectorAll('.workspace-markdown-block').forEach((candidate) => {
+                        const start = Number(candidate.dataset.lineStart);
+                        const end = Number(candidate.dataset.lineEnd);
+                        candidate.classList.toggle('selected', start <= last && end >= first);
+                    });
+                    const selectionLabel = `Selected source lines: ${first}-${last}`;
+                    if (workspaceFileViewHelp) {
+                        workspaceFileViewHelp.textContent = selectionLabel;
+                    }
+                    workspaceViewStatus.textContent = selectionLabel;
+                    updateWorkspaceSelectionActions();
+                };
+                block.addEventListener('pointerdown', (event) => {
+                    if (event.target.closest('a, button, input')) return;
+                    event.preventDefault();
+                    workspaceViewPointerSelecting = true;
+                    workspaceViewPointerDragged = false;
+                    selectBlock(event.shiftKey);
+                });
+                block.addEventListener('pointerenter', () => {
+                    if (workspaceViewPointerSelecting) {
+                        workspaceViewPointerDragged = true;
+                        selectBlock(true);
+                    }
+                });
+                block.addEventListener('pointerup', () => {
+                    workspaceViewPointerSelecting = false;
+                });
+                block.addEventListener('click', (event) => {
+                    if (event.target.closest('a, button, input')) return;
+                    if (!event.shiftKey && !workspaceViewPointerDragged) selectBlock(false);
+                    workspaceViewPointerSelecting = false;
+                    workspaceViewPointerDragged = false;
+                });
+            });
+        }
+
         async function viewWorkspaceFile(entry, editMode = false, triggerButton = null) {
             renderWorkspaceViewTitle(entry.path);
             workspaceViewContent.replaceChildren();
+            workspaceViewContent.classList.remove('workspace-markdown-content');
             workspaceViewEditContent.value = '';
             workspaceViewStatus.textContent = '';
             workspaceFileView.dataset.binary = '0';
             if (workspaceAddFiles) workspaceAddFiles.textContent = 'Add selected';
             workspaceViewStart = null;
             workspaceViewEnd = null;
+            workspaceMarkdownAnchorStart = null;
+            workspaceMarkdownAnchorEnd = null;
+            workspaceViewPointerSelecting = false;
+            workspaceViewPointerDragged = false;
             if (workspaceFileViewHelp) {
                 workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
             }
@@ -4143,13 +4375,34 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 } else {
                     const content = String(result.content ?? '');
                     if (editMode) {
+                        workspaceViewContent.classList.remove('workspace-markdown-content');
                         workspaceViewEditContent.value = content;
                         workspaceViewEditContent.focus();
+                    } else if (/\.(?:md|markdown)$/i.test(entry.path)) {
+                        try {
+                            renderMarkdownWorkspaceFile(content, entry.path);
+                            workspaceViewStatus.textContent = 'Click a block, or drag across blocks, to select their source lines.';
+                            if (workspaceFileViewHelp) {
+                                workspaceFileViewHelp.hidden = false;
+                                workspaceFileViewHelp.textContent = 'Select blocks below to add their source lines to a session.';
+                            }
+                        } catch (markdownError) {
+                            // If a local renderer asset fails to load, still show
+                            // the file safely as plain text rather than a blank view.
+                            workspaceViewContent.classList.remove('workspace-markdown-content');
+                            workspaceViewContent.textContent = content;
+                            workspaceViewStatus.textContent = `Markdown preview unavailable: ${markdownError.message || 'rendering failed.'}`;
+                            if (workspaceFileViewHelp) {
+                                workspaceFileViewHelp.hidden = false;
+                                workspaceFileViewHelp.textContent = 'Showing source text because Markdown preview is unavailable.';
+                            }
+                        }
                     } else {
+                        workspaceViewContent.classList.remove('workspace-markdown-content');
                         // Split on actual Unix, Windows, or classic Mac line endings.
-                    // Keeping empty elements is important: blank lines have line
-                    // numbers too.
-                    const lines = content.split(/\r\n|\n|\r/);
+                        // Keeping empty elements is important: blank lines have line
+                        // numbers too.
+                        const lines = content.split(/\r\n|\n|\r/);
                     const selectLineRange = (lineNumber, extend = false) => {
                         if (extend && workspaceViewStart !== null) {
                             workspaceViewEnd = lineNumber;
@@ -4271,7 +4524,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             workspaceRelativePath = parts.join('/');
             workspaceViewStart = null;
             workspaceViewEnd = null;
-            workspaceViewContent?.querySelectorAll('.workspace-view-line.selected').forEach((line) => line.classList.remove('selected'));
+            workspaceMarkdownAnchorStart = null;
+            workspaceMarkdownAnchorEnd = null;
+            workspaceViewContent?.querySelectorAll('.workspace-view-line.selected, .workspace-markdown-block.selected').forEach((line) => line.classList.remove('selected'));
             if (workspaceFileViewHelp) {
                 workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
             }
@@ -4570,7 +4825,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 await addWorkspaceFilesToSession([`${workspaceRelativePath}:${first}-${last}`], workspaceTargetSession, workspaceAddFiles);
                 workspaceViewStart = null;
                 workspaceViewEnd = null;
-                workspaceViewContent?.querySelectorAll('.workspace-view-line.selected').forEach((line) => line.classList.remove('selected'));
+                workspaceMarkdownAnchorStart = null;
+                workspaceMarkdownAnchorEnd = null;
+                workspaceViewContent?.querySelectorAll('.workspace-view-line.selected, .workspace-markdown-block.selected').forEach((line) => line.classList.remove('selected'));
                 if (workspaceFileViewHelp) {
                     workspaceFileViewHelp.textContent = 'Mark lines below to add to a session.';
                 }
