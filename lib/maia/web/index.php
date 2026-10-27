@@ -2111,7 +2111,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <?php if (!$isResourcePage && !$sessionWorkspacePage): ?>
             <button id="session-title-rename" class="session-title-rename" type="button"
                     aria-label="Rename session" title="Rename session"
-                    <?= $initialSessionName === 'No session selected' ? 'hidden' : '' ?>>&#x21C4;</button>
+                    <?= $initialSessionName === 'No session selected' ? 'hidden' : '' ?>>&#x270E;</button>
 <?php endif; ?>
             <span id="profile-page-scope" class="settings-status" hidden></span>
             <button id="create-profile" type="button"<?= !$isResourcePage ? ' hidden' : '' ?>>Create profile</button>
@@ -2209,11 +2209,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         <div id="session-more-tools" hidden>
                             <button id="history-refresh" class="history-refresh" type="button" aria-label="Refresh history" title="Refresh history">↻ Refresh history</button>
                             <button id="session-action-copy" type="button" aria-label="Copy session" title="Copy session">⧉ Copy session</button>
-                            <button id="session-action-rename" type="button" aria-label="Rename session" title="Rename session">&#x21C4; Rename session</button>
+                            <button id="session-action-rename" type="button" aria-label="Rename session" title="Rename session">&#x270E; Rename session</button>
                             <button id="session-action-settings" type="button" aria-label="Session settings" title="Session settings">&#x2699;&#xFE0E; Session settings</button>
-                            <button id="compact-history" type="button" aria-label="Compact history" title="Compact history">&#x224B; Compact history</button>
-                            <button id="history-clear" type="button" title="Delete entire history">&#x2327; Delete history</button>
-                            <button id="history-hide-all" type="button" title="Hide entire history">&#x2298; Hide history</button>
+                            <button id="compact-history" type="button" aria-label="Compact history" title="Compact history">&#x224B;&#x2195; Compact history</button>
+                            <button id="history-clear" type="button" title="Delete entire history">&#x2327;&#x2195; Delete history</button>
+                            <button id="history-hide-all" type="button" title="Hide entire history">&#x2298;&#x2195; Hide history</button>
                             <button id="history-hide-last-turn" type="button" title="Hide last turn">&#x2298; Hide last turn</button>
                         </div>
                     </div>
@@ -3786,7 +3786,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const action = document.createElement('button');
                 action.type = 'button';
                 const icons = {
-                    Rename: '\u21C4',
+                    Rename: '\u270E',
                     Edit: '\u270E',
                     Copy: '\u29C9',
                     Move: '\u21AA',
@@ -5474,12 +5474,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 ['delete-below', '×↓', 'Delete this entry and all below']
             ];
             for (const [action, icon, label] of definitions) {
+                if (action === 'prune' && !['assistant', 'tool'].includes(item.role)) {
+                    continue;
+                }
+                const actionIcon = action === 'prune' ? '\u224B' : icon;
+                const actionLabel = action === 'prune' ? 'Reduce' : label;
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'history-entry-action';
-                button.textContent = icon;
-                button.title = label;
-                button.setAttribute('aria-label', label);
+                button.textContent = actionIcon;
+                button.title = actionLabel;
+                button.setAttribute('aria-label', actionLabel);
                 if (item.role === 'tool') {
                     const matchingCalls = historyItems.flatMap((candidate) =>
                         candidate.role === 'assistant' && Array.isArray(candidate.tool_calls)
@@ -5529,12 +5534,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                             : action === 'cut'
                                 ? 'Clear/cut this history entry? Its original content will be retained as a backup.'
                                 : action === 'prune'
-                                    ? 'Prune this history entry? Its original content will be retained as a backup.'
+                                    ? 'Reduce this history entry? Its original content will be retained as a backup.'
                                     : '';
                     if (confirmation && !window.confirm(confirmation)) {
                         return;
                     }
-                    setButtonBusy(button, `${label}...`);
+                    setButtonBusy(button, `${actionLabel}...`);
                     try {
                         await performHistoryAction(action, item);
                     } catch (requestError) {
@@ -5851,7 +5856,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const rename = document.createElement('button');
                 rename.type = 'button';
                 rename.className = 'session-rename';
-                rename.textContent = '\u21C4';
+                rename.textContent = '\u270E';
                 rename.title = `Rename session ${session.name}`;
                 rename.setAttribute('aria-label', `Rename session ${session.name}`);
                 rename.addEventListener('click', (event) => {
