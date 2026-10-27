@@ -3185,6 +3185,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 profileNames = Array.isArray(result.profiles) ? result.profiles : [];
                 selectedWorkspaceName = urlWorkspaceName || result.workspace || null;
                 selectedProfileName = urlProfileName || result.profile || null;
+                if (!urlWorkspaceName && !urlProfileName && !urlHomeName && selectedSessionName) {
+                    selectedSessionWorkspaceName = String(result.workspace ?? '').trim();
+                    knownSessions = knownSessions.map((session) => session.name === selectedSessionName
+                        ? { ...session, workspace: selectedSessionWorkspaceName }
+                        : session);
+                    displayedSessions = displayedSessions.map((session) => session.name === selectedSessionName
+                        ? { ...session, workspace: selectedSessionWorkspaceName }
+                        : session);
+                    updateSessionWorkspaceControls();
+                }
                 renderSidebarNames(
                     workspaceList,
                     workspaceListPlaceholder,
@@ -6936,12 +6946,46 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 urlSessionName = name;
                 selectedSessionName = name;
                 sessionWorkspaceActive = false;
+                workspaceRelativePath = '';
+                workspaceEntries = [];
+                workspaceSelectedFiles.clear();
+                workspaceViewStart = null;
+                workspaceViewEnd = null;
+                workspaceMarkdownAnchorStart = null;
+                workspaceMarkdownAnchorEnd = null;
+                if (workspaceFileView) {
+                    workspaceFileView.hidden = true;
+                    workspaceFileView.dataset.binary = '0';
+                }
+                if (workspaceFileList) {
+                    workspaceFileList.replaceChildren();
+                    workspaceFileList.hidden = false;
+                }
+                if (workspaceFilesPanel) {
+                    workspaceFilesPanel.hidden = true;
+                    workspaceFilesPanel.classList.remove('workspace-file-page-mode', 'workspace-edit-page-mode');
+                }
+                if (workspaceFilePath) renderWorkspacePath('');
+                if (workspaceFileStatus) {
+                    workspaceFileStatus.textContent = '';
+                    workspaceFileStatus.classList.remove('error');
+                }
                 if (filesPanel) filesPanel.hidden = true;
-                if (workspaceFilesPanel) workspaceFilesPanel.hidden = true;
+                filesList?.replaceChildren();
+                toolPatternList?.replaceChildren();
+                skillPatternList?.replaceChildren();
+                availableToolsList?.querySelectorAll('li:not(.available-resource-heading)').forEach((item) => item.remove());
+                availableSkillsList?.querySelectorAll('li:not(.available-resource-heading)').forEach((item) => item.remove());
                 filesToggle?.setAttribute('aria-expanded', 'false');
                 filesToggle?.replaceChildren(document.createTextNode('Files ' + String.fromCharCode(0x25B8)));
                 workspaceToggle?.setAttribute('aria-expanded', 'false');
                 workspaceToggle?.replaceChildren(document.createTextNode('Workspace ' + String.fromCharCode(0x25B8)));
+                filesLoaded = false;
+                toolsLoaded = false;
+                settingsLoaded = false;
+                availableToolNames = [];
+                availableSkillNames = [];
+                updateSessionWorkspaceControls();
 
                 const selectedSessions = knownSessions.map((session) => ({
                     ...session,
@@ -6955,12 +6999,21 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 firstIndex = null;
                 lastIndex = null;
                 showHistoryLoading();
-                filesLoaded = false;
                 updateEarlierButton();
-                await Promise.all([
+                const contextLoads = [
                     loadLastTurn(controller.signal),
                     loadSidebarOptions()
-                ]);
+                ];
+                if (settingsPanel?.open) {
+                    contextLoads.push(loadSettings());
+                }
+                if (toolsPanel && !toolsPanel.hidden) {
+                    contextLoads.push(loadTools());
+                }
+                if (skillsPanel && !skillsPanel.hidden) {
+                    contextLoads.push(loadSkills());
+                }
+                await Promise.all(contextLoads);
                 setSidebarOpen(false);
             } catch (requestError) {
                 if (requestError.name !== 'AbortError' && requestId === selectionRequestId) {
