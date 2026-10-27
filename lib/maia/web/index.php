@@ -562,6 +562,58 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             z-index: 15;
         }
 
+        .session-item-actions-menu-floating,
+        .session-more-tools-floating {
+            box-sizing: border-box;
+            max-width: calc(100vw - 1rem);
+            max-height: calc(100vh - 1rem);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            position: fixed !important;
+            right: auto !important;
+            bottom: auto !important;
+            scrollbar-width: none;
+            z-index: 1000 !important;
+        }
+
+        .session-item-actions-menu-floating::-webkit-scrollbar,
+        .session-more-tools-floating::-webkit-scrollbar {
+            display: none;
+            width: 0;
+        }
+
+        .session-more-tools-floating {
+            background: Canvas;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            display: flex;
+            flex-direction: column;
+            min-width: 12rem;
+            padding: 0.25rem;
+        }
+
+        .session-more-tools-floating button {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            box-sizing: border-box;
+            color: CanvasText;
+            display: flex;
+            justify-content: flex-start;
+            margin: 0;
+            min-width: 0;
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .session-more-tools-floating button:hover {
+            background: #e5e7eb;
+        }
+
         .session-item-actions-menu[hidden] {
             display: none;
         }
@@ -1324,8 +1376,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             display: flex;
             flex-direction: column;
             max-width: calc(100vw - 2rem);
+            max-height: min(70vh, 32rem);
             min-width: 12rem;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding: 0.25rem;
             position: absolute;
             right: 0;
@@ -1334,10 +1389,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         .session-more-menu > div[hidden] {
             display: none;
-        }
-
-        .session-more-menu > div button[hidden] {
-            display: flex !important;
         }
 
         .session-more-menu > div button {
@@ -2543,6 +2594,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sessionActionSettings = document.getElementById('session-action-settings');
         const sessionMoreToggle = document.getElementById('session-more-toggle');
         const sessionMoreTools = document.getElementById('session-more-tools');
+        const sessionMoreMenu = document.getElementById('session-more-menu');
+        const sessionActionMenuContexts = new WeakMap();
         const historyActions = document.querySelector('.history-actions');
         const loadEarlier = document.getElementById('load-earlier');
         const turnCount = document.getElementById('turn-count');
@@ -2831,7 +2884,91 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             element.hidden = false;
         }
 
+        function clearFloatingMenuStyles(menu) {
+            for (const property of ['top', 'left', 'right', 'bottom', 'max-width', 'max-height']) {
+                menu.style.removeProperty(property);
+            }
+        }
+
+        function positionFloatingMenu(menu, toggle) {
+            const margin = 8;
+            const gap = 6;
+            const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+            const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+            const anchor = toggle.getBoundingClientRect();
+            const maxMenuHeight = Math.max(1, viewportHeight - 2 * margin);
+
+            menu.style.top = '0px';
+            menu.style.left = '0px';
+            menu.style.maxWidth = `${Math.max(1, viewportWidth - 2 * margin)}px`;
+            menu.style.maxHeight = `${maxMenuHeight}px`;
+
+            const desiredHeight = menu.scrollHeight;
+            const spaceAbove = Math.max(0, anchor.top - margin - gap);
+            const spaceBelow = Math.max(0, viewportHeight - anchor.bottom - margin - gap);
+            let placeAbove;
+            if (desiredHeight <= spaceAbove) {
+                placeAbove = true;
+            } else if (desiredHeight <= spaceBelow) {
+                placeAbove = false;
+            } else {
+                // If neither side alone fits, let the menu overlap the anchor
+                // rather than clipping ordinary menu items or forcing a scroll bar.
+                placeAbove = spaceAbove > spaceBelow;
+            }
+
+            const height = menu.getBoundingClientRect().height;
+            const desiredTop = placeAbove ? anchor.top - gap - height : anchor.bottom + gap;
+            const top = Math.max(margin, Math.min(desiredTop, viewportHeight - margin - height));
+            menu.style.top = `${top}px`;
+
+            const width = Math.min(menu.getBoundingClientRect().width, viewportWidth - 2 * margin);
+            const left = Math.max(margin, Math.min(anchor.right - width, viewportWidth - margin - width));
+            menu.style.left = `${left}px`;
+        }
+
+        function closeSessionActionMenu(menu) {
+            menu.hidden = true;
+            menu.classList.remove('session-item-actions-menu-floating');
+            clearFloatingMenuStyles(menu);
+            const context = sessionActionMenuContexts.get(menu);
+            if (context) {
+                context.parent.appendChild(menu);
+                context.toggle.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.parentElement?.querySelector('.session-item-actions-toggle')
+                    ?.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function closeAllSessionActionMenus() {
+            document.querySelectorAll('.session-item-actions-menu').forEach(closeSessionActionMenu);
+        }
+
+        function closeSessionMoreTools() {
+            if (!sessionMoreTools) return;
+            sessionMoreTools.hidden = true;
+            sessionMoreTools.classList.remove('session-more-tools-floating');
+            clearFloatingMenuStyles(sessionMoreTools);
+            sessionMoreMenu?.appendChild(sessionMoreTools);
+            sessionMoreToggle?.setAttribute('aria-expanded', 'false');
+        }
+
+        function repositionFloatingMenus() {
+            document.querySelectorAll('.session-item-actions-menu-floating').forEach((menu) => {
+                const context = sessionActionMenuContexts.get(menu);
+                if (context) positionFloatingMenu(menu, context.toggle);
+            });
+            if (sessionMoreTools?.classList.contains('session-more-tools-floating')) {
+                positionFloatingMenu(sessionMoreTools, sessionMoreToggle);
+            }
+        }
+
+        window.addEventListener('resize', repositionFloatingMenus);
+        document.addEventListener('scroll', repositionFloatingMenus, true);
+
         function setSidebarOpen(open) {
+            if (!open) closeAllSessionActionMenus();
             document.body.classList.toggle('sidebar-open', open);
             sidebar.classList.toggle('open', open);
             sidebarBackdrop.classList.toggle('visible', open);
@@ -2847,6 +2984,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
+                closeSessionMoreTools();
+                closeAllSessionActionMenus();
                 setSidebarOpen(false);
             }
         });
@@ -2903,10 +3042,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     document.createTextNode(` ${label}`)
                 );
                 button.setAttribute('role', 'menuitem');
-                button.addEventListener('click', () => {
-                    menu.hidden = true;
-                    toggle.setAttribute('aria-expanded', 'false');
-                });
+                    button.addEventListener('click', () => {
+                        closeSessionActionMenu(menu);
+                    });
                 menu.appendChild(button);
             }
 
@@ -6202,6 +6340,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 actionsMenu.className = 'session-item-actions-menu';
                 actionsMenu.setAttribute('role', 'menu');
                 actionsMenu.hidden = true;
+                sessionActionMenuContexts.set(actionsMenu, { parent: actions, toggle: actionsToggle });
                 const addMenuAction = (actionButton, description) => {
                     const icon = actionButton.textContent;
                     actionButton.replaceChildren(
@@ -6222,11 +6361,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 actionsToggle.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const expanded = actionsMenu.hidden;
-                    document.querySelectorAll('.session-item-actions-menu').forEach((menu) => {
-                        menu.hidden = true;
-                    });
-                    actionsMenu.hidden = !expanded;
-                    actionsToggle.setAttribute('aria-expanded', String(expanded));
+                    closeAllSessionActionMenus();
+                    if (!expanded) return;
+                    actionsMenu.hidden = false;
+                    actionsMenu.classList.add('session-item-actions-menu-floating');
+                    document.body.appendChild(actionsMenu);
+                    actionsToggle.setAttribute('aria-expanded', 'true');
+                    positionFloatingMenu(actionsMenu, actionsToggle);
                 });
                 actions.append(actionsToggle, actionsMenu);
                 item.append(button, actions);
@@ -6303,23 +6444,27 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             compactHistory
         ));
 
-        sessionMoreToggle?.addEventListener('click', () => {
+        sessionMoreToggle?.addEventListener('click', (event) => {
+            event.stopPropagation();
             const expanded = sessionMoreTools.hidden;
-            sessionMoreTools.hidden = !expanded;
-            sessionMoreToggle.setAttribute('aria-expanded', String(expanded));
+            if (!expanded) {
+                closeSessionMoreTools();
+                return;
+            }
+            sessionMoreTools.classList.add('session-more-tools-floating');
+            document.body.appendChild(sessionMoreTools);
+            sessionMoreTools.hidden = false;
+            sessionMoreToggle.setAttribute('aria-expanded', 'true');
+            positionFloatingMenu(sessionMoreTools, sessionMoreToggle);
         });
 
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('#session-more-menu')) {
-                sessionMoreTools.hidden = true;
-                sessionMoreToggle.setAttribute('aria-expanded', 'false');
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target?.closest('#session-more-menu, #session-more-tools')) {
+                closeSessionMoreTools();
             }
-            if (!event.target.closest('.session-item-actions')) {
-                document.querySelectorAll('.session-item-actions-menu').forEach((menu) => {
-                    menu.hidden = true;
-                    menu.parentElement?.querySelector('.session-item-actions-toggle')
-                        ?.setAttribute('aria-expanded', 'false');
-                });
+            if (!target?.closest('.session-item-actions, .session-item-actions-menu')) {
+                closeAllSessionActionMenus();
             }
         });
 
