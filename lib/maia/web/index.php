@@ -1411,6 +1411,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             background: #e5e7eb;
         }
 
+        .session-more-menu > div button.session-more-delete {
+            color: #b91c1c;
+        }
+
+        .session-more-menu > div button.session-more-delete:hover {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         .history-refresh {
             color: CanvasText;
             font-size: 1rem;
@@ -2348,6 +2357,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                             <button id="history-clear" type="button" title="Delete entire history">&#x2327;&#x2195; Delete history</button>
                             <button id="history-hide-all" type="button" title="Hide entire history">&#x2298;&#x2195; Hide history</button>
                             <button id="history-hide-last-turn" type="button" title="Hide last turn">&#x2298; Hide last turn</button>
+                            <button id="session-action-delete" class="session-more-delete" type="button" aria-label="Delete session" title="Permanently delete this session">&#x00D7; Delete session</button>
                         </div>
                     </div>
                 </div>
@@ -2592,6 +2602,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const sessionActionCopy = document.getElementById('session-action-copy');
         const sessionActionRename = document.getElementById('session-action-rename');
         const sessionActionSettings = document.getElementById('session-action-settings');
+        const sessionActionDelete = document.getElementById('session-action-delete');
         const sessionMoreToggle = document.getElementById('session-more-toggle');
         const sessionMoreTools = document.getElementById('session-more-tools');
         const sessionMoreMenu = document.getElementById('session-more-menu');
@@ -6445,6 +6456,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             settingsToggle.setAttribute('aria-expanded', 'true');
             if (!settingsLoaded) {
                 await loadSettings();
+            }
+        });
+
+        sessionActionDelete?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (selectedSessionName) {
+                deleteSession(selectedSessionName, sessionActionDelete);
             }
         });
 
