@@ -471,6 +471,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             padding: 0;
         }
 
+        #session-list {
+            max-height: none;
+        }
+
         .sidebar-list button,
         .sidebar-list a.sidebar-resource-name {
             background: transparent;
@@ -2708,6 +2712,31 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
+        function resizeSessionListToFit() {
+            if (!sessionList || !sidebar) {
+                return;
+            }
+            const rows = Array.from(sessionList.children);
+            if (rows.length === 0) {
+                sessionList.style.maxHeight = 'none';
+                return;
+            }
+            const fallbackRowHeight = 2.5 * 16;
+            const rowHeights = rows.map((row) =>
+                Math.max(row.getBoundingClientRect().height, fallbackRowHeight)
+            );
+	    // Minimum 3 sessions, maximum 16 in the list (16 if we have the size)
+            const minimumHeight = rowHeights.slice(0, Math.min(3, rowHeights.length))
+                .reduce((sum, height) => sum + height, 0);
+            const maximumHeight = rowHeights.slice(0, Math.min(16, rowHeights.length))
+                .reduce((sum, height) => sum + height, 0);
+            const currentHeight = sessionList.getBoundingClientRect().height;
+            const otherContentHeight = Math.max(0, sidebar.scrollHeight - currentHeight);
+            const remainingHeight = sidebar.clientHeight - otherContentHeight;
+            const targetHeight = Math.max(minimumHeight, Math.min(maximumHeight, remainingHeight));
+            sessionList.style.maxHeight = `${targetHeight}px`;
+        }
+
         const workspaceFilesPanel = document.getElementById('workspace-files');
         const composerActions = document.querySelector('.composer-actions');
         if (workspaceFilesPanel && composerActions && !sessionWorkspacePage) {
@@ -2983,7 +3012,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        window.addEventListener('resize', repositionFloatingMenus);
+        window.addEventListener('resize', () => {
+            repositionFloatingMenus();
+            resizeSessionListToFit();
+        });
         document.addEventListener('scroll', repositionFloatingMenus, true);
 
         function setSidebarOpen(open) {
@@ -3150,6 +3182,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 }
                 list.appendChild(item);
             }
+            resizeSessionListToFit();
             if (sidebar.classList.contains('open')) {
                 requestAnimationFrame(revealSelectedSidebarItems);
             }
@@ -6420,6 +6453,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
 
             updateSessionSearchAction();
+            resizeSessionListToFit();
             if (sidebar.classList.contains('open')) {
                 requestAnimationFrame(revealSelectedSidebarItems);
             }
