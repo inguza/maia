@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2026 Ola Lundqvist <ola.com>
+ * Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
  *
  * Licensed under the GNU General Public License v3.0.
  * See LICENSE-GPLv3.txt for the full license text.
@@ -6332,7 +6332,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const id = shortToolCallId(String(item.tool_call_id || ''));
                 label.textContent = item.toolUnpairedReason
                     ? 'Unpaired tool result'
-                    : (toolHistoryViewMode === 'time' && id ? `Tool output · ${id}` : 'Tool output');
+                    : (toolHistoryViewMode === 'time' && id ? `Tool output for ${id}` : 'Tool output');
                 if (item.tool_call_id) label.title = `Tool call ID: ${item.tool_call_id}`;
                 element.appendChild(label);
                 if (item.toolUnpairedReason) {
@@ -6769,6 +6769,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             text.textContent = statusText;
             status.append(spinner, text);
             element.appendChild(status);
+        }
+
+        function detectMaiaSendError(output) {
+            const response = output.trimStart();
+            return response.startsWith('[ERROR]') ? response : null;
         }
 
         function appendPartialResponse(output, beforeElement = null) {
@@ -8174,6 +8179,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     updatePendingResponse(pending, 'Receiving response...', output);
                 }
 
+                const sendError = detectMaiaSendError(output);
+                if (sendError !== null) {
+                    historyItems = historyItems.filter((item) => item !== userItem);
+                    renderHistory(historyItems);
+                    appendPartialResponse(output);
+                    showError(sendError);
+                    return;
+                }
+
                 if (!response.ok) {
                     historyItems = historyItems.filter((item) => item !== userItem);
                     renderHistory(historyItems);
@@ -8187,6 +8201,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 updatePendingResponse(pending, 'Updating conversation...', output);
 
                 const result = await fetchHistory('turn');
+                if (result.items.length === 0) {
+                    historyItems = historyItems.filter((item) => item !== userItem);
+                    renderHistory(historyItems);
+                    appendPartialResponse(output);
+                    showError('MAIA returned no history for this send. The session may not have recorded the message.');
+                    return;
+                }
                 const returnedFirstIndex = Number(result.firstIndex);
                 const historyWasRenumbered = previousLastIndex !== null &&
                     (!Number.isInteger(returnedFirstIndex) ||
