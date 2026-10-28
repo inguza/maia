@@ -120,8 +120,6 @@ while ($stdoutOpen || $stderrOpen) {
 $exitCode = proc_close($process);
 
 if ($exitCode !== 0) {
-    // The process output has already been streamed, so only add the status
-    // summary; do not replay it in a separate failure record.
-    echo "\n[ERROR] Internal error [$exitCode]\n";
+    echo "[ERROR] Internal error [$exitCode]\n";
     flush();
 }
