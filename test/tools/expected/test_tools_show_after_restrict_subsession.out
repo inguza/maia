@@ -473,11 +473,11 @@ Tool definitions:
             "description": "File(s) to add to the currently known context. Glob pattern matching can be used to match files."
           }
         },
-        "linestart": {
+        "startline": {
           "type": "string",
           "description": "First line to remember when only part of the file is needed."
         },
-        "lineend": {
+        "endline": {
           "type": "string",
           "description": "Last line to remember when only part of the file is needed."
         }
