@@ -5925,14 +5925,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let firstIndex = null;
         let lastIndex = null;
         let historyItems = [];
-        let toolHistoryViewMode = (() => {
-            try {
-                const savedMode = window.localStorage.getItem('maia-tool-history-view');
-                return ['time', 'groups', 'hidden', 'collapsed'].includes(savedMode) ? savedMode : 'collapsed';
-            } catch (_) {
-                return 'collapsed';
-            }
-        })();
+        let toolHistoryViewMode = 'collapsed';
         let loadingEarlier = false;
 
         function formatToolArguments(argumentsValue) {
@@ -6869,11 +6862,6 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return;
             }
             toolHistoryViewMode = mode;
-            try {
-                window.localStorage.setItem('maia-tool-history-view', mode);
-            } catch (_) {
-                // The view still works if browser storage is unavailable.
-            }
             updateToolHistoryViewButtons();
             if (!conversation.querySelector('.history-loading')) {
                 const scrollY = window.scrollY;
