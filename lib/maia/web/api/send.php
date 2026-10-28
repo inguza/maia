@@ -74,7 +74,6 @@ stream_set_blocking($pipes[2], false);
 
 $stdoutOpen = true;
 $stderrOpen = true;
-$errorOutput = '';
 
 while ($stdoutOpen || $stderrOpen) {
     $read = [];
@@ -97,8 +96,9 @@ while ($stdoutOpen || $stderrOpen) {
     }
 
     foreach ($read as $stream) {
-        // IMPORTANT! We want to do line-read and not read a large chunk.
-	$chunk = fgets($stream);
+        // Forward whichever pipe is ready immediately, preserving the order in
+        // which stdout and stderr become available.
+        $chunk = fread($stream, 8192);
         if ($chunk === false || $chunk === '') {
             if (feof($stream)) {
                 if ($stream === $pipes[1]) {
@@ -112,21 +112,16 @@ while ($stdoutOpen || $stderrOpen) {
             continue;
         }
 
-        if ($stream === $pipes[1]) {
-            echo $chunk;
-            flush();
-        } else {
-            $errorOutput .= $chunk;
-        }
+        echo $chunk;
+        flush();
     }
 }
 
 $exitCode = proc_close($process);
 
 if ($exitCode !== 0) {
-    $message = trim($errorOutput) !== ''
-        ? trim($errorOutput)
-        : 'MAIA returned an error.';
-    echo "\n$message\n";
+    // The process output has already been streamed, so only add the status
+    // summary; do not replay it in a separate failure record.
+    echo "\n[ERROR] Internal error [$exitCode]\n";
     flush();
 }
