@@ -1454,6 +1454,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             color: #111827;
         }
 
+        .message.server.grouped-tool-response {
+            border: 1px solid #9ca3af;
+        }
+
         .message.tool-call {
             align-self: flex-start;
             background: #e5e7eb;
@@ -1469,7 +1473,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             border-left: 3px solid #0891b2;
             color: #164e63;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            max-width: 90%;
+            margin-left: 2rem;
+            max-width: calc(90% - 2rem);
         }
 
         .tool-call {
@@ -1477,8 +1482,114 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             border-left: 3px solid #6b7280;
             border-radius: 0.5rem;
             color: #1f2937;
-            margin-top: 0.5rem;
+            margin: 0.5rem 0 0 1rem;
             padding: 0.5rem 0.75rem;
+        }
+
+        .tool-call-unpaired {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 0.35rem;
+        }
+
+        .tool-interaction {
+            background: #f3f4f6;
+            border-left: 3px solid #4b5563;
+            border-radius: 0.5rem;
+            color: #1f2937;
+            margin: 0.5rem 0 0;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .tool-interaction-header {
+            align-items: baseline;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .tool-interaction-call-heading {
+            font-weight: 600;
+        }
+
+        .tool-group-toggle,
+        .tool-details-toggle {
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tool-group-toggle {
+            color: #6b7280;
+            flex: 0 0 auto;
+        }
+
+        .tool-details-toggle {
+            color: #6b7280;
+            font-size: 0.8rem;
+            text-decoration: underline;
+        }
+
+        .tool-details-toggle:hover {
+            color: #374151;
+        }
+
+        .tool-call-arguments {
+            margin: 0.4rem 0 0 1.25rem;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .tool-interaction-body {
+            margin-top: 0.4rem;
+        }
+
+        .tool-interaction-time {
+            color: #6b7280;
+            display: block;
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+        }
+
+        .tool-interaction-divider {
+            border: 0;
+            border-top: 1px solid #9ca3af;
+            margin: 0.55rem 0;
+        }
+
+        .tool-interaction-result {
+            background: #ecfeff;
+            border-radius: 0.35rem;
+            color: #164e63;
+            margin-top: 0.35rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .tool-interaction-empty-result {
+            background: #ecfeff;
+            border-radius: 0.35rem;
+            color: #164e63;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.45rem;
+        }
+
+        .tool-interaction-empty-result .history-metadata {
+            display: inline-flex;
+            margin: 0 0 0 0.4rem;
+            vertical-align: middle;
+        }
+
+        .tool-interaction-output {
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .tool-interaction-unpaired {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 0.35rem;
         }
 
         .message-kind {
@@ -1573,9 +1684,39 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-top: 0.75rem;
         }
 
-        .message-time {
+        .history-metadata {
             color: #6b7280;
             margin-right: auto;
+            min-width: 0;
+        }
+
+        .history-metadata-compact {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .history-metadata-compact time,
+        .history-metadata-expanded time {
+            white-space: nowrap;
+        }
+
+        .history-metadata-expanded {
+            display: none;
+            line-height: 1.4;
+        }
+
+        .history-metadata-expanded time {
+            display: block;
+        }
+
+        .history-entry.history-entry-selected .history-metadata:not(.history-metadata-compact-only) .history-metadata-compact {
+            display: none;
+        }
+
+        .history-entry.history-entry-selected .history-metadata:not(.history-metadata-compact-only) .history-metadata-expanded {
+            display: block;
         }
 
         .backup-toggle {
@@ -1634,6 +1775,52 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             grid-column: 1 / -1;
             grid-row: 2;
             min-width: 0;
+        }
+
+        .tool-history-view-control {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: start;
+            min-width: 0;
+            position: relative;
+        }
+
+        .tool-history-view-toggle {
+            margin: 0;
+            padding: 0.35rem 0.55rem;
+        }
+
+        .tool-history-view-menu {
+            background: Canvas;
+            border: 1px solid #9ca3af;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+            bottom: calc(100% + 0.35rem);
+            display: flex;
+            flex-direction: column;
+            left: 0;
+            min-width: 13rem;
+            padding: 0.25rem;
+            position: absolute;
+            z-index: 8;
+        }
+
+        .tool-history-view-menu[hidden] {
+            display: none;
+        }
+
+        .tool-history-view-menu button {
+            background: transparent;
+            border: 0;
+            margin: 0;
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .tool-history-view-menu button:hover,
+        .tool-history-view-menu button[aria-checked="true"] {
+            background: #e5e7eb;
         }
 
         .composer-actions > #send {
@@ -1970,7 +2157,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             margin-top: 0.6rem;
         }
 
-        .message.history-entry-selected .history-entry-actions {
+        .history-entry.history-entry-selected > .history-entry-actions {
             display: flex;
         }
 
@@ -2078,6 +2265,28 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 background: #164e63;
                 border-left-color: #67e8f9;
                 color: #cffafe;
+            }
+
+            .tool-interaction {
+                background: #374151;
+                border-left-color: #9ca3af;
+                color: #f9fafb;
+            }
+
+            .tool-interaction-result,
+            .tool-interaction-empty-result {
+                background: #164e63;
+                color: #cffafe;
+            }
+
+            .tool-interaction-time,
+            .tool-interaction-unpaired,
+            .tool-call-unpaired {
+                color: #d1d5db;
+            }
+
+            .tool-interaction-divider {
+                border-top-color: #6b7280;
             }
 
             .hidden-group summary {
@@ -2378,6 +2587,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 <?php endif; ?>
 
             <div class="composer-actions"<?= $pureWorkspaceBrowserPage ? ' hidden' : '' ?>>
+<?php if (!$isResourcePage && !$sessionWorkspacePage): ?>
+                <div id="tool-history-view-control" class="tool-history-view-control">
+                    <button id="tool-history-view-toggle" class="tool-history-view-toggle" type="button"
+                            aria-haspopup="menu" aria-expanded="false">Tool view ▸</button>
+                    <div id="tool-history-view-menu" class="tool-history-view-menu" role="menu" aria-label="Tool history display" hidden>
+                        <button type="button" role="menuitemradio" data-tool-history-mode="time" aria-checked="false">Timeline</button>
+                        <button type="button" role="menuitemradio" data-tool-history-mode="groups" aria-checked="false">Expanded</button>
+                        <button type="button" role="menuitemradio" data-tool-history-mode="hidden" aria-checked="false">Hidden</button>
+                        <button type="button" role="menuitemradio" data-tool-history-mode="collapsed" aria-checked="true">Collapsed</button>
+                    </div>
+                </div>
+<?php endif; ?>
                 <div class="composer-actions-left">
 <?php if ($homePage): ?>
                     <button id="credentials-toggle" type="button"
@@ -2611,6 +2832,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         const historyEditError = document.getElementById('history-edit-error');
         const historyEditSubmit = document.getElementById('history-edit-submit');
         const historyRefresh = document.getElementById('history-refresh');
+        const toolHistoryViewControl = document.getElementById('tool-history-view-control');
+        const toolHistoryViewToggle = document.getElementById('tool-history-view-toggle');
+        const toolHistoryViewMenu = document.getElementById('tool-history-view-menu');
         const sessionActionCopy = document.getElementById('session-action-copy');
         const sessionActionRename = document.getElementById('session-action-rename');
         const sessionActionSettings = document.getElementById('session-action-settings');
@@ -3036,6 +3260,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 closeSessionMoreTools();
+                closeToolHistoryViewMenu();
                 closeAllSessionActionMenus();
                 setSidebarOpen(false);
             }
@@ -5700,6 +5925,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         let firstIndex = null;
         let lastIndex = null;
         let historyItems = [];
+        let toolHistoryViewMode = (() => {
+            try {
+                const savedMode = window.localStorage.getItem('maia-tool-history-view');
+                return ['time', 'groups', 'hidden', 'collapsed'].includes(savedMode) ? savedMode : 'collapsed';
+            } catch (_) {
+                return 'collapsed';
+            }
+        })();
         let loadingEarlier = false;
 
         function formatToolArguments(argumentsValue) {
@@ -5728,6 +5961,11 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 return timestamp;
             }
             return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${match[6]}`;
+        }
+
+        function shortToolCallId(id) {
+            const value = typeof id === 'string' ? id : '';
+            return value.length > 16 ? `…${value.slice(-12)}` : value;
         }
 
         const historyUrlPattern = /https?:\/\/[^\s<>"']+/gi;
@@ -5794,20 +6032,231 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
-        function createToolCallElement(name, argumentsText) {
+        function createToolCallElement(name, argumentsText, id = '', unpaired = false) {
             const element = document.createElement('div');
             element.className = 'tool-call';
 
             const details = document.createElement('details');
             const summary = document.createElement('summary');
-            const summaryLabel = `Tool call: ${name}`;
-            summary.textContent = summaryLabel;
+            const shortId = shortToolCallId(id);
+            summary.textContent = `Tool call: ${name}${shortId ? ` · ${shortId}` : ''}`;
+            if (id) summary.title = `Tool call ID: ${id}`;
 
             const argumentsElement = document.createElement('pre');
             argumentsElement.textContent = argumentsText;
 
             details.append(summary, argumentsElement);
             element.appendChild(details);
+            if (unpaired) {
+                const note = document.createElement('div');
+                note.className = 'tool-call-unpaired';
+                note.textContent = 'No matching result in the loaded history.';
+                element.appendChild(note);
+            }
+            return element;
+        }
+
+        function historyIndexValue(value) {
+            if (value === null || value === undefined || String(value).trim() === '') {
+                return null;
+            }
+            const numeric = Number(value);
+            return Number.isInteger(numeric) ? String(numeric) : null;
+        }
+
+        function appendHistoryMetadata(parent, item) {
+            const timestampValue = typeof item?.timestamp === 'string' && item.timestamp !== ''
+                ? item.timestamp
+                : null;
+            const overallIndex = historyIndexValue(item?.index);
+            const roleDetails = {
+                user: { short: 'U', label: 'User' },
+                assistant: { short: 'A', label: 'Assistant' },
+                tool: { short: 'T', label: 'Tool' }
+            }[item?.role] || null;
+            const roleIndex = roleDetails
+                ? historyIndexValue(item[`${item.role}_index`])
+                : null;
+            if (timestampValue === null && overallIndex === null && roleIndex === null) {
+                return;
+            }
+
+            const metadata = document.createElement('span');
+            const compactOnly = item?.role === 'tool';
+            metadata.className = compactOnly
+                ? 'history-metadata history-metadata-compact-only'
+                : 'history-metadata';
+            const compact = document.createElement('span');
+            compact.className = 'history-metadata-compact';
+            if (overallIndex !== null) {
+                const index = document.createElement('span');
+                index.textContent = `#${overallIndex}`;
+                compact.appendChild(index);
+            }
+            if (timestampValue !== null) {
+                const timestamp = document.createElement('time');
+                timestamp.dateTime = timestampValue;
+                timestamp.textContent = formatTimestamp(timestampValue);
+                timestamp.title = timestampValue;
+                compact.appendChild(timestamp);
+            }
+            if (roleIndex !== null && roleDetails) {
+                const index = document.createElement('span');
+                index.textContent = compactOnly ? `#${roleIndex}` : `${roleDetails.short}#${roleIndex}`;
+                index.title = `${roleDetails.label} index: #${roleIndex}`;
+                compact.appendChild(index);
+            }
+            metadata.appendChild(compact);
+
+            if (!compactOnly) {
+                const expanded = document.createElement('span');
+                expanded.className = 'history-metadata-expanded';
+                if (timestampValue !== null) {
+                    const timestamp = document.createElement('time');
+                    timestamp.dateTime = timestampValue;
+                    timestamp.textContent = formatTimestamp(timestampValue);
+                    timestamp.title = timestampValue;
+                    expanded.appendChild(timestamp);
+                }
+                const details = [];
+                if (overallIndex !== null) {
+                    details.push(`Index: #${overallIndex}`);
+                }
+                if (roleIndex !== null && roleDetails) {
+                    details.push(`${roleDetails.label} index: #${roleIndex}`);
+                }
+                if (details.length > 0) {
+                    const description = document.createElement('span');
+                    description.className = 'history-metadata-detail';
+                    description.textContent = details.join(' ');
+                    expanded.appendChild(description);
+                }
+                metadata.appendChild(expanded);
+            }
+            parent.appendChild(metadata);
+        }
+
+        function appendToolInteractionTimestamp(parent, item) {
+            appendHistoryMetadata(parent, item);
+        }
+
+        function createToolInteractionElement(group) {
+            const element = document.createElement('section');
+            element.className = 'tool-interaction';
+            const functionCall = group.call?.function || {};
+            const header = document.createElement('div');
+            header.className = 'tool-interaction-header';
+            let groupToggle = null;
+
+            const resultText = String(group.result?.content ?? '');
+            const resultHasText = resultText.trim() !== '' ||
+                (Array.isArray(group.result?.contentParts) && group.result.contentParts.some((part) =>
+                    String(part?.text ?? '').trim() !== ''
+                ));
+            const emptyResultIndicator = group.result && !resultHasText
+                ? document.createElement('span')
+                : null;
+            if (emptyResultIndicator) {
+                emptyResultIndicator.className = 'tool-interaction-empty-result';
+                emptyResultIndicator.textContent = 'Empty response';
+                appendToolInteractionTimestamp(emptyResultIndicator, group.result);
+            }
+
+            if (group.result) {
+                groupToggle = document.createElement('button');
+                groupToggle.type = 'button';
+                groupToggle.className = 'tool-group-toggle';
+                groupToggle.setAttribute('aria-expanded', String(toolHistoryViewMode === 'groups'));
+                groupToggle.setAttribute('aria-label', `${toolHistoryViewMode === 'groups' ? 'Collapse' : 'Expand'} tool output`);
+                groupToggle.textContent = toolHistoryViewMode === 'groups' ? '\u25BE' : '\u25B8';
+                groupToggle.title = `${toolHistoryViewMode === 'groups' ? 'Hide' : 'Show'} tool output`;
+                header.appendChild(groupToggle);
+            }
+
+            const callHeading = document.createElement('span');
+            callHeading.className = 'tool-interaction-call-heading';
+            callHeading.textContent = `Tool call: ${functionCall.name || 'unknown'}`;
+            header.appendChild(callHeading);
+
+            const argumentsToggle = document.createElement('button');
+            argumentsToggle.type = 'button';
+            argumentsToggle.className = 'tool-details-toggle';
+            argumentsToggle.textContent = 'show details';
+            argumentsToggle.setAttribute('aria-expanded', 'false');
+            header.appendChild(argumentsToggle);
+            if (emptyResultIndicator) {
+                header.appendChild(emptyResultIndicator);
+            }
+
+            const argumentsContent = document.createElement('pre');
+            argumentsContent.className = 'tool-call-arguments';
+            argumentsContent.textContent = formatToolArguments(functionCall.arguments ?? {});
+            argumentsContent.hidden = true;
+            argumentsToggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const showDetails = argumentsContent.hidden;
+                argumentsContent.hidden = !showDetails;
+                argumentsToggle.textContent = showDetails ? 'hide details' : 'show details';
+                argumentsToggle.setAttribute('aria-expanded', String(showDetails));
+            });
+
+            element.append(header, argumentsContent);
+
+            const body = document.createElement('div');
+            body.className = 'tool-interaction-body';
+            body.hidden = Boolean(group.result) && toolHistoryViewMode !== 'groups';
+            if (emptyResultIndicator) {
+                emptyResultIndicator.hidden = !body.hidden;
+            }
+            if (group.result && groupToggle) {
+                groupToggle.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    body.hidden = !body.hidden;
+                    if (emptyResultIndicator) {
+                        emptyResultIndicator.hidden = !body.hidden;
+                    }
+                    groupToggle.textContent = body.hidden ? '\u25B8' : '\u25BE';
+                    groupToggle.title = body.hidden ? 'Show tool output' : 'Hide tool output';
+                    groupToggle.setAttribute('aria-expanded', String(!body.hidden));
+                    groupToggle.setAttribute('aria-label', `${body.hidden ? 'Expand' : 'Collapse'} tool output`);
+                    if (body.hidden) {
+                        resultSection.classList.remove('history-entry-selected');
+                    } else {
+                        selectHistoryEntry(resultSection);
+                    }
+                });
+            }
+
+            const divider = document.createElement('hr');
+            divider.className = 'tool-interaction-divider';
+            body.appendChild(divider);
+
+            const resultSection = document.createElement('div');
+            resultSection.className = 'tool-interaction-result';
+            if (group.result) {
+                const output = document.createElement('div');
+                output.className = 'tool-interaction-output';
+                if (resultHasText) {
+                    appendHistoryText(output, resultText, group.result.contentParts);
+                } else {
+                    output.textContent = 'Empty response';
+                }
+                resultSection.appendChild(output);
+                appendToolInteractionTimestamp(resultSection, group.result);
+                appendFooter(resultSection, {
+                    role: group.result.role,
+                    backup: group.result.backup
+                });
+                appendHistoryActions(resultSection, group.result);
+            } else {
+                const note = document.createElement('div');
+                note.className = 'tool-interaction-unpaired';
+                note.textContent = group.unpairedReason || 'No matching result in the loaded history.';
+                resultSection.appendChild(note);
+            }
+            body.appendChild(resultSection);
+            element.appendChild(body);
+            element.addEventListener('click', (event) => event.stopPropagation());
             return element;
         }
 
@@ -5834,7 +6283,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 const functionCall = toolCall.function ?? {};
                 const name = functionCall.name ?? 'unknown';
                 const argumentsText = formatToolArguments(functionCall.arguments ?? {});
-                backupContent.appendChild(createToolCallElement(name, argumentsText));
+                backupContent.appendChild(createToolCallElement(name, argumentsText, String(toolCall.id || '')));
             }
 
             if (Object.prototype.hasOwnProperty.call(item.backup, 'data')) {
@@ -5854,10 +6303,12 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const toggle = document.createElement('button');
             toggle.type = 'button';
             toggle.className = 'backup-toggle';
-            toggle.textContent = 'Show original';
+            toggle.textContent = `Show original`;
             toggle.addEventListener('click', () => {
                 backup.hidden = !backup.hidden;
-                toggle.textContent = backup.hidden ? 'Show original' : 'Hide original';
+                toggle.textContent = backup.hidden
+                    ? `Show original`
+                    : `Hide original`;
             });
             footer.appendChild(toggle);
         }
@@ -5866,13 +6317,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const footer = document.createElement('div');
             footer.className = 'message-footer';
 
-            if (item.timestamp) {
-                const timestamp = document.createElement('span');
-                timestamp.className = 'message-time';
-                timestamp.textContent = formatTimestamp(item.timestamp);
-                timestamp.title = item.timestamp;
-                footer.appendChild(timestamp);
-            }
+            appendHistoryMetadata(footer, item);
 
             element.appendChild(footer);
             appendBackup(element, item);
@@ -5888,6 +6333,22 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         function appendMessage(type, text, scroll = true, item = {}) {
             const element = document.createElement('div');
             element.className = `message ${type}`;
+            if (type === 'tool') {
+                const label = document.createElement('div');
+                label.className = 'message-kind';
+                const id = shortToolCallId(String(item.tool_call_id || ''));
+                label.textContent = item.toolUnpairedReason
+                    ? 'Unpaired tool result'
+                    : (toolHistoryViewMode === 'time' && id ? `Tool output · ${id}` : 'Tool output');
+                if (item.tool_call_id) label.title = `Tool call ID: ${item.tool_call_id}`;
+                element.appendChild(label);
+                if (item.toolUnpairedReason) {
+                    const note = document.createElement('div');
+                    note.className = 'tool-interaction-unpaired';
+                    note.textContent = item.toolUnpairedReason;
+                    element.appendChild(note);
+                }
+            }
             const content = document.createElement('div');
             appendHistoryText(content, text, item.contentParts);
             element.appendChild(content);
@@ -5949,8 +6410,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             await refreshHistoryAfterMutation();
         }
 
+        function selectHistoryEntry(element) {
+            if (!element) {
+                return;
+            }
+            conversation.querySelectorAll('.history-entry-selected').forEach((entry) => {
+                entry.classList.remove('history-entry-selected');
+            });
+            element.classList.add('history-entry-selected');
+        }
+
         function appendHistoryActions(element, item) {
-            if (!element || element.querySelector('.history-entry-actions')) {
+            if (!element || Array.from(element.children).some((child) =>
+                child.classList.contains('history-entry-actions')
+            )) {
                 return;
             }
             element.classList.add('history-entry');
@@ -6042,11 +6515,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 actions.appendChild(button);
             }
             element.appendChild(actions);
-            element.addEventListener('click', () => {
-                conversation.querySelectorAll('.history-entry-selected').forEach((entry) => {
-                    entry.classList.remove('history-entry-selected');
-                });
-                element.classList.add('history-entry-selected');
+            element.addEventListener('click', (event) => {
+                event.stopPropagation();
+                selectHistoryEntry(element);
             });
         }
 
@@ -6061,6 +6532,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 case 'assistant': {
                     const element = document.createElement('div');
                     element.className = 'message server';
+                    const hasGroupedToolCalls = Array.isArray(item.groupedToolCalls) && item.groupedToolCalls.length > 0;
+                    if (hasGroupedToolCalls) {
+                        element.classList.add('grouped-tool-response');
+                    }
 
                     if (item.content !== null && item.content !== undefined && item.content !== '') {
                         const content = document.createElement('div');
@@ -6068,14 +6543,30 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                         element.appendChild(content);
                     }
 
-                    for (const toolCall of item.tool_calls ?? []) {
-                        const functionCall = toolCall.function ?? {};
-                        const name = functionCall.name ?? 'unknown';
-                        const argumentsText = formatToolArguments(functionCall.arguments ?? {});
-                        element.appendChild(createToolCallElement(name, argumentsText));
+                    // Keep the assistant timestamp and original-response control
+                    // with its own text, before the nested tool interaction cards.
+                    if (hasGroupedToolCalls) {
+                        appendFooter(element, item);
                     }
 
-                    appendFooter(element, item);
+                    if (Array.isArray(item.groupedToolCalls)) {
+                        for (const group of item.groupedToolCalls) {
+                            element.appendChild(createToolInteractionElement(group));
+                        }
+                    } else {
+                        const unpairedIds = new Set(item.unpairedToolCallIds || []);
+                        for (const toolCall of item.tool_calls ?? []) {
+                            const functionCall = toolCall.function ?? {};
+                            const name = functionCall.name ?? 'unknown';
+                            const argumentsText = formatToolArguments(functionCall.arguments ?? {});
+                            const id = String(toolCall.id || '');
+                            element.appendChild(createToolCallElement(name, argumentsText, id, unpairedIds.has(id)));
+                        }
+                    }
+
+                    if (!hasGroupedToolCalls) {
+                        appendFooter(element, item);
+                    }
                     conversation.appendChild(element);
                     break;
                 }
@@ -6107,6 +6598,121 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             }
         }
 
+        function prepareHistoryItemsForToolView(items) {
+            const callIds = new Set();
+            const resultsById = new Map();
+            for (const item of items) {
+                if (item.role === 'assistant') {
+                    for (const toolCall of item.tool_calls ?? []) {
+                        if (typeof toolCall?.id === 'string' && toolCall.id !== '') {
+                            callIds.add(toolCall.id);
+                        }
+                    }
+                } else if (item.role === 'tool' && typeof item.tool_call_id === 'string' && item.tool_call_id !== '') {
+                    const matches = resultsById.get(item.tool_call_id) || [];
+                    matches.push(item);
+                    resultsById.set(item.tool_call_id, matches);
+                }
+            }
+
+            if (toolHistoryViewMode === 'hidden') {
+                return items.map((item) => {
+                    if (item.role === 'assistant') {
+                        const toolCalls = Array.isArray(item.tool_calls) ? item.tool_calls : [];
+                        const unpairedCalls = toolCalls.filter((call) =>
+                            typeof call?.id !== 'string' || call.id === '' || !resultsById.has(call.id)
+                        );
+                        const hasText = String(item.content ?? '').trim() !== '' ||
+                            (Array.isArray(item.contentParts) && item.contentParts.some((part) =>
+                                String(part?.text ?? '').trim() !== ''
+                            ));
+                        if (!hasText && unpairedCalls.length === 0) {
+                            return null;
+                        }
+                        return Array.isArray(item.tool_calls)
+                            ? {
+                                ...item,
+                                tool_calls: unpairedCalls,
+                                unpairedToolCallIds: unpairedCalls.map((call) => String(call?.id || ''))
+                            }
+                            : item;
+                    }
+                    if (item.role === 'tool') {
+                        if (callIds.has(item.tool_call_id)) {
+                            return null;
+                        }
+                        return { ...item, toolUnpairedReason: 'No matching call in the loaded history.' };
+                    }
+                    return item;
+                }).filter(Boolean);
+            }
+
+            if (toolHistoryViewMode === 'time') {
+                return items.map((item) => {
+                    if (item.role === 'assistant' && Array.isArray(item.tool_calls)) {
+                        const unpairedToolCallIds = item.tool_calls
+                            .filter((call) => typeof call?.id !== 'string' || call.id === '' || !resultsById.has(call.id))
+                            .map((call) => String(call?.id || ''));
+                        return { ...item, unpairedToolCallIds };
+                    }
+                    if (item.role === 'tool' && !callIds.has(item.tool_call_id)) {
+                        return { ...item, toolUnpairedReason: 'No matching call in the loaded history.' };
+                    }
+                    return item;
+                });
+            }
+
+            const groupsByAssistant = new Map();
+            const pairedResults = new Set();
+            for (const item of items) {
+                if (item.role !== 'assistant' || !Array.isArray(item.tool_calls)) {
+                    continue;
+                }
+                const groups = item.tool_calls.map((call) => {
+                    const id = typeof call?.id === 'string' ? call.id : '';
+                    const possibleResults = id === '' ? [] : (resultsById.get(id) || []);
+                    const result = possibleResults.find((candidate) =>
+                        !pairedResults.has(candidate) &&
+                        isHiddenHistoryItem(candidate) === isHiddenHistoryItem(item)
+                    ) || null;
+                    if (result) pairedResults.add(result);
+                    return {
+                        call,
+                        assistant: item,
+                        result,
+                        unpairedReason: result
+                            ? ''
+                            : possibleResults.length > 0
+                                ? 'A matching result is shown separately because its visibility differs.'
+                                : 'No matching result in the loaded history.'
+                    };
+                });
+                groupsByAssistant.set(item, groups);
+            }
+
+            const prepared = [];
+            for (const item of items) {
+                if (item.role === 'tool' && pairedResults.has(item)) {
+                    continue;
+                }
+                if (groupsByAssistant.has(item)) {
+                    const groupedToolCalls = groupsByAssistant.get(item);
+                    const groupedHiddenEntryCount = groupedToolCalls.filter((group) => group.result).length;
+                    prepared.push({ ...item, groupedToolCalls, groupedHiddenEntryCount });
+                } else if (item.role === 'tool' && callIds.has(item.tool_call_id)) {
+                    prepared.push({
+                        ...item,
+                        toolUnpairedReason: 'A matching call is shown separately because its visibility differs.'
+                    });
+                } else if (item.role === 'tool') {
+                    prepared.push({ ...item, toolUnpairedReason: 'No matching call in the loaded history.' });
+                } else {
+                    prepared.push(item);
+                }
+            }
+            return prepared;
+        }
+
         function renderHiddenGroup(items) {
             const group = document.createElement('details');
             group.className = 'hidden-group';
@@ -6119,7 +6725,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     .filter((index) => index !== null && index !== undefined)
             );
             const turnCount = turns.size || items.filter((item) => item.role === 'user').length;
-            const summaryLabel = `Show ${items.length} hidden ${items.length === 1 ? 'entry' : 'entries'} · ${turnCount} ${turnCount === 1 ? 'turn' : 'turns'} affected`;
+            const hiddenEntryCount = items.reduce((count, item) =>
+                count + 1 + Number(item.groupedHiddenEntryCount || 0), 0);
+            const summaryLabel = `Show ${hiddenEntryCount} hidden ${hiddenEntryCount === 1 ? 'entry' : 'entries'} · ${turnCount} ${turnCount === 1 ? 'turn' : 'turns'} affected`;
             summary.textContent = summaryLabel;
 
             const contents = document.createElement('div');
@@ -6191,8 +6799,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         function renderHistory(items, scrollToEnd = true) {
             conversation.replaceChildren();
+            const displayItems = prepareHistoryItemsForToolView(items);
             let hiddenItems = [];
-            for (const item of items) {
+            for (const item of displayItems) {
                 if (isHiddenHistoryItem(item)) {
                     hiddenItems.push(item);
                     continue;
@@ -6220,6 +6829,56 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                     behavior: 'auto',
                     block: 'nearest'
                 });
+            }
+        }
+
+        function updateToolHistoryViewButtons() {
+            if (!toolHistoryViewToggle || !toolHistoryViewMenu) {
+                return;
+            }
+            toolHistoryViewToggle.textContent = `Tool view ${String.fromCharCode(0x2630)}`;
+            toolHistoryViewMenu.querySelectorAll('[data-tool-history-mode]').forEach((option) => {
+                option.setAttribute('aria-checked', String(option.dataset.toolHistoryMode === toolHistoryViewMode));
+            });
+        }
+
+        function closeToolHistoryViewMenu() {
+            if (!toolHistoryViewMenu) return;
+            toolHistoryViewMenu.hidden = true;
+            toolHistoryViewMenu.classList.remove('session-more-tools-floating');
+            clearFloatingMenuStyles(toolHistoryViewMenu);
+            toolHistoryViewControl?.appendChild(toolHistoryViewMenu);
+            toolHistoryViewToggle?.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleToolHistoryViewMenu() {
+            if (!toolHistoryViewMenu || !toolHistoryViewToggle) return;
+            if (!toolHistoryViewMenu.hidden) {
+                closeToolHistoryViewMenu();
+                return;
+            }
+            toolHistoryViewMenu.classList.add('session-more-tools-floating');
+            document.body.appendChild(toolHistoryViewMenu);
+            toolHistoryViewMenu.hidden = false;
+            toolHistoryViewToggle.setAttribute('aria-expanded', 'true');
+            positionFloatingMenu(toolHistoryViewMenu, toolHistoryViewToggle);
+        }
+
+        function setToolHistoryViewMode(mode) {
+            if (!['time', 'groups', 'hidden', 'collapsed'].includes(mode)) {
+                return;
+            }
+            toolHistoryViewMode = mode;
+            try {
+                window.localStorage.setItem('maia-tool-history-view', mode);
+            } catch (_) {
+                // The view still works if browser storage is unavailable.
+            }
+            updateToolHistoryViewButtons();
+            if (!conversation.querySelector('.history-loading')) {
+                const scrollY = window.scrollY;
+                renderHistory(historyItems, false);
+                window.scrollTo(0, scrollY);
             }
         }
 
@@ -6548,6 +7207,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             const target = event.target instanceof Element ? event.target : null;
             if (!target?.closest('#session-more-menu, #session-more-tools')) {
                 closeSessionMoreTools();
+            }
+            if (!target?.closest('#tool-history-view-control, #tool-history-view-menu')) {
+                closeToolHistoryViewMenu();
             }
             if (!target?.closest('.session-item-actions, .session-item-actions-menu')) {
                 closeAllSessionActionMenus();
@@ -7444,6 +8106,17 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
         loadEarlier?.addEventListener('click', loadEarlierHistory);
         loadAllHistory?.addEventListener('click', loadEntireHistory);
+        toolHistoryViewToggle?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleToolHistoryViewMenu();
+        });
+        toolHistoryViewMenu?.querySelectorAll('[data-tool-history-mode]').forEach((option) => {
+            option.addEventListener('click', () => {
+                setToolHistoryViewMode(option.dataset.toolHistoryMode);
+                closeToolHistoryViewMenu();
+            });
+        });
+        updateToolHistoryViewButtons();
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
