@@ -896,6 +896,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             white-space: pre-wrap;
         }
 
+        .raw-response-error-leading {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        .raw-response-error-later {
+            color: #c2410c;
+            font-weight: 700;
+        }
+
         .workspace-files {
             border: 1px solid #d1d5db;
             border-radius: 0.5rem;
@@ -2328,6 +2338,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             .file-completion-option:hover,
             .file-completion-option.selected {
                 background: #374151;
+            }
+
+            .raw-response-error-leading {
+                color: #f87171;
+            }
+
+            .raw-response-error-later {
+                color: #fb923c;
             }
         }
     </style>
@@ -6776,6 +6794,28 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             return response.startsWith('[ERROR]') ? response : null;
         }
 
+        function appendRawResponseContent(parent, output) {
+            const errorPattern = /\[ERROR\]/g;
+            const firstVisibleCharacter = output.search(/\S/);
+            let offset = 0;
+            let match;
+            while ((match = errorPattern.exec(output)) !== null) {
+                if (match.index > offset) {
+                    parent.appendChild(document.createTextNode(output.slice(offset, match.index)));
+                }
+                const marker = document.createElement('span');
+                marker.className = match.index === firstVisibleCharacter
+                    ? 'raw-response-error-leading'
+                    : 'raw-response-error-later';
+                marker.textContent = match[0];
+                parent.appendChild(marker);
+                offset = match.index + match[0].length;
+            }
+            if (offset < output.length) {
+                parent.appendChild(document.createTextNode(output.slice(offset)));
+            }
+        }
+
         function appendPartialResponse(output, beforeElement = null) {
             if (output === '') {
                 return;
@@ -6786,7 +6826,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             summary.textContent = 'Raw response';
             const content = document.createElement('div');
             content.className = 'partial-response-content';
-            content.textContent = output;
+            appendRawResponseContent(content, output);
             details.append(summary, content);
             conversation.insertBefore(details, beforeElement);
         }
@@ -8183,6 +8223,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 if (sendError !== null) {
                     historyItems = historyItems.filter((item) => item !== userItem);
                     renderHistory(historyItems);
+                    input.value = message;
                     appendPartialResponse(output);
                     showError(sendError);
                     return;
