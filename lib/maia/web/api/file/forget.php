@@ -40,9 +40,9 @@ if (strpos($entry, "\0") !== false || str_contains($entry, "\n") || str_contains
 // file.txt:1-100) relative to its current working directory. Run from the
 // workspace root so relative entries resolve the same way in the GUI as in
 // the workspace command-line workflow.
-$workspaceRoot = maia_web_history_workspace_root();
+$workspaceRoot = maia_history_workspace_root();
 $process = proc_open(
-    [maia_web_binary(), 'file', 'forget', $entry],
+    [maia_binary(), 'file', 'forget', $entry],
     [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -50,7 +50,7 @@ $process = proc_open(
     ],
     $pipes,
     $workspaceRoot ?: null,
-    maia_web_environment()
+    maia_environment()
 );
 
 if (!is_resource($process)) {

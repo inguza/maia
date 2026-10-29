@@ -32,7 +32,7 @@ $content = is_array($input) ? (string) ($input['content'] ?? '') : '';
 $label = is_array($input) ? trim((string) ($input['label'] ?? 'selection')) : 'selection';
 if ($content === '') file_selection_error(400, 'The selection is empty.');
 if (strlen($content) > 2 * 1024 * 1024) file_selection_error(413, 'The selection is too large.');
-$home = maia_web_home_dir();
+$home = maia_home_dir();
 $meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspace . DIRECTORY_SEPARATOR . 'workspace.myl';
 $root = '';
 foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
@@ -47,9 +47,9 @@ $fileName = $safeLabel . '-' . substr(hash('sha256', $session . microtime(true) 
 $relative = '.maia-context/' . $fileName;
 if (file_put_contents($dir . DIRECTORY_SEPARATOR . $fileName, $content) === false) file_selection_error(500, 'Unable to save the selection.');
 $process = proc_open(
-    [maia_web_binary(), 'file', 'add', $relative],
+    [maia_binary(), 'file', 'add', $relative],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-    $pipes, $root, maia_web_environment()
+    $pipes, $root, maia_environment()
 );
 if (!is_resource($process)) file_selection_error(500, 'Unable to add the selection to the session.');
 fclose($pipes[0]);

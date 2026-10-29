@@ -35,7 +35,7 @@ $source = trim((string) ($input['source'] ?? ''));
 if ($source !== '' && !preg_match('/^[A-Za-z0-9_.%+-]+$/', $source)) {
     session_create_error(400, 'Invalid source session name.');
 }
-$arguments = [maia_web_binary(), 'session', 'create'];
+$arguments = [maia_binary(), 'session', 'create'];
 if (isset($input['workspace']) && (string) $input['workspace'] !== '') {
     array_push($arguments, '--workspace', (string) $input['workspace']);
 }
@@ -47,7 +47,7 @@ if ($source !== '') {
     $arguments[] = $source;
 }
 
-$process = proc_open($arguments, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, maia_web_environment());
+$process = proc_open($arguments, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, maia_environment());
 if (!is_resource($process)) {
     session_create_error(500, 'Unable to start MAIA.');
 }

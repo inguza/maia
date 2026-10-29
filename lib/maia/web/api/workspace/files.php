@@ -51,11 +51,11 @@ foreach (explode('/', $inputPath) as $part) {
 $relativePath = implode('/', $parts);
 
 $process = proc_open(
-    [maia_web_binary(), 'workspace', 'show', '--raw', $workspaceName],
+    [maia_binary(), 'workspace', 'show', '--raw', $workspaceName],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     workspace_files_error(500, 'Unable to determine the workspace.');
@@ -77,7 +77,7 @@ foreach (preg_split('/\R/', $output) as $line) {
         break;
     }
 }
-$workspaceRoot = realpath(maia_web_expand_home_path($workspaceRoot));
+$workspaceRoot = realpath(maia_expand_home_path($workspaceRoot));
 if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
     workspace_files_error(403, 'The workspace root is unavailable.');
 }

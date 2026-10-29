@@ -1,0 +1,12 @@
+/* Home page-specific layout. Component styles are owned by components. */
+.app { width: min(100%, 72rem); margin: 0 auto; }
+.topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+    margin: 0 0 1rem;
+}
+.topbar h1 { margin: 0; font-size: 1.5rem; }
+.home-panels { display: grid; gap: .75rem; }
+.error { margin: .75rem 0; color: #b91c1c; }
+@media (max-width: 48rem) {
+    .topbar { padding-left: 2.5rem; }
+}

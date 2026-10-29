@@ -21,11 +21,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'tool', '--scope', (string) ($_GET['scope'] ?? 'session'), 'clear'],
+    [maia_binary(), 'tool', '--scope', (string) ($_GET['scope'] ?? 'session'), 'clear'],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     http_response_code(500);

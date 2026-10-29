@@ -29,7 +29,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'file', 'list', '--raw'],
+    [maia_binary(), 'file', 'list', '--raw'],
     [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -37,7 +37,7 @@ $process = proc_open(
     ],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 
 if (!is_resource($process)) {

@@ -33,7 +33,7 @@ if ($input !== '' && ($input[0] === '/' || preg_match('/^[A-Za-z]:[\\\/]/', $inp
     workspace_complete_error(400, 'Completion paths must be relative to the MAIA filesystem base.');
 }
 
-$base = realpath(maia_web_workspace_base() ?? '');
+$base = realpath(maia_workspace_base() ?? '');
 if ($base === false || !is_dir($base)) {
     echo json_encode(['ok' => true, 'candidates' => []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
@@ -46,7 +46,7 @@ $directoryCandidate = $directoryPart === ''
     ? $base
     : $base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $directoryPart);
 $directory = realpath($directoryCandidate);
-if ($directory === false || !is_dir($directory) || !maia_web_path_within_home($directory)) {
+if ($directory === false || !is_dir($directory) || !maia_path_within_home($directory)) {
     echo json_encode(['ok' => true, 'candidates' => []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
@@ -57,7 +57,7 @@ foreach (scandir($directory) ?: [] as $entry) {
         continue;
     }
     $fullPath = $directory . DIRECTORY_SEPARATOR . $entry;
-    if (!is_dir($fullPath) || !maia_web_path_within_home($fullPath)) {
+    if (!is_dir($fullPath) || !maia_path_within_home($fullPath)) {
         continue;
     }
     $relative = ($directoryPart === '' ? '' : rtrim(str_replace('\\', '/', $directoryPart), '/') . '/') . $entry . '/';

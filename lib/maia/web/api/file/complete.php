@@ -34,11 +34,11 @@ if ($input !== '' && ($input[0] === '/' || preg_match('/^[A-Za-z]:[\\\/]/', $inp
 }
 
 $workspace = proc_open(
-    [maia_web_binary(), 'workspace', 'show', '--raw'],
+    [maia_binary(), 'workspace', 'show', '--raw'],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($workspace)) {
     file_complete_error(500, 'Unable to determine the workspace.');
@@ -62,7 +62,7 @@ foreach (preg_split('/\R/', $output) as $line) {
     }
 }
 $workspaceRoot = realpath($workspaceRoot);
-if ($workspaceRoot === false || !is_dir($workspaceRoot) || !maia_web_path_within_home($workspaceRoot)) {
+if ($workspaceRoot === false || !is_dir($workspaceRoot) || !maia_path_within_home($workspaceRoot)) {
     echo json_encode(['ok' => true, 'candidates' => []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
@@ -74,7 +74,7 @@ $directoryCandidate = $directoryPart === ''
     ? $workspaceRoot
     : $workspaceRoot . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $directoryPart);
 $directory = realpath($directoryCandidate);
-if ($directory === false || !is_dir($directory) || !maia_web_path_within_home($directory)) {
+if ($directory === false || !is_dir($directory) || !maia_path_within_home($directory)) {
     echo json_encode(['ok' => true, 'candidates' => []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
@@ -88,7 +88,7 @@ foreach (scandir($directory) ?: [] as $entry) {
     if (!is_file($fullPath) && !is_dir($fullPath)) {
         continue;
     }
-    if (!maia_web_path_within_home($fullPath)) {
+    if (!maia_path_within_home($fullPath)) {
         continue;
     }
     $relative = ($directoryPart === '' ? '' : rtrim(str_replace('\\', '/', $directoryPart), '/') . '/') . $entry;

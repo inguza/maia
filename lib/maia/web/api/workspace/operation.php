@@ -71,13 +71,13 @@ $workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['M
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_operation_error(400, 'A workspace is required.');
 }
-$home = maia_web_home_dir();
+$home = maia_home_dir();
 $meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
 $root = '';
 foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
     if (preg_match('/^path:\s*(.*)$/', $line, $match)) { $root = trim($match[1]); break; }
 }
-$root = realpath(maia_web_expand_home_path($root));
+$root = realpath(maia_expand_home_path($root));
 if ($root === false || !is_dir($root)) {
     workspace_operation_error(403, 'The workspace root is unavailable.');
 }

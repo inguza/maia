@@ -1,0 +1,16 @@
+/* Shared styles for the content of credentials, skills, and tools panels. */
+.inline-form { display: flex; gap: .4rem; margin: .5rem 0; }
+.inline-form input { min-width: 0; width: 100%; padding: .4rem .5rem; }
+.inline-form button, .panel-actions button { margin: 0; padding: .4rem .65rem; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.muted, .status { color: #6b7280; }
+.status { min-height: 1.25rem; margin: .5rem 0; font-size: .9rem; }
+.status.error { color: #b91c1c; }
+.item-list li > :first-child, .available-list li > :first-child {
+    flex: 1; min-width: 0; overflow-wrap: anywhere;
+}
+.available-list .available-resource-heading { color: #6b7280; font-size: .8rem; font-weight: 600; }
+.available-list .available-resource-name { overflow-wrap: anywhere; }
+.available-list .available-resource-effects { white-space: nowrap; }
+.available-resource-state { flex: 0 0 auto; }
+.credential-created { display: grid; gap: .4rem; overflow-wrap: anywhere; }

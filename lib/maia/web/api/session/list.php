@@ -38,14 +38,14 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
 
-$sessions = maia_web_sessions();
+$sessions = maia_sessions();
 $selected = $headerSelected !== ''
     ? $headerSelected
     : (in_array($cookieSelected, $sessions, true)
         ? $cookieSelected
         : (in_array($environmentSession, $sessions, true) ? $environmentSession : ($environmentSession ?: null)));
 
-$home = maia_web_home_dir();
+$home = maia_home_dir();
 $items = array_map(
     static function (string $name) use ($home, $selected): array {
         $workspace = '';

@@ -34,7 +34,7 @@ if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'session', 'delete', $name],
+    [maia_binary(), 'session', 'delete', $name],
     [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -42,7 +42,7 @@ $process = proc_open(
     ],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 
 if (!is_resource($process)) {

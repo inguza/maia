@@ -23,11 +23,11 @@ function workspace_settings_error(int $status, string $message): never
 function workspace_settings_run(array $arguments): array
 {
     $process = proc_open(
-        array_merge([maia_web_binary()], $arguments),
+        array_merge([maia_binary()], $arguments),
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($process)) {
         return ['output' => '', 'error' => 'Unable to start MAIA.', 'status' => 1];
@@ -42,13 +42,13 @@ function workspace_settings_run(array $arguments): array
 
 function workspace_settings_home(): string
 {
-    return maia_web_workspace_base() ?? '';
+    return maia_workspace_base() ?? '';
 }
 
 function workspace_settings_display_path(string $path): string
 {
     $resolved = realpath($path);
-    return maia_web_relative_home_path($resolved !== false ? $resolved : $path);
+    return maia_relative_home_path($resolved !== false ? $resolved : $path);
 }
 
 function workspace_settings_absolute_path(string $path): string
@@ -109,7 +109,7 @@ if (!is_array($input) || $path === '') {
 }
 $path = workspace_settings_absolute_path($path);
 $resolvedPath = realpath($path);
-if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_web_path_within_home($resolvedPath)) {
+if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_path_within_home($resolvedPath)) {
     workspace_settings_error(400, 'The workspace path must be an existing directory inside MAIA home.');
 }
 $path = $resolvedPath;

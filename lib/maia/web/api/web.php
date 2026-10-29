@@ -9,11 +9,14 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../core/common.php';
+require_once __DIR__ . '/../core/auth.php';
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-function maia_web_validate_environment(): void
+function maia_validate_environment(): void
 {
     $home = getenv('MAIA_HOME');
     if (!$home || !is_dir($home)) {
@@ -34,172 +37,18 @@ function maia_web_validate_environment(): void
     }
 }
 
-function maia_web_base_path(): string
+function maia_workspace_base(): ?string
 {
-    $script = parse_url((string) ($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
-    if (!is_string($script) || $script === '') {
-        return '';
-    }
-    $base = str_replace('\\', '/', dirname($script));
-    return $base === '.' || $base === '/' ? '' : rtrim($base, '/');
-}
-
-function maia_web_request_path(): string
-{
-    $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
-    $path = is_string($path) && $path !== '' ? $path : '/';
-    $base = maia_web_base_path();
-    if ($base !== '' && ($path === $base || str_starts_with($path, $base . '/'))) {
-        $path = substr($path, strlen($base));
-    }
-    return $path === '' ? '/' : $path;
-}
-
-function maia_web_binary(): string
-{
-    return getenv('MAIA_BIN') ?: 'maia';
-}
-
-function maia_web_auth_file(): ?string
-{
-    $home = maia_web_home_dir();
-    return $home === null ? null : $home . DIRECTORY_SEPARATOR . 'auth.myl';
-}
-
-/** @return list<array{name: string, salt: string, hash: string}> */
-function maia_web_auth_tokens(): array
-{
-    $file = maia_web_auth_file();
-    if ($file === null || !is_file($file)) {
-        return [];
-    }
-
-    $tokens = [];
-    $inTokens = false;
-    $addToken = static function (string $value) use (&$tokens): void {
-        if (preg_match('/^(?:  )?([A-Za-z0-9_-]+):([0-9a-f]+):([0-9a-f]{64})$/', trim($value), $match)) {
-            $tokens[] = ['name' => $match[1], 'salt' => $match[2], 'hash' => $match[3]];
-        }
-    };
-    foreach (file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
-        if (preg_match('/^tokens:\s*(.*)$/', $line, $match)) {
-            $inTokens = true;
-            if ($match[1] !== '') {
-                $addToken($match[1]);
-            }
-            continue;
-        }
-        if (!$inTokens) {
-            continue;
-        }
-        if (preg_match('/^\s{2}(.+)$/', $line, $match)) {
-            $addToken($match[1]);
-            continue;
-        }
-        $inTokens = false;
-    }
-    return $tokens;
-}
-
-function maia_web_auth_cookie_value(): string
-{
-    return rawurldecode((string) ($_COOKIE['MAIA_GUI_AUTH'] ?? ''));
-}
-
-function maia_web_auth_cookie_valid(): bool
-{
-    $cookie = maia_web_auth_cookie_value();
-    if (!preg_match('/^([0-9a-f]+):([0-9a-f]+)$/', $cookie, $match)) {
-        return false;
-    }
-
-    $salt = $match[1];
-    $secret = $match[2];
-    $hash = hash('sha256', $salt . ':' . $secret);
-    foreach (maia_web_auth_tokens() as $token) {
-        if ($token['salt'] === $salt && hash_equals($token['hash'], $hash)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function maia_web_refresh_auth_cookie(): void
-{
-    $options = [
-        'expires' => time() + 365 * 24 * 60 * 60,
-        'path' => maia_web_base_path() . '/' ?: '/',
-        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ];
-    setcookie('MAIA_GUI_AUTH', maia_web_auth_cookie_value(), $options);
-}
-
-function maia_web_auth_bootstrap(): never
-{
-    $cookiePath = maia_web_base_path() . '/' ?: '/';
-    $cookiePathJson = json_encode($cookiePath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    header('Content-Type: text/html; charset=utf-8');
-    http_response_code(401);
-    echo <<<HTML
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MAIA authentication</title></head>
-<body><main><h1>MAIA authentication required</h1><p id="message">Checking authentication link...</p></main>
-<script>
-(() => {
-    const message = document.getElementById('message');
-    const value = new URLSearchParams(location.hash.slice(1)).get('auth');
-    if (!value || !/^[0-9a-f]+:[0-9a-f]+$/.test(value)) {
-        message.innerHTML = 'Authentication failed. Run "<code>maia gui create</code>" and use the generated authentication URL.';
-        return;
-    }
-    const cookiePath = {$cookiePathJson};
-    document.cookie = 'MAIA_GUI_AUTH=' + value + '; Path=' + cookiePath + '; SameSite=Lax';
-    message.textContent = 'Authentication token received. Reloading...';
-    history.replaceState({}, '', location.pathname + location.search);
-    location.reload();
-})();
-</script></body></html>
-HTML;
-    exit;
-}
-
-function maia_web_require_auth(): void
-{
-    if (!maia_web_auth_cookie_valid()) {
-        maia_web_auth_bootstrap();
-    }
-    maia_web_refresh_auth_cookie();
-}
-
-function maia_web_authenticate_page(): bool
-{
-    if (!maia_web_auth_cookie_valid()) {
-        maia_web_auth_bootstrap();
-    }
-    maia_web_refresh_auth_cookie();
-    return true;
-}
-
-function maia_web_home_dir(): ?string
-{
-    $home = getenv('MAIA_HOME')."/.maia";
-    return is_string($home) && $home !== '' ? $home : null;
-}
-
-function maia_web_workspace_base(): ?string
-{
-    $home = maia_web_home_dir();
+    $home = maia_home_dir();
     if ($home === null || $home === '') {
         return null;
     }
     return dirname($home);
 }
 
-function maia_web_expand_home_path(string $path): string
+function maia_expand_home_path(string $path): string
 {
-    $home = maia_web_workspace_base();
+    $home = maia_workspace_base();
     if ($home === null || $home === '') {
         return $path;
     }
@@ -215,9 +64,9 @@ function maia_web_expand_home_path(string $path): string
     return $path;
 }
 
-function maia_web_path_within_home(string $path): bool
+function maia_path_within_home(string $path): bool
 {
-    $home = maia_web_workspace_base();
+    $home = maia_workspace_base();
     $resolvedHome = $home === null ? false : realpath($home);
     $resolvedPath = realpath($path);
     if ($resolvedHome === false || $resolvedPath === false) {
@@ -227,9 +76,9 @@ function maia_web_path_within_home(string $path): bool
     return $resolvedPath === $resolvedHome || str_starts_with($resolvedPath, $prefix);
 }
 
-function maia_web_relative_home_path(string $path): string
+function maia_relative_home_path(string $path): string
 {
-    $home = maia_web_workspace_base();
+    $home = maia_workspace_base();
     $resolvedPath = realpath($path);
     if ($home === null || $home === '' || $resolvedPath === false) {
         return $path;
@@ -253,18 +102,18 @@ function maia_web_relative_home_path(string $path): string
     return $relative === [] ? '.' : implode('/', $relative);
 }
 
-function maia_web_session_exists(string $name): bool
+function maia_session_exists(string $name): bool
 {
     if (!preg_match('/^[A-Za-z0-9_.%+-]+$/', $name) || $name === '_EMPTY_') {
         return false;
     }
 
     $process = proc_open(
-        [maia_web_binary(), 'session', 'exist', $name],
+        [maia_binary(), 'session', 'exist', $name],
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($process)) {
         return false;
@@ -277,13 +126,13 @@ function maia_web_session_exists(string $name): bool
     return proc_close($process) === 0;
 }
 
-function maia_web_ensure_session(string $name): bool
+function maia_ensure_session(string $name): bool
 {
     if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name) || $name === '_EMPTY_') {
         return false;
     }
 
-    $environment = maia_web_environment();
+    $environment = maia_environment();
     $descriptors = [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -291,7 +140,7 @@ function maia_web_ensure_session(string $name): bool
     ];
     $run = static function (array $arguments) use ($descriptors, $environment): int {
         $process = proc_open(
-            array_merge([maia_web_binary()], $arguments),
+            array_merge([maia_binary()], $arguments),
             $descriptors,
             $pipes,
             null,
@@ -316,7 +165,7 @@ function maia_web_ensure_session(string $name): bool
 }
 
 /** @return array<int, string> */
-function maia_web_sessions(): array
+function maia_sessions(): array
 {
     $descriptors = [
         0 => ['pipe', 'r'],
@@ -325,11 +174,11 @@ function maia_web_sessions(): array
     ];
 
     $process = proc_open(
-        [maia_web_binary(), 'session', 'list'],
+        [maia_binary(), 'session', 'list'],
         $descriptors,
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
 
     if (!is_resource($process)) {
@@ -354,17 +203,17 @@ function maia_web_sessions(): array
     return array_keys($sessions);
 }
 
-function maia_web_session_workspace(string $session): ?string
+function maia_session_workspace(string $session): ?string
 {
     if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $session) || $session === '_EMPTY_') {
         return null;
     }
     $process = proc_open(
-        [maia_web_binary(), 'session', 'show', '--raw', $session],
+        [maia_binary(), 'session', 'show', '--raw', $session],
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($process)) {
         return null;
@@ -385,7 +234,7 @@ function maia_web_session_workspace(string $session): ?string
     return null;
 }
 
-function maia_web_selected_session(): ?string
+function maia_selected_session(): ?string
 {
     $headerSession = trim((string) ($_SERVER['HTTP_X_MAIA_SESSION'] ?? ''));
     if ($headerSession !== '') {
@@ -408,7 +257,7 @@ function maia_web_selected_session(): ?string
 }
 
 /** @return array<string, string> */
-function maia_web_environment(): array
+function maia_environment(): array
 {
     $environment = getenv();
     $profile = trim((string) ($_SERVER['HTTP_X_MAIA_PROFILE'] ?? ''));
@@ -439,7 +288,7 @@ function maia_web_environment(): array
         $environment['MAIA_SESSION'] = '_EMPTY_';
         unset($environment['MAIA_PROFILE']);
     } else {
-        $session = maia_web_selected_session();
+        $session = maia_selected_session();
         if ($session === null || $session === '') {
             unset($environment['MAIA_SESSION']);
         } else {
@@ -465,7 +314,7 @@ function maia_web_environment(): array
     return $environment;
 }
 
-function maia_web_initial_session(): ?string
+function maia_initial_session(): ?string
 {
     $urlSession = trim((string) ($_SERVER['MAIA_URL_SESSION'] ?? ''));
     if ($urlSession !== '') {
@@ -483,7 +332,7 @@ function maia_web_initial_session(): ?string
     }
 
     $process = proc_open(
-        [maia_web_binary(), '--query', 'session'],
+        [maia_binary(), '--query', 'session'],
         [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],
@@ -509,13 +358,13 @@ function maia_web_initial_session(): ?string
 
 // Every API endpoint uses the same explicit authentication cookie. The
 // bootstrap page is handled by index.php and is intentionally not gated here.
-$maiaWebRequestPath = maia_web_request_path();
+$maiaWebRequestPath = maia_request_path();
 if (str_starts_with($maiaWebRequestPath, '/api/')) {
-    maia_web_require_auth();
+    maia_require_auth();
 }
 
 /** @return list<array{text: string, path: string|null, session: string|null}> */
-function maia_web_history_text_parts(string $text, ?string $workspaceRoot, ?string $sessionName = null): array
+function maia_history_text_parts(string $text, ?string $workspaceRoot, ?string $sessionName = null): array
 {
     $pattern = '/[A-Za-z0-9_-]+(?:[.\\/][A-Za-z0-9_-]+)+/';
     if ($workspaceRoot === null || $workspaceRoot === '' ||
@@ -560,17 +409,17 @@ function maia_web_history_text_parts(string $text, ?string $workspaceRoot, ?stri
     return $parts;
 }
 
-function maia_web_history_workspace_root(): ?string
+function maia_history_workspace_root(): ?string
 {
     $workspace = trim((string) (getenv('MAIA_WORKSPACE') ?: ''));
     if ($workspace === '') {
-        $session = maia_web_selected_session();
-        $workspace = $session === null ? '' : (maia_web_session_workspace($session) ?: '');
+        $session = maia_selected_session();
+        $workspace = $session === null ? '' : (maia_session_workspace($session) ?: '');
     }
     if ($workspace === '') {
         return null;
     }
-    $home = maia_web_home_dir();
+    $home = maia_home_dir();
     if ($home === null || $home === '') {
         return null;
     }
@@ -593,23 +442,23 @@ function maia_web_history_workspace_root(): ?string
     return $root !== false && is_dir($root) ? $root : null;
 }
 
-function maia_web_annotate_history_response(string $output): string
+function maia_annotate_history_response(string $output): string
 {
     $response = json_decode($output, true);
     if (!is_array($response) || !is_array($response['items'] ?? null)) {
         return $output;
     }
-    $root = maia_web_history_workspace_root();
-    $sessionName = maia_web_selected_session();
+    $root = maia_history_workspace_root();
+    $sessionName = maia_selected_session();
     foreach ($response['items'] as &$item) {
         if (is_array($item) && ($item['hidden'] ?? false) !== true &&
             ($item['hidden'] ?? 0) !== 1 && ($item['hidden'] ?? '') !== 'true') {
             if (array_key_exists('content', $item) && is_string($item['content'])) {
-                $item['contentParts'] = maia_web_history_text_parts($item['content'], $root, $sessionName);
+                $item['contentParts'] = maia_history_text_parts($item['content'], $root, $sessionName);
             }
             if (is_array($item['backup'] ?? null) &&
                 is_string($item['backup']['content'] ?? null)) {
-                $item['backup']['contentParts'] = maia_web_history_text_parts($item['backup']['content'], $root, $sessionName);
+                $item['backup']['contentParts'] = maia_history_text_parts($item['backup']['content'], $root, $sessionName);
             }
         }
     }
@@ -618,5 +467,5 @@ function maia_web_annotate_history_response(string $output): string
 }
 
 if ($maiaWebRequestPath === '/api/history/show') {
-    ob_start('maia_web_annotate_history_response');
+    ob_start('maia_annotate_history_response');
 }

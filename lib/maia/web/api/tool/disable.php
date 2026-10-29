@@ -31,11 +31,11 @@ if ($pattern === '' || strpos($pattern, "\0") !== false || str_contains($pattern
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'tool', '--scope', (string) ($_GET['scope'] ?? 'session'), 'disable', $pattern],
+    [maia_binary(), 'tool', '--scope', (string) ($_GET['scope'] ?? 'session'), 'disable', $pattern],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     tool_disable_error(500, 'Unable to start MAIA.');

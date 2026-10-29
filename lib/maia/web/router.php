@@ -31,11 +31,11 @@ if ($path === '/status') {
 // before the authentication bootstrap has run.
 if ($path === '/' || $path === '') {
     require_once __DIR__ . '/api/web.php';
-    maia_web_validate_environment();
-    maia_web_authenticate_page();
+    maia_validate_environment();
+    maia_authenticate_page();
 
     $session = trim((string) (getenv('MAIA_SESSION') ?: 'default'));
-    if (!maia_web_ensure_session($session)) {
+    if (!maia_ensure_session($session)) {
         http_response_code(500);
         header('Content-Type: text/plain; charset=utf-8');
         echo "Unable to ensure the default MAIA session exists.\n";
@@ -57,16 +57,16 @@ if (preg_match('#^/session/([^/]+)(?:/(.*))?$#', $path, $matches)) {
     }
     $_SERVER['MAIA_URL_SESSION'] = $session;
     require_once __DIR__ . '/api/web.php';
-    maia_web_validate_environment();
-    maia_web_authenticate_page();
-    if (!maia_web_session_exists($session)) {
+    maia_validate_environment();
+    maia_authenticate_page();
+    if (!maia_session_exists($session)) {
         http_response_code(404);
         header('Content-Type: text/plain; charset=utf-8');
         echo 'Session ' . $session . ' does not exist.' . PHP_EOL;
         return true;
     }
     if ($relativePath !== '' || (string) ($_GET['workspace'] ?? '') === '1') {
-        $workspace = maia_web_session_workspace($session);
+        $workspace = maia_session_workspace($session);
         if ($workspace === null) {
             http_response_code(404);
             echo "Session workspace not found.\n";

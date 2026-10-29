@@ -23,11 +23,11 @@ function auth_context_error(int $status, string $message): never
 function auth_context_run(array $arguments): array
 {
     $process = proc_open(
-        array_merge([maia_web_binary()], $arguments),
+        array_merge([maia_binary()], $arguments),
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($process)) {
         return ['output' => '', 'error' => 'Unable to start MAIA.', 'status' => 1];
@@ -67,7 +67,7 @@ function auth_context_public_url(): string
     if ($host === '' || !preg_match('/^[A-Za-z0-9.:[\]-]+(?::[0-9]+)?$/', $host)) {
         auth_context_error(400, 'Unable to determine the public MAIA host.');
     }
-    return $scheme . '://' . $host . maia_web_base_path();
+    return $scheme . '://' . $host . maia_base_path();
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';

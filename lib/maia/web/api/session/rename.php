@@ -47,11 +47,11 @@ if ($oldName === $newName) {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'session', 'rename', $newName, $oldName],
+    [maia_binary(), 'session', 'rename', $newName, $oldName],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     session_rename_error(500, 'Unable to start MAIA.');

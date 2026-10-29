@@ -51,11 +51,11 @@ if ($scope === 'profile') {
     }
 
     $scopeProcess = proc_open(
-        [maia_web_binary(), 'profile', '--scope'],
+        [maia_binary(), 'profile', '--scope'],
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $scopePipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($scopeProcess)) {
         profile_create_error(500, 'Unable to resolve the parent profile scope.');
@@ -75,11 +75,11 @@ if ($scope === 'profile') {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'profile', '--scope', $scope, 'create', $name, $description],
+    [maia_binary(), 'profile', '--scope', $scope, 'create', $name, $description],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     profile_create_error(500, 'Unable to start MAIA.');

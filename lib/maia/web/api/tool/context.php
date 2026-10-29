@@ -35,11 +35,11 @@ if ($method === 'POST') {
 function tool_context_run(array $arguments): array
 {
     $process = proc_open(
-        array_merge([maia_web_binary()], $arguments),
+        array_merge([maia_binary()], $arguments),
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
     if (!is_resource($process)) {
         return ['output' => '', 'error' => 'Unable to start MAIA.', 'status' => 1];

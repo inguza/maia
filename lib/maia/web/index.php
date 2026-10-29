@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/api/web.php';
 
-if (!maia_web_authenticate_page()) {
+if (!maia_authenticate_page()) {
     exit;
 }
 
@@ -27,12 +27,12 @@ $workspacePageEdit = (string) ($_GET['edit'] ?? '') === '1';
 $pureWorkspaceBrowserPage = $workspacePagePath !== '';
 $profilePageName = trim((string) ($_SERVER['MAIA_URL_PROFILE'] ?? ''));
 $homePage = trim((string) ($_SERVER['MAIA_URL_HOME'] ?? '')) !== '';
-$webBasePath = maia_web_base_path();
+$webBasePath = maia_base_path();
 $resourcePageName = $workspacePageName !== '' ? $workspacePageName : $profilePageName;
 $isResourcePage = $resourcePageName !== '' || $homePage;
-$initialSessionName = maia_web_initial_session() ?: 'No session selected';
+$initialSessionName = maia_initial_session() ?: 'No session selected';
 $sessionWorkspaceName = (!$isResourcePage && $initialSessionName !== 'No session selected')
-    ? (maia_web_session_workspace($initialSessionName) ?: '')
+    ? (maia_session_workspace($initialSessionName) ?: '')
     : '';
 $initialTitle = $sessionWorkspacePage
     ? 'session: ' . $initialSessionName . ' / workspace'
@@ -45,9 +45,9 @@ $initialTitle = $sessionWorkspacePage
                 : 'session: ' . $initialSessionName)));
 
 /** @return list<array{name: string, path: string, type: string, size: int|null, modified: int|null, empty: bool}> */
-function maia_web_initial_workspace_entries(string $workspaceName, string $relativePath = ''): array
+function maia_initial_workspace_entries(string $workspaceName, string $relativePath = ''): array
 {
-    $home = maia_web_home_dir();
+    $home = maia_home_dir();
     if ($home === null || $home === '') {
         return [];
     }
@@ -67,7 +67,7 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
             break;
         }
     }
-    $workspaceRoot = realpath(maia_web_expand_home_path($workspaceRoot));
+    $workspaceRoot = realpath(maia_expand_home_path($workspaceRoot));
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
         return [];
     }
@@ -120,12 +120,12 @@ function maia_web_initial_workspace_entries(string $workspaceName, string $relat
     return $entries;
 }
 
-function maia_web_initial_workspace_file(string $workspaceName, string $relativePath): ?array
+function maia_initial_workspace_file(string $workspaceName, string $relativePath): ?array
 {
     if ($relativePath === '') {
         return null;
     }
-    $home = maia_web_home_dir();
+    $home = maia_home_dir();
     if ($home === null || $home === '') {
         return null;
     }
@@ -143,7 +143,7 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
     }
     if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
         !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
-        $workspaceRoot = maia_web_expand_home_path($workspaceRoot);
+        $workspaceRoot = maia_expand_home_path($workspaceRoot);
     }
     $workspaceRoot = realpath($workspaceRoot);
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
@@ -178,12 +178,12 @@ function maia_web_initial_workspace_file(string $workspaceName, string $relative
     ];
 }
 
-function maia_web_initial_workspace_path_type(string $workspaceName, string $relativePath): string
+function maia_initial_workspace_path_type(string $workspaceName, string $relativePath): string
 {
     if ($relativePath === '') {
         return 'root';
     }
-    $home = maia_web_home_dir();
+    $home = maia_home_dir();
     if ($home === null || $home === '') {
         return 'missing';
     }
@@ -201,7 +201,7 @@ function maia_web_initial_workspace_path_type(string $workspaceName, string $rel
     }
     if ($workspaceRoot !== '' && $workspaceRoot[0] !== '/' &&
         !preg_match('/^[A-Za-z]:[\\\\\\\/]/', $workspaceRoot)) {
-        $workspaceRoot = maia_web_expand_home_path($workspaceRoot);
+        $workspaceRoot = maia_expand_home_path($workspaceRoot);
     }
     $workspaceRoot = realpath($workspaceRoot);
     if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
@@ -228,13 +228,13 @@ function maia_web_initial_workspace_path_type(string $workspaceName, string $rel
 $initialWorkspaceName = $workspacePageName !== '' ? $workspacePageName : $sessionWorkspaceName;
 $initialWorkspaceEntries = $initialWorkspaceName === ''
     ? []
-    : maia_web_initial_workspace_entries($initialWorkspaceName, $workspacePagePath);
+    : maia_initial_workspace_entries($initialWorkspaceName, $workspacePagePath);
 $initialWorkspaceFile = $initialWorkspaceName === ''
     ? null
-    : maia_web_initial_workspace_file($initialWorkspaceName, $workspacePagePath);
+    : maia_initial_workspace_file($initialWorkspaceName, $workspacePagePath);
 $initialWorkspacePathType = $initialWorkspaceName === ''
     ? 'missing'
-    : maia_web_initial_workspace_path_type($initialWorkspaceName, $workspacePagePath);
+    : maia_initial_workspace_path_type($initialWorkspaceName, $workspacePagePath);
 if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }

@@ -10,7 +10,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/api/web.php';
-$webBasePath = maia_web_base_path();
+$webBasePath = maia_base_path();
 
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');

@@ -1,0 +1,11 @@
+/* Shared disclosure-panel frame. */
+.expandable-panel { border: 1px solid #9ca3af; border-radius: .5rem; overflow: clip; }
+.panel-toggle {
+    display: flex; width: 100%; align-items: center; justify-content: space-between;
+    margin: 0; padding: .75rem 1rem; border: 0; text-align: left;
+    background: color-mix(in srgb, CanvasText 5%, Canvas); color: CanvasText;
+}
+.panel-toggle:hover { background: color-mix(in srgb, #2563eb 12%, Canvas); }
+.panel-content { padding: .75rem 1rem 1rem; }
+.panel-content[hidden] { display: none; }
+.panel-content h2 { margin: 0 0 .65rem; font-size: 1.05rem; }

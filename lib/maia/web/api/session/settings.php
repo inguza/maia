@@ -27,7 +27,7 @@ function session_settings_error(int $status, string $message): never
 function session_settings_run(array $arguments, string $input = ''): array
 {
     $process = proc_open(
-        array_merge([maia_web_binary()], $arguments),
+        array_merge([maia_binary()], $arguments),
         [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],
@@ -35,7 +35,7 @@ function session_settings_run(array $arguments, string $input = ''): array
         ],
         $pipes,
         null,
-        maia_web_environment()
+        maia_environment()
     );
 
     if (!is_resource($process)) {
@@ -130,7 +130,7 @@ function session_settings_values(): array
                 break;
             }
         }
-        if ($workspacePath !== '' && maia_web_path_within_home($workspacePath)) {
+        if ($workspacePath !== '' && maia_path_within_home($workspacePath)) {
             $workspaces[] = $workspaceName;
         }
     }

@@ -40,7 +40,7 @@ if (strpos($path, "\0") !== false || str_contains($path, "\n") || str_contains($
 function files_add_run(array $arguments, ?string $cwd = null): array
 {
     $process = proc_open(
-        array_merge([maia_web_binary()], $arguments),
+        array_merge([maia_binary()], $arguments),
         [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],
@@ -48,7 +48,7 @@ function files_add_run(array $arguments, ?string $cwd = null): array
         ],
         $pipes,
         $cwd,
-        maia_web_environment()
+        maia_environment()
     );
 
     if (!is_resource($process)) {

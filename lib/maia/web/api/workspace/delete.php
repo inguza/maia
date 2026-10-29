@@ -31,11 +31,11 @@ if ($name === '' || !preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*$/', $name)) {
 }
 
 $process = proc_open(
-    [maia_web_binary(), 'workspace', 'delete', $name],
+    [maia_binary(), 'workspace', 'delete', $name],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     workspace_delete_error(500, 'Unable to start MAIA.');

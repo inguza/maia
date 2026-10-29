@@ -46,7 +46,7 @@ $process = proc_open(
     $descriptors,
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 
 if (!is_resource($process)) {

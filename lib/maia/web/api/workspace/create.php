@@ -34,19 +34,19 @@ if (!is_array($input) || $name === '') {
 if ($path === '') {
     workspace_create_error(400, 'A workspace path is required.');
 }
-$path = maia_web_expand_home_path($path);
+$path = maia_expand_home_path($path);
 $resolvedPath = realpath($path);
-if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_web_path_within_home($resolvedPath)) {
+if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_path_within_home($resolvedPath)) {
     workspace_create_error(400, 'The workspace path must be an existing directory inside MAIA home.');
 }
 $path = $resolvedPath;
 
 $process = proc_open(
-    [maia_web_binary(), 'workspace', 'create', '--path', $path, $name],
+    [maia_binary(), 'workspace', 'create', '--path', $path, $name],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,
-    maia_web_environment()
+    maia_environment()
 );
 if (!is_resource($process)) {
     workspace_create_error(500, 'Unable to start MAIA.');
