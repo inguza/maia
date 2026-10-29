@@ -44,7 +44,15 @@ index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
 
 wpath="$(action_file_name "$ws_changes" "$id")"
-printf '%s' "mv -f --" > "$wpath"
+destdir=$(dirname -- "$destination")
+if [[ "$destdir" != "." ]]; then
+    printf '%s' "mkdir -p --" > "$wpath"
+    printf ' %q' "$destdir" >> "$wpath"
+    printf '\n' >> "$wpath"
+else
+    : > "$wpath"
+fi
+printf '%s' "mv -f --" >> "$wpath"
 printf ' %q' "${paths[@]}" "$destination" >> "$wpath"
 printf '\n' >> "$wpath"
 printf '%s' "maia file forget" >> "$wpath"
