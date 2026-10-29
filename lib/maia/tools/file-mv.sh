@@ -51,7 +51,7 @@ printf '%s' "maia file forget" >> "$wpath"
 printf ' %q' "${paths[@]}" >> "$wpath"
 printf '\n' >> "$wpath"
 # Now to the complicated part, to determine what remembered files are changed
-mapfile_from_command file_context maia file list --raw
+mapfile_from_command file_context $MAIA_BIN file list --raw
 move_into_destination=false
 if [[ -d "$destination" || ${#paths[@]} -gt 1 ]]; then
     move_into_destination=true
