@@ -2516,7 +2516,7 @@ hook_execute() {
     local status=$?
 
     if (( status != 0 )); then
-        warning "Hook '$hookcmd' failed for event '$event' (status $status)."
+        warn "Hook '$hookcmd' failed for event '$event' (status $status)."
     fi
 
     # Make sure this call do not terminate the caller
