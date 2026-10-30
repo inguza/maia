@@ -23,5 +23,11 @@
 <ul id="tool-pattern-list" class="item-list" aria-label="Allowed tool patterns"></ul>
 <details>
     <summary>Available tools</summary>
-    <ul id="available-tools-list" class="available-list" aria-label="Available tools"></ul>
+    <ul id="available-tools-list" class="available-list available-resources-list" aria-label="Available tools">
+        <li class="available-resource-heading">
+            <span class="available-resource-name">Name - Description</span>
+            <span>Effect</span>
+            <span>Allowed</span>
+        </li>
+    </ul>
 </details>

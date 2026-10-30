@@ -26,6 +26,7 @@ final class SidebarComponent implements Component
             new Stylesheet('components/common.css'),
             new Stylesheet('components/sidebar/component.css'),
             new Script('core/api.js'),
+            new Script('core/ui.js'),
             new Script('components/sidebar/component.js'),
         ];
     }

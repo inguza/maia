@@ -26,6 +26,7 @@ final class SkillsPanel implements Component
             new Stylesheet('components/common.css'),
             new Stylesheet('components/panels/panel-content.css'),
             new Script('core/api.js'),
+            new Script('core/ui.js'),
             new Script('components/panels/skills/panel.js'),
         ];
     }

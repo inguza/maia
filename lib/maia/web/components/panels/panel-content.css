@@ -4,11 +4,17 @@
 .inline-form button, .panel-actions button { margin: 0; padding: .4rem .65rem; }
 .panel-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
 .muted, .status { color: #6b7280; }
-.status { min-height: 1.25rem; margin: .5rem 0; font-size: .9rem; }
+.status { align-items: center; display: flex; gap: .5rem; min-height: 1.25rem; margin: .5rem 0; font-size: .9rem; }
 .status.error { color: #b91c1c; }
 .item-list li > :first-child, .available-list li > :first-child {
     flex: 1; min-width: 0; overflow-wrap: anywhere;
 }
+.available-resources-list {
+    align-items: center; column-gap: .75rem; display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content; row-gap: .2rem;
+}
+.available-resources-list li { display: contents; }
+.available-resources-list li > * { min-width: 0; padding: .2rem 0; }
 .available-list .available-resource-heading { color: #6b7280; font-size: .8rem; font-weight: 600; }
 .available-list .available-resource-name { overflow-wrap: anywhere; }
 .available-list .available-resource-effects { white-space: nowrap; }

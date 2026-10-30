@@ -10,7 +10,7 @@
 <section class="expandable-panel" data-expandable-panel>
     <button class="panel-toggle" id="<?= $safeId ?>-toggle" type="button"
             aria-expanded="false" aria-controls="<?= $safeId ?>">
-        <?= $safeLabel ?> <span aria-hidden="true">â¸</span>
+        <?= $safeLabel ?> <span aria-hidden="true">&#x25B8;</span>
     </button>
     <div class="panel-content" id="<?= $safeId ?>" hidden>
         <?= $content ?>

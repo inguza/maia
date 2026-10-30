@@ -6,8 +6,21 @@
 
 * { box-sizing: border-box; }
 button, input { font: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; margin-top: .5rem; padding: .6rem 1rem; }
 button:disabled { cursor: default; opacity: .6; }
+
+.spinner {
+    animation: maia-spin .8s linear infinite;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    border-top-color: #4b5563;
+    display: inline-block;
+    flex: 0 0 .8rem;
+    height: .8rem;
+    width: .8rem;
+}
+@keyframes maia-spin { to { transform: rotate(360deg); } }
+
 
 .item-list, .available-list {
     list-style: none; margin: .4rem 0; padding: 0;

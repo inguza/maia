@@ -23,5 +23,11 @@
 <ul id="skill-pattern-list" class="item-list" aria-label="Allowed skill patterns"></ul>
 <details>
     <summary>Available skills</summary>
-    <ul id="available-skills-list" class="available-list" aria-label="Available skills"></ul>
+    <ul id="available-skills-list" class="available-list available-resources-list" aria-label="Available skills">
+        <li class="available-resource-heading">
+            <span class="available-resource-name">Name - Description</span>
+            <span>Allowed</span>
+            <span>In memory</span>
+        </li>
+    </ul>
 </details>
