@@ -26,7 +26,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
 }
 
 $name = trim((string) (file_get_contents('php://input') ?: ''));
-if ($name === '' || !preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*$/', $name)) {
+if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name)) {
     profile_delete_error(400, 'Invalid profile name.');
 }
 

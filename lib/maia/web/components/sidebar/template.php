@@ -39,17 +39,6 @@
         <p id="workspace-list-placeholder" class="sidebar-placeholder" role="status">Loading workspaces&hellip;</p>
     </section>
 
-    <section class="sidebar-section">
-        <h2>Profiles</h2>
-        <form id="profile-search" class="resource-search">
-            <label class="visually-hidden" for="profile-search-input">Find or create profile</label>
-            <input id="profile-search-input" type="search" autocomplete="off" placeholder="Profile name">
-            <button type="submit" aria-label="Search or open profile">&#x1F50D;</button>
-            <button id="profile-create" type="button" aria-label="Create profile" hidden>+</button>
-        </form>
-        <ul id="profile-list" class="sidebar-list" aria-label="MAIA profiles"></ul>
-        <p id="profile-list-placeholder" class="sidebar-placeholder" role="status">Loading profiles&hellip;</p>
-    </section>
 </aside>
 <dialog id="sidebar-session-settings" class="sidebar-dialog">
     <form id="sidebar-session-settings-form" method="dialog">

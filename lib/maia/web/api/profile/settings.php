@@ -22,12 +22,17 @@ function profile_settings_error(int $status, string $message): never
 
 function profile_settings_run(array $arguments): array
 {
+    $environment = maia_environment();
+    // The target profile name is passed explicitly; do not make the profile
+    // page's active profile the parent scope for this lookup/update.
+    unset($environment['MAIA_PROFILE']);
+
     $process = proc_open(
         array_merge([maia_binary()], $arguments),
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,
-        maia_environment()
+        $environment
     );
     if (!is_resource($process)) {
         return ['output' => '', 'error' => 'Unable to start MAIA.', 'status' => 1];

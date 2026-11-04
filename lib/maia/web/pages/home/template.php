@@ -22,6 +22,7 @@
             <h1>home</h1>
         </header>
         <div class="home-panels" aria-label="Home tools">
+            <?= $page->renderComponent('profiles') ?>
             <?= $page->renderComponent('credentials') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>

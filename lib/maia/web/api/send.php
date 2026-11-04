@@ -21,6 +21,7 @@ while (ob_get_level() > 0) {
     ob_end_flush();
 }
 ob_implicit_flush(true);
+flush();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -29,12 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Protocol line: acknowledge receipt before starting MAIA so the client can
+// distinguish request acceptance from the command's output.
+echo "MAIA-REQUEST-START\n";
+flush();
+
 $message = file_get_contents('php://input');
 if ($message === false || trim($message) === '') {
     http_response_code(400);
     echo "Message cannot be empty.\n";
     exit;
 }
+
+// Protocol line: acknowledge receipt before starting MAIA so the client can
+// distinguish request acceptance from the command's output.
+echo "MAIA-REQUEST-RECEIVED\n";
+flush();
 
 $maia = getenv('MAIA_BIN') ?: 'maia';
 $descriptors = [
@@ -52,8 +63,8 @@ $process = proc_open(
 );
 
 if (!is_resource($process)) {
-    http_response_code(500);
-    echo "Unable to start MAIA.\n";
+    echo "[ERROR] Unable to start MAIA.\n";
+    flush();
     exit;
 }
 

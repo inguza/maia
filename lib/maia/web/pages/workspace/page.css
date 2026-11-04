@@ -1,0 +1,10 @@
+/* Workspace-page layout; browser details belong to PathBrowser. */
+.app { margin: 0; max-width: none; width: 100%; }
+.topbar { align-items: center; display: flex; gap: .75rem; margin-bottom: 1rem; }
+.topbar h1 { font-size: 1.5rem; margin: 0; overflow-wrap: anywhere; }
+.topbar h1 .path-browser-breadcrumb { display: inline; margin: 0; }
+.error { color: #b91c1c; margin-bottom: 1rem; }
+@media (max-width: 48rem) {
+    .topbar { padding-left: 2.75rem; }
+    .topbar > h1 { font-size: 1.25rem; }
+}

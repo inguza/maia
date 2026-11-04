@@ -75,8 +75,12 @@ if (preg_match('#^/session/([^/]+)(?:/(.*))?$#', $path, $matches)) {
         $_SERVER['MAIA_URL_WORKSPACE'] = $workspace;
         $_SERVER['MAIA_URL_WORKSPACE_PATH'] = trim(str_replace('\\', '/', $relativePath), '/');
         $_SERVER['MAIA_URL_SESSION_WORKSPACE'] = '1';
+        if ($relativePath !== '') {
+            require __DIR__ . '/pages/filesystem/page.php';
+            return true;
+        }
     }
-    require __DIR__ . '/index.php';
+    require __DIR__ . '/pages/session/page.php';
     return true;
 }
 
@@ -91,12 +95,27 @@ if (preg_match('#^/workspace/([^/]+)(?:/(.*))?$#', $path, $matches)) {
         return true;
     }
     $_SERVER['MAIA_URL_WORKSPACE'] = $workspace;
+    if (preg_match('#^profiles/([^/]+)$#', $relativePath, $profileMatches)) {
+        $profile = $profileMatches[1];
+        if ($profile === '' || !preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $profile)) {
+            http_response_code(404);
+            echo "Profile not found.\\n";
+            return true;
+        }
+        $_SERVER['MAIA_URL_PROFILE'] = $profile;
+        require __DIR__ . '/pages/profile/page.php';
+        return true;
+    }
     $_SERVER['MAIA_URL_WORKSPACE_PATH'] = trim(str_replace('\\', '/', $relativePath), '/');
-    require __DIR__ . '/index.php';
+    if ($_SERVER['MAIA_URL_WORKSPACE_PATH'] !== '') {
+        require __DIR__ . '/pages/filesystem/page.php';
+    } else {
+        require __DIR__ . '/pages/workspace/page.php';
+    }
     return true;
 }
 
-if (preg_match('#^/profile/(.+)$#', $path, $matches)) {
+if (preg_match('#^/profiles/([^/]+)$#', $path, $matches)) {
     $profile = rawurldecode($matches[1]);
     if ($profile === '' || !preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $profile)) {
         http_response_code(404);
@@ -104,13 +123,13 @@ if (preg_match('#^/profile/(.+)$#', $path, $matches)) {
         return true;
     }
     $_SERVER['MAIA_URL_PROFILE'] = $profile;
-    require __DIR__ . '/index.php';
+    require __DIR__ . '/pages/profile/page.php';
     return true;
 }
 
 if ($path === '/home') {
     $_SERVER['MAIA_URL_HOME'] = 'home';
-    require __DIR__ . '/index.php';
+    require __DIR__ . '/pages/home/page.php';
     return true;
 }
 

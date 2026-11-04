@@ -1,0 +1,25 @@
+/* Scope-aware profile manager panel. */
+.profiles-manager { display: grid; gap: .75rem; }
+.profiles-toolbar { align-items: center; display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; }
+.profiles-toolbar button, .profiles-create button, .profiles-list button, .profiles-dialog-actions button { margin: 0; }
+.profiles-scope { color: #6b7280; margin: 0; }
+.profiles-create { align-items: end; display: grid; gap: .4rem .6rem; grid-template-columns: auto minmax(8rem, 1fr) auto minmax(10rem, 2fr) auto; }
+.profiles-create label { align-self: center; }
+.profiles-create input, .profiles-settings-dialog input { box-sizing: border-box; font: inherit; min-width: 0; padding: .4rem .5rem; }
+.profiles-status { align-items: center; color: #6b7280; display: flex; gap: .5rem; margin: 0; min-height: 1.25rem; }
+.profiles-status.error { color: #b91c1c; }
+.profiles-list { display: grid; gap: .35rem; list-style: none; margin: 0; padding: 0; }
+.profiles-list li { align-items: center; border-bottom: 1px solid #e5e7eb; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; padding: .4rem 0; }
+.profile-name, .profile-name:visited { color: inherit; flex: 1 1 10rem; overflow-wrap: anywhere; text-decoration: none; }
+.profile-name:hover { text-decoration: underline; }
+.profile-actions { display: flex; gap: .4rem; }
+.profiles-settings-dialog { border: 1px solid #9ca3af; border-radius: .5rem; color: CanvasText; max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: calc(100% - 2rem); }
+.profiles-settings-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.profiles-settings-dialog h2 { font-size: 1.1rem; margin: 0 0 .75rem; overflow-wrap: anywhere; }
+.profiles-settings-dialog label { display: block; margin-bottom: .25rem; }
+.profiles-settings-dialog input { width: 100%; }
+.profiles-settings-scope { color: #6b7280; font-size: .85rem; margin: .6rem 0; }
+.profiles-dialog-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+@media (max-width: 48rem) {
+    .profiles-create { align-items: stretch; grid-template-columns: 1fr; }
+}

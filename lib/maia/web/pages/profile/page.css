@@ -1,0 +1,11 @@
+/* Profile page-specific layout. Shared sidebar and panel styles belong to components. */
+.app { margin: 0; max-width: none; width: 100%; }
+.topbar {
+    align-items: center; display: flex; gap: .75rem; justify-content: space-between;
+    margin: 0 0 1rem;
+}
+.topbar h1 { font-size: 1.5rem; margin: 0; overflow-wrap: anywhere; }
+.error { color: #b91c1c; margin: .75rem 0; }
+@media (max-width: 48rem) {
+    .topbar { padding-left: 2.5rem; }
+}

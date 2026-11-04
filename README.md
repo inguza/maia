@@ -729,7 +729,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 https://github.com/markedjs/marked
 
 Files:
- - lib/maia/web/marked-18.0.14.umd.js
+ - lib/maia/web/components/path-browser/marked-18.0.14.umd.js
 
 Copyright (c) 2018-2026, MarkedJS  (https://github.com/markedjs/)
 Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
@@ -755,7 +755,7 @@ THE SOFTWARE.
 ### Purify
 
 Files:
- - lib/maia/web/purify-3.4.17.min.js
+ - lib/maia/web/components/path-browser/purify-3.4.17.min.js
 
 https://github.com/cure53/dompurify
 

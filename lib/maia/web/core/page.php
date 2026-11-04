@@ -57,6 +57,11 @@ abstract class Page
         $this->addResources($resources);
     }
 
+    public function hasComponent(string $name): bool
+    {
+        return array_key_exists($name, $this->components);
+    }
+
     /** Render a previously added component from a page template. */
     public function renderComponent(string $name): string
     {

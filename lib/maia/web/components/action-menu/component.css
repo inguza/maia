@@ -1,0 +1,42 @@
+/* Shared action-menu trigger and viewport-bounded popup styles. */
+.maia-action-menu { display: inline-flex; position: relative; }
+.maia-action-menu-trigger {
+    align-items: center; background: transparent; border: 0; border-radius: .3rem;
+    color: CanvasText; cursor: pointer; display: inline-flex; gap: .4rem;
+    justify-content: center; margin: 0; min-height: 2rem; padding: .2rem .4rem;
+}
+.maia-action-menu-trigger:hover,
+.maia-action-menu-trigger[aria-expanded="true"] {
+    background: color-mix(in srgb, #2563eb 12%, Canvas);
+}
+.maia-action-menu-trigger-icon { align-items: center; display: inline-flex; justify-content: center; }
+.maia-action-menu-trigger-text { min-width: 0; }
+.maia-action-menu-popup {
+    background: Canvas; border: 1px solid #9ca3af; border-radius: .35rem;
+    box-shadow: 0 .35rem .8rem rgb(0 0 0 / 20%); color: CanvasText;
+    display: flex; flex-direction: column; max-width: calc(100vw - 1rem);
+    min-width: 10rem; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+    padding: .25rem; position: absolute; right: 0; top: calc(100% + .2rem); z-index: 1000;
+}
+.maia-action-menu-popup-floating { box-sizing: border-box; position: fixed !important; right: auto !important; bottom: auto !important; }
+.maia-action-menu-popup[hidden] { display: none !important; }
+.maia-action-menu-item {
+    align-items: center; background: transparent; border: 0; border-radius: .2rem;
+    box-sizing: border-box; color: CanvasText; cursor: pointer; display: flex;
+    gap: .55rem; justify-content: flex-start; margin: 0; min-width: 0;
+    padding: .45rem .6rem; text-align: left; text-decoration: none; white-space: nowrap; width: 100%;
+}
+.maia-action-menu-item:hover,
+.maia-action-menu-item:focus-visible,
+.maia-action-menu-item[aria-checked="true"] {
+    background: color-mix(in srgb, #2563eb 12%, Canvas); outline: none;
+}
+.maia-action-menu-item.is-danger { color: #b91c1c; }
+.maia-action-menu-item.is-danger:hover,
+.maia-action-menu-item.is-danger:focus-visible { background: color-mix(in srgb, #dc2626 12%, Canvas); color: #991b1b; }
+.maia-action-menu-item[aria-disabled="true"] { cursor: default; opacity: .55; }
+.maia-action-menu-item-icon { display: inline-flex; flex: 0 0 1.2rem; justify-content: center; }
+.maia-action-menu-item-label { min-width: 0; overflow-wrap: anywhere; }
+.maia-action-menu-separator { border-top: 1px solid #d1d5db; margin: .25rem .35rem; }
+.maia-action-menu button:focus-visible,
+.maia-action-menu-popup a:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }

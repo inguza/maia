@@ -35,6 +35,9 @@ $description = (string) ($input['description'] ?? '');
 if ($name === '') {
     profile_create_error(400, 'A profile name is required.');
 }
+if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name)) {
+    profile_create_error(400, 'Invalid profile name.');
+}
 
 $scope = trim((string) ($_GET['scope'] ?? 'home'));
 if (!in_array($scope, ['session', 'workspace', 'profile', 'home'], true)) {

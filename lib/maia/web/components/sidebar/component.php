@@ -24,9 +24,11 @@ final class SidebarComponent implements Component
     {
         return [
             new Stylesheet('components/common.css'),
+            new Stylesheet('components/action-menu/component.css'),
             new Stylesheet('components/sidebar/component.css'),
             new Script('core/api.js'),
             new Script('core/ui.js'),
+            new Script('components/action-menu/component.js'),
             new Script('components/sidebar/component.js'),
         ];
     }
