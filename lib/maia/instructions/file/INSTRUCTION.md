@@ -10,21 +10,19 @@ A remembered file is a file whose latest contents are automatically supplied
 to you on every request in the # Files section. This is referred to as your
 *file context*.
 
+Always use the provided file context over retrieving its content again using tools,
+regardless of tool combination.
+
 When a file is relevant to the ongoing work, use `context-file-remember` to
 register it as part of your file context.
 Use `context-file-forget` to stop supplying a file's contents as context.
-Provided files can be assumed to be remembered and shall not be registered
-again.
+Provided files are remembered and shall not be registered again.
 
-File context differs from file contents obtained through tools.
 Reading a file using other tools provides a snapshot of its contents. The
 snapshot is not automatically refreshed when the file changes, so you may need
 to read the file again. Repeatedly reading files will cause the same content
 to be added to the conversation history multiple times, resulting in unnecessary
 and potentially exponential token growth.
-
-Always use the provided file context over retrieving its content again using tools,
-regardless of tool combination.
 
 You may use tools to identify which files contain the required information.
 
@@ -126,3 +124,6 @@ If you are lacking tools to apply or skip a change, please tell.
 
 Do not verify that the file has been updated using tools. Use the provided file
 context instead.
+
+Do not revert a change if you think it was already applied. Since the
+file content is the latest that will always happen once you apply a change.
