@@ -611,6 +611,27 @@ resolve_all_workspace_filesets() {
     fi
 }
 
+# Parse a numeric file line-range selector (N, N-M, or N-).
+# Sets FILE_RANGE_START and FILE_RANGE_END; an empty end means unbounded.
+parse_file_line_range() {
+    local raw="$1"
+    if [[ "$raw" =~ ^([0-9]+)$ ]]; then
+        FILE_RANGE_START=$((10#${BASH_REMATCH[1]}))
+        FILE_RANGE_END=$FILE_RANGE_START
+        return 0
+    elif [[ "$raw" =~ ^([0-9]+)-([0-9]*)$ ]]; then
+        FILE_RANGE_START=$((10#${BASH_REMATCH[1]}))
+        if [[ -n "${BASH_REMATCH[2]}" ]]; then
+            FILE_RANGE_END=$((10#${BASH_REMATCH[2]}))
+        else
+            FILE_RANGE_END=""
+        fi
+        [[ -z "$FILE_RANGE_END" || $FILE_RANGE_END -ge $FILE_RANGE_START ]] || return 1
+        return 0
+    fi
+    return 1
+}
+
 add_file_to_fileset_file() {
     local rel_path="$1"
     local fs="$2"
@@ -620,12 +641,114 @@ add_file_to_fileset_file() {
 	return
     fi
     ensure_file_exists "$fs"
+
     if grep -Fxq "$rel_path" "$fs"; then
 	notice "'$rel_path' already in fileset '$fs_basename'"
-    else
-	echo "$rel_path" >> "$fs"
-	info "'$rel_path' appended to fileset '$fs_basename'"
+	return
     fi
+
+    # Compare ranges only for the same file and filter. Other selectors (such
+    # as function names) retain the existing exact-match behavior.
+    local incoming_filepart="${rel_path%%|*}"
+    local incoming_filter=""
+    [[ "$rel_path" == *'|'* ]] && incoming_filter="${rel_path#*|}"
+    local incoming_file="${incoming_filepart%%:*}"
+    local incoming_range=""
+    [[ "$incoming_filepart" == *:* ]] && incoming_range="${incoming_filepart#*:}"
+    local incoming_start="" incoming_end=""
+    local comparable=false
+    if [[ -n "$incoming_range" ]] && parse_file_line_range "$incoming_range"; then
+        incoming_start=$FILE_RANGE_START
+        incoming_end=$FILE_RANGE_END
+        comparable=true
+    fi
+
+    local overlaps=0 first_overlap="" line existing_filepart existing_filter existing_file existing_range existing_start existing_end
+    local merged_start="$incoming_start" merged_end="$incoming_end"
+    local contained_by_existing=false
+    local -A merged_lines=()
+    if [[ "$comparable" == true ]]; then
+        # Expand the incoming range over every same-file, same-filter range it
+        # intersects. Repeat until no new ranges are absorbed, since expanding
+        # the union may make another range intersect it.
+        local changed=true
+        while [[ "$changed" == true ]]; do
+            changed=false
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                line="$(strip_cr "$line")"
+                [[ -z "$line" || -v merged_lines["$line"] ]] && continue
+                existing_filepart="${line%%|*}"
+                existing_filter=""
+                [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
+                existing_file="${existing_filepart%%:*}"
+                [[ "$existing_file" == "$incoming_file" && "$existing_filter" == "$incoming_filter" ]] || continue
+                [[ "$existing_filepart" == *:* ]] || continue
+                existing_range="${existing_filepart#*:}"
+                parse_file_line_range "$existing_range" || continue
+                existing_start=$FILE_RANGE_START
+                existing_end=$FILE_RANGE_END
+
+                # Inclusive ranges intersect unless one ends before the other starts.
+                if [[ -n "$existing_end" ]] && (( existing_end < merged_start )); then
+                    continue
+                fi
+                if [[ -n "$merged_end" ]] && (( merged_end < existing_start )); then
+                    continue
+                fi
+
+                merged_lines["$line"]=1
+                ((overlaps += 1))
+                [[ -n "$first_overlap" ]] || first_overlap="$line"
+
+                # A new range wholly inside one existing entry is a duplicate
+                # selection, not an extension.
+                if (( incoming_start >= existing_start )) && {
+                    [[ -z "$existing_end" ]] ||
+                    { [[ -n "$incoming_end" ]] && (( incoming_end <= existing_end )); }
+                }; then
+                    contained_by_existing=true
+                fi
+
+                if (( existing_start < merged_start )); then
+                    merged_start=$existing_start
+                fi
+                if [[ -z "$existing_end" || -z "$merged_end" ]]; then
+                    merged_end=""
+                elif (( existing_end > merged_end )); then
+                    merged_end=$existing_end
+                fi
+                changed=true
+            done < "$fs"
+        done
+    fi
+
+    if (( overlaps > 0 )); then
+        if [[ "$contained_by_existing" == true ]]; then
+            notice "Range '$rel_path' overlaps an existing range in fileset '$fs_basename'; not added."
+        else
+            local merged_range="$merged_start-"
+            [[ -n "$merged_end" ]] && merged_range="$merged_start-$merged_end"
+            local merged_spec="${incoming_file}:${merged_range}"
+            [[ -n "$incoming_filter" ]] && merged_spec+="|$incoming_filter"
+            local tmp="$(mktemp)"
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                line="$(strip_cr "$line")"
+                if [[ -v merged_lines["$line"] ]]; then
+                    if [[ "$line" == "$first_overlap" ]]; then
+                        printf '%s\n' "$merged_spec" >> "$tmp"
+                    fi
+                else
+                    printf '%s\n' "$line" >> "$tmp"
+                fi
+            done < "$fs"
+            mv "$tmp" "$fs"
+            info "Merged range to '$merged_spec' in fileset '$fs_basename'"
+        fi
+        return
+    fi
+
+    echo "$rel_path" >> "$fs"
+    info "'$rel_path' appended to fileset '$fs_basename'"
 }
 
 validate_workspace_exists() {
