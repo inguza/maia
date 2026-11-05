@@ -45,6 +45,31 @@ if ($path === '/' || $path === '') {
     exit;
 }
 
+if (preg_match('#^/changes/([^/]+)/([^/]+)$#', $path, $changeMatches)) {
+    $session = rawurldecode($changeMatches[1]);
+    $changeId = rawurldecode($changeMatches[2]);
+    if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $session) ||
+        !preg_match('/^[A-Za-z0-9_.+\\-]+$/', $changeId)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Change not found.' . PHP_EOL;
+        return true;
+    }
+    $_SERVER['MAIA_URL_SESSION'] = $session;
+    require_once __DIR__ . '/api/web.php';
+    maia_validate_environment();
+    maia_authenticate_page();
+    if (!maia_session_exists($session)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Change not found.' . PHP_EOL;
+        return true;
+    }
+    $_SERVER['MAIA_URL_CHANGE_ID'] = $changeId;
+    require __DIR__ . '/pages/change/page.php';
+    return true;
+}
+
 if (preg_match('#^/session/([^/]+)(?:/(.*))?$#', $path, $matches)) {
     $session = rawurldecode($matches[1]);
     $relativePath = rawurldecode($matches[2] ?? '');
@@ -163,6 +188,9 @@ $routes = [
     '/api/file/add-selection' => __DIR__ . '/api/file/add-selection.php',
     '/api/file/complete' => __DIR__ . '/api/file/complete.php',
     '/api/file/forget' => __DIR__ . '/api/file/forget.php',
+    '/api/change/list' => __DIR__ . '/api/change/list.php',
+    '/api/change/show' => __DIR__ . '/api/change/show.php',
+    '/api/change/action' => __DIR__ . '/api/change/action.php',
     '/api/tool/context' => __DIR__ . '/api/tool/context.php',
     '/api/tool/append' => __DIR__ . '/api/tool/append.php',
     '/api/tool/disable' => __DIR__ . '/api/tool/disable.php',

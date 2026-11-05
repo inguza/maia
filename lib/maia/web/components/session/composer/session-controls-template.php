@@ -4,6 +4,9 @@
         <?php if ($filesPanel !== ''): ?>
             <?= $filesPanel ?>
         <?php endif; ?>
+        <?php if ($changesPanel !== ''): ?>
+            <?= $changesPanel ?>
+        <?php endif; ?>
         <?php if ($workspacePanel !== ''): ?>
             <?= $workspacePanel ?>
         <?php endif; ?>

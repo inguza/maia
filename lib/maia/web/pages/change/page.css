@@ -1,0 +1,9 @@
+.change-page-main { margin: 1.5rem auto; max-width: 72rem; padding: 0 1rem; }
+.change-page-back { display: inline-block; margin-bottom: .75rem; }
+.change-page-main h1 { font-size: 1.35rem; overflow-wrap: anywhere; }
+.change-page-meta { color: color-mix(in srgb, CanvasText 75%, Canvas); }
+.change-page-controls { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+.change-page-controls button, .change-page-controls select { font: inherit; padding: .35rem .6rem; }
+.change-page-status { color: #6b7280; min-height: 1.25rem; }
+.change-page-status.error { color: #b91c1c; }
+.change-page-detail { background: color-mix(in srgb, CanvasText 4%, Canvas); border: 1px solid color-mix(in srgb, CanvasText 16%, Canvas); border-radius: .35rem; max-height: calc(100vh - 10rem); overflow: auto; padding: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }

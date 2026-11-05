@@ -13,6 +13,7 @@ final class SessionControlsComponent implements Component
     private Component $composer;
     private ?Component $filesPanel;
     private ?Component $workspacePanel;
+    private ?Component $changesPanel;
     private Component $skillsPanel;
     private Component $toolsPanel;
 
@@ -21,11 +22,13 @@ final class SessionControlsComponent implements Component
         ?Component $filesPanel,
         Component $skillsPanel,
         Component $toolsPanel,
-        ?Component $workspacePanel = null
+        ?Component $workspacePanel = null,
+        ?Component $changesPanel = null
     ) {
         $this->composer = $composer;
         $this->filesPanel = $filesPanel;
         $this->workspacePanel = $workspacePanel;
+        $this->changesPanel = $changesPanel;
         $this->skillsPanel = $skillsPanel;
         $this->toolsPanel = $toolsPanel;
     }
@@ -34,7 +37,7 @@ final class SessionControlsComponent implements Component
     public function resources(): array
     {
         $resources = $this->composer->resources();
-        foreach ([$this->filesPanel, $this->workspacePanel, $this->skillsPanel, $this->toolsPanel] as $panel) {
+        foreach ([$this->filesPanel, $this->changesPanel, $this->workspacePanel, $this->skillsPanel, $this->toolsPanel] as $panel) {
             if ($panel !== null) {
                 $resources = array_merge($resources, $panel->resources());
             }
@@ -47,6 +50,7 @@ final class SessionControlsComponent implements Component
         $composer = $this->composer->render();
         $filesPanel = $this->filesPanel?->render() ?? '';
         $workspacePanel = $this->workspacePanel?->render() ?? '';
+        $changesPanel = $this->changesPanel?->render() ?? '';
         $skillsPanel = $this->skillsPanel->render();
         $toolsPanel = $this->toolsPanel->render();
         ob_start();

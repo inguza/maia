@@ -442,6 +442,39 @@ function maia_history_workspace_root(): ?string
     return $root !== false && is_dir($root) ? $root : null;
 }
 
+function maia_history_change_set_ids(): array
+{
+    if (maia_selected_session() === null || maia_history_workspace_root() === null) {
+        return [];
+    }
+    $process = proc_open(
+        [maia_binary(), 'change', 'list', '--all-states'],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $pipes,
+        null,
+        maia_environment()
+    );
+    if (!is_resource($process)) {
+        return [];
+    }
+    fclose($pipes[0]);
+    $output = (string) stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+    if (proc_close($process) !== 0) {
+        return [];
+    }
+
+    $ids = [];
+    foreach (preg_split('/\\R/', $output) as $line) {
+        if (preg_match('/^\\s*([A-Za-z0-9_.+\\-]+)\\s+set\\s+(?:pending|applied|skipped|running|finished|failed)(?:\\s|$)/', $line, $match)) {
+            $ids[$match[1]] = true;
+        }
+    }
+    return $ids;
+}
+
 function maia_annotate_history_response(string $output): string
 {
     $response = json_decode($output, true);
@@ -450,6 +483,7 @@ function maia_annotate_history_response(string $output): string
     }
     $root = maia_history_workspace_root();
     $sessionName = maia_selected_session();
+    $changeSets = $root !== null && $sessionName !== null ? maia_history_change_set_ids() : [];
     foreach ($response['items'] as &$item) {
         if (is_array($item) && ($item['hidden'] ?? false) !== true &&
             ($item['hidden'] ?? 0) !== 1 && ($item['hidden'] ?? '') !== 'true') {
@@ -459,6 +493,13 @@ function maia_annotate_history_response(string $output): string
             if (is_array($item['backup'] ?? null) &&
                 is_string($item['backup']['content'] ?? null)) {
                 $item['backup']['contentParts'] = maia_history_text_parts($item['backup']['content'], $root, $sessionName);
+            }
+            $timestamp = trim((string) ($item['timestamp'] ?? ''));
+            $id = trim((string) ($item['id'] ?? ''));
+            $changeId = $timestamp !== '' && $id !== '' ? $timestamp . '-' . $id : '';
+            if ($changeId !== '' && isset($changeSets[$changeId])) {
+                $item['changeId'] = $changeId;
+                $item['changeUrl'] = maia_base_path() . '/changes/' . rawurlencode((string) $sessionName) . '/' . rawurlencode($changeId);
             }
         }
     }
