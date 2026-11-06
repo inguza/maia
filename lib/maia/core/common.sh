@@ -648,7 +648,7 @@ normalize_file_line_spec() {
 
     local filepath="${filepart%%:*}"
     local selector="${filepart#*:}"
-    if [[ "$selector" =~ ^0*1-$ ]]; then
+    if [[ "$selector" =~ ^0*1-$ || "$selector" =~ ^0+-$ ]]; then
         printf '%s%s' "$filepath" "$filter"
     elif [[ "$selector" =~ ^-([0-9]+)$ ]]; then
         printf '%s:1-%s%s' "$filepath" "${BASH_REMATCH[1]}" "$filter"
