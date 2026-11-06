@@ -16,3 +16,4 @@
 .known-files-list li:nth-child(even) { background: color-mix(in srgb, CanvasText 3%, Canvas); }
 .known-files-list li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .known-files-list li button { margin: 0; padding: .2rem .45rem; }
+.known-files-panel.is-file-drop-target { background: color-mix(in srgb, #2563eb 8%, Canvas); outline: 2px dashed #2563eb; outline-offset: .25rem; }
