@@ -4,8 +4,8 @@
         <button type="button" data-known-files-action="refresh" aria-label="Refresh known files">&#x21BB;</button>
     </header>
     <form class="known-files-add" data-known-files-form>
-        <label class="visually-hidden" for="known-file-path">Add file relative to the workspace root</label>
-        <input id="known-file-path" type="text" autocomplete="off" placeholder="Path relative to workspace root">
+        <label class="visually-hidden" for="known-file-path">Add file paths, one per line, relative to the workspace root</label>
+        <textarea id="known-file-path" rows="1" autocomplete="off" placeholder="Path(s), one per line, relative to workspace root"></textarea>
         <div class="known-files-completion" data-known-files-role="completion" role="listbox" hidden></div>
         <button type="submit">Add</button>
     </form>

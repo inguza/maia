@@ -3,7 +3,7 @@
 .known-files-header h2 { font-size: 1rem; margin: 0; }
 .known-files-header button, .known-files-add button { margin: 0; padding: .35rem .6rem; }
 .known-files-add { display: flex; gap: .5rem; margin: .6rem 0; position: relative; }
-.known-files-add input { box-sizing: border-box; flex: 1; font: inherit; min-width: 0; padding: .4rem .5rem; }
+.known-files-add textarea { box-sizing: border-box; flex: 1; font: inherit; min-height: 2.2rem; min-width: 0; padding: .4rem .5rem; resize: vertical; }
 .known-files-completion { background: Canvas; border: 1px solid #9ca3af; border-radius: .35rem; box-shadow: 0 .35rem .8rem rgb(0 0 0 / 20%); left: 0; max-height: 16rem; overflow-y: auto; position: absolute; right: 4rem; top: calc(100% + .2rem); z-index: 8; }
 .known-files-completion[hidden] { display: none; }
 .known-files-completion .file-completion-loading { align-items: center; color: #6b7280; display: flex; gap: .5rem; padding: .45rem .55rem; }
