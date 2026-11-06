@@ -433,11 +433,11 @@ Tool definitions:
         },
         "startline": {
           "type": "string",
-          "description": "First line to remember when only part of the file is needed."
+          "description": "First line to remember when only part of the file is needed. Use 1 for the first line. If omitted, start of file is assumed."
         },
         "endline": {
           "type": "string",
-          "description": "Last line to remember when only part of the file is needed."
+          "description": "Last line to remember when only part of the file is needed. This line is included. If omitted, end of file is assumed."
         }
       },
       "required": [
