@@ -26,7 +26,7 @@ if [[ ! -v param[$fileparam] ]] ; then
 fi
 
 startline="${param[startline]:-}"
-stopline="${param[stopline]:-}"
+endline="${param[endline]:-}"
 
 filedefs=()
 if ! mapfile_from_json filepatterns "${param[$fileparam]}" ; then
@@ -52,8 +52,8 @@ for filepattern in "${filepatterns[@]}" ; do
 	    warn "$file not found, skipping."	    
 	    continue
 	fi
-	if [[ -n "$startline" || -n "$stopline" ]] ; then
-	    filedefs+=("$file:$startline-$stopline")
+	if [[ -n "$startline" || -n "$endline" ]] ; then
+	    filedefs+=("$file:$startline-$endline")
 	else
 	    filedefs+=("$file")
 	fi
