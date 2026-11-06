@@ -477,6 +477,13 @@ function maia_history_change_set_ids(): array
 
 function maia_annotate_history_response(string $output): string
 {
+    // This callback only adds optional file/change annotations. Decoding a
+    // large history into PHP arrays can require many times the JSON size, so
+    // leave large responses untouched rather than exhausting PHP-FPM memory.
+    if (strlen($output) > 1_048_576) {
+        return $output;
+    }
+
     $response = json_decode($output, true);
     if (!is_array($response) || !is_array($response['items'] ?? null)) {
         return $output;
