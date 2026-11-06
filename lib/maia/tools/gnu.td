@@ -240,7 +240,7 @@
   {
     "name":"util-sed",
     "description": "Stream editor (write to files is forbidden) to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
-    "command": "util-sed.sh --posix -s -E -r --regexp-extended --",
+    "command": "util-sed.sh --posix -n -s -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -260,7 +260,7 @@
           "items": {
             "type": "string"
           },
-          "description": "List of sed command line arguments. Allowed are: --posix -s -E -r --regexp-extended --."
+          "description": "List of sed command line arguments. Allowed are: -n --posix -s -E -r --regexp-extended --."
 	}
       },
       "required": [],
