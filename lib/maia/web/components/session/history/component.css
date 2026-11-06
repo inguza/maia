@@ -14,7 +14,7 @@
 .session-history-optimistic-user { opacity:.85; }
 .session-history-live-output,.session-history-raw-output-item { align-self:flex-start; background:#f3f4f6; border-left:3px solid #6b7280; border-radius:.5rem; color:#1f2937; max-width:min(90%, 70rem); padding:.6rem .8rem; width:100%; }
 .session-history-live-output-heading { font-size:.85rem; font-weight:600; margin-bottom:.35rem; }
-.session-history-live-output-waiting { align-items:center; color:#6b7280; display:flex; gap:.5rem; font-size:.85rem; }
+.session-history-live-output-waiting { align-items:center; color:#6b7280; display:flex; gap:.5rem; font-size:.85rem; margin-top:.4rem; }
 .session-history-live-output-waiting[hidden] { display:none; }
 .session-history-raw-output-item > summary { cursor:pointer; font-size:.85rem; font-weight:600; }
 .session-history-raw-output-content { margin:.5rem 0 0; max-height:55vh; overflow:auto; overflow-wrap:anywhere; white-space:pre-wrap; }
