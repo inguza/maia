@@ -611,11 +611,16 @@ resolve_all_workspace_filesets() {
     fi
 }
 
-# Parse a numeric file line-range selector (N, N-M, or N-).
+# Parse a numeric file line-range selector (N, N-M, N-, or -M).
 # Sets FILE_RANGE_START and FILE_RANGE_END; an empty end means unbounded.
 parse_file_line_range() {
     local raw="$1"
-    if [[ "$raw" =~ ^([0-9]+)$ ]]; then
+    if [[ "$raw" =~ ^-([0-9]+)$ ]]; then
+        FILE_RANGE_START=1
+        FILE_RANGE_END=$((10#${BASH_REMATCH[1]}))
+        [[ $FILE_RANGE_END -ge $FILE_RANGE_START ]] || return 1
+        return 0
+    elif [[ "$raw" =~ ^([0-9]+)$ ]]; then
         FILE_RANGE_START=$((10#${BASH_REMATCH[1]}))
         FILE_RANGE_END=$FILE_RANGE_START
         return 0
@@ -632,10 +637,31 @@ parse_file_line_range() {
     return 1
 }
 
+# Canonicalize line selectors when remembering files: :1- is equivalent to
+# no line selector, while :-M is written as :1-M.
+normalize_file_line_spec() {
+    local spec="$1"
+    local filepart="${spec%%|*}"
+    local filter=""
+    [[ "$spec" == *'|'* ]] && filter="|${spec#*|}"
+    [[ "$filepart" == *:* ]] || { printf '%s' "$spec"; return; }
+
+    local filepath="${filepart%%:*}"
+    local selector="${filepart#*:}"
+    if [[ "$selector" =~ ^0*1-$ ]]; then
+        printf '%s%s' "$filepath" "$filter"
+    elif [[ "$selector" =~ ^-([0-9]+)$ ]]; then
+        printf '%s:1-%s%s' "$filepath" "${BASH_REMATCH[1]}" "$filter"
+    else
+        printf '%s' "$spec"
+    fi
+}
+
 add_file_to_fileset_file() {
     local rel_path="$1"
     local fs="$2"
     local fs_basename=$(basename "$fs" .fileset)
+    rel_path="$(normalize_file_line_spec "$rel_path")"
     if [[ -z "$rel_path" ]]; then
 	warn "Will not add an empty filename to fileset '$fs_basename'."
 	return

@@ -382,7 +382,8 @@ sub classify_binary {
 sub parse_text_selector {
     my ($selector) = @_;
     return ('bash', 'full', 'all') if !defined($selector) || $selector eq '' || $selector eq 'full';
-    return ('bash', 'lines', $selector) if $selector =~ /^\d+(?:-\d+)?$/;
+    return ('bash', 'lines', $selector)
+        if $selector =~ /^(?:\d+(?:-\d*)?|-\d+)$/;
 
     my @parts = split /:/, $selector;
     my $language = 'bash';
@@ -452,9 +453,13 @@ sub extract_full_file {
 sub extract_lines {
     my ($file, $line_spec) = @_;
     my ($start, $end);
-    if ($line_spec =~ /^(\d+)-(\d+)$/) {
-        ($start, $end) = ($1, $2);
+    if ($line_spec =~ /^-(\d+)$/) {
+        ($start, $end) = (1, $1);
         return undef if $start > $end;
+    } elsif ($line_spec =~ /^(\d+)-(\d*)$/) {
+        $start = $1;
+        $end = (defined($2) && $2 ne '') ? $2 : undef;
+        return undef if defined($end) && $start > $end;
     } elsif ($line_spec =~ /^(\d+)$/) {
         $start = $end = $1;
     } else {
@@ -470,10 +475,10 @@ sub extract_lines {
     my $lineno = 0;
     while (my $line = <$fh>) {
         $lineno++;
-        if ($lineno >= $start && $lineno <= $end) {
+        if ($lineno >= $start && (!defined($end) || $lineno <= $end)) {
             push @lines, $line;
         }
-        last if $lineno > $end;
+        last if defined($end) && $lineno > $end;
     }
     close $fh;
 
