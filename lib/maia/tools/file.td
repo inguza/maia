@@ -126,7 +126,7 @@
   },
   {
     "name":"context-file-remember",
-    "description": "Add a files to the known context",
+    "description": "Add/register file(s) to the known context. Do not re-register a file if the content is already remembered.",
     "command": "file-remember.sh",
     "inputSchema": {
       "type": "object",

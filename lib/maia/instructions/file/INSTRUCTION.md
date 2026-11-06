@@ -39,7 +39,6 @@ use `context-file-forget` to stop supplying its contents and save tokens.
 
 
 
-
 # File tools
 
 File tools like `util-grep`, `util-cat`, `util-sed` (and others) are available to:
@@ -48,9 +47,14 @@ File tools like `util-grep`, `util-cat`, `util-sed` (and others) are available t
 - filter the result of other tools
 - to produce new file content
 
+NOTE! It is hard to predict if you need only a snapshot of a file once, therefore
+context-file-remember should be the primary way to learn about files.
+
 Preferred operation when a file is not in the file context:
 - context-file-remember <files> linestart 0 lineend <n>
   instead of util-head <files> lines <n>
+- context-file-remember <files> linestart <n> lineend <m>
+  instead of util-sed -n '<n>,<m>p' <files>
 - context-file-remember <files>
   instead of util-cat <files>
 

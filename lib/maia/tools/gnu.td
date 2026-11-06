@@ -141,7 +141,7 @@
   },
   {
     "name":"util-cat",
-    "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+    "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Use context-file-remember outside core-pipe.",
     "command": "allowed-tool.sh cat filespecs --",
     "inputSchema": {
       "type": "object",
@@ -167,7 +167,7 @@
   },
   {
     "name":"util-head",
-    "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+    "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Use context-file-remember outside core-pipe.",
     "command": "head-tail.sh head --",
     "inputSchema": {
       "type": "object",
@@ -239,7 +239,7 @@
   },
   {
     "name":"util-sed",
-    "description": "Stream editor (write to files is forbidden) to pipe to the next tool in a core-pipe. Shall not be used outside a core-pipe.",
+    "description": "Stream editor (write to files is forbidden) to pipe to the next tool in a core-pipe. Use context-file-remmber to learn the content of part of a file.",
     "command": "util-sed.sh --posix -n -s -E -r --regexp-extended --",
     "inputSchema": {
       "type": "object",
