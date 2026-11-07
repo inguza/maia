@@ -191,6 +191,7 @@ $routes = [
     '/api/change/list' => __DIR__ . '/api/change/list.php',
     '/api/change/show' => __DIR__ . '/api/change/show.php',
     '/api/change/action' => __DIR__ . '/api/change/action.php',
+    '/api/system/behavior' => __DIR__ . '/api/system/behavior.php',
     '/api/tool/context' => __DIR__ . '/api/tool/context.php',
     '/api/tool/append' => __DIR__ . '/api/tool/append.php',
     '/api/tool/disable' => __DIR__ . '/api/tool/disable.php',

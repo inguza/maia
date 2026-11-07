@@ -12,5 +12,6 @@
         <?php endif; ?>
         <?= $skillsPanel ?>
         <?= $toolsPanel ?>
+        <?= $behaviorPanel ?>
     </div>
 </div>

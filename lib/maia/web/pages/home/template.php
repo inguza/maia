@@ -24,6 +24,7 @@
         <div class="home-panels" aria-label="Home tools">
             <?= $page->renderComponent('profiles') ?>
             <?= $page->renderComponent('credentials') ?>
+            <?= $page->renderComponent('behavior') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
         </div>

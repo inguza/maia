@@ -13,6 +13,7 @@ use Maia\Web\Core\WorkspaceRoot;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
 use Maia\Web\Components\Panels\Files\KnownFilesPanel;
 use Maia\Web\Components\Panels\Changes\ChangesPanel;
+use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
 use Maia\Web\Core\Page;
@@ -25,6 +26,7 @@ require_once dirname(__DIR__, 2) . '/components/sidebar/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/expandable/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/files/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/changes/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/tools/panel.php';
 require_once dirname(__DIR__, 2) . '/components/session/history/component.php';
@@ -74,10 +76,11 @@ final class SessionPage extends Page
         }
         $skillsPanel = new ExpandablePanel('skills', 'Skills', new SkillsPanel());
         $toolsPanel = new ExpandablePanel('tools', 'Tools', new ToolsPanel());
+        $behaviorPanel = new ExpandablePanel('behavior', 'Behavior', new BehaviorPanel());
         $composer = new SessionComposerComponent();
         $this->addComponent(
             'composer',
-            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $workspacePanel, $changesPanel)
+            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $behaviorPanel, $workspacePanel, $changesPanel)
         );
         $this->addPageResources([new Stylesheet('pages/session/page.css')]);
     }

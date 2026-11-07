@@ -1,0 +1,21 @@
+.behavior-label {
+    display: block;
+    margin-bottom: .35rem;
+}
+
+#behavior-text {
+    box-sizing: border-box;
+    display: block;
+    font: inherit;
+    min-height: 12rem;
+    resize: vertical;
+    width: 100%;
+}
+
+.behavior-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: flex-end;
+    margin-top: .65rem;
+}

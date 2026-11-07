@@ -14,6 +14,7 @@ namespace Maia\Web\Pages\Workspace;
 use InvalidArgumentException;
 use Maia\Web\Components\PathBrowser\PathBrowser;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
+use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Files\KnownFilesPanel;
 use Maia\Web\Components\Panels\Profiles\ProfilesPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
@@ -28,6 +29,7 @@ require_once dirname(__DIR__, 2) . '/core/page.php';
 require_once dirname(__DIR__, 2) . '/core/workspace_root.php';
 require_once dirname(__DIR__, 2) . '/components/sidebar/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/expandable/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/files/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/profiles/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
@@ -51,6 +53,7 @@ final class WorkspacePage extends Page
             new ExpandablePanel('workspace-profiles', 'Profiles', new ProfilesPanel('workspace', $workspaceName))
         );
         $this->addComponent('files', new ExpandablePanel('workspace-known-files', 'Files', new KnownFilesPanel()));
+        $this->addComponent('behavior', new ExpandablePanel('behavior', 'Behavior', new BehaviorPanel()));
         $this->addComponent('skills', new ExpandablePanel('skills', 'Skills', new SkillsPanel()));
         $this->addComponent('tools', new ExpandablePanel('tools', 'Tools', new ToolsPanel()));
         $this->addComponent('settings', new ExpandablePanel('workspace-settings', 'Settings', new WorkspaceSettingsComponent()));

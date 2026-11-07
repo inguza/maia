@@ -16,7 +16,9 @@
 </div>
 <div class="panel-actions">
     <button id="skill-clear" type="button">Clear</button>
-    <button id="skill-delete" type="button">Delete</button>
+    <button id="skill-delete" type="button"
+            title="Remove the skill settings for this scope; MAIA will use settings from another scope if available."
+            aria-label="Remove the skill settings for this scope; MAIA will use settings from another scope if available.">Delete</button>
     <button id="skills-refresh" type="button">Refresh</button>
 </div>
 <p id="skills-status" class="status" role="status" aria-live="polite"></p>
