@@ -27,6 +27,7 @@
         </header>
         <div class="panel-group profile-panels" aria-label="Profile settings">
             <?= $page->renderComponent('behavior') ?>
+            <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
         </div>

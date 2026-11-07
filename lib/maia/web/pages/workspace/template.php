@@ -19,6 +19,7 @@
         <div class="panel-group workspace-panels" aria-label="Workspace panels">
             <?= $page->renderComponent('files') ?>
             <?= $page->renderComponent('behavior') ?>
+            <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
             <?= $page->renderComponent('settings') ?>

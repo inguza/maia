@@ -13,5 +13,6 @@
         <?= $skillsPanel ?>
         <?= $toolsPanel ?>
         <?= $behaviorPanel ?>
+        <?= $configurationPanel ?>
     </div>
 </div>

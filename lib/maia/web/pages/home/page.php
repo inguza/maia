@@ -14,6 +14,7 @@ namespace Maia\Web\Pages\Home;
 use Maia\Web\Components\Panels\Credentials\CredentialsPanel;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
 use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
+use Maia\Web\Components\Panels\Configuration\ConfigurationPanel;
 use Maia\Web\Components\Panels\Profiles\ProfilesPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
@@ -26,6 +27,7 @@ require_once dirname(__DIR__, 2) . '/core/page.php';
 require_once dirname(__DIR__, 2) . '/components/sidebar/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/expandable/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/configuration/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/profiles/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/credentials/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
@@ -47,6 +49,10 @@ final class HomePage extends Page
         $this->addComponent(
             'behavior',
             new ExpandablePanel('behavior', 'Behavior', new BehaviorPanel())
+        );
+        $this->addComponent(
+            'configuration',
+            new ExpandablePanel('configuration', 'Config', new ConfigurationPanel())
         );
         $this->addComponent(
             'skills',

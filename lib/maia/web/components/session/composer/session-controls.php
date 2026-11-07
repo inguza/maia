@@ -17,6 +17,7 @@ final class SessionControlsComponent implements Component
     private Component $skillsPanel;
     private Component $toolsPanel;
     private Component $behaviorPanel;
+    private Component $configurationPanel;
 
     public function __construct(
         Component $composer,
@@ -24,6 +25,7 @@ final class SessionControlsComponent implements Component
         Component $skillsPanel,
         Component $toolsPanel,
         Component $behaviorPanel,
+        Component $configurationPanel,
         ?Component $workspacePanel = null,
         ?Component $changesPanel = null
     ) {
@@ -34,13 +36,14 @@ final class SessionControlsComponent implements Component
         $this->skillsPanel = $skillsPanel;
         $this->toolsPanel = $toolsPanel;
         $this->behaviorPanel = $behaviorPanel;
+        $this->configurationPanel = $configurationPanel;
     }
 
     /** @return list<\Maia\Web\Core\Resource> */
     public function resources(): array
     {
         $resources = $this->composer->resources();
-        foreach ([$this->filesPanel, $this->changesPanel, $this->workspacePanel, $this->skillsPanel, $this->toolsPanel, $this->behaviorPanel] as $panel) {
+        foreach ([$this->filesPanel, $this->changesPanel, $this->workspacePanel, $this->skillsPanel, $this->toolsPanel, $this->behaviorPanel, $this->configurationPanel] as $panel) {
             if ($panel !== null) {
                 $resources = array_merge($resources, $panel->resources());
             }
@@ -57,6 +60,7 @@ final class SessionControlsComponent implements Component
         $skillsPanel = $this->skillsPanel->render();
         $toolsPanel = $this->toolsPanel->render();
         $behaviorPanel = $this->behaviorPanel->render();
+        $configurationPanel = $this->configurationPanel->render();
         ob_start();
         require __DIR__ . '/session-controls-template.php';
         return (string) ob_get_clean();

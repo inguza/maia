@@ -25,6 +25,7 @@
             <?= $page->renderComponent('profiles') ?>
             <?= $page->renderComponent('credentials') ?>
             <?= $page->renderComponent('behavior') ?>
+            <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
         </div>
