@@ -161,6 +161,14 @@ run_file_cmd "forget_non_existing" forget "non_existing_file.txt"
 # Test forget with quoted patterns that include glob characters
 run_file_cmd "forget_quoted_glob" forget "\"*backup*\""
 
+# The clear and replace commands operate on the selected filesets.
+cd ..
+run_file_cmd "add_file_to_clear" add x3.txt
+run_file_cmd "file_clear" clear
+run_file_cmd "file_list_after_clear" list
+run_file_cmd "file_replace" replace x1.txt x2.txt
+run_file_cmd "file_list_after_replace" list
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

@@ -26,6 +26,12 @@ COMMANDS
   remember|add <path>[:filter] [...]
     Remember to include one or more files (relative to CWD) into the selected filesets.
 
+  replace <path>[:filter] [...]
+    Clear the selected filesets, then remember the specified files.
+
+  clear
+    Clear all entries from the selected filesets.
+
   forget|delete <pattern> [...]
     Forget entries matching the given filename or glob from the selected
     filesets.
@@ -168,6 +174,18 @@ forget_entries() {
 find_filesets() {
     local ws_dir="$1"
     find "$ws_dir" -maxdepth 1 -name '*.fileset' -exec basename {} \; | sed 's/\.fileset$//'
+}
+
+clear_selected_filesets() {
+    local fs
+    for fs in "${FILESET_FILES[@]}"; do
+        if [[ ! -w "$fs" ]]; then
+            info "Read only fileset $fs, skipping update."
+            continue
+        fi
+        : > "$fs"
+        info "Cleared $(basename "$fs")"
+    done
 }
 
 handle_file_command() {
@@ -346,8 +364,20 @@ handle_file_command() {
 	    fileset_content_extract "content" "$session_ws" "${active_fs[@]}" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown-all.jq"
 	    ;;
 
-        add|remember)
+        clear)
             shift
+            [[ $# -eq 0 ]] || die "The file clear command does not accept paths."
+            clear_selected_filesets
+            trigger_event "post-file-context-update"
+            ;;
+
+        add|remember|replace)
+            local replace_files=false
+            [[ "$cmd" == "replace" ]] && replace_files=true
+            shift
+            if [[ "$replace_files" == true ]]; then
+                clear_selected_filesets
+            fi
             local workspace_root=$(resolve_workspace_root "$session_ws")
 	    local -a servers
 	    local serverscfg="$(get_config mcp_servers empty)"

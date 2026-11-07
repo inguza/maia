@@ -16,6 +16,12 @@ COMMANDS
   remember|add <path>[:filter] [...]
     Remember to include one or more files (relative to CWD) into the selected filesets.
 
+  replace <path>[:filter] [...]
+    Clear the selected filesets, then remember the specified files.
+
+  clear
+    Clear all entries from the selected filesets.
+
   forget|delete <pattern> [...]
     Forget entries matching the given filename or glob from the selected
     filesets.
