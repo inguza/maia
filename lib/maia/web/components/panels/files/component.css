@@ -2,7 +2,9 @@
 .known-files-header { align-items: center; display: flex; justify-content: space-between; }
 .known-files-header h2 { font-size: 1rem; margin: 0; }
 .known-files-header button, .known-files-add button { margin: 0; padding: .35rem .6rem; }
-.known-files-add { display: flex; gap: .5rem; margin: .6rem 0; position: relative; }
+.known-files-add { display: flex; gap: .5rem; margin: .6rem 0 .25rem; position: relative; }
+.known-files-actions { margin: .25rem 0 .6rem; }
+.known-files-actions button { margin: 0; padding: .35rem .6rem; }
 .known-files-add textarea { box-sizing: border-box; flex: 1; font: inherit; min-height: 2.2rem; min-width: 0; padding: .4rem .5rem; resize: vertical; }
 .known-files-completion { background: Canvas; border: 1px solid #9ca3af; border-radius: .35rem; box-shadow: 0 .35rem .8rem rgb(0 0 0 / 20%); left: 0; max-height: 16rem; overflow-y: auto; position: absolute; right: 4rem; top: calc(100% + .2rem); z-index: 8; }
 .known-files-completion[hidden] { display: none; }

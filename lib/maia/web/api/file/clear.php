@@ -1,0 +1,60 @@
+<?php
+/*
+ * Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
+ *
+ * Licensed under the GNU General Public License v3.0.
+ * See LICENSE-GPLv3.txt for the full license text.
+ */
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../web.php';
+
+header('Content-Type: application/json; charset=utf-8');
+
+function files_clear_error(int $status, string $message): never
+{
+    http_response_code($status);
+    echo json_encode([
+        'ok' => false,
+        'error' => $message,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    exit;
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
+    header('Allow: POST');
+    files_clear_error(405, 'Method not allowed.');
+}
+
+$process = proc_open(
+    [maia_binary(), 'file', 'clear'],
+    [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ],
+    $pipes,
+    null,
+    maia_environment()
+);
+
+if (!is_resource($process)) {
+    files_clear_error(500, 'Unable to start MAIA.');
+}
+
+fclose($pipes[0]);
+$output = (string) stream_get_contents($pipes[1]);
+fclose($pipes[1]);
+$error = (string) stream_get_contents($pipes[2]);
+fclose($pipes[2]);
+$status = proc_close($process);
+
+if ($status !== 0) {
+    files_clear_error(502, trim($error) ?: trim($output) ?: 'Unable to clear known files.');
+}
+
+echo json_encode([
+    'ok' => true,
+    'message' => trim($output) ?: 'File list cleared.',
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
