@@ -88,24 +88,67 @@ $workspaceRoot = realpath($workspaceRoot);
 if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
     files_add_error(400, 'The workspace root does not exist.');
 }
-// Keep the boundary check here because the CLI accepts paths outside the
-// workspace. File existence, file type, and workspace-relative conversion
-// remain the responsibility of `maia file add`.
-$candidate = $path;
-if ($candidate === '' || ($candidate[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\/]/', $candidate))) {
-    $candidate = $workspaceRoot . DIRECTORY_SEPARATOR . $candidate;
+// Expand local shell-style file patterns here: unlike a shell, the Files panel
+// sends its input as a literal argument to the CLI.
+$globPath = $path;
+$metadataSuffix = '';
+$pipePosition = strpos($globPath, '|');
+if ($pipePosition !== false) {
+    $metadataSuffix = substr($globPath, $pipePosition);
+    $globPath = substr($globPath, 0, $pipePosition);
 }
-$resolvedCandidate = realpath($candidate);
-$resolvedParent = realpath(dirname($candidate));
-$boundaryPath = $resolvedCandidate !== false ? $resolvedCandidate : $resolvedParent;
+$colonPosition = strpos($globPath, ':');
+if ($colonPosition !== false) {
+    $metadataSuffix = substr($globPath, $colonPosition) . $metadataSuffix;
+    $globPath = substr($globPath, 0, $colonPosition);
+}
+$hasGlob = strpbrk($globPath, '*?[') !== false;
 $rootPrefix = rtrim($workspaceRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-if ($boundaryPath !== false &&
-    $boundaryPath !== $workspaceRoot &&
-    !str_starts_with($boundaryPath, $rootPrefix)) {
-    files_add_error(400, 'The file is outside the workspace root.');
+$addPaths = [];
+$relativePaths = [];
+
+if ($hasGlob) {
+    $candidate = $globPath;
+    if ($candidate === '' || ($candidate[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\/]/', $candidate))) {
+        $candidate = $workspaceRoot . DIRECTORY_SEPARATOR . $candidate;
+    }
+
+    foreach (glob($candidate) ?: [] as $match) {
+        $resolvedMatch = realpath($match);
+        if ($resolvedMatch === false || !is_file($resolvedMatch)) {
+            continue;
+        }
+        if ($resolvedMatch !== $workspaceRoot && !str_starts_with($resolvedMatch, $rootPrefix)) {
+            files_add_error(400, 'The file pattern matched a path outside the workspace root.');
+        }
+        $relativePaths[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($resolvedMatch, strlen($rootPrefix))) . $metadataSuffix;
+        $addPaths[] = $resolvedMatch . $metadataSuffix;
+    }
+
+    if ($addPaths === []) {
+        files_add_error(400, 'The file pattern did not match any files in the workspace.');
+    }
+} else {
+    // Keep the boundary check here because the CLI accepts paths outside the
+    // workspace. File existence, file type, and workspace-relative conversion
+    // remain the responsibility of `maia file add`.
+    $candidate = $path;
+    if ($candidate === '' || ($candidate[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\/]/', $candidate))) {
+        $candidate = $workspaceRoot . DIRECTORY_SEPARATOR . $candidate;
+    }
+    $resolvedCandidate = realpath($candidate);
+    $resolvedParent = realpath(dirname($candidate));
+    $boundaryPath = $resolvedCandidate !== false ? $resolvedCandidate : $resolvedParent;
+    if ($boundaryPath !== false &&
+        $boundaryPath !== $workspaceRoot &&
+        !str_starts_with($boundaryPath, $rootPrefix)) {
+        files_add_error(400, 'The file is outside the workspace root.');
+    }
+    $addPaths = [$path];
+    $relativePaths = [$path];
 }
 
-$result = files_add_run(['file', 'add', $path], $workspaceRoot);
+$result = files_add_run(array_merge(['file', 'add'], $addPaths), $workspaceRoot);
 if ($result['status'] !== 0) {
     files_add_error(502, trim($result['error']) ?: trim($result['output']) ?: 'Unable to add the file.');
 }
@@ -113,5 +156,6 @@ if ($result['status'] !== 0) {
 echo json_encode([
     'ok' => true,
     'path' => $path,
+    'paths' => $relativePaths,
     'message' => trim($result['output']) ?: 'File added.',
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
