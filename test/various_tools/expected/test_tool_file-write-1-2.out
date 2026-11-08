@@ -1,17 +1,5 @@
 ----------------- Tool output manual start ------------------------------------
-[NOTICE] Direct file modification was not possible.
-
-File x/1.txt already exists.
-
-Change proposal created:
-<dateandtime>-58059449-1
-
-The content of the proposed change is the following:
-```patch
---- a/x/1.txt
-+++ b/x/1.txt
-@@ -1 +1 @@
--First write content 1
-+Second write content 1
-```
+[NOTICE] The requested file change requires approval. A pending change is ready for review.
+Change ID: <dateandtime>-58059449-1
+Review the change and decide whether to apply or skip it.
 ----------------- Tool output manual end --------------------------------------

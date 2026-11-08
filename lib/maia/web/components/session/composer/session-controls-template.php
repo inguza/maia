@@ -12,6 +12,9 @@
         <?php endif; ?>
         <?= $skillsPanel ?>
         <?= $toolsPanel ?>
+        <?php if ($approvalsPanel !== ''): ?>
+            <?= $approvalsPanel ?>
+        <?php endif; ?>
         <?= $behaviorPanel ?>
         <?= $configurationPanel ?>
     </div>

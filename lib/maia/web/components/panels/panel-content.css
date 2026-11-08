@@ -1,4 +1,7 @@
 /* Shared styles for the content of credentials, skills, and tools panels. */
+.panel-content-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: .5rem; }
+.panel-content-header h2 { font-size: 1rem; margin: 0; }
+.panel-content-header button { margin: 0; padding: .35rem .6rem; }
 .inline-form { display: flex; gap: .4rem; margin: .5rem 0; }
 .inline-form input { min-width: 0; width: 100%; padding: .4rem .5rem; }
 .inline-form button, .panel-actions button { margin: 0; padding: .4rem .65rem; }

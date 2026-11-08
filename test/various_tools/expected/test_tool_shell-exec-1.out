@@ -1,9 +1,6 @@
 ----------------- Tool output manual start ------------------------------------
 [NOTICE] Direct execution was not possible due to security principles.
+Change ID: <dateandtime>-1df7f71d-1
 
-Execution proposal created:
-<dateandtime>-1df7f71d-1
-
-The requested commands are now represented by this pending execution.
-
+The requested commands are now represented by this pending change id.
 ----------------- Tool output manual end --------------------------------------

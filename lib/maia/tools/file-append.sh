@@ -27,30 +27,50 @@ ws_changes="${ws_path}/changes/${session_name}"
 
 path="$(printf '%b' "${param[path]}")"
 validate_path "$path"
+baseid="${ASSISTANT_BASEID}"
+index="$(find_index "$ws_changes" "$baseid")"
+id="${baseid}-${index}"
+wpath="$(write_file_name "$ws_changes" "$id")"
+mkdir -p "$(dirname -- "$wpath")"
 
-if [[ ! -e "$path" ]] ; then
-    touch "$path"
-fi
-
-contentstr=""
-if [[ -v "param[content]" ]] ; then
-    printf "%b" "${param[content]}" >> "$path"
-    contentstr="Content"
+if [[ -e "$path" ]]; then
+    cp -- "$path" "$wpath"
 else
-    cat >> "$path"
-    contentstr="Stdin"
+    : > "$wpath"
+fi
+if [[ -v "param[content]" ]] ; then
+    printf "%b" "${param[content]}" >> "$wpath"
+    contentstr="content parameter"
+else
+    cat >> "$wpath"
+    contentstr="standard input"
 fi
 
-echo "$contentstr appended to $path."
+make_patch "$ws_changes" "$id" "$path"
+pfile="$ws_changes/$id-pending.patch"
+if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
+    rm -f "$pfile" "$wpath"
+    clean_meta "$ws_changes" "$baseid" "$index"
+    if [[ -e "$path" ]]; then
+        printf '[NOTICE] No content was appended because the %s was empty. The existing file is unchanged; no change was created.\n' "$contentstr"
+    else
+        printf '[NOTICE] No content was appended because the %s was empty. The target file was not created; no change was recorded. Use file-write to create an empty file.\n' "$contentstr"
+    fi
+else
+    write_meta "$ws_changes" "$baseid" "$index" "$path"
+    if approval_is_allowed append "$path"; then
+        if ! "$MAIA_BIN" change apply "$id" >/dev/null 2>&1; then
+            printf '[ERROR] The requested file change could not be applied. Check the file state before retrying.\nChange ID: %s\n' "$id" >&2
+            exit 1
+        fi
+        printf '[NOTICE] The requested change has been applied. The change has been logged.\nChange ID: %s\n' "$id"
+    else
+        printf '[NOTICE] The requested file change requires approval. A pending change is ready for review.\nChange ID: %s\nReview the change and decide whether to apply or skip it.\n' "$id"
+        trigger_event "post-change-create" "$id"
+    fi
+fi
 
-# Prune arguments in history for this tool-invoked append.
-history_file="$(resolve_history_meta)"
-exclusive_json_modify \
-    "$history_file" \
-    --arg source "$TOOL_CALL_ID" \
-    -f "$MAIA_HOOKS_LIB_DIR/prune-tool-call-args.jq"
-
-$MAIA_BIN file add "$path" > /dev/null 2>&1 || true
-
-prune_tool_call_arguments
+if [[ -e "$path" ]]; then
+    $MAIA_BIN file add "$path" > /dev/null 2>&1 || true
+fi
 exit 0

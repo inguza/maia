@@ -12,14 +12,15 @@ approve_usage() {
 USAGE
 
   maia approve [--scope <scope>] <command>
-  maia approve [--scope <scope>]
+  maia approve --scope
+      Show the effective scope for approval rules.
 
 Manage file-operation approvals. Rules use shell globs relative to the
 workspace root.
 
 COMMANDS
 
-  list
+  view
 
   append|enable|allow <path-pattern>:<action> [...]
       Add an approval entry.
@@ -50,7 +51,7 @@ EOF
 handle_approve_command() {
     [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${2:-}" == "-h" || "${2:-}" == "--help" ]] && approve_usage
 
-    local scope="" scopearg="" subcmd
+    local scope="" scopearg=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help)
@@ -58,53 +59,79 @@ handle_approve_command() {
                 ;;
             --scope)
                 shift
-                [[ -n "${1:-}" ]] || die "Scope required after --scope"
                 scope="$1"
-                shift
-                scopearg="yes"
+                shift || true
+                scopearg=yes
                 ;;
             *)
                 break
                 ;;
         esac
     done
+    local prompt_type="approval"
 
-    determine_implicit_scope approval
+    local subcmd="${1:-show}"
+    shift
+
+    determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" == "yes" && -z "$scope" ]]; then
         printf '%s\n' "$implicit_scope"
         return
     fi
-    subcmd="${1:-show}"
-    [[ $# -gt 0 ]] && shift
-    [[ "$subcmd" == "allow" || "$subcmd" == "enable" ]] && subcmd="append"
 
-    [[ -n "$scope" ]] || scope="session"
+    # Special default scope handling
+    if [[ -z "$scope" ]]; then
+	case "$subcmd" in
+	    list)
+		scope="$implicit_scope"
+		;;
+	    *)
+		:
+		;;
+	esac
+    fi
+
+    if [[ -z "$scope" ]]; then
+	scope="session"
+    fi
+
     validate_scope "$scope"
     [[ "$scope" != "default" ]] || die "The default scope cannot store approval rules."
     load_config "$scope" CONFIG
 
-    local filepath="${SCOPE_DIR[$scope]}/approval.txt"
+    local filepath="${SCOPE_DIR[$scope]}/${prompt_type}.txt"
+
     case "$subcmd" in
-        show|view|list)
-            prompt_for_scope "$scope" approval
-            ;;
-        append)
-            [[ $# -gt 0 ]] || die "Usage: maia approve append <path-pattern>:<action>..."
+	append|enable|allow)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    # Start an explicit definition by inheriting the effective raw
+	    # definition from the selected scope, then append the new entry.
+	    copy_over "$scope" "$prompt_type" "$filepath"
+	    subcmd="append"
+	    ;;
+        disable)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    copy_over "$scope" "$prompt_type" "$filepath"
+	    ;;
+        clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$scope" approval "$filepath"
-            handle_text_file_command "$filepath" append "$@"
-            deduplicate_files "$filepath"
+            : > "$filepath"
             ;;
-        replace)
-            [[ $# -gt 0 ]] || die "Usage: maia approve replace <path-pattern>:<action>..."
+	*)
+	    :
+	    ;;
+    esac
+
+    case "$subcmd" in
+        view|"")
+            prompt_for_scope "$scope" "$prompt_type"
+            ;;
+        append|edit|replace|delete|clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
-            handle_text_file_command "$filepath" replace "$@"
+            handle_text_file_command "$filepath" "$subcmd" "$@"
             deduplicate_files "$filepath"
             ;;
         disable)
-            [[ $# -gt 0 ]] || die "Usage: maia approve disable <exact-rule>..."
-            mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$scope" approval "$filepath"
             local tmpfile entry line remove
             tmpfile="$(mktemp)"
             while IFS= read -r line || [[ -n "$line" ]]; do
@@ -118,13 +145,6 @@ handle_approve_command() {
                 [[ "$remove" == true ]] || printf '%s\n' "$line" >> "$tmpfile"
             done < "$filepath"
             mv "$tmpfile" "$filepath"
-            ;;
-        clear)
-            mkdir -p "${SCOPE_DIR[$scope]}"
-            : > "$filepath"
-            ;;
-        delete)
-            rm -f "$filepath"
             ;;
         *)
             die "Unknown approve subcommand: $subcmd"

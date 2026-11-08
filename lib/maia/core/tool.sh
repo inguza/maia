@@ -281,7 +281,7 @@ handle_tool_command() {
 		;;
 	esac
     done
-    prompt_type="toolset"
+    local prompt_type="toolset"
 
     local subcmd="${1:-}"
     shift

@@ -1,6 +1,6 @@
 <MAIA_HOME>:
    y1.txt|test
+   y1.txt:1-1100
    provider#ui://test/foo
    y1.txt
    x1.txt
-   y1.txt:0-1100

@@ -165,3 +165,39 @@ write_meta() {
 	printf 'type: set\n' > "$change_dir/${baseid}-+-pending.myl"
     fi
 }
+
+# Return success if every relative workspace path has an approval for the action.
+# Usage: approval_is_allowed <action> <path> [<path> ...]
+approval_is_allowed() {
+    if [[ $# -lt 2 ]]; then
+        return 1
+    fi
+    local action="$1"
+    shift
+
+    local rules_file rule pattern rule_action path path_allowed
+    rules_file="$(file_for_scope session approval.txt)"
+    if [[ -z "$rules_file" || ! -f "$rules_file" ]]; then
+        return 1
+    fi
+
+    for path in "$@"; do
+        path_allowed=false
+        while IFS= read -r rule || [[ -n "$rule" ]]; do
+            rule="$(strip_cr "$rule")"
+            [[ -z "$rule" || "$rule" =~ ^[[:space:]]*# ]] && continue
+            [[ "$rule" == *:* ]] || continue
+            pattern="${rule%:*}"
+            rule_action="${rule##*:}"
+            [[ "$rule_action" == "$action" ]] || continue
+            if [[ "$path" == $pattern ]]; then
+                path_allowed=true
+                break
+            fi
+        done < "$rules_file"
+        if [[ "$path_allowed" != true ]]; then
+            return 1
+        fi
+    done
+    return 0
+}

@@ -1,7 +1,7 @@
 [
   {
     "name":"file-write",
-    "description": "Write content to a file. If the file does not exist, it is created. If the file already exists, a change proposal is created instead and the file is not modified.",
+    "description": "Write content to a file.",
     "command": "file-write.sh",
     "instructions": [ "file.txt" ],
     "effects":["limited-write"],
@@ -23,7 +23,7 @@
   },
   {
     "name":"file-append",
-    "description": "Append content to the end of a file. The file is modified directly and no change proposal is created.",
+    "description": "Append content to the end of a file.",
     "command": "file-append.sh",
     "instructions": [ "file.txt" ],
     "effects":["limited-write"],
@@ -45,7 +45,7 @@
   },
   {
     "name":"file-change",
-    "description": "Update an existing file by making exact literal text replacements. Always creates a change proposal.",
+    "description": "Update an existing file by making exact literal text replacements.",
     "command": "file-change.sh",
     "instructions": [ "file.txt", "file-change.txt" ],
     "effects":["limited-write"],

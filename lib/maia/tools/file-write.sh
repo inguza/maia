@@ -28,49 +28,55 @@ if [[ -z "$ws_path" ]] ; then
 fi
 ws_changes="${ws_path}/changes/${session_name}"
 
+approval_action=change
+if [[ ! -e "$path" ]]; then
+    approval_action=create
+    # Preserve file-write's existing behavior of creating parent directories.
+    mkdir -p "$(dirname -- "$path")"
+fi
+
 baseid="${ASSISTANT_BASEID}"
 index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
-
-wpath="$path"
-if [[ -e "$path" ]] ; then
-    wpath="$(write_file_name "$ws_changes" "$id")"
-else
-    trigger_event "pre-file-write" "$path"
-fi
+wpath="$(write_file_name "$ws_changes" "$id")"
+mkdir -p "$(dirname -- "$wpath")"
 
 contentstr=""
 if [[ -v "param[content]" ]] ; then
-    mkdir -p "$(dirname "$wpath")"
     printf "%b" "${param[content]}" > "$wpath"
-    contentstr="Content"
+    contentstr="content parameter"
 else
     read_file > "$wpath"
-    contentstr="Stdin"
+    contentstr="standard input"
 fi
 
-if [[ "$path" != "$wpath" ]] ; then
-    make_patch "$ws_changes" "$id" "$path"
-    pfile="$ws_changes/$id-pending.patch"
-    if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
-	rm -f "$pfile" "$wpath"
-	clean_meta "$ws_changes" "$baseid" "$index"
-	echo "$contentstr identical to the content in $path. Consider it written."
-    else
-	write_meta "$ws_changes" "$baseid" "$index" "$path"
-	printf '%b' "[NOTICE] Direct file modification was not possible.\n\nFile $path already exists.\n\nChange proposal created:\n$id\n\nThe content of the proposed change is the following:\n"
-	echo "\`\`\`patch"
-	read_file_by_line "$pfile"
-	echo "\`\`\`"
-	trigger_event "post-change-create" "${baseid}-${index}"
-    fi
+pfile="$ws_changes/$id-pending.patch"
+if [[ ! -e "$path" && ! -s "$wpath" ]]; then
+    # A unified diff cannot represent creating a zero-byte file. This marker
+    # is handled by change.sh's reversible patch application.
+    printf 'MAIA-EMPTY-FILE: %s\n' "$path" > "$pfile"
 else
-    echo "$contentstr written to $path."
-    # If this was a direct write from a tool call, prune arguments in history
-    clean_meta "$ws_changes" "$baseid" "$index"
-    prune_tool_call_arguments
-    trigger_event "post-file-write" "$path"
+    make_patch "$ws_changes" "$id" "$path"
 fi
-$MAIA_BIN file add "$path" > /dev/null 2>&1
+if [[ -e "$pfile" && ! -s "$pfile" ]] ; then
+    rm -f "$pfile" "$wpath"
+    clean_meta "$ws_changes" "$baseid" "$index"
+    printf '[NOTICE] The requested content from %s already matches %s. No change was created.\n' "$contentstr" "$path"
+else
+    write_meta "$ws_changes" "$baseid" "$index" "$path"
+    if approval_is_allowed "$approval_action" "$path"; then
+        if ! "$MAIA_BIN" change apply "$id" >/dev/null 2>&1; then
+            printf '[ERROR] The requested file change could not be applied. Check the file state before retrying.\nChange ID: %s\n' "$id" >&2
+            exit 1
+        fi
+        printf '[NOTICE] The requested change has been applied. The change has been logged.\nChange ID: %s\n' "$id"
+    else
+        printf '[NOTICE] The requested file change requires approval. A pending change is ready for review.\nChange ID: %s\nReview the change and decide whether to apply or skip it.\n' "$id"
+        trigger_event "post-change-create" "$id"
+    fi
+fi
+if [[ -e "$path" ]]; then
+    $MAIA_BIN file add "$path" > /dev/null 2>&1
+fi
 # Exit with 0 since otherwise you get an error when there is no match
 exit 0

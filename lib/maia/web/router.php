@@ -199,6 +199,11 @@ $routes = [
     '/api/tool/disable' => __DIR__ . '/api/tool/disable.php',
     '/api/tool/clear' => __DIR__ . '/api/tool/clear.php',
     '/api/tool/delete' => __DIR__ . '/api/tool/delete.php',
+    '/api/approval/context' => __DIR__ . '/api/approval/context.php',
+    '/api/approval/append' => __DIR__ . '/api/approval/append.php',
+    '/api/approval/disable' => __DIR__ . '/api/approval/disable.php',
+    '/api/approval/clear' => __DIR__ . '/api/approval/clear.php',
+    '/api/approval/delete' => __DIR__ . '/api/approval/delete.php',
     '/api/skill/context' => __DIR__ . '/api/skill/context.php',
     '/api/auth/context' => __DIR__ . '/api/auth/context.php',
 ];

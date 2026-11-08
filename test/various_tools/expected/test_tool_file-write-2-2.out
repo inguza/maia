@@ -1,17 +1,5 @@
 ----------------- Tool output manual start ------------------------------------
-[NOTICE] Direct file modification was not possible.
-
-File pathx/2.txt already exists.
-
-Change proposal created:
-<dateandtime>-28c581f9-1
-
-The content of the proposed change is the following:
-```patch
---- a/pathx/2.txt
-+++ b/pathx/2.txt
-@@ -1 +1,2 @@
- First write content 2
-+Second write
-```
+[NOTICE] The requested file change requires approval. A pending change is ready for review.
+Change ID: <dateandtime>-28c581f9-1
+Review the change and decide whether to apply or skip it.
 ----------------- Tool output manual end --------------------------------------

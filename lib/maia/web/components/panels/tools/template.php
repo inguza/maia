@@ -7,7 +7,10 @@
  * Commercial licensing is available separately.
  */
 ?>
-<h2>Tools</h2>
+<header class="panel-content-header">
+    <h2>Tools</h2>
+    <button id="tools-refresh" class="small-action" type="button" title="Refresh tools" aria-label="Refresh tools">&#x21BB;</button>
+</header>
 <p id="tools-scope" class="muted">Home tool scope</p>
 <div class="inline-form">
     <label class="visually-hidden" for="tool-pattern">Add tool pattern</label>
@@ -16,8 +19,7 @@
 </div>
 <div class="panel-actions">
     <button id="tool-clear" type="button">Clear</button>
-    <button id="tool-delete" type="button">Delete</button>
-    <button id="tools-refresh" type="button">Refresh</button>
+    <button id="tool-delete" type="button" hidden>Delete</button>
 </div>
 <p id="tools-status" class="status" role="status" aria-live="polite"></p>
 <ul id="tool-pattern-list" class="item-list" aria-label="Allowed tool patterns"></ul>

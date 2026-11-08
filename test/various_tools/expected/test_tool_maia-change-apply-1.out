@@ -2,5 +2,6 @@
 checking file x/1.txt
 patching file x/1.txt
 [NOTICE] Applied change '<dateandtime>-58059449-1'
+[NOTICE] Added new file 'x/1.txt' to active session filesets.
 [NOTICE] History file for session 'default' does not exist; skipping pruning
 ----------------- Tool output manual end --------------------------------------

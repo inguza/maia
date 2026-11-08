@@ -1,7 +1,5 @@
 ----------------- Tool output manual start ------------------------------------
-Tool exited with code 1.
-
-
-Content appended to x/1.txt.
-jq: error: Could not open file <MAIA_HOME>/.maia/sessions/default/history.json: No such file or directory
+[NOTICE] The requested file change requires approval. A pending change is ready for review.
+Change ID: <dateandtime>-76676982-1
+Review the change and decide whether to apply or skip it.
 ----------------- Tool output manual end --------------------------------------

@@ -14,6 +14,7 @@ namespace Maia\Web\Pages\Profile;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
 use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Configuration\ConfigurationPanel;
+use Maia\Web\Components\Panels\Approvals\ApprovalsPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
 use Maia\Web\Components\Profile\Settings\ProfileSettingsComponent;
@@ -30,6 +31,7 @@ require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/configuration/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/tools/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/approvals/panel.php';
 
 final class ProfilePage extends Page
 {
@@ -57,6 +59,10 @@ final class ProfilePage extends Page
         $this->addComponent(
             'tools',
             new ExpandablePanel('tools', 'Tools', new ToolsPanel())
+        );
+        $this->addComponent(
+            'approvals',
+            new ExpandablePanel('approvals', 'Approvals', new ApprovalsPanel())
         );
         $this->addPageResources([
             new Stylesheet('pages/profile/page.css'),

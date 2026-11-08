@@ -7,7 +7,10 @@
  * Commercial licensing is available separately.
  */
 ?>
-<h2>Skills</h2>
+<header class="panel-content-header">
+    <h2>Skills</h2>
+    <button id="skills-refresh" class="small-action" type="button" title="Refresh skills" aria-label="Refresh skills">&#x21BB;</button>
+</header>
 <p id="skills-scope" class="muted">Home skill scope</p>
 <div class="inline-form">
     <label class="visually-hidden" for="skill-pattern">Add skill pattern</label>
@@ -18,8 +21,7 @@
     <button id="skill-clear" type="button">Clear</button>
     <button id="skill-delete" type="button"
             title="Remove the skill settings for this scope; MAIA will use settings from another scope if available."
-            aria-label="Remove the skill settings for this scope; MAIA will use settings from another scope if available.">Delete</button>
-    <button id="skills-refresh" type="button">Refresh</button>
+            aria-label="Remove the skill settings for this scope; MAIA will use settings from another scope if available." hidden>Delete</button>
 </div>
 <p id="skills-status" class="status" role="status" aria-live="polite"></p>
 <ul id="skill-pattern-list" class="item-list" aria-label="Allowed skill patterns"></ul>

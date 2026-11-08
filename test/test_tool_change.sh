@@ -35,7 +35,7 @@ run_change_cmd() {
 }
 
 capture_change() {
-    cat "${TEST_ROOT}/tool_change/output/test_tool_${1}.capture" | grep -A1 "Change proposal created:" | grep "^2"
+    cat "${TEST_ROOT}/tool_change/output/test_tool_${1}.capture" | grep "Change ID:" | sed 's/Change ID:[[:space:]]//;'
 }
 
 text1='# Some header\n'

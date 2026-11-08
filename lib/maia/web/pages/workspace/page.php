@@ -16,6 +16,7 @@ use Maia\Web\Components\PathBrowser\PathBrowser;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
 use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Configuration\ConfigurationPanel;
+use Maia\Web\Components\Panels\Approvals\ApprovalsPanel;
 use Maia\Web\Components\Panels\Files\KnownFilesPanel;
 use Maia\Web\Components\Panels\Profiles\ProfilesPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
@@ -36,6 +37,7 @@ require_once dirname(__DIR__, 2) . '/components/panels/files/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/profiles/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/tools/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/approvals/panel.php';
 require_once dirname(__DIR__, 2) . '/components/workspace/settings/component.php';
 require_once dirname(__DIR__, 2) . '/components/path-browser/component.php';
 
@@ -59,6 +61,7 @@ final class WorkspacePage extends Page
         $this->addComponent('configuration', new ExpandablePanel('configuration', 'Config', new ConfigurationPanel()));
         $this->addComponent('skills', new ExpandablePanel('skills', 'Skills', new SkillsPanel()));
         $this->addComponent('tools', new ExpandablePanel('tools', 'Tools', new ToolsPanel()));
+        $this->addComponent('approvals', new ExpandablePanel('approvals', 'Approvals', new ApprovalsPanel()));
         $this->addComponent('settings', new ExpandablePanel('workspace-settings', 'Settings', new WorkspaceSettingsComponent()));
         $this->addComponent(
             'browser',

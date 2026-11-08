@@ -90,5 +90,26 @@ printf ' %q' "${remember[@]}" >> "$wpath"
 printf '\n' >> "$wpath"
 # * join to one entry
 write_meta "$ws_changes" "$baseid" "$index" "${paths[*]}"
-printf '%b' "[NOTICE] Direct file modification was not possible.\n\nChange proposal created for manual resolution:\n$id\n"
+
+declare -a targets=()
+for source in "${paths[@]}"; do
+    if [[ "$move_into_destination" == true ]]; then
+        target="${destination%/}/$(basename -- "${source%/}")"
+    else
+        target="$destination"
+    fi
+    targets+=("$target")
+done
+if approval_is_allowed delete "${paths[@]}" && approval_is_allowed create "${targets[@]}"; then
+    "$MAIA_BIN" change run "$id" >/dev/null 2>&1 || true
+    status_file="$ws_changes/${id}-finished.exit_status"
+    if [[ -f "$status_file" && "$(read_file "$status_file")" == "0" ]]; then
+        printf '[NOTICE] The requested change has been applied. The change has been logged.\nChange ID: %s\n' "$id"
+        exit 0
+    fi
+    printf '[ERROR] The requested change failed.\nChange ID: %s\n' "$id" >&2
+    exit 1
+fi
+
+printf '%b' "[NOTICE] The requested file change requires approval. A pending change is ready for review.\nChange ID: $id\nReview the change and decided whether to 'do' it or skip it."
 exit 0

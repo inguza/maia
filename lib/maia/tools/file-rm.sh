@@ -44,5 +44,17 @@ printf '%s' "maia file forget" >> "$wpath"
 printf ' %q' "${paths[@]}" >> "$wpath"
 printf '\n' >> "$wpath"
 write_meta "$ws_changes" "$baseid" "$index" "${paths[*]}"
-printf '%b' "[NOTICE] Direct file modification was not possible.\n\nChange proposal created for manual resolution:\n$id\n"
+
+if approval_is_allowed delete "${paths[@]}"; then
+    "$MAIA_BIN" change run "$id" >/dev/null 2>&1 || true
+    status_file="$ws_changes/${id}-finished.exit_status"
+    if [[ -f "$status_file" && "$(read_file "$status_file")" == "0" ]]; then
+        printf '[NOTICE] The requested change has been applied. The change has been logged.\nChange ID: %s\n' "$id"
+        exit 0
+    fi
+    printf '[ERROR] Pre-approved deletion failed. Change ID: %s\n' "$id" >&2
+    exit 1
+fi
+
+printf '%b' "[NOTICE] The requested file change requires approval. A pending change is ready for review.\nChange ID: $id\nReview the change and decide whether to 'do' it or skip it."
 exit 0

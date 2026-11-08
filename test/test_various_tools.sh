@@ -33,7 +33,7 @@ touch "$XMAIA_HOME/file-to-see.txt"
 export MAIA_SESSION=default
 
 capture_change() {
-    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep -A1 "proposal created:" | grep "^2"
+    cat "${TEST_ROOT}/various_tools/output/test_tool_${1}.capture" | grep "Change ID:" | sed 's/Change ID:[[:space:]]//;'
 }
 
 run_tool_cmd() {

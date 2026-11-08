@@ -22,6 +22,7 @@
             <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
+            <?= $page->renderComponent('approvals') ?>
             <?= $page->renderComponent('settings') ?>
             <?= $page->renderComponent('profiles') ?>
         </div>

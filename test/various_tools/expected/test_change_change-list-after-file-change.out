@@ -1,3 +1,9 @@
   ID                             TYPE       STATUS     FILENAME
+  <dateandtime>-cf7e379a       set        pending    
+    <dateandtime>-cf7e379a-1   patch      pending    x/1.txt
+  <dateandtime>-b824fa97       set        pending    
+    <dateandtime>-b824fa97-1   patch      pending    pathx/2.txt
+  <dateandtime>-76676982       set        pending    
+    <dateandtime>-76676982-1   patch      pending    x/1.txt
   <dateandtime>-6a83bd8c       set        pending    
     <dateandtime>-6a83bd8c-1   patch      pending    x/1.txt
