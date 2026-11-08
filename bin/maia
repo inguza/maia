@@ -134,6 +134,7 @@ COMMANDS:
     files|file|f     File management (add, forget, remove)
     tools|tool	     Tool management (list, enable/append, replace, disable, clear, run, refresh, verify, delete)
     skill	     Skill management (list, show, remember, append, replace, forget, clear, run, refresh, verify, delete)
+    approve	     Scoped file-operation approvals (append, replace, clear, delete)
     instruction	     Instruction management (list, show, remember, append, replace, forget, clear, delete)
     task	     Task management (create, list, show, remember, append, replace, forget, clear, remove, delete)
 
@@ -301,6 +302,11 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/skill.sh"
 	handle_skill_command "$@"
+	;;
+    approve)
+	shift
+	. "$MAIA_CORE_LIB_DIR/approve.sh"
+	handle_approve_command "$@"
 	;;
     instructions|instruction)
 	shift

@@ -1372,7 +1372,7 @@ require_command() {
 
 is_known_command() {
     case "$1" in
-	session|workspace|parse|u|user|system|history|h|project|p|fileset|fs|file|f|config|send|s|count|interactive|i|chat|change|c)
+	session|workspace|parse|u|user|system|history|h|project|p|fileset|fs|file|f|config|send|s|count|interactive|i|chat|change|c|approve)
 	    return 0 ;;
 	*)
 	    return 1 ;;
