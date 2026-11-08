@@ -76,8 +76,26 @@ foreach (preg_split('/\R/', $output) as $line) {
 }
 
 $files = array_values(array_unique($files));
+$workspaceRoot = maia_history_workspace_root();
+$entries = [];
+foreach ($files as $file) {
+    $filePart = explode('|', $file, 2)[0];
+    $actualFile = explode(':', $filePart, 2)[0];
+    $candidate = $actualFile;
+    if ($workspaceRoot !== null && $candidate !== '' && $candidate[0] !== '/' &&
+        !preg_match('/^[A-Za-z]:[\\\\\\/]/', $candidate)) {
+        $candidate = $workspaceRoot . DIRECTORY_SEPARATOR . str_replace(['/', '\\\\'], DIRECTORY_SEPARATOR, $candidate);
+    }
+    $resolved = $candidate !== '' ? realpath($candidate) : false;
+    $size = $resolved !== false && is_file($resolved) ? @filesize($resolved) : false;
+    $entries[] = [
+        'path' => $file,
+        'sizeBytes' => $size === false ? null : $size,
+    ];
+}
 
 echo json_encode([
     'ok' => true,
     'files' => $files,
+    'entries' => $entries,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";

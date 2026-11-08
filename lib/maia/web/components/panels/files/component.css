@@ -16,6 +16,7 @@
 .known-files-list { list-style: none; margin: 0; padding: 0; }
 .known-files-list li { align-items: center; display: flex; gap: .5rem; min-width: 0; padding: .35rem .45rem; }
 .known-files-list li:nth-child(even) { background: color-mix(in srgb, CanvasText 3%, Canvas); }
-.known-files-list li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.known-files-list li button { margin: 0; padding: .2rem .45rem; }
+.known-files-list li .known-files-path { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.known-files-list li .known-files-size { color: #6b7280; flex: 0 0 auto; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.known-files-list li button { flex: 0 0 auto; margin: 0; padding: .2rem .45rem; }
 .known-files-panel.is-file-drop-target { background: color-mix(in srgb, #2563eb 8%, Canvas); outline: 2px dashed #2563eb; outline-offset: .25rem; }
