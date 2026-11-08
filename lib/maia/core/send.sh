@@ -887,13 +887,15 @@ handle_send_command() {
 	if [[ -n "$reasoning" ]] ; then
 	    local shaid="$(printf '%s' "$reasoning" | sha256sum | cut -c1-8)"
 	    # Log the assistant response
+	    local tmp_reasoning="$(mktemp)"
+	    printf '%s' "$reasoning" > "$tmp_reasoning"
 	    exclusive_json_modify "$history_file" \
-				  --argjson reasoning "$reasoning" \
+				  --slurpfile reasoning "$tmp_reasoning" \
 				  --arg apitype "$api_type" \
 				  --arg ts "$timestamp" \
 				  --arg id "$shaid" '
 				      . + [
-				          $reasoning[]
+				          $reasoning[0][]
 					  | {
 					      role: "reasoning",
 					      api_type: $apitype,
@@ -903,6 +905,7 @@ handle_send_command() {
 					    }
 					  ]
 				      '
+	    rm -f "$tmp_reasoning"
 	fi
 
 	# tool_results handling before logging assistant response
