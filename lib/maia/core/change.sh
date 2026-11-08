@@ -416,6 +416,18 @@ add_file_to_session_filesets() {
     done
 }
 
+maia_empty_file_patch_path() {
+    local line=""
+    if ! IFS= read -r line < "$1" && [[ -z "$line" ]]; then
+        return 1
+    fi
+    if [[ "$line" == "MAIA-EMPTY-FILE: "* ]]; then
+        printf '%s' "${line#MAIA-EMPTY-FILE: }"
+        return 0
+    fi
+    return 1
+}
+
 apply_patch() {
     local revert=false
     if [[ "$1" == "-R" ]] ; then
@@ -425,13 +437,28 @@ apply_patch() {
     local workspace_root="$1"; shift
     pushd "$workspace_root" >/dev/null  || die "Cannot cd to workspace root"
     for pf in "$@"; do
-	if [[ "$revert" == false ]] ; then
-	    pid=$(basename -- "$pf" -pending.patch)
-	    patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
-	else
-	    pid=$(basename -- "$pf" -applied.patch)
-	    patch -R --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
-	fi
+        if empty_path="$(maia_empty_file_patch_path "$pf")"; then
+            case "$empty_path" in
+                ""|/*|~*|..|../*|*/../*|*/..)
+                    die "Invalid empty-file patch target '$empty_path'."
+                    ;;
+            esac
+            if [[ "$revert" == true ]]; then
+                if [[ ! -f "$empty_path" || -L "$empty_path" || -s "$empty_path" ]]; then
+                    die "Cannot revert empty-file change: '$empty_path' is missing or no longer empty."
+                fi
+            elif [[ -e "$empty_path" || -L "$empty_path" ]]; then
+                die "Cannot apply empty-file change: '$empty_path' already exists."
+            fi
+            continue
+        fi
+        if [[ "$revert" == false ]] ; then
+            pid=$(basename -- "$pf" -pending.patch)
+            patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
+        else
+            pid=$(basename -- "$pf" -applied.patch)
+            patch -R --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
+        fi
     done
     [[ "$DRY_RUN" == true ]] && {
 	popd >/dev/null
@@ -441,23 +468,36 @@ apply_patch() {
 	if [[ "$revert" == false ]] ; then
 	    pid=$(basename -- "$pf" -pending.patch)
 	    local metaf="$changes_dir/$session/${pid}-pending.myl"
-	    patch -p1 < "$pf" || die "Apply failed on $pid"
-	    notice "Applied change '$pid'"
+            if empty_path="$(maia_empty_file_patch_path "$pf")"; then
+                mkdir -p -- "$(dirname -- "$empty_path")"
+                : > "$empty_path"
+                notice "Created empty file '$empty_path'"
+            else
+                patch -p1 < "$pf" || die "Apply failed on $pid"
+                notice "Applied change '$pid'"
+            fi
 	else
 	    pid=$(basename -- "$pf" -applied.patch)
 	    local metaf="$changes_dir/$session/${pid}-applied.myl"
-	    patch -R -p1 < "$pf" || die "Revert failed on $pid"
-	    notice "Revert change '$pid'"
+            if empty_path="$(maia_empty_file_patch_path "$pf")"; then
+                rm -f -- "$empty_path"
+                notice "Removed empty file '$empty_path'"
+            else
+                patch -R -p1 < "$pf" || die "Revert failed on $pid"
+                notice "Revert change '$pid'"
+            fi
 	fi
 	# 6) Rename its artifacts
-	if [[ "$AUTO_ADD" == true ]]; then
-	    # Check if it is a new file
-	    if grep -q '^--- /dev/null' "$pf"; then
-		local file_to_add="$(myl_get "$metaf" 'filename')"
-		if [[ -n "$file_to_add" ]]; then
-		    add_file_to_session_filesets "$file_to_add" "$session"
-		    notice "Added new file '$file_to_add' to active session filesets."
-		fi
+	if [[ "$AUTO_ADD" == true && "$revert" == false ]]; then
+            local file_to_add=""
+            if empty_path="$(maia_empty_file_patch_path "$pf")"; then
+                file_to_add="$(myl_get "$metaf" 'filename')"
+            elif grep -q '^--- /dev/null' "$pf"; then
+                file_to_add="$(myl_get "$metaf" 'filename')"
+            fi
+            if [[ -n "$file_to_add" ]]; then
+                add_file_to_session_filesets "$file_to_add" "$session"
+                notice "Added new file '$file_to_add' to active session filesets."
             fi
         fi
 	if [[ "$revert" == false ]] ; then
