@@ -612,22 +612,38 @@ resolve_all_workspace_filesets() {
 }
 
 # Parse a numeric file line-range selector (N, N-M, N-, or -M).
+# A start of 0 means the first line; an end of 0 means end of file.
 # Sets FILE_RANGE_START and FILE_RANGE_END; an empty end means unbounded.
 parse_file_line_range() {
     local raw="$1"
+    local start end
     if [[ "$raw" =~ ^-([0-9]+)$ ]]; then
-        FILE_RANGE_START=1
-        FILE_RANGE_END=$((10#${BASH_REMATCH[1]}))
-        [[ $FILE_RANGE_END -ge $FILE_RANGE_START ]] || return 1
+        start=1
+        end=$((10#${BASH_REMATCH[1]}))
+        FILE_RANGE_START=$start
+        if (( end == 0 )); then
+            FILE_RANGE_END=""
+        else
+            FILE_RANGE_END=$end
+        fi
         return 0
     elif [[ "$raw" =~ ^([0-9]+)$ ]]; then
-        FILE_RANGE_START=$((10#${BASH_REMATCH[1]}))
-        FILE_RANGE_END=$FILE_RANGE_START
+        start=$((10#${BASH_REMATCH[1]}))
+        (( start == 0 )) && start=1
+        FILE_RANGE_START=$start
+        FILE_RANGE_END=$start
         return 0
     elif [[ "$raw" =~ ^([0-9]+)-([0-9]*)$ ]]; then
-        FILE_RANGE_START=$((10#${BASH_REMATCH[1]}))
+        start=$((10#${BASH_REMATCH[1]}))
+        (( start == 0 )) && start=1
+        FILE_RANGE_START=$start
         if [[ -n "${BASH_REMATCH[2]}" ]]; then
-            FILE_RANGE_END=$((10#${BASH_REMATCH[2]}))
+            end=$((10#${BASH_REMATCH[2]}))
+            if (( end == 0 )); then
+                FILE_RANGE_END=""
+            else
+                FILE_RANGE_END=$end
+            fi
         else
             FILE_RANGE_END=""
         fi
@@ -637,8 +653,8 @@ parse_file_line_range() {
     return 1
 }
 
-# Canonicalize line selectors when remembering files: :1- is equivalent to
-# no line selector, while :-M is written as :1-M.
+# Canonicalize line selectors when remembering files: ranges covering the
+# whole file have no selector; a start of 0 becomes 1 and an end of 0 is open.
 normalize_file_line_spec() {
     local spec="$1"
     local filepart="${spec%%|*}"
@@ -648,10 +664,19 @@ normalize_file_line_spec() {
 
     local filepath="${filepart%%:*}"
     local selector="${filepart#*:}"
-    if [[ "$selector" =~ ^0*1-$ || "$selector" =~ ^0+-$ ]]; then
-        printf '%s%s' "$filepath" "$filter"
-    elif [[ "$selector" =~ ^-([0-9]+)$ ]]; then
-        printf '%s:1-%s%s' "$filepath" "${BASH_REMATCH[1]}" "$filter"
+    if parse_file_line_range "$selector"; then
+        local normalized
+        if [[ "$selector" == *-* ]]; then
+            normalized="$FILE_RANGE_START-"
+            [[ -n "$FILE_RANGE_END" ]] && normalized+="$FILE_RANGE_END"
+            if [[ "$normalized" == "1-" ]]; then
+                printf '%s%s' "$filepath" "$filter"
+            else
+                printf '%s:%s%s' "$filepath" "$normalized" "$filter"
+            fi
+        else
+            printf '%s:%s%s' "$filepath" "$FILE_RANGE_START" "$filter"
+        fi
     else
         printf '%s' "$spec"
     fi

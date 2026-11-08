@@ -449,19 +449,24 @@ sub extract_full_file {
     return $content;
 }
 
-# Extract specified lines (single line or range)
+# Extract specified lines (single line or range). A start of 0 means the
+# first line, and an end of 0 means end of file.
 sub extract_lines {
     my ($file, $line_spec) = @_;
     my ($start, $end);
     if ($line_spec =~ /^-(\d+)$/) {
         ($start, $end) = (1, $1);
-        return undef if $start > $end;
+        $end = undef if $end == 0;
     } elsif ($line_spec =~ /^(\d+)-(\d*)$/) {
         $start = $1;
+        $start = 1 if $start == 0;
         $end = (defined($2) && $2 ne '') ? $2 : undef;
+        $end = undef if defined($end) && $end == 0;
         return undef if defined($end) && $start > $end;
     } elsif ($line_spec =~ /^(\d+)$/) {
-        $start = $end = $1;
+        $start = $1;
+        $start = 1 if $start == 0;
+        $end = $start;
     } else {
         return undef;
     }
