@@ -578,7 +578,7 @@ COMMANDS
       Discover additional tools and generate tool definition file(s).
 
   delete
-      Delete the tool definitions from this scope.
+      Delete the tool definitions from the specified scope.
 
 OPTIONS
 
