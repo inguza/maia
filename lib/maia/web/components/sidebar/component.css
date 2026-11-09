@@ -43,6 +43,11 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
     display: flex; align-items: center; gap: .5rem; min-width: 0;
     padding: .35rem .45rem; border-radius: .25rem;
 }
+.sidebar-list li.sidebar-current-item {
+    background: color-mix(in srgb, #2563eb 16%, Canvas);
+    box-shadow: inset .2rem 0 #2563eb;
+}
+.sidebar-list li.sidebar-current-item a { font-weight: 700; }
 .sidebar-list button {
     margin: 0; padding: .2rem .45rem;
 }
