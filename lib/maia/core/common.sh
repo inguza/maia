@@ -693,108 +693,242 @@ add_file_to_fileset_file() {
     fi
     ensure_file_exists "$fs"
 
-    if grep -Fxq "$rel_path" "$fs"; then
-	notice "'$rel_path' already in fileset '$fs_basename'"
-	return
-    fi
-
-    # Compare ranges only for the same file and filter. Other selectors (such
-    # as function names) retain the existing exact-match behavior.
+    # Compare only local file paths and line selectors for the same file and
+    # filter. Other selectors (such as function names) retain exact-match
+    # behavior, and entries with different |filters are deliberately separate.
     local incoming_filepart="${rel_path%%|*}"
     local incoming_filter=""
     [[ "$rel_path" == *'|'* ]] && incoming_filter="${rel_path#*|}"
     local incoming_file="${incoming_filepart%%:*}"
     local incoming_range=""
+    local incoming_full=false
     [[ "$incoming_filepart" == *:* ]] && incoming_range="${incoming_filepart#*:}"
     local incoming_start="" incoming_end=""
     local comparable=false
-    if [[ -n "$incoming_range" ]] && parse_file_line_range "$incoming_range"; then
+    if [[ -z "$incoming_range" && "$incoming_filepart" != *:* ]]; then
+        incoming_full=true
+    elif [[ -n "$incoming_range" ]] && parse_file_line_range "$incoming_range"; then
         incoming_start=$FILE_RANGE_START
         incoming_end=$FILE_RANGE_END
         comparable=true
     fi
 
-    local overlaps=0 first_overlap="" line existing_filepart existing_filter existing_file existing_range existing_start existing_end
-    local merged_start="$incoming_start" merged_end="$incoming_end"
-    local contained_by_existing=false
-    local -A merged_lines=()
+    # A bounded range starting at line 1 that reaches the physical end of the
+    # file is the same selection as an unqualified path. Paths in filesets are
+    # relative to the workspace root, not necessarily the caller's CWD.
+    local workspace_root="$(resolve_workspace_root)" file_line_count=""
+    if [[ "$comparable" == true && "$incoming_start" == 1 && -n "$incoming_end" && -n "$workspace_root" && -f "$workspace_root/$incoming_file" ]]; then
+        file_line_count="$(awk 'END { print NR + 0 }' "$workspace_root/$incoming_file")"
+        if (( incoming_end >= file_line_count )); then
+            incoming_full=true
+            comparable=false
+            rel_path="${incoming_file}${incoming_filter:+|$incoming_filter}"
+        fi
+    fi
+
+    local line existing_filepart existing_filter existing_file existing_range
+    local existing_start existing_end
+
+    # A bare path denotes the whole file. Keep one such entry and remove
+    # redundant numeric line ranges for the same path and filter. Do not touch
+    # non-numeric selectors or entries with a different filter.
+    if [[ "$incoming_full" == true ]]; then
+        local has_full=false removed_ranges=0 kept_full=false tmp
+        tmp="$(mktemp)"
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="$(strip_cr "$line")"
+            existing_filepart="${line%%|*}"
+            existing_filter=""
+            [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
+            existing_file="${existing_filepart%%:*}"
+            if [[ "$existing_file" == "$incoming_file" && "$existing_filter" == "$incoming_filter" ]]; then
+                if [[ "$existing_filepart" == "$incoming_file" ]]; then
+                    has_full=true
+                    if [[ "$kept_full" == false ]]; then
+                        printf '%s\n' "$rel_path" >> "$tmp"
+                        kept_full=true
+                    fi
+                    continue
+                elif [[ "$existing_filepart" == *:* ]]; then
+                    existing_range="${existing_filepart#*:}"
+                    if parse_file_line_range "$existing_range"; then
+                        ((removed_ranges += 1))
+                        continue
+                    fi
+                fi
+            fi
+            printf '%s\n' "$line" >> "$tmp"
+        done < "$fs"
+        if [[ "$kept_full" == false ]]; then
+            printf '%s\n' "$rel_path" >> "$tmp"
+        fi
+        if [[ "$has_full" == true || $removed_ranges -gt 0 ]]; then
+            mv "$tmp" "$fs"
+            if [[ "$has_full" == true ]]; then
+                notice "'$rel_path' already covers the selection in fileset '$fs_basename'"
+            else
+                info "Added whole-file entry '$rel_path' and removed redundant ranges from fileset '$fs_basename'"
+            fi
+        else
+            mv "$tmp" "$fs"
+            info "'$rel_path' appended to fileset '$fs_basename'"
+        fi
+        return
+    fi
+
+    # For a numeric range, an existing whole-file entry subsumes it. Also
+    # compact any stale numeric ranges beside that whole-file entry.
     if [[ "$comparable" == true ]]; then
-        # Expand the incoming range over every same-file, same-filter range it
-        # intersects. Repeat until no new ranges are absorbed, since expanding
-        # the union may make another range intersect it.
-        local changed=true
-        while [[ "$changed" == true ]]; do
-            changed=false
+        local has_full=false
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="$(strip_cr "$line")"
+            existing_filepart="${line%%|*}"
+            existing_filter=""
+            [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
+            if [[ "${existing_filepart%%:*}" == "$incoming_file" && "$existing_filter" == "$incoming_filter" && "$existing_filepart" == "$incoming_file" ]]; then
+                has_full=true
+                break
+            fi
+        done < "$fs"
+        if [[ "$has_full" == true ]]; then
+            local removed_ranges=0 kept_full=false tmp
+            tmp="$(mktemp)"
             while IFS= read -r line || [[ -n "$line" ]]; do
                 line="$(strip_cr "$line")"
-                [[ -z "$line" || -v merged_lines["$line"] ]] && continue
                 existing_filepart="${line%%|*}"
                 existing_filter=""
                 [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
                 existing_file="${existing_filepart%%:*}"
-                [[ "$existing_file" == "$incoming_file" && "$existing_filter" == "$incoming_filter" ]] || continue
-                [[ "$existing_filepart" == *:* ]] || continue
-                existing_range="${existing_filepart#*:}"
-                parse_file_line_range "$existing_range" || continue
-                existing_start=$FILE_RANGE_START
-                existing_end=$FILE_RANGE_END
-
-                # Inclusive ranges intersect unless one ends before the other starts.
-                if [[ -n "$existing_end" ]] && (( existing_end < merged_start )); then
-                    continue
+                if [[ "$existing_file" == "$incoming_file" && "$existing_filter" == "$incoming_filter" ]]; then
+                    if [[ "$existing_filepart" == "$incoming_file" ]]; then
+                        if [[ "$kept_full" == false ]]; then
+                            printf '%s\n' "${incoming_file}${incoming_filter:+|$incoming_filter}" >> "$tmp"
+                            kept_full=true
+                        fi
+                        continue
+                    elif [[ "$existing_filepart" == *:* ]]; then
+                        existing_range="${existing_filepart#*:}"
+                        if parse_file_line_range "$existing_range"; then
+                            ((removed_ranges += 1))
+                            continue
+                        fi
+                    fi
                 fi
-                if [[ -n "$merged_end" ]] && (( merged_end < existing_start )); then
-                    continue
-                fi
-
-                merged_lines["$line"]=1
-                ((overlaps += 1))
-                [[ -n "$first_overlap" ]] || first_overlap="$line"
-
-                # A new range wholly inside one existing entry is a duplicate
-                # selection, not an extension.
-                if (( incoming_start >= existing_start )) && {
-                    [[ -z "$existing_end" ]] ||
-                    { [[ -n "$incoming_end" ]] && (( incoming_end <= existing_end )); }
-                }; then
-                    contained_by_existing=true
-                fi
-
-                if (( existing_start < merged_start )); then
-                    merged_start=$existing_start
-                fi
-                if [[ -z "$existing_end" || -z "$merged_end" ]]; then
-                    merged_end=""
-                elif (( existing_end > merged_end )); then
-                    merged_end=$existing_end
-                fi
-                changed=true
+                printf '%s\n' "$line" >> "$tmp"
             done < "$fs"
-        done
+            if (( removed_ranges > 0 )); then
+                mv "$tmp" "$fs"
+            else
+                rm -f "$tmp"
+            fi
+            notice "Whole-file entry for '$incoming_file' already covers '$rel_path' in fileset '$fs_basename'"
+            return
+        fi
     fi
 
-    if (( overlaps > 0 )); then
-        if [[ "$contained_by_existing" == true ]]; then
-            notice "Range '$rel_path' overlaps an existing range in fileset '$fs_basename'; not added."
-        else
-            local merged_range="$merged_start-"
-            [[ -n "$merged_end" ]] && merged_range="$merged_start-$merged_end"
-            local merged_spec="${incoming_file}:${merged_range}"
-            [[ -n "$incoming_filter" ]] && merged_spec+="|$incoming_filter"
-            local tmp="$(mktemp)"
-            while IFS= read -r line || [[ -n "$line" ]]; do
-                line="$(strip_cr "$line")"
-                if [[ -v merged_lines["$line"] ]]; then
-                    if [[ "$line" == "$first_overlap" ]]; then
-                        printf '%s\n' "$merged_spec" >> "$tmp"
-                    fi
-                else
-                    printf '%s\n' "$line" >> "$tmp"
-                fi
-            done < "$fs"
-            mv "$tmp" "$fs"
-            info "Merged range to '$merged_spec' in fileset '$fs_basename'"
+    # Non-numeric selectors retain exact-match behavior.
+    if [[ "$comparable" != true ]]; then
+        if grep -Fxq "$rel_path" "$fs"; then
+            notice "'$rel_path' already in fileset '$fs_basename'"
+            return
         fi
+        echo "$rel_path" >> "$fs"
+        info "'$rel_path' appended to fileset '$fs_basename'"
+        return
+    fi
+
+    local overlaps=0 absorbed=0 first_overlap="" merged_start="$incoming_start" merged_end="$incoming_end"
+    local -A merged_lines=()
+    # Merge overlapping or directly adjacent inclusive ranges. Re-scan after
+    # every expansion so a newly joined range can connect to another entry.
+    local changed=true
+    while [[ "$changed" == true ]]; do
+        changed=false
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="$(strip_cr "$line")"
+            [[ -z "$line" || -v merged_lines["$line"] ]] && continue
+            existing_filepart="${line%%|*}"
+            existing_filter=""
+            [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
+            existing_file="${existing_filepart%%:*}"
+            [[ "$existing_file" == "$incoming_file" && "$existing_filter" == "$incoming_filter" ]] || continue
+            [[ "$existing_filepart" == *:* ]] || continue
+            existing_range="${existing_filepart#*:}"
+            parse_file_line_range "$existing_range" || continue
+            existing_start=$FILE_RANGE_START
+            existing_end=$FILE_RANGE_END
+
+            # Adjacent inclusive ranges have no gap: 1-4 joins 5-8.
+            if [[ -n "$existing_end" ]] && (( existing_end + 1 < merged_start )); then
+                continue
+            fi
+            if [[ -n "$merged_end" ]] && (( merged_end + 1 < existing_start )); then
+                continue
+            fi
+
+            merged_lines["$line"]=1
+            ((overlaps += 1))
+            ((absorbed += 1))
+            [[ -n "$first_overlap" ]] || first_overlap="$line"
+            if (( existing_start < merged_start )); then
+                merged_start=$existing_start
+            fi
+            if [[ -z "$existing_end" || -z "$merged_end" ]]; then
+                merged_end=""
+            elif (( existing_end > merged_end )); then
+                merged_end=$existing_end
+            fi
+            changed=true
+        done < "$fs"
+    done
+
+    if (( overlaps > 0 )); then
+        local merged_spec
+        if [[ "$merged_start" == 1 && -z "$merged_end" ]]; then
+            merged_spec="${incoming_file}${incoming_filter:+|$incoming_filter}"
+        else
+            merged_spec="${incoming_file}:${merged_start}-${merged_end}"
+            [[ -n "$incoming_filter" ]] && merged_spec+="|$incoming_filter"
+            if [[ "$merged_start" == 1 && -n "$merged_end" && -n "$file_line_count" ]] && (( merged_end >= file_line_count )); then
+                merged_spec="${incoming_file}${incoming_filter:+|$incoming_filter}"
+            fi
+        fi
+
+        # If the existing canonical entry already covers this range, avoid a
+        # needless rewrite; otherwise replace all absorbed entries by the union.
+        if (( absorbed == 1 )) && [[ "$merged_spec" == "$first_overlap" ]]; then
+            notice "Range '$rel_path' is already covered in fileset '$fs_basename'"
+            return
+        fi
+
+        local tmp="$(mktemp)" inserted=false
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="$(strip_cr "$line")"
+            if [[ -v merged_lines["$line"] ]]; then
+                if [[ "$inserted" == false ]]; then
+                    printf '%s\n' "$merged_spec" >> "$tmp"
+                    inserted=true
+                fi
+            elif [[ "$merged_spec" != *:* && "$line" != "${incoming_file}${incoming_filter:+|$incoming_filter}" ]]; then
+                # A union that reaches the end of the file is a whole-file
+                # entry; discard all same-filter numeric ranges, even ranges
+                # beyond EOF that could not contribute to the union.
+                existing_filepart="${line%%|*}"
+                existing_filter=""
+                [[ "$line" == *'|'* ]] && existing_filter="${line#*|}"
+                if [[ "${existing_filepart%%:*}" == "$incoming_file" && "$existing_filter" == "$incoming_filter" && "$existing_filepart" == *:* ]]; then
+                    existing_range="${existing_filepart#*:}"
+                    if parse_file_line_range "$existing_range"; then
+                        continue
+                    fi
+                fi
+                printf '%s\n' "$line" >> "$tmp"
+            else
+                printf '%s\n' "$line" >> "$tmp"
+            fi
+        done < "$fs"
+        mv "$tmp" "$fs"
+        info "Merged range to '$merged_spec' in fileset '$fs_basename'"
         return
     fi
 

@@ -1,0 +1,3 @@
+<MAIA_HOME>:
+   line_ranges.txt:1-8|grep
+   line_ranges.txt:2-5|cat

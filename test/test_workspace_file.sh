@@ -34,6 +34,7 @@ echo "x3" > x3.txt
 echo "y1" > y1.txt
 echo "y2" > y2.txt
 echo "y3" > y3.txt
+seq 1 10 > line_ranges.txt
 
 mkdir t1
 mkdir t2
@@ -43,6 +44,100 @@ echo "y3" > t2/y3.txt
 run_workspace_cmd "create_and_use_workspace" create ws
 $MAIA session create --workspace ws testsession
 export MAIA_SESSION=testsession
+
+# Line-selector union/canonicalization regressions. Each case uses the normal
+# CLI test helpers so stdout/stderr/exit status are captured as golden output.
+run_file_cmd "line_overlap_add_first" remember line_ranges.txt:2-4
+run_file_cmd "line_overlap_list_first" list
+run_file_cmd "line_overlap_add_second" remember line_ranges.txt:3-5
+run_file_cmd "line_overlap_list_second" list
+
+run_file_cmd "line_clear_before_left_extension" clear
+run_file_cmd "line_left_extension_add_first" remember line_ranges.txt:2-8
+run_file_cmd "line_left_extension_list_first" list
+run_file_cmd "line_left_extension_add_second" remember line_ranges.txt:1-7
+run_file_cmd "line_left_extension_list_second" list
+
+run_file_cmd "line_clear_before_right_extension" clear
+run_file_cmd "line_right_extension_add_first" remember line_ranges.txt:2-4
+run_file_cmd "line_right_extension_list_first" list
+run_file_cmd "line_right_extension_add_second" remember line_ranges.txt:4-8
+run_file_cmd "line_right_extension_list_second" list
+
+run_file_cmd "line_clear_before_adjacent_ranges" clear
+run_file_cmd "line_adjacent_add_first" remember line_ranges.txt:2-4
+run_file_cmd "line_adjacent_list_first" list
+run_file_cmd "line_adjacent_add_second" remember line_ranges.txt:5-8
+run_file_cmd "line_adjacent_list_second" list
+
+run_file_cmd "line_clear_before_disjoint_ranges" clear
+run_file_cmd "line_disjoint_add_first" remember line_ranges.txt:1-3
+run_file_cmd "line_disjoint_list_first" list
+run_file_cmd "line_disjoint_add_second" remember line_ranges.txt:5-7
+run_file_cmd "line_disjoint_list_second" list
+
+run_file_cmd "line_clear_before_multi_range_merge" clear
+run_file_cmd "line_multi_range_add_first" remember line_ranges.txt:1-3
+run_file_cmd "line_multi_range_list_first" list
+run_file_cmd "line_multi_range_add_second" remember line_ranges.txt:7-9
+run_file_cmd "line_multi_range_list_second" list
+run_file_cmd "line_multi_range_bridge" remember line_ranges.txt:3-7
+run_file_cmd "line_multi_range_list_merged" list
+
+run_file_cmd "line_clear_before_contained_range" clear
+run_file_cmd "line_contained_add_first" remember line_ranges.txt:2-8
+run_file_cmd "line_contained_list_first" list
+run_file_cmd "line_contained_add_second" remember line_ranges.txt:3-5
+run_file_cmd "line_contained_list_second" list
+
+run_file_cmd "line_clear_before_single_line" clear
+run_file_cmd "line_single_add_first" remember line_ranges.txt:4
+run_file_cmd "line_single_list_first" list
+run_file_cmd "line_single_add_second" remember line_ranges.txt:2-5
+run_file_cmd "line_single_list_second" list
+
+run_file_cmd "line_clear_before_open_ended_range" clear
+run_file_cmd "line_open_ended_add_first" remember line_ranges.txt:5-
+run_file_cmd "line_open_ended_list_first" list
+run_file_cmd "line_open_ended_add_second" remember line_ranges.txt:2-7
+run_file_cmd "line_open_ended_list_second" list
+
+run_file_cmd "line_clear_before_open_end_added_last" clear
+run_file_cmd "line_open_end_last_add_first" remember line_ranges.txt:2-7
+run_file_cmd "line_open_end_last_list_first" list
+run_file_cmd "line_open_end_last_add_second" remember line_ranges.txt:5-
+run_file_cmd "line_open_end_last_list_second" list
+
+run_file_cmd "line_clear_before_open_start_range" clear
+run_file_cmd "line_open_start_add_first" remember line_ranges.txt:1-
+run_file_cmd "line_open_start_list_first" list
+run_file_cmd "line_open_start_add_second" remember line_ranges.txt:3-5
+run_file_cmd "line_open_start_list_second" list
+
+run_file_cmd "line_clear_before_full_path_first" clear
+run_file_cmd "line_full_path_add_first" remember line_ranges.txt:2-8
+run_file_cmd "line_full_path_list_first" list
+run_file_cmd "line_full_path_add_second" remember line_ranges.txt
+run_file_cmd "line_full_path_list_second" list
+
+run_file_cmd "line_clear_before_full_path_second" clear
+run_file_cmd "line_full_path_reverse_add_first" remember line_ranges.txt
+run_file_cmd "line_full_path_reverse_list_first" list
+run_file_cmd "line_full_path_reverse_add_second" remember line_ranges.txt:2-8
+run_file_cmd "line_full_path_reverse_list_second" list
+
+run_file_cmd "line_clear_before_bounded_full_file" clear
+run_file_cmd "line_bounded_full_add" remember line_ranges.txt:1-10
+run_file_cmd "line_bounded_full_list" list
+
+run_file_cmd "line_clear_before_filtered_ranges" clear
+run_file_cmd "line_filtered_add_first" remember 'line_ranges.txt:2-4|cat'
+run_file_cmd "line_filtered_list_first" list
+run_file_cmd "line_filtered_add_second" remember 'line_ranges.txt:3-5|cat'
+run_file_cmd "line_filtered_list_second" list
+run_file_cmd "line_filtered_add_different_filter" remember 'line_ranges.txt:1-8|grep'
+run_file_cmd "line_filtered_list_different_filter" list
+run_file_cmd "line_clear_after_range_tests" clear
 
 # Test list files (likely empty initially)
 run_file_cmd "list" list
