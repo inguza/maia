@@ -454,7 +454,7 @@ Tool definitions:
   },
   {
     "name": "util-grep",
-    "description": "Search files using regular expression.",
+    "description": "Search files using regular expressions. Use -E for extended syntax, e.g. alternation with |.",
     "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
       "type": "object",
