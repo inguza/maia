@@ -474,6 +474,9 @@ NOTE! The build in PHP web server DO NOT support encryption.
 
 The GUI can also run under Apache, allowing it to be accessed through an existing web server and HTTPS configuration without running a separate PHP development server. PHP must be configured to run through Apache.
 
+NOTE! Access to MAIA through apache shall only be given to people who are trusted with shell access. The reason is that
+it may be possible to go around the security guards.
+
 The following example uses placeholder paths. Adjust them and the URL prefix to match your installation.
 
 Enable the required Apache modules, including mod_alias, mod_rewrite, and mod_env, and add the following configuration:
