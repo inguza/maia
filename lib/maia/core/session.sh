@@ -217,36 +217,43 @@ rename_session_fileset_references() {
     done
 }
 
-# Return success only while the session lock owner is still active. This is a
-# read-only counterpart to acquire_lock, used by the web status API.
+# Return success only while the session lock owner is still active. Remove
+# expired or orphaned lock files so the next request is not blocked by stale state.
 session_lock_is_active() {
     local lockfile
     lockfile="$(session_lock_file)"
     [[ -r "$lockfile" ]] || return 1
 
-    local lpid="" lexpiry="" lstart="" key value now cstart="-1"
+    local lock_snapshot lpid="" lexpiry="" lstart="" key value now cstart="-1"
+    lock_snapshot="$(cat "$lockfile" 2>/dev/null)" || return 1
     while IFS='=' read -r key value; do
         case "$key" in
             lpid) lpid="$value" ;;
             lexpiry) lexpiry="$value" ;;
             lstart) lstart="$value" ;;
         esac
-    done < "$lockfile"
+    done <<< "$lock_snapshot"
 
+    local stale=false
     now="$(date +%s)"
-    if [[ "$lexpiry" =~ ^[0-9]+$ ]] && (( now >= lexpiry )); then
-        return 1
+    if [[ ! "$lpid" =~ ^[0-9]+$ || ! "$lexpiry" =~ ^[0-9]+$ ]]; then
+        stale=true
+    elif (( now >= lexpiry )); then
+        stale=true
+    elif [[ -e /proc/version ]]; then
+        cstart="$(awk '{print $22}' "/proc/$lpid/stat" 2>/dev/null)"
+        if [[ -z "$lstart" || -z "$cstart" || "$cstart" != "$lstart" ]]; then
+            stale=true
+        fi
+    elif ! kill -0 "$lpid" 2>/dev/null; then
+        stale=true
     fi
-    if [[ -e /proc/version ]]; then
-        if [[ "$lpid" =~ ^[0-9]+$ ]]; then
-            cstart="$(awk '{print $22}' "/proc/$lpid/stat" 2>/dev/null)"
-        else
-            cstart=""
+
+    if [[ "$stale" == true ]]; then
+        # Re-read before unlinking so a replacement lock is not removed.
+        if [[ "$(cat "$lockfile" 2>/dev/null)" == "$lock_snapshot" ]]; then
+            release_lock "$lockfile"
         fi
-        if [[ -n "$lstart" && ( -z "$cstart" || "$cstart" != "$lstart" ) ]]; then
-            return 1
-        fi
-    elif [[ "$lpid" =~ ^[0-9]+$ ]] && ! kill -0 "$lpid" 2>/dev/null; then
         return 1
     fi
     return 0
