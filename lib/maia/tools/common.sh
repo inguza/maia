@@ -47,6 +47,33 @@ parsearguments() {
     fi
 }
 
+# Check an argument against the global associative array `allowed`.
+# In addition to exact matches, accept bundles of short options when every
+# individual option in the bundle is allowed (for example, -iax as -i -a -x).
+is_allowed_argument() {
+    local argument="$1"
+    local option
+    local i
+
+    if [[ -v allowed["$argument"] ]]; then
+        return 0
+    fi
+
+    # Only split single-dash bundles; long options must match exactly.
+    if [[ "$argument" != -?* || "$argument" == --* ]]; then
+        return 1
+    fi
+
+    for ((i = 1; i < ${#argument}; i++)); do
+        option="-${argument:i:1}"
+        if [[ ! -v allowed["$option"] ]]; then
+            return 1
+        fi
+    done
+
+    return 0
+}
+
 validate_path()
 {
     local path="$1"

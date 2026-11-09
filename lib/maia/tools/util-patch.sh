@@ -31,7 +31,7 @@ for argument in "${arguments[@]}"; do
         :
     elif [[ $argument =~ ^[0-9]*$ ]]; then
         :
-    elif [[ -z "${allowed[$argument]+x}" ]]; then
+    elif ! is_allowed_argument "$argument"; then
         echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2
         exit 2
     fi
