@@ -489,6 +489,9 @@ Alias /somelocation /path/to/lib/maia/web
 
   RewriteEngine On
 
+  # To make sure the send output reach the user fast
+  SetEnv no-gzip 1
+
   # Serve existing files directly.
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
@@ -496,16 +499,51 @@ Alias /somelocation /path/to/lib/maia/web
 
   # Route GUI and API requests through the router.
   RewriteRule ^ router.php [END]
+  # Uncomment the below to allow use of PHP-FPM (replace <user> with the username)
+  # <FilesMatch "\.php$">
+  #   SetHandler "proxy:unix:/run/php/<user>.sock|fcgi://localhost/"
+  # </FilesMatch>
 </Directory>
 
 <Location /somelocation>
+    # The following three are not needed if you use PHP-FPM, they are set there instead
     SetEnv MAIA_HOME /a/path/to/maia_home
     SetEnv MAIA_BIN /path/to/bin/maia
+    SetEnv OPENAI_API_KEY ...key here...
     Require all granted
 </Location>
 ```
 
-The configuration serves existing files directly and sends other requests to router.php. The MAIA_HOME and MAIA_BIN environment variables specify the MAIA home directory and executable.
+If you want to use PHP-FPM you add a file (the path depends on your php software)
+/etc/php/<version>/fpm/pool.d/<user>.conf to the PHP-FPM configuration and it should look something like this
+ (replace <user> with the user name):
+
+```text
+[<user>]
+user = <user>
+group = <user>
+
+listen = /run/php/<user>.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+
+; Pass MAIA configuration to PHP.
+env[MAIA_HOME] = /home/<user>
+env[MAIA_BIN] = ...path to maia...
+env[OPENAI_API_KEY] = ...key here ...
+
+; Example resource limits.
+pm = ondemand
+pm.max_children = 5
+pm.process_idle_timeout = 60s
+pm.max_requests = 500
+; This part is important to make sure send response is fast
+php_admin_value[output_buffering] = 0
+```
+
+The configuration serves existing files directly and sends other requests to router.php.
+The MAIA_HOME and MAIA_BIN environment variables specify the MAIA home directory and executable.
 
 After reloading Apache, generate the authentication URL using the externally accessible URL:
 
