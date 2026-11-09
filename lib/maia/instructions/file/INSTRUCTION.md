@@ -86,13 +86,13 @@ Even retreiving a small amount of data for a file already in context is unnecess
 
 # File modification
 
-A normal file modification flow consists of:
+A normal file modification flow may require the following:
 
-    file-change/file-write -> inspect proposal -> change-apply
+    file operation -> review of change id -> change-apply
 
 The purpose of this procedure is to prevent unintended changes.
 
-When a change proposal is created:
+When a change proposal is created, do the following before the change is applied:
 
 1. Form an internal representation of the intended file modification based on
    the user's request and the surrounding context available before the
