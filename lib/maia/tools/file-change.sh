@@ -67,7 +67,7 @@ else
 	rm -f "$wpath"
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
         if approval_is_allowed change "$path"; then
-            printf '%b' "[NOTICE] A matching approval exists, but the requested text could not be matched exactly. The file is unchanged.\nChange ID: $id\nResolve the change manually before applying or skipping it.\n"
+            printf '%b' "[NOTICE] The requested text could not be matched exactly, so no changes were applied and the file is unchanged.\nChange ID: $id\nResolve the change manually before applying or skipping it.\n"
         else
             printf '%b' "[NOTICE] The requested file change requires approval. The requested text could not be matched exactly, so no changes were applied and the file is unchanged.\nChange ID: $id\nResolve the change manually before applying or skipping it.\n"
         fi
@@ -82,7 +82,7 @@ else
 	write_meta "$ws_changes" "$baseid" "$index" "$path"
 	write_meta "$ws_changes" "$baseid" "$nextindex" "$path"
         if approval_is_allowed change "$path"; then
-            printf '%b' "[NOTICE] A matching approval exists, but only some requested text could be matched. No part was applied and the file is unchanged.\nChange ID: $id (matched patch portion)\nChange ID: $nextid (manual-resolution portion)\nResolve both portions manually before applying or skipping them.\n"
+            printf '%b' "[NOTICE] Only some requested text could be matched. No part was applied and the file is unchanged.\nChange ID: $id (matched patch portion)\nChange ID: $nextid (manual-resolution portion)\nResolve both portions manually before applying or skipping them.\n"
         else
             printf '%b' "[NOTICE] The requested file change requires approval. Only some requested text could be matched; no part was applied and the file is unchanged.\nChange ID: $id (matched patch portion)\nChange ID: $nextid (manual-resolution portion)\nReview both portions and resolve the unmatched text before applying or skipping them.\n\nThe content of the matched patch portion is the following:"
         fi
