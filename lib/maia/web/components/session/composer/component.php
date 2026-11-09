@@ -14,12 +14,13 @@ final class SessionComposerComponent implements Component
     /** @return list<\Maia\Web\Core\Resource> */
     public function resources(): array
     {
+        $composerVersion = @filemtime(__DIR__ . '/component.js') ?: 1;
         return [
             new Stylesheet('components/common.css'),
             new Stylesheet('components/session/composer/component.css'),
             new Script('core/api.js'),
             new Script('core/ui.js'),
-            new Script('components/session/composer/component.js'),
+            new Script('components/session/composer/component.js?v=' . $composerVersion),
         ];
     }
 

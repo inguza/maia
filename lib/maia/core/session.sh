@@ -217,6 +217,41 @@ rename_session_fileset_references() {
     done
 }
 
+# Return success only while the session lock owner is still active. This is a
+# read-only counterpart to acquire_lock, used by the web status API.
+session_lock_is_active() {
+    local lockfile
+    lockfile="$(session_lock_file)"
+    [[ -r "$lockfile" ]] || return 1
+
+    local lpid="" lexpiry="" lstart="" key value now cstart="-1"
+    while IFS='=' read -r key value; do
+        case "$key" in
+            lpid) lpid="$value" ;;
+            lexpiry) lexpiry="$value" ;;
+            lstart) lstart="$value" ;;
+        esac
+    done < "$lockfile"
+
+    now="$(date +%s)"
+    if [[ "$lexpiry" =~ ^[0-9]+$ ]] && (( now >= lexpiry )); then
+        return 1
+    fi
+    if [[ -e /proc/version ]]; then
+        if [[ "$lpid" =~ ^[0-9]+$ ]]; then
+            cstart="$(awk '{print $22}' "/proc/$lpid/stat" 2>/dev/null)"
+        else
+            cstart=""
+        fi
+        if [[ -n "$lstart" && ( -z "$cstart" || "$cstart" != "$lstart" ) ]]; then
+            return 1
+        fi
+    elif [[ "$lpid" =~ ^[0-9]+$ ]] && ! kill -0 "$lpid" 2>/dev/null; then
+        return 1
+    fi
+    return 0
+}
+
 handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 
@@ -226,6 +261,16 @@ handle_session_command() {
     local cmd="$1"
 
     case "$cmd" in
+	lock-status)
+	    # Lightweight read-only status used by the web client after a stream
+	    # disconnects; unlike history/show, this does not load conversation data.
+            if session_lock_is_active; then
+		printf '{"locked":true}\n'
+            else
+		printf '{"locked":false}\n'
+            fi
+            return 0
+	    ;;
 	create)
 	    shift
             RESOLVE_FILESETS=false

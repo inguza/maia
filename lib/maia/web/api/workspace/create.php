@@ -13,11 +13,46 @@ require_once __DIR__ . '/../web.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-function workspace_create_error(int $status, string $message): never
+function workspace_create_error(int $status, string $message, string $code = ''): never
 {
     http_response_code($status);
-    echo json_encode(['ok' => false, 'error' => $message], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    $response = ['ok' => false, 'error' => $message];
+    if ($code !== '') $response['code'] = $code;
+    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
+}
+
+/** Resolve a missing directory path safely beneath the configured workspace base. */
+function workspace_create_missing_path(string $path): ?string
+{
+    $base = maia_workspace_base();
+    $resolvedBase = $base === null ? false : realpath($base);
+    if ($resolvedBase === false) return null;
+
+    $path = maia_expand_home_path($path);
+    $normalized = str_replace('\\\\', '/', $path);
+    if (preg_match('#(^|/)\\.\\.(/|$)#', $normalized)) return null;
+
+    $candidate = rtrim($path, DIRECTORY_SEPARATOR . '/\\\\');
+    if ($candidate === '') return null;
+    $missingParts = [];
+    while (!file_exists($candidate) && !is_link($candidate)) {
+        $part = basename($candidate);
+        if ($part === '' || $part === '.' || $part === '..') return null;
+        array_unshift($missingParts, $part);
+        $parent = dirname($candidate);
+        if ($parent === $candidate) return null;
+        $candidate = $parent;
+    }
+
+    $resolvedParent = realpath($candidate);
+    if ($resolvedParent === false || !is_dir($resolvedParent) || !maia_path_within_home($resolvedParent)) return null;
+    $target = $resolvedParent;
+    foreach ($missingParts as $part) $target .= DIRECTORY_SEPARATOR . $part;
+
+    $prefix = rtrim($resolvedBase, DIRECTORY_SEPARATOR . '/\\\\') . DIRECTORY_SEPARATOR;
+    if ($target !== $resolvedBase && !str_starts_with($target, $prefix)) return null;
+    return $target;
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
@@ -34,8 +69,24 @@ if (!is_array($input) || $name === '') {
 if ($path === '') {
     workspace_create_error(400, 'A workspace path is required.');
 }
+$createPath = ($input['createPath'] ?? false) === true;
 $path = maia_expand_home_path($path);
 $resolvedPath = realpath($path);
+if ($resolvedPath === false) {
+    // Always ask first when the target is missing. Validate containment only
+    // after consent, immediately before creating the directory.
+    if (!$createPath) {
+        workspace_create_error(409, 'The workspace directory does not exist.', 'workspace_path_missing');
+    }
+    $directoryToCreate = workspace_create_missing_path($path);
+    if ($directoryToCreate === null) {
+        workspace_create_error(400, 'The workspace path must be inside MAIA home and may not traverse above it.');
+    }
+    if (!is_dir($directoryToCreate) && !@mkdir($directoryToCreate, 0775, true) && !is_dir($directoryToCreate)) {
+        workspace_create_error(500, 'Unable to create the workspace directory.');
+    }
+    $resolvedPath = realpath($directoryToCreate);
+}
 if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_path_within_home($resolvedPath)) {
     workspace_create_error(400, 'The workspace path must be an existing directory inside MAIA home.');
 }

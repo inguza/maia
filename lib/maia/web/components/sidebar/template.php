@@ -54,5 +54,65 @@
         </div>
     </form>
 </dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+    <form method="dialog">
+        <h2>Create workspace directory?</h2>
+        <p id="sidebar-workspace-directory-message"></p>
+        <div class="sidebar-dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button value="create">Create directory</button>
+        </div>
+    </form>
+</dialog>
 <button id="sidebar-backdrop" class="sidebar-backdrop" type="button"
         aria-label="Close navigation" tabindex="-1" hidden></button>

@@ -101,9 +101,16 @@ while ($stdoutOpen || $stderrOpen) {
 
     $write = null;
     $except = null;
-    $ready = stream_select($read, $write, $except, null);
+    // Emit a small control heartbeat during long quiet periods so idle proxies
+    // do not close a healthy streaming response. The browser strips this token.
+    $ready = stream_select($read, $write, $except, 15);
     if ($ready === false) {
         break;
+    }
+    if ($ready === 0) {
+        echo "\x1eMAIA-HEARTBEAT\x1f";
+        flush();
+        continue;
     }
 
     foreach ($read as $stream) {
