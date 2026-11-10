@@ -1,6 +1,6 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
-0    SYSTEM       ->  136 tokens (chars: 542)
+0    SYSTEM       ->  332 tokens (chars: 1325)
 0    USER[0]      ->    3 tokens (chars: 10)
 1    ASSISTANT[0] ->    7 tokens (chars: 27)
 2    USER[1]      ->    4 tokens (chars: 16)
@@ -22,7 +22,7 @@ Approximate token counts per message (chars/4 ≈ tokens):
 18   TOOL         ->   29 tokens (chars: 115)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'gpt-6-luna':
-Total:         300
+Total:         496
   Input:       134
   Output:        1
 ──────────────────────────────

@@ -221,7 +221,7 @@ build_system_text() {
 	sys+="$instruction_memory"$'\n'
     fi
     case "${mode^^}" in
-        BEFORE|FIRST|APPEND|AUTOTOOL)
+        BEFORE|FIRST|APPEND|AUTOTOOL*)
 	    :
 	    ;;
 	*)
@@ -238,7 +238,7 @@ build_system_text() {
             APPEND)
                 sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-append.txt")"$'\n'
                 ;;
-            AUTOTOOL)
+            AUTOTOOL*)
                 sys+="$(read_file "$MAIA_CORE_LIB_DIR/send-files-mode-autotool.txt")"$'\n'
                 ;;
             *)
@@ -355,17 +355,20 @@ build_messages_json() {
 			end
 		     ' <<< "$msgs")
 		;;
-	    AUTOTOOL|AUTOTOOLBEFORE)
+	    AUTOTOOL|AUTOTOOLAFTERUSER|AUTOTOOLBEFOREUSER)
                 printf '%s\n\n%s\n\n%s' "# Files" "$filesinstr" "$combined" > "$tmpf"
 		printf '%s' "$files_json" >> "$tmpb"
                 local call_id="call_$(random_string 24)"
 		local insertpos
 		case "${mode^^}" in
-		    AUTOTOOLBEFORE)
+		    AUTOTOOLBEFOREUSER)
 			insertpos='$position'
 			;;
-		    AUTOTOOL)
+		    AUTOTOOLAFTERUSER)
 			insertpos='($position + 1)'
+			;;
+		    AUTOTOOL)
+			insertpos='length'
 			;;
 		esac
                 msgs=$(jq --rawfile content "$tmpf" --rawfile files "$tmpb" --arg callid "$call_id" '

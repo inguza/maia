@@ -7,7 +7,7 @@
   "messages": [
     {
       "role": "system",
-      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls."
+      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools. The user will primarily read the assistant response, but can sometimes see tool calls and its output.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls."
     },
     {
       "role": "user",
@@ -132,7 +132,7 @@
   "messages": [
     {
       "role": "system",
-      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls."
+      "content": "You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools. The user will primarily read the assistant response, but can sometimes see tool calls and its output.\n\n# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls."
     },
     {
       "role": "user",

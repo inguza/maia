@@ -2,14 +2,14 @@
 checking file x/1.txt
 patching file x/1.txt
 [NOTICE] Applied change '<dateandtime>-58059449-1'
-[NOTICE] 'x/1.txt' already in fileset 'default'
+[NOTICE] 'x/1.txt' already covers the selection in fileset 'default'
 [NOTICE] Added new file 'x/1.txt' to active session filesets.
 [NOTICE] Change <dateandtime>-58059449 already has state applied
 [NOTICE] History file for session 'default' does not exist; skipping pruning
 checking file pathx/2.txt
 patching file pathx/2.txt
 [NOTICE] Applied change '<dateandtime>-28c581f9-1'
-[NOTICE] 'pathx/2.txt' already in fileset 'default'
+[NOTICE] 'pathx/2.txt' already covers the selection in fileset 'default'
 [NOTICE] Added new file 'pathx/2.txt' to active session filesets.
 [NOTICE] Change <dateandtime>-28c581f9 already has state applied
 [NOTICE] History file for session 'default' does not exist; skipping pruning

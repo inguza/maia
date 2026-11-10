@@ -1,10 +1,10 @@
 
 Approximate token counts per message (chars/4 ≈ tokens):
-0    SYSTEM       ->   36 tokens (chars: 141)
+0    SYSTEM       ->   61 tokens (chars: 243)
 0    USER[0]      ->   25 tokens (chars: 98)
 ──────────────────────────────
 APPROXIMATE TOKENS for model 'gpt-4-32k':
-Total:          61
+Total:          86
   Input:        25
   Output:        0
 ──────────────────────────────
