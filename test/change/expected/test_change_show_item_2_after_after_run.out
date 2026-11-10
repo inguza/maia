@@ -2,6 +2,11 @@ State: running
 Type: shell
 Filename: 
 
+Suggested commands below:
+=========================
+sleep 3
+echo Foo
+
 Command output below:
 =====================
 $ sleep 3

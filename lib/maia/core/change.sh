@@ -598,6 +598,10 @@ showfiles() {
     elif [ -n "$shell" ] ; then
 	local shellout=$(match_single_file "$prefix" .output)
 	local shellstat=$(match_single_file "$prefix" .exit_status)
+	echo "Suggested commands below:"
+	echo "========================="
+	read_file_by_line "$shell"
+	echo
 	if [ -n "$shellout" ] ; then
 	    echo "Command output below:"
 	    echo "====================="
@@ -609,15 +613,14 @@ showfiles() {
 		read_file_by_line "$shellstat"
 	    fi
 	    echo
-	else
-	    echo "Suggested commands below:"
-	    echo "========================="
-	    read_file_by_line "$shell"
-	    echo
 	fi
     elif [ -n "$action" ] ; then
 	local actionout=$(match_single_file "$prefix" .output)
 	local actionstat=$(match_single_file "$prefix" .exit_status)
+	echo "Proposed action below:"
+	echo "======================"
+	read_file_by_line "$action"
+	echo
 	if [ -n "$actionout" ] ; then
 	    echo "Command output below:"
 	    echo "====================="
@@ -628,11 +631,6 @@ showfiles() {
 	    if [ -n "$actionstat" ] ; then
 		read_file_by_line "$actionstat"
 	    fi
-	    echo
-	else
-	    echo "Suggested commands below:"
-	    echo "========================="
-	    read_file_by_line "$action"
 	    echo
 	fi
     elif [ -n "$text" ] ; then
