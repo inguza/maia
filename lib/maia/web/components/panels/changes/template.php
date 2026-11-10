@@ -33,6 +33,20 @@
             </div>
         </fieldset>
     </div>
+    <div class="changes-bulk-actions" role="group" aria-label="Bulk change actions">
+        <span data-changes-role="selection-count" aria-live="polite">0 selected</span>
+        <label class="visually-hidden" for="changes-bulk-state">State for selected changes</label>
+        <select id="changes-bulk-state" data-changes-role="bulk-state" aria-label="State for selected changes">
+            <option value="pending">Pending</option>
+            <option value="running">Running</option>
+            <option value="applied">Applied</option>
+            <option value="skipped">Skipped</option>
+            <option value="finished">Finished</option>
+            <option value="failed">Failed</option>
+        </select>
+        <button type="button" data-changes-action="bulk-state" disabled>Set state</button>
+        <button type="button" data-changes-action="bulk-delete" disabled>Delete selected</button>
+    </div>
     <pre class="changes-status" data-changes-role="status" role="status" aria-live="polite"></pre>
     <div class="changes-list" data-changes-role="list" aria-live="polite"></div>
 </section>
