@@ -52,29 +52,34 @@ if [[ "$destdir" != "." ]]; then
 else
     : > "$wpath"
 fi
-printf '%s' "mv -f --" >> "$wpath"
-printf ' %q' "${paths[@]}" "$destination" >> "$wpath"
-printf '\n' >> "$wpath"
-printf '%s' "maia file forget" >> "$wpath"
-printf ' %q' "${paths[@]}" >> "$wpath"
-printf '\n' >> "$wpath"
 # Now to the complicated part, to determine what remembered files are changed
 mapfile_from_command file_context $MAIA_BIN file list --raw
+workspace_root="$(resolve_workspace_root)"
 move_into_destination=false
 if [[ -d "$destination" || ${#paths[@]} -gt 1 ]]; then
     move_into_destination=true
 fi
 declare -a remember=()
+declare -a forget=()
 for source in "${paths[@]}"; do
     source="${source%/}"
+    # Fileset entries are workspace-relative and are canonicalized when
+    # remembered. Normalize the source the same way so ./ and absolute
+    # pathspecs still match their entries.
+    source_key="$source"
+    if [[ -n "$workspace_root" ]]; then
+        source_key="$(realpath --relative-to="$workspace_root" -- "$source" 2>/dev/null)" || source_key="$source"
+    fi
     for remembered in "${file_context[@]}"; do
 	rfile="${remembered%%[|:]*}"
 	rsuffix="${remembered:${#rfile}}"
 	if [[ -d "$source" ]] ; then
-	    [[ "$rfile" == "$source/"* ]] || continue
-	    rfile="${rfile#"$source"}"
+	    [[ "$rfile" == "$source_key/"* ]] || continue
+	    forget+=("$remembered")
+	    rfile="${rfile#"$source_key"}"
 	else
-	    [[ "$rfile" == "$source" ]] || continue
+	    [[ "$rfile" == "$source_key" ]] || continue
+	    forget+=("$remembered")
 	    rfile=""
 	fi
 	if [[ "$move_into_destination" == true ]]; then
@@ -85,9 +90,24 @@ for source in "${paths[@]}"; do
     done
 done
 
-printf '%s' "maia file remember" >> "$wpath"
-printf ' %q' "${remember[@]}" >> "$wpath"
+# Only forget entries that were actually present in the active filesets.
+if ((${#forget[@]})); then
+    printf '%s' "maia file forget" >> "$wpath"
+    printf ' %q' "${forget[@]}" >> "$wpath"
+    printf '\n' >> "$wpath"
+fi
+
+printf '%s' "mv -f --" >> "$wpath"
+printf ' %q' "${paths[@]}" "$destination" >> "$wpath"
 printf '\n' >> "$wpath"
+
+# Do not generate an invalid empty remember command when none of the sources
+# had entries in the active filesets.
+if ((${#remember[@]})); then
+    printf '%s' "maia file remember" >> "$wpath"
+    printf ' %q' "${remember[@]}" >> "$wpath"
+    printf '\n' >> "$wpath"
+fi
 # * join to one entry
 write_meta "$ws_changes" "$baseid" "$index" "${paths[*]}"
 

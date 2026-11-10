@@ -1,0 +1,17 @@
+State: finished
+Type: action
+Filename: path1/old.txt
+Source: manual
+
+Proposed action below:
+======================
+mv -f -- path1/old.txt path2
+
+Command output below:
+=====================
+$ mv -f -- path1/old.txt path2
+
+Exit status below:
+==================
+0
+

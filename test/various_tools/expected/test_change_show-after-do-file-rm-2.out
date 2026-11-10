@@ -1,0 +1,17 @@
+State: finished
+Type: action
+Filename: path3/rm.txt
+Source: manual
+
+Proposed action below:
+======================
+rm -Rf -- path3/rm.txt
+
+Command output below:
+=====================
+$ rm -Rf -- path3/rm.txt
+
+Exit status below:
+==================
+0
+

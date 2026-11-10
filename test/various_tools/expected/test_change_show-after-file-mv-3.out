@@ -1,0 +1,12 @@
+State: pending
+Type: action
+Filename: path1/new.txt
+Source: manual
+
+Proposed action below:
+======================
+mkdir -p -- path2
+maia file forget path1/new.txt
+mv -f -- path1/new.txt path2/new.txt
+maia file remember path2/new.txt
+

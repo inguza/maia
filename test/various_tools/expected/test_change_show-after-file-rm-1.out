@@ -1,0 +1,10 @@
+State: pending
+Type: action
+Filename: path2/new.txt
+Source: manual
+
+Proposed action below:
+======================
+maia file forget path2/new.txt
+rm -Rf -- path2/new.txt
+

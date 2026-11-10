@@ -266,6 +266,46 @@ run_change_cmd "change-list-after-change-apply" list
 # Skip
 run_tool_cmd "maia-change-skip-2" "change-skip" '{"ids": ["'$C1'","'$C2'"]}'
 run_change_cmd "change-list-after-change-skip" list
+# file-mv
+oldpath="$PATH"
+export PATH="$PATH:$M_ROOT/bin"
+mkdir -p "${XMAIA_HOME}/path1"
+mkdir -p "${XMAIA_HOME}/path2"
+echo "File to remember" > "${XMAIA_HOME}/path1/old.txt"
+run_tool_cmd "file-mv-1" "file-mv" '{"pathspecs": ["path1/old.txt"],"destination":"path2"}'
+C4=$(capture_change "file-mv-1")
+run_change_cmd "show-after-file-mv-1" show "$C4"
+run_change_cmd "do-after-file-mv-1" "do" "$C4"
+run_change_cmd "show-after-do-file-mv-1" show "$C4"
+#
+run_tool_cmd "file-mv-2" "file-mv" '{"pathspecs": ["path2/old.txt"],"destination":"path1/new.txt"}'
+C5=$(capture_change "file-mv-2")
+run_change_cmd "show-after-file-mv-2" show "$C5"
+run_change_cmd "do-after-file-mv-2" "do" "$C5"
+run_change_cmd "show-after-do-file-mv-2" show "$C5"
+#
+run_tool_cmd "maia-file-remember-mv-3" "context-file-remember" '{"files": ["path1/new.txt"]}'
+run_tool_cmd "file-mv-3" "file-mv" '{"pathspecs": ["path1/new.txt"],"destination":"path2/new.txt"}'
+C6=$(capture_change "file-mv-3")
+run_change_cmd "show-after-file-mv-3" show "$C6"
+run_change_cmd "do-after-file-mv-3" "do" "$C6"
+run_change_cmd "show-after-do-file-mv-3" show "$C6"
+# file-rm
+run_tool_cmd "file-rm-1" "file-rm" '{"pathspecs": ["path2/new.txt"]}'
+C7=$(capture_change "file-rm-1")
+run_change_cmd "show-after-file-rm-1" show "$C7"
+run_change_cmd "do-after-file-rm-1" "do" "$C7"
+run_change_cmd "show-after-do-file-rm-1" show "$C7"
+#
+mkdir -p "${XMAIA_HOME}/path3"
+echo "File to remove" > "${XMAIA_HOME}/path3/rm.txt"
+run_tool_cmd "file-rm-2" "file-rm" '{"pathspecs": ["path3/rm.txt"]}'
+C8=$(capture_change "file-rm-2")
+run_change_cmd "show-after-file-rm-2" show "$C8"
+run_change_cmd "do-after-file-rm-2" "do" "$C8"
+run_change_cmd "show-after-do-file-rm-2" show "$C8"
+
+export PATH="$oldpath"
 
 # Curl
 $MAIA tool allow "web-browser-curl"

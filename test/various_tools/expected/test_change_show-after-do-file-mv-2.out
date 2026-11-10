@@ -1,0 +1,19 @@
+State: finished
+Type: action
+Filename: path2/old.txt
+Source: manual
+
+Proposed action below:
+======================
+mkdir -p -- path1
+mv -f -- path2/old.txt path1/new.txt
+
+Command output below:
+=====================
+$ mkdir -p -- path1
+$ mv -f -- path2/old.txt path1/new.txt
+
+Exit status below:
+==================
+0
+

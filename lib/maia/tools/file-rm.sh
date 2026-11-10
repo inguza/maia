@@ -37,12 +37,44 @@ index="$(find_index "$ws_changes" "$baseid")"
 id="${baseid}-${index}"
 
 wpath="$(action_file_name "$ws_changes" "$id")"
-printf '%s' "rm -Rf --" > "$wpath"
+
+# Only forget files that are actually present in the active filesets. Use the
+# raw entries so selectors/filters are removed precisely, and directory removals
+# also forget remembered files below the directory.
+mapfile_from_command file_context $MAIA_BIN file list --raw
+workspace_root="$(resolve_workspace_root)"
+declare -a forget=()
+declare -A forgotten=()
+for source in "${paths[@]}"; do
+    source_key="${source%/}"
+    if [[ -n "$workspace_root" ]]; then
+        source_key="$(realpath --relative-to="$workspace_root" -- "$source" 2>/dev/null)" || source_key="${source%/}"
+    fi
+    for remembered in "${file_context[@]}"; do
+        rfile="${remembered%%[|:]*}"
+        if [[ -d "$source" ]]; then
+            [[ "$rfile" == "$source_key/"* ]] || continue
+        elif [[ "$source_key" == *'*'* || "$source_key" == *'?'* || "$source_key" == *'['* ]]; then
+            [[ "$rfile" == $source_key ]] || continue
+        else
+            [[ "$rfile" == "$source_key" ]] || continue
+        fi
+        if [[ ! -v forgotten["$remembered"] ]]; then
+            forget+=("$remembered")
+            forgotten["$remembered"]=1
+        fi
+    done
+done
+: > "$wpath"
+if ((${#forget[@]})); then
+    printf '%s' "maia file forget" >> "$wpath"
+    printf ' %q' "${forget[@]}" >> "$wpath"
+    printf '\n' >> "$wpath"
+fi
+printf '%s' "rm -Rf --" >> "$wpath"
 printf ' %q' "${paths[@]}" >> "$wpath"
 printf '\n' >> "$wpath"
-printf '%s' "maia file forget" >> "$wpath"
-printf ' %q' "${paths[@]}" >> "$wpath"
-printf '\n' >> "$wpath"
+
 write_meta "$ws_changes" "$baseid" "$index" "${paths[*]}"
 
 if approval_is_allowed delete "${paths[@]}"; then
