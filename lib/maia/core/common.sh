@@ -9,7 +9,7 @@
 . "$MAIA_CORE_LIB_DIR/fast.sh"
 
 # The built-in fallback system prompt
-DEFAULT_SYSTEM_PROMPT_TXT="You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools.\n"
+DEFAULT_SYSTEM_PROMPT_TXT="You are a helpful, knowledgeable assistant operating through MAIA, an AI assistant application that may provide additional context and tools. The user will primarily read the assistant response, but can sometimes see tool calls and its output.\n"
 DEFAULT_TOOLS_PROMPT_TXT="# Tools\n\n- Multiple tool calls are run in parallel. Tool calls do not receive the results of other tool calls.\n"
 DEFAILT_TOOL_INSTR_PROMPT_TXT=""
 DEFAULT_TOOLSET_PROMPT_TXT=""
