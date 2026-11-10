@@ -703,7 +703,7 @@ maia <command> --help
 
 This README provides an overview; use the CLI help for command-specific details.
 
-## Versioning
+## Versioning and [compatibility](docs/compatibility-policy.md)
 
 MAIA uses [Semantic Versioning](https://semver.org/).
 
@@ -711,9 +711,8 @@ MAIA uses [Semantic Versioning](https://semver.org/).
 * **MINOR** — Backwards-compatible features and functionality.
 * **PATCH** — Backwards-compatible bug fixes and other corrections.
 
-After a MINOR update, it may be necessary to run `maia update` to update data structures and refresh skills and tools.
-
-Backwards-compatible means that existing user configuration and documented interfaces remain compatible. A MINOR release may add or change the definitions of tools and skills, which can require refreshing them after an update.
+After a MINOR update, it may be necessary to run `maia update upgrade` and/or 'maia update refresh' to
+update data structures and refresh skills and tools.
 
 ## Support
 
