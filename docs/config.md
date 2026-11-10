@@ -62,3 +62,15 @@
 * `prune_when_applied` — Whether context is pruned after an applied change.
 * `prune_when_skipped` — Whether context is pruned after a skipped change.
 
+# Environment variables
+
+* `MAIA_HOME`
+* `MAIA_SESSION`
+* `MAIA_EDITOR`
+* `MAIA_CURL_EXTRA_HEADERS`
+* `<MCP Service Name>_TOKEN`
+* `MAIA_BROWSER`
+* `OPENAI_API_KEY`
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_SESSION_TOKEN`
