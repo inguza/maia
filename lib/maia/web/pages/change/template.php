@@ -14,7 +14,7 @@
         <h1>Change <code><?= \maia_escape_html($page->changeId()) ?></code></h1>
         <p class="change-page-meta" id="change-page-meta"></p>
         <div class="change-page-controls" id="change-page-controls" aria-label="Change actions"></div>
-        <p class="change-page-status" id="change-page-status" role="status" aria-live="polite">Loading change...</p>
+        <pre class="change-page-status" id="change-page-status" role="status" aria-live="polite">Loading change...</pre>
         <pre id="change-page-detail" class="change-page-detail"></pre>
     </main>
     <?= $page->scriptTags() ?>

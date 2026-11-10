@@ -8,7 +8,7 @@
 .changes-filter-options { display: flex; flex-wrap: wrap; gap: .2rem .65rem; }
 .changes-filter-options label { align-items: center; display: inline-flex; gap: .25rem; white-space: nowrap; }
 .changes-filter-options input { margin: 0; }
-.changes-status { color: #6b7280; min-height: 1.2rem; margin: .35rem 0; }
+.changes-status { color: #6b7280; font: inherit; margin: .35rem 0; max-height: 24rem; min-height: 1.2rem; overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }
 .changes-status.error { color: #b91c1c; }
 .changes-list { display: grid; gap: .35rem; }
 .change-set { border: 1px solid color-mix(in srgb, CanvasText 18%, Canvas); border-radius: .35rem; }

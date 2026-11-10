@@ -33,6 +33,6 @@
             </div>
         </fieldset>
     </div>
-    <p class="changes-status" data-changes-role="status" role="status" aria-live="polite"></p>
+    <pre class="changes-status" data-changes-role="status" role="status" aria-live="polite"></pre>
     <div class="changes-list" data-changes-role="list" aria-live="polite"></div>
 </section>
