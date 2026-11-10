@@ -51,6 +51,7 @@ OPTIONS
       - skills
       - skillscontext
       - instructions
+      - instructionscontext
 
 SCOPES
 
@@ -122,7 +123,7 @@ handle_system_command() {
 		shift
 		prompt_type="$1"; shift || true
 		case "$prompt_type" in
-		    system|files|tools|skills|skillscontext|tool_instr)
+		    system|tools|skills|skillscontext|tool_instr|instructions|instructionscontext)
 			:
 			;;
 		    *)
