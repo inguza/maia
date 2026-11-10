@@ -6,8 +6,9 @@
     <title><?= \maia_escape_html($page->title()) ?></title>
     <?= $page->stylesheetTags() ?>
 </head>
-<body class="change-page" data-maia-session="<?= \maia_escape_html($page->sessionName()) ?>" data-maia-change-id="<?= \maia_escape_html($page->changeId()) ?>">
+<body class="change-page" data-maia-session="<?= \maia_escape_html($page->sessionName()) ?>"<?= $page->workspaceName() !== '' ? ' data-maia-workspace="' . \maia_escape_html($page->workspaceName()) . '"' : '' ?> data-maia-change-id="<?= \maia_escape_html($page->changeId()) ?>">
     <script>window.MAIA_BASE_PATH = <?= json_encode(\maia_base_path(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;</script>
+    <?= $page->renderComponent('sidebar') ?>
     <main class="change-page-main">
         <a class="change-page-back" href="<?= \maia_escape_html(\maia_base_path() . '/session/' . rawurlencode($page->sessionName())) ?>">&larr; Back to session</a>
         <h1>Change <code><?= \maia_escape_html($page->changeId()) ?></code></h1>

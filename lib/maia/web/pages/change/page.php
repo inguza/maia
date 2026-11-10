@@ -8,24 +8,27 @@ declare(strict_types=1);
 
 namespace Maia\Web\Pages\Change;
 
+use Maia\Web\Components\Sidebar\SidebarComponent;
 use Maia\Web\Core\Page;
 use Maia\Web\Core\Script;
 use Maia\Web\Core\Stylesheet;
 
 require_once __DIR__ . '/../common.php';
 require_once dirname(__DIR__, 2) . '/core/page.php';
+require_once dirname(__DIR__, 2) . '/components/sidebar/component.php';
 require_once dirname(__DIR__, 2) . '/api/web.php';
 
 final class ChangePage extends Page
 {
     public function __construct(
         private readonly string $sessionName,
+        private readonly string $workspaceName,
         private readonly string $changeId
     ) {
+        $this->addComponent('sidebar', new SidebarComponent());
         $this->addPageResources([
             new Stylesheet('components/common.css'),
             new Stylesheet('pages/change/page.css'),
-            new Script('core/api.js'),
             new Script('pages/change/page.js'),
         ]);
     }
@@ -43,6 +46,11 @@ final class ChangePage extends Page
     public function sessionName(): string
     {
         return $this->sessionName;
+    }
+
+    public function workspaceName(): string
+    {
+        return $this->workspaceName;
     }
 
     public function changeId(): string
@@ -69,5 +77,6 @@ if ($sessionName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $sessionName) |
     exit;
 }
 
-$page = new ChangePage($sessionName, $changeId);
+$workspaceName = maia_session_workspace($sessionName) ?? '';
+$page = new ChangePage($sessionName, $workspaceName, $changeId);
 echo $page->render();
