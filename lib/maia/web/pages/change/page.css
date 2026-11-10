@@ -1,4 +1,4 @@
-.change-page-main { margin: 1.5rem auto; max-width: 72rem; padding: 0 1rem; }
+.change-page-main { margin: 1.5rem 0; max-width: none; padding: 0 1rem; }
 .change-page-back { display: inline-block; margin-bottom: .75rem; }
 .change-page-main h1 { font-size: 1.35rem; overflow-wrap: anywhere; }
 .change-page-meta { color: color-mix(in srgb, CanvasText 75%, Canvas); }
