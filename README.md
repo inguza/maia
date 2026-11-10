@@ -435,6 +435,9 @@ The token is sent as `Authorization: Bearer <token>`.
 
 MAIA includes an web GUI that can run either using PHP's built-in web server or through Apache.
 
+To handle really long conversations you need to increase the default memory limit to 256 or 512 MB depending on
+the history size.
+
 ## PHP built-in web server
 
 Start the server with:
