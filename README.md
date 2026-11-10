@@ -734,8 +734,8 @@ This software is available under the GNU General Public License v3.0 and under
 separate commercial licensing terms.
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
+it under the terms of the [GNU General Public License as published by
+the Free Software Foundation, version 3 of the License](LICENSE-GPLv3.txt).
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
