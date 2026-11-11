@@ -174,6 +174,7 @@ $routes = [
     '/api/session/rename' => __DIR__ . '/api/session/rename.php',
     '/api/session/create' => __DIR__ . '/api/session/create.php',
     '/api/session/settings' => __DIR__ . '/api/session/settings.php',
+    '/api/session/usage' => __DIR__ . '/api/session/usage.php',
     '/api/workspace/create' => __DIR__ . '/api/workspace/create.php',
     '/api/workspace/delete' => __DIR__ . '/api/workspace/delete.php',
     '/api/workspace/settings' => __DIR__ . '/api/workspace/settings.php',

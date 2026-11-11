@@ -14,3 +14,21 @@
 .session-composer-status { align-items:center; color:#6b7280; display:flex; gap:.5rem; margin:0 auto 0 0; min-height:1.2rem; }
 .session-composer-status.error { color:#b91c1c; }
 .session-composer button { margin:0; }
+.session-composer .session-composer-usage { appearance:none; background:none; border:0; border-radius:0; color:#4b5563; cursor:pointer; display:flex; flex-wrap:wrap; font:inherit; font-size:.8rem; gap:.25rem .65rem; line-height:1.25; max-width:100%; padding:.25rem .35rem; text-align:left; }
+.session-composer .session-composer-usage:hover { background:none; color:#111827; text-decoration:underline; }
+.session-composer .session-composer-usage:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer-usage-dialog { border:0; border-radius:.6rem; box-shadow:0 1rem 3rem #0004; max-height:min(85vh,50rem); max-width:min(34rem,calc(100vw - 2rem)); overflow:auto; padding:0; width:100%; }
+.session-composer-usage-dialog::backdrop { background:#11182788; }
+.session-composer-usage-dialog-content { padding:1.25rem; }
+.session-composer-usage-dialog-header { align-items:flex-start; display:flex; justify-content:space-between; gap:1rem; position:relative; }
+.session-composer-usage-dialog-header h2 { margin:0; padding-right:2rem; }
+.session-composer .session-composer-usage-close { appearance:none; background:none; border:0; color:#374151; cursor:pointer; font:inherit; font-size:1.5rem; line-height:1; margin:0; padding:.2rem .35rem; position:absolute; right:.35rem; top:.2rem; }
+.session-composer .session-composer-usage-close:hover { background:none; color:#111827; }
+.session-composer-usage-dialog-content h3 { font-size:1rem; margin:.9rem 0 .4rem; }
+.session-composer-usage-dialog-content dl { display:grid; grid-template-columns:1fr auto; gap:.3rem 1rem; margin:.4rem 0; }
+.session-composer-usage-dialog-content dd { font-variant-numeric:tabular-nums; margin:0; text-align:right; }
+@media (max-width: 40rem) {
+    .session-composer-actions { flex-wrap:wrap; }
+    .session-composer-status { flex-basis:100%; }
+    .session-composer .session-composer-usage { flex:1 1 auto; }
+}

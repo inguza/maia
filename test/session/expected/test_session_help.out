@@ -39,6 +39,20 @@ COMMANDS
   tasks
     Show the task content in this session.
 
+  usage [--json] [today|last|<start> [<end>]]
+    Show token usage for this session, today, the last API response, or a
+    local-time range. With no range, show both session and today's totals.
+    --json outputs machine-readable JSON.
+    Accepted dates/times are:
+      today or yesterday
+      YYYY-MM-DD
+      YYYY-MM-DDTHH:MM[:SS]
+      YYYYMMDDTHHMMSS (the format stored in usage.json)
+    A single date selects the whole day. A single timestamp selects from that
+    time through now. With two values, the end is inclusive; date-only values
+    include the whole day. 'last' returns the latest usage record and the
+    configured max_input_tokens value.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 

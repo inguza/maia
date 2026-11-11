@@ -49,6 +49,20 @@ COMMANDS
   tasks
     Show the task content in this session.
 
+  usage [--json] [today|last|<start> [<end>]]
+    Show token usage for this session, today, the last API response, or a
+    local-time range. With no range, show both session and today's totals.
+    --json outputs machine-readable JSON.
+    Accepted dates/times are:
+      today or yesterday
+      YYYY-MM-DD
+      YYYY-MM-DDTHH:MM[:SS]
+      YYYYMMDDTHHMMSS (the format stored in usage.json)
+    A single date selects the whole day. A single timestamp selects from that
+    time through now. With two values, the end is inclusive; date-only values
+    include the whole day. 'last' returns the latest usage record and the
+    configured max_input_tokens value.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
@@ -105,6 +119,194 @@ NOTES
 
 EOF
     exit 0
+}
+
+session_usage_is_date() {
+    [[ "$1" == "today" || "$1" == "yesterday" || "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+}
+
+session_usage_normalize_time() {
+    local value="$1"
+    local edge="$2"
+    local year month day hour=0 minute=0 second=0 is_date=0
+
+    case "$value" in
+        today)
+            value="$(date +%Y-%m-%d)"
+            ;;
+        yesterday)
+            value="$(perl -MPOSIX=strftime -e 'print strftime("%Y-%m-%d", localtime(time - 86400))')"
+            ;;
+    esac
+
+    if [[ "$value" =~ ^([0-9]{8})T([0-9]{6})$ ]]; then
+        year="${BASH_REMATCH[1]:0:4}"
+        month="${BASH_REMATCH[1]:4:2}"
+        day="${BASH_REMATCH[1]:6:2}"
+        hour="${BASH_REMATCH[2]:0:2}"
+        minute="${BASH_REMATCH[2]:2:2}"
+        second="${BASH_REMATCH[2]:4:2}"
+    elif [[ "$value" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})$ ]]; then
+        year="${BASH_REMATCH[1]}"
+        month="${BASH_REMATCH[2]}"
+        day="${BASH_REMATCH[3]}"
+        is_date=1
+    elif [[ "$value" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})$ ]]; then
+        year="${BASH_REMATCH[1]}"
+        month="${BASH_REMATCH[2]}"
+        day="${BASH_REMATCH[3]}"
+        hour="${BASH_REMATCH[4]}"
+        minute="${BASH_REMATCH[5]}"
+        [[ "$edge" == "end" ]] && second=59
+    elif [[ "$value" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})$ ]]; then
+        year="${BASH_REMATCH[1]}"
+        month="${BASH_REMATCH[2]}"
+        day="${BASH_REMATCH[3]}"
+        hour="${BASH_REMATCH[4]}"
+        minute="${BASH_REMATCH[5]}"
+        second="${BASH_REMATCH[6]}"
+    else
+        die "Invalid usage date/time '$1'. Use today, yesterday, YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS], or YYYYMMDDTHHMMSS."
+    fi
+
+    if (( is_date )); then
+        if [[ "$edge" == "end" ]]; then
+            hour=23
+            minute=59
+            second=59
+        fi
+    fi
+
+    if ! perl -MPOSIX=mktime -e '
+        my ($year, $month, $day, $hour, $minute, $second) = @ARGV;
+        my $epoch = mktime($second, $minute, $hour, $day, $month - 1, $year - 1900, 0, 0, -1);
+        exit 1 unless defined $epoch;
+        my @time = localtime($epoch);
+        exit !($time[0] == $second && $time[1] == $minute && $time[2] == $hour
+            && $time[3] == $day && $time[4] + 1 == $month && $time[5] + 1900 == $year);
+    ' "$year" "$month" "$day" "$hour" "$minute" "$second" 2>/dev/null; then
+        die "Invalid usage date/time '$1'."
+    fi
+
+    printf '%04d%02d%02dT%02d%02d%02d' "$year" "$month" "$day" "$hour" "$minute" "$second"
+}
+
+session_usage_command() {
+    local json=false
+    local -a range_args=()
+    local arg
+    for arg in "$@"; do
+        if [[ "$arg" == "--json" ]]; then
+            json=true
+        else
+            range_args+=("$arg")
+        fi
+    done
+
+    local mode="summary"
+    local start="" end="" label=""
+    local today_key="$(date +%Y%m%d)"
+    local today_label="$(date +%Y-%m-%d)"
+    local max_input_tokens="$(get_config max_input_tokens)"
+    [[ "$max_input_tokens" =~ ^[0-9]+$ ]] || max_input_tokens=null
+
+    case ${#range_args[@]} in
+        0)
+            ;;
+        1)
+            if [[ "${range_args[0]}" == "last" ]]; then
+                mode="last"
+            elif session_usage_is_date "${range_args[0]}"; then
+                start="$(session_usage_normalize_time "${range_args[0]}" start)"
+                end="$(session_usage_normalize_time "${range_args[0]}" end)"
+                mode="range"
+                case "${range_args[0]}" in
+                    today) label="Usage today ($today_label)" ;;
+                    yesterday)
+                        local yesterday_label="$(perl -MPOSIX=strftime -e 'print strftime("%Y-%m-%d", localtime(time - 86400))')"
+                        label="Usage yesterday ($yesterday_label)"
+                        ;;
+                    *) label="Usage on ${range_args[0]}" ;;
+                esac
+            else
+                start="$(session_usage_normalize_time "${range_args[0]}" start)"
+                end="$(date +%Y%m%dT%H%M%S)"
+                [[ "$start" > "$end" ]] && die "Usage start time is in the future."
+                mode="range"
+                label="Usage from ${range_args[0]} through now"
+            fi
+            ;;
+        2)
+            start="$(session_usage_normalize_time "${range_args[0]}" start)"
+            end="$(session_usage_normalize_time "${range_args[1]}" end)"
+            [[ "$start" > "$end" ]] && die "Usage range start must not be after its end."
+            mode="range"
+            label="Usage from ${range_args[0]} through ${range_args[1]}"
+            ;;
+        *)
+            die "Usage: maia session usage [--json] [today|last|<start> [<end>]]"
+            ;;
+    esac
+
+    if [[ "$mode" == "last" && ${#range_args[@]} -ne 1 ]]; then
+        die "The 'last' usage selector cannot be combined with a range."
+    fi
+
+    local usage_file="$(resolve_session_path)/usage.json"
+    local jq_filter='
+        def totals($events):
+            reduce $events[] as $event (
+                {input: 0, cached: 0, output: 0, reasoning: 0};
+                .input += ($event.input // 0)
+                | .cached += ($event.cached // 0)
+                | .output += ($event.output // 0)
+                | .reasoning += ($event.reasoning // 0)
+            );
+        def report($title; $total):
+            "\($title)\n  Input: \($total.input)\n  Cached: \($total.cached)\n  Output: \($total.output)\n  Reasoning: \($total.reasoning)";
+        if $mode == "last" then
+            (.[-1] // null) as $last
+            | if $json then
+                {last: $last, max_input_tokens: $max_input_tokens}
+              elif $last == null then
+                "No usage has been recorded for this session."
+              else
+                "\(report("Last usage at \($last.timestamp)"; $last))\n  API type: \($last.api_type)\n  Model: \($last.model)\n  Configured max input tokens: \($max_input_tokens)"
+              end
+        elif $mode == "summary" then
+            totals(.) as $session
+            | totals([.[] | select((.timestamp // "")[0:8] == $today)]) as $day
+            | if $json then
+                {session: $session, today: $day, last: (.[-1] // null), max_input_tokens: $max_input_tokens}
+              else
+                "\(report("Usage this session"; $session))\n\n\(report("Usage today (\($today_label))"; $day))"
+              end
+        else
+            totals([.[] | select((.timestamp // "") >= $start and (.timestamp // "") <= $end)]) as $total
+            | if $json then
+                {range: {start: $start, end: $end}, usage: $total}
+              else
+                report($label; $total)
+              end
+        end
+    '
+    local output
+    local -a jq_args=(--arg mode "$mode" --arg today "$today_key" --arg today_label "$today_label" --arg start "$start" --arg end "$end" --arg label "$label" --argjson json "$json" --argjson max_input_tokens "$max_input_tokens" "$jq_filter")
+    if [[ "$json" == true ]]; then
+        if [[ -f "$usage_file" ]]; then
+            output="$(jq -c "${jq_args[@]}" "$usage_file")" || die "Unable to read usage data from '$usage_file'."
+        else
+            output="$(jq -c "${jq_args[@]}" <<< '[]')" || die "Unable to calculate session usage."
+        fi
+    else
+        if [[ -f "$usage_file" ]]; then
+            output="$(jq -r "${jq_args[@]}" "$usage_file")" || die "Unable to read usage data from '$usage_file'."
+        else
+            output="$(jq -r "${jq_args[@]}" <<< '[]')" || die "Unable to calculate session usage."
+        fi
+    fi
+
+    printf '%s\n' "$output"
 }
 
 parse_session_options() {
@@ -266,8 +468,11 @@ handle_session_command() {
     load_config "$scope" CONFIG
 
     local cmd="$1"
-
-    case "$cmd" in
+	case "$cmd" in
+	usage)
+	    shift
+	    session_usage_command "$@"
+	    ;;
 	lock-status)
 	    # Lightweight read-only status used by the web client after a stream
 	    # disconnects; unlike history/show, this does not load conversation data.
