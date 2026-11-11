@@ -6,6 +6,10 @@
         <button type="button" class="session-composer-usage" data-composer-usage aria-haspopup="dialog">
             <span data-composer-usage-today>Today: --</span>
         </button>
+        <button type="button" class="session-composer-cancel" data-composer-cancel hidden aria-label="Cancel active send" title="Cancel active send">
+            <span data-composer-cancel-icon aria-hidden="true">&#x23F9;</span>
+            <span class="spinner" data-composer-cancel-spinner aria-hidden="true" hidden></span>
+        </button>
         <button type="submit" data-composer-send>Send</button>
     </div>
 </form>

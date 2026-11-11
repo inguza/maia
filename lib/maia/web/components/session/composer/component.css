@@ -17,6 +17,11 @@
 .session-composer .session-composer-usage { appearance:none; background:none; border:0; border-radius:0; color:#4b5563; cursor:pointer; display:flex; flex-wrap:wrap; font:inherit; font-size:.8rem; gap:.25rem .65rem; line-height:1.25; max-width:100%; padding:.25rem .35rem; text-align:left; }
 .session-composer .session-composer-usage:hover { background:none; color:#111827; text-decoration:underline; }
 .session-composer .session-composer-usage:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer .session-composer-cancel { align-items:center; appearance:none; background:transparent; border:1px solid #b91c1c; border-radius:.35rem; color:#b91c1c; display:inline-flex; justify-content:center; line-height:1; margin:0; min-height:2.3rem; min-width:2.5rem; padding:.35rem; }
+.session-composer .session-composer-cancel:hover:not(:disabled) { background:color-mix(in srgb, #b91c1c 10%, Canvas); }
+.session-composer .session-composer-cancel:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer .session-composer-cancel[hidden], .session-composer .session-composer-cancel [hidden] { display:none; }
+.session-composer-cancel [data-composer-cancel-icon] { font-size:1.2rem; }
 .session-composer-usage-dialog { border:0; border-radius:.6rem; box-shadow:0 1rem 3rem #0004; max-height:min(85vh,50rem); max-width:min(34rem,calc(100vw - 2rem)); overflow:auto; padding:0; width:100%; }
 .session-composer-usage-dialog::backdrop { background:#11182788; }
 .session-composer-usage-dialog-content { padding:1.25rem; }
