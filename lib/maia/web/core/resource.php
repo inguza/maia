@@ -47,7 +47,19 @@ abstract class Resource
 
     final protected function url(): string
     {
-        return rtrim(\maia_base_path(), '/') . '/' . $this->path;
+        $path = $this->path;
+        $webRoot = dirname(__DIR__);
+        $filePath = $webRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+        $version = is_file($filePath) ? @filemtime($filePath) : false;
+        $url = rtrim(\maia_base_path(), '/') . '/' . $path;
+
+        // Version local assets by their own modification time so browsers
+        // refresh cached CSS and JavaScript whenever the source file changes.
+        if ($version !== false) {
+            $url .= '?v=' . $version;
+        }
+
+        return $url;
     }
 
     final protected function escape(string $value): string

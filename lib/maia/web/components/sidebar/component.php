@@ -22,16 +22,14 @@ final class SidebarComponent implements Component
     /** @return list<\Maia\Web\Core\Resource> */
     public function resources(): array
     {
-        $apiVersion = @filemtime(dirname(__DIR__, 2) . '/core/api.js') ?: 1;
-        $sidebarVersion = @filemtime(__DIR__ . '/component.js') ?: 1;
         return [
             new Stylesheet('components/common.css'),
             new Stylesheet('components/action-menu/component.css'),
             new Stylesheet('components/sidebar/component.css'),
-            new Script('core/api.js?v=' . $apiVersion),
+            new Script('core/api.js'),
             new Script('core/ui.js'),
             new Script('components/action-menu/component.js'),
-            new Script('components/sidebar/component.js?v=' . $sidebarVersion),
+            new Script('components/sidebar/component.js'),
         ];
     }
 
