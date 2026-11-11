@@ -23,7 +23,7 @@ done
 declare -a arguments=()
 parsearguments
 
-declare -a args
+declare -a args=(-E)
 for argument in "${arguments[@]}"; do
     if ! is_allowed_argument "$argument"; then
         echo "[ERROR] Argument '$argument' is not allowed for '$command': $argument" >&2

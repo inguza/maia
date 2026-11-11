@@ -1,8 +1,8 @@
 [
   {
     "name":"util-grep",
-    "description": "Search files using regular expressions. Use -E for extended syntax, e.g. alternation with |.",
-    "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
+    "description": "Search files using regular expressions, extended syntax.",
+    "command": "util-grep.sh -R -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -30,7 +30,7 @@
 	  "items": {
 	    "type": "string"
 	  },
-	  "description": "List of grep command line arguments. Allowed are: -R -E -F -G -i -v -w -x -c -s -n -a -I --."
+	  "description": "List of grep command line arguments. Allowed are: -R -F -G -i -v -w -x -c -s -n -a -I --."
 	}
       },
       "required": ["searchpattern"],
