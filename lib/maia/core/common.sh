@@ -2189,9 +2189,9 @@ acquire_lock() {
         local now=$(date +%s)
 	# pid and start time of the process is stored so we can use that as identifier of the lock owner
 	# the process start time does not change during the lifetime of that pid
-	local lockdata="lpid=$pid\nlexpiry=$((now + 3600))"
+	local lockdata="lpid: $pid\nlexpiry: $((now + 3600))"
 	if [ -e /proc/version ]; then
-	    lockdata="$lockdata\nlstart=$(awk '{print $22}' "/proc/$$/stat" 2>/dev/null)"
+	    lockdata="$lockdata\nlstart: $(awk '{print $22}' "/proc/$$/stat" 2>/dev/null)"
 	fi
 
         # Atomic acquisition in a subshell
@@ -2201,8 +2201,9 @@ acquire_lock() {
 	# Lock not aquired, see if we can recover or just timeout
         # Lock exists. Read its information.
         if [[ -r "$lockfile" ]]; then
-            local lpid="" lexpiry="" lstart="" cstart="-1"
-            . "$lockfile" 2>/dev/null
+            local -A lock_fields=()
+            myl_load "$lockfile" lock_fields 2>/dev/null || true
+            local lpid="${lock_fields[lpid]:-}" lexpiry="${lock_fields[lexpiry]:-}" lstart="${lock_fields[lstart]:-}" cstart="-1"
 	    if [ -e /proc/version ] ; then
 		cstart="$(awk '{print $22}' "/proc/$lpid/stat" 2>/dev/null)"
 	    fi

@@ -63,6 +63,9 @@ COMMANDS
     include the whole day. 'last' returns the latest usage record and the
     configured max_input_tokens value.
 
+  cancel
+    Cancel the active AI operation in the current session.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
@@ -426,15 +429,13 @@ session_lock_is_active() {
     lockfile="$(session_lock_file)"
     [[ -r "$lockfile" ]] || return 1
 
-    local lock_snapshot lpid="" lexpiry="" lstart="" key value now cstart="-1"
+    local lock_snapshot lpid="" lexpiry="" lstart="" now cstart="-1"
     lock_snapshot="$(cat "$lockfile" 2>/dev/null)" || return 1
-    while IFS='=' read -r key value; do
-        case "$key" in
-            lpid) lpid="$value" ;;
-            lexpiry) lexpiry="$value" ;;
-            lstart) lstart="$value" ;;
-        esac
-    done <<< "$lock_snapshot"
+    local -A lock_fields=()
+    myl_load "$lockfile" lock_fields 2>/dev/null || true
+    lpid="${lock_fields[lpid]:-}"
+    lexpiry="${lock_fields[lexpiry]:-}"
+    lstart="${lock_fields[lstart]:-}"
 
     local stale=false
     now="$(date +%s)"
@@ -461,6 +462,51 @@ session_lock_is_active() {
     return 0
 }
 
+session_cancel_command() {
+    local lockfile="$(session_lock_file)"
+    if ! session_lock_is_active; then
+        notice "No active AI operation to cancel."
+        return 0
+    fi
+
+    local lock_snapshot lpid="" lstart=""
+    lock_snapshot="$(cat "$lockfile" 2>/dev/null)" || {
+        notice "No active AI operation to cancel."
+        return 0
+    }
+    local -A lock_fields=()
+    myl_load "$lockfile" lock_fields 2>/dev/null || true
+    lpid="${lock_fields[lpid]:-}"
+    lstart="${lock_fields[lstart]:-}"
+    [[ "$lpid" =~ ^[0-9]+$ ]] || {
+        notice "No active AI operation to cancel."
+        return 0
+    }
+
+    # Verify that the same lock and process still own this session before
+    # signalling; the owner may have completed since the status check.
+    [[ "$(cat "$lockfile" 2>/dev/null)" == "$lock_snapshot" ]] || {
+        notice "The active operation changed before cancellation could be sent."
+        return 1
+    }
+    if [[ -e /proc/version ]]; then
+        local current_start="$(pid_starttime "$lpid" 2>/dev/null)"
+        if [[ -z "$lstart" || -z "$current_start" || "$current_start" != "$lstart" ]]; then
+            notice "No active AI operation to cancel."
+            return 0
+        fi
+    elif ! kill -0 "$lpid" 2>/dev/null; then
+        notice "No active AI operation to cancel."
+        return 0
+    fi
+
+    if ! kill -INT "$lpid" 2>/dev/null; then
+        notice "The active operation ended before cancellation could be sent."
+        return 0
+    fi
+    notice "Cancellation signal sent to the active AI operation."
+}
+
 handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 
@@ -472,6 +518,11 @@ handle_session_command() {
 	usage)
 	    shift
 	    session_usage_command "$@"
+	    ;;
+	cancel)
+	    shift
+	    [[ $# -eq 0 ]] || die "Usage: maia session cancel"
+	    session_cancel_command
 	    ;;
 	lock-status)
 	    # Lightweight read-only status used by the web client after a stream

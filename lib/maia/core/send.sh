@@ -424,6 +424,75 @@ estimate_tokens() {
     echo $(((total_chars + 3) / 4))
 }
 
+send_session_lock_signal_handler() {
+    local lockfile="$1" exit_status="$2"
+    local owner_pid=""
+    local -A lock_fields=()
+    if [[ -r "$lockfile" ]]; then
+        myl_load "$lockfile" lock_fields 2>/dev/null || true
+        owner_pid="${lock_fields[lpid]:-}"
+    fi
+    if [[ "$owner_pid" == "$$" ]]; then
+        release_lock "$lockfile"
+    fi
+    trap - INT TERM
+    exit "$exit_status"
+}
+
+send_curl_signal_handler() {
+    local curl_pid="$1" signal="$2"
+    MAIA_SEND_INTERRUPTED=true
+    if [[ -n "$curl_pid" ]]; then
+        kill -s "$signal" "$curl_pid" 2>/dev/null || true
+    fi
+}
+
+send_tool_signal_handler() {
+    MAIA_SEND_INTERRUPTED=true
+    if [[ -n "${tool_tmp_dir:-}" && -d "$tool_tmp_dir" ]]; then
+        cleanup_tools "$tool_tmp_dir"
+    fi
+}
+
+send_log_cancelled_tool_calls() {
+    local history_file="$1" timestamp="$2" assistant_id="$3" calls_json="$4"
+    shift 4
+    local -a logged_ids=("$@")
+    local tool_call id logged_id already_logged
+    while IFS= read -r tool_call; do
+        [[ -n "$tool_call" ]] || continue
+        id="$(jq -r '.id' <<< "$tool_call")"
+        [[ -n "$id" && "$id" != null ]] || continue
+        already_logged=false
+        for logged_id in "${logged_ids[@]}"; do
+            if [[ "$logged_id" == "$id" ]]; then
+                already_logged=true
+                break
+            fi
+        done
+        [[ "$already_logged" == true ]] && continue
+        exclusive_json_modify "$history_file" \
+            --arg id "$assistant_id" --arg tcid "$id" --arg ts "$timestamp" \
+            '. + [{role:"tool", tool_call_id:$tcid, timestamp:$ts, id:$id, content:"Cancelled by user."}]' || \
+            warn "Unable to record cancellation for tool call '$id'."
+    done < <(jq -c '.[]' <<< "$calls_json")
+}
+
+send_finalize_cancelled_tools() {
+    local tool_tmp_dir="$1" history_file="$2" timestamp="$3" assistant_id="$4" calls_json="$5"
+    shift 5
+    local -a logged_ids=("$@")
+    local file pid
+
+    cleanup_tools "$tool_tmp_dir"
+    for file in "$tool_tmp_dir"/*.json; do
+        [[ -f "$file" ]] || continue
+        pid="$(jq -r '.pid // empty' "$file" 2>/dev/null)"
+        [[ "$pid" =~ ^[0-9]+$ ]] && wait "$pid" 2>/dev/null || true
+    done
+    send_log_cancelled_tool_calls "$history_file" "$timestamp" "$assistant_id" "$calls_json" "${logged_ids[@]}"
+}
+
 handle_send_command() {
     # Show help if requested
     [[ "$1" =~ ^-h|--help$ ]] && send_usage
@@ -660,6 +729,11 @@ handle_send_command() {
 
     local session_lock="$(session_lock_file)"
     acquire_lock "$session_lock"
+    MAIA_SEND_INTERRUPTED=false
+    local active_curl_pid=""
+    local tool_tmp_dir=""
+    trap 'send_session_lock_signal_handler "$session_lock" 130' INT
+    trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
 
     # If there are arguments, replace the outbox with the remaining args
     if (( ${#args[@]} > 0 )); then
@@ -669,6 +743,7 @@ handle_send_command() {
     # Ensure outbox is not empty.
     if [[ ! -s "$outbox_file" && "$continue" == false ]]; then
 	release_lock "$session_lock"
+        trap - INT TERM
         die "Outbox is empty. Nothing to send."
     fi
 
@@ -699,7 +774,7 @@ handle_send_command() {
     declare -A seen_commands_this
     local iteration=0
     local separator=false
-    while (( allowed_iterations_left > 0 )); do
+    while (( allowed_iterations_left > 0 )) && [[ "$MAIA_SEND_INTERRUPTED" != true ]]; do
 	((iteration++))
 	local messages_json
 	if ! messages_json=$(build_messages_json "$outbox_file" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$no_tasks" "$api_type") ; then
@@ -809,10 +884,32 @@ handle_send_command() {
 	    trigger_event "pre-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$tmp_payload"
 	    # Call API chat completions endpoint
 	    # Binary mode is important for AWS but it does not hurt for other APIs
-            response=$(curl -s \
+            local curl_output_file="$(mktemp)"
+            trap 'send_curl_signal_handler "${active_curl_pid:-}" INT' INT
+            trap 'send_curl_signal_handler "${active_curl_pid:-}" TERM' TERM
+            curl -s \
 			    "${curl_headers[@]}" \
 			    --data-binary @"$tmp_payload" \
-			    "$url")
+			    "$url" > "$curl_output_file" &
+            active_curl_pid=$!
+            if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+                kill -INT "$active_curl_pid" 2>/dev/null || true
+            fi
+            wait "$active_curl_pid" || true
+            if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+                wait "$active_curl_pid" 2>/dev/null || true
+            fi
+            active_curl_pid=""
+            trap 'send_session_lock_signal_handler "$session_lock" 130' INT
+            trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
+            if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+                rm -f "$curl_output_file" "$tmp_payload"
+                response=""
+                errormsg="Send cancelled by user."
+            else
+                response="$(read_file "$curl_output_file")"
+                rm -f "$curl_output_file"
+            fi
 
             if [[ "$http_logging" == "true" ]]; then
 		echo "${curl_headers[@]}" > "$log_dir/${timestamp}-${iteration}-response.log"
@@ -822,7 +919,9 @@ handle_send_command() {
 	    trigger_event "post-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$response"
 	fi
 	# Extract reply or error from response
-        if [[ -n "$response" && "$response" != "null" ]]; then
+        if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+            errormsg="Send cancelled by user."
+        elif [[ -n "$response" && "$response" != "null" ]]; then
 	    usage_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/$usage_filter" <<<"$response")
 	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
 		if ! errormsg=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null) ; then
@@ -880,6 +979,7 @@ handle_send_command() {
 	fi
 	if [[ -n "$errormsg" ]] ; then
 	    release_lock "$session_lock"
+            trap - INT TERM
 	    die "$errormsg"
 	fi
 	# Record provider usage separately from conversation history. This keeps it
@@ -1037,7 +1137,10 @@ handle_send_command() {
 	fi
 
 	if [[ -n "$tools_call_json" ]] ; then
-	    local tool_tmp_dir="$(mktemp -d)"
+            local -a logged_tool_call_ids=()
+            trap 'send_tool_signal_handler' INT
+            trap 'send_tool_signal_handler' TERM
+	    tool_tmp_dir="$(mktemp -d)"
 	    local tool_count=0
 	    local tool_start_count=0
 	    # Allow tools to be run in parallel
@@ -1047,10 +1150,8 @@ handle_send_command() {
 	    mapfile_from_command tool_calls jq -c '.[]' <<<"$tools_call_json"
 	    trigger_event "pre-tool-calls" "$tool_tmp_dir" "${tool_calls[@]}"
 
-	    # Make sure we kill tools in case this is interrupted
-	    trap 'cleanup_tools "$tool_tmp_dir"' INT TERM
-
 	    for tool_call in "${tool_calls[@]}"; do
+                if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then break; fi
 		local func_name="" func_args=""
 		local id=$(jq -r '.id' <<<"$tool_call")
 		local func_name=$(jq -r '.function.name' <<<"$tool_call")
@@ -1119,8 +1220,13 @@ handle_send_command() {
 			  id: $id,	  
 			  content: $output
 			}]'
+                    logged_tool_call_ids+=("$id")
 		fi
 	    done
+            if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+                send_finalize_cancelled_tools "$tool_tmp_dir" "$history_file" "$timestamp" "$shaid" "$tools_call_json" "${logged_tool_call_ids[@]}"
+                tool_count=0
+            fi
 	    # Now reset the seen commands and copy the ones from this round
 	    seen_commands=()
 	    for key in "${!seen_commands_this[@]}"; do
@@ -1129,7 +1235,12 @@ handle_send_command() {
 	    trigger_event "during-tool-calls" "$tool_tmp_dir" "${tool_call_ids[@]}"
 	    # # Wait for tools and process results as they finish
 	    while (( tool_count > 0 )); do
-		wait -n
+		wait -n || true
+                if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
+                    send_finalize_cancelled_tools "$tool_tmp_dir" "$history_file" "$timestamp" "$shaid" "$tools_call_json" "${logged_tool_call_ids[@]}"
+                    tool_count=0
+                    break
+                fi
 		# Find one completed tool. wait -n returns when one child has finished,
 		# and tool_call_managed creates the .finished file before exiting.
 		finished=""
@@ -1181,8 +1292,9 @@ handle_send_command() {
 			  tool_call_id: $tcid,
 			  timestamp: $ts,
 			  id: $id,
-			  content: ($prefix + $output)
+		      content: ($prefix + $output)
 			  }]'
+                logged_tool_call_ids+=("$id")
 		rm -f "$tool_tmp_dir/$id.output" \
 		   "$tool_tmp_dir/$id.finished"
 		((tool_count--))
@@ -1191,8 +1303,10 @@ handle_send_command() {
 	    if [[ "$duplicate" == "yes" && $tool_count -eq 0 ]] ; then
 		allowed_iterations_left=0
 	    fi
-	    trap - INT TERM
+	    trap 'send_session_lock_signal_handler "$session_lock" 130' INT
+	    trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
 	    rm -rf "$tool_tmp_dir"
+            tool_tmp_dir=""
 	    trigger_event "post-tool-calls" "$tool_tmp_dir" "${tool_call_ids[@]}"
 	fi
 	if [[ "$tools_call_json" ]] ; then
@@ -1206,4 +1320,5 @@ handle_send_command() {
     done
     trigger_event "post-send"
     release_lock "$session_lock"
+    trap - INT TERM
 }

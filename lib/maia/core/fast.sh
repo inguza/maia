@@ -201,7 +201,7 @@ copya() {
 }
 
 # Load a MYL file into an associative array.
-# Usage: myl_load <associative-array-name> <file>
+# Usage: myl_load <file> <associative-array-name>
 #
 # A MYL entry has the form:
 #
