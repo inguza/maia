@@ -110,10 +110,9 @@ COMMANDS:
   Configuration / General
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
-    gui              Start and manage the web GUI
+    gui              Start and manage the GUI
     api              AI introspection (models, model)
     update	     Update data to latest software and refresh skills and tools.
-    gui		     Web GUI (start, stop)
 
   Session and prompt handling
     session          Session management (create, list, show, delete)
