@@ -767,6 +767,13 @@ handle_send_command() {
     esac
 
     local outbox_content=$(read_file "$outbox_file")
+    if [[ -n "$outbox_content" ]]; then
+	# https://developers.openai.com/api/docs/guides/reasoning
+        # A new user message starts a new reasoning context; keep reasoning only
+        # across iterations within this send's tool-call cycle.
+        exclusive_json_modify "$history_file" \
+            'map(select(.role != "reasoning"))'
+    fi
 
     local allowed_iterations=$(get_config tool_iteration_limit)
     local allowed_iterations_left=$allowed_iterations
