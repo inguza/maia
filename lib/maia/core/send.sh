@@ -439,6 +439,7 @@ handle_send_command() {
 
     local history_dir=$(resolve_session_path)
     local history_file=$(resolve_history_meta)
+    local usage_file="$history_dir/usage.json"
     local outbox_file="$history_dir/outbox.txt"
 
     ensure_session_exists
@@ -601,23 +602,29 @@ handle_send_command() {
     # Use --slurpfile to avoid argument list too long problem
     local tmp_payload=$(mktemp)
     local url=""
+    local usage_filter=""
     local tools_json=null
     local tools_enabled=false
     case "$api_type" in
 	OPENAI_CHAT_COMPLETIONS)
             url="${maia_api_base_url}/v1/chat/completions"
+	    usage_filter="send-openai-chat-completions-usage.jq"
 	    ;;
 	AWS_BEDROCK_CONVERSE)
             url="${maia_api_base_url}/model/${model}/converse"
+	    usage_filter="send-aws-bedrock-converse-usage.jq"
 	    ;;
 	OPENAI_RESPONSES)
             url="${maia_api_base_url}/v1/responses"
+	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	AWS_BEDROCK_RESPONSES_RUNTIME)
             url="${maia_api_base_url}/openai/v1/responses"
+	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	AWS_BEDROCK_RESPONSES_MANTLE)
 	    url="${maia_api_base_url}/v1/responses"
+	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	*)
 	    die "Unknown API type '$api_type'"
@@ -763,6 +770,7 @@ handle_send_command() {
 	fi
 
 	local reply="" response="" errormsg=""
+	local usage_json='{"input":0,"cached":0,"output":0,"reasoning":0}'
 	local tools_call_json=""
 	local tool_results_json=""
 	local reasoning=""
@@ -815,6 +823,7 @@ handle_send_command() {
 	fi
 	# Extract reply or error from response
         if [[ -n "$response" && "$response" != "null" ]]; then
+	    usage_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/$usage_filter" <<<"$response")
 	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
 		if ! errormsg=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null) ; then
 		    errormsg="$response"
@@ -872,6 +881,30 @@ handle_send_command() {
 	if [[ -n "$errormsg" ]] ; then
 	    release_lock "$session_lock"
 	    die "$errormsg"
+	fi
+	# Record provider usage separately from conversation history. This keeps it
+	# out of LLM messages and independent of history pruning/deletion.
+	if [[ -n "$response" && "$response" != "null" ]]; then
+	    if [[ ! -f "$usage_file" ]]; then
+		printf '[]\n' > "$usage_file"
+	    fi
+	    if ! exclusive_json_modify "$usage_file" \
+				  --arg ts "$timestamp" \
+				  --arg apitype "$api_type" \
+				  --arg model "$model" \
+				  --argjson usage "$usage_json" '
+	      . + [{
+	        timestamp: $ts,
+	        api_type: $apitype,
+	        model: $model,
+	        input: ($usage.input // 0),
+	        cached: ($usage.cached // 0),
+	        output: ($usage.output // 0),
+	        reasoning: ($usage.reasoning // 0)
+	      }]
+	    '; then
+		warn "Unable to record token usage in $usage_file"
+	    fi
 	fi
 	# Only if we have outbox content and a proper reply
 	if [[ -n "$outbox_content" && ( -n "$tools_call_json" || -n "$tool_results_json" || -n "$reply" ) ]] ; then
