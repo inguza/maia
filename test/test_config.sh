@@ -96,6 +96,8 @@ run_config_cmd "default_set" temperature 0.3
 run_config_cmd "show_after_set"
 run_config_cmd "default_get" temperature
 
+run_config_cmd "show_credentials" --type credentials show
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

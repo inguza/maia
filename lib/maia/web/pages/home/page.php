@@ -46,7 +46,7 @@ final class HomePage extends Page
         );
         $this->addComponent(
             'credentials',
-            new ExpandablePanel('credentials', 'Credentials', new CredentialsPanel())
+            new ExpandablePanel('credentials', 'Access tokens', new CredentialsPanel())
         );
         $this->addComponent(
             'behavior',

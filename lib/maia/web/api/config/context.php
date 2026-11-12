@@ -203,6 +203,34 @@ function config_context_values(string $scope, array $environment): array
     ];
 }
 
+function config_context_credentials(string $scope, array $environment): array
+{
+    $keyResult = config_context_run(['config', '--type', 'credentials', 'list'], $environment);
+    config_context_fail_run($keyResult, 'Unable to list credential names.');
+    $showResult = config_context_run(['config', '--type', 'credentials', '--scope', $scope, 'show'], $environment);
+    config_context_fail_run($showResult, 'Unable to resolve credential status.');
+    $sources = config_context_parse_show($showResult['output']);
+
+    $credentials = [];
+    foreach (preg_split('/\\R/', $keyResult['output']) as $key) {
+        $key = trim($key);
+        if ($key === '' || !preg_match('/^[a-z0-9_]+$/', $key)) continue;
+        $row = $sources[$key] ?? ['scope' => 'default', 'display' => '(not set)'];
+        $isSet = $row['display'] !== '(not set)';
+        $credentials[] = [
+            'key' => $key,
+            'configured' => $isSet,
+            'source' => $isSet ? $row['scope'] : '',
+            'local' => $isSet && $row['scope'] === $scope,
+        ];
+    }
+    return [
+        'scope' => $scope,
+        'scopeLabel' => config_context_scope_label($scope),
+        'credentials' => $credentials,
+    ];
+}
+
 function config_context_allowed_keys(string $scope, array $environment): array
 {
     $keyResult = config_context_run(['config', '--all', 'list'], $environment);
@@ -227,7 +255,14 @@ $scope = config_context_page_scope();
 $environment = config_context_environment($scope);
 
 if ($method === 'GET') {
-    echo json_encode(['ok' => true] + config_context_values($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    $type = (string) ($_GET['type'] ?? 'general');
+    if ($type === 'credentials') {
+        echo json_encode(['ok' => true] + config_context_credentials($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } elseif ($type === 'general') {
+        echo json_encode(['ok' => true] + config_context_values($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } else {
+        config_context_error(400, 'Unknown configuration type.');
+    }
     exit;
 }
 if ($method !== 'POST') {
@@ -238,6 +273,37 @@ if ($method !== 'POST') {
 $input = json_decode((string) (file_get_contents('php://input') ?: ''), true);
 if (!is_array($input)) config_context_error(400, 'Invalid configuration operation.');
 $action = (string) ($input['action'] ?? '');
+$type = (string) ($input['type'] ?? 'general');
+
+if ($type === 'credentials') {
+    $credentialKeys = config_context_run(['config', '--type', 'credentials', 'list'], $environment);
+    config_context_fail_run($credentialKeys, 'Unable to list credential names.');
+    $allowed = array_fill_keys(array_filter(array_map('trim', preg_split('/\\R/', $credentialKeys['output'])), static fn (string $key): bool => $key !== ''), true);
+    $key = trim((string) ($input['key'] ?? ''));
+    if (!isset($allowed[$key])) config_context_error(400, 'This credential name is not supported.');
+
+    if ($action === 'credential-set') {
+        $value = $input['value'] ?? null;
+        if (!is_string($value) || $value === '') config_context_error(400, 'Enter a credential value.');
+        $result = config_context_run(['config', '--type', 'credentials', '--scope', $scope, 'set', $key, $value], $environment);
+        config_context_fail_run($result, 'Unable to save credential.');
+    } elseif ($action === 'credential-delete') {
+        $before = config_context_credentials($scope, $environment);
+        $entry = null;
+        foreach ($before['credentials'] as $credential) {
+            if ($credential['key'] === $key) { $entry = $credential; break; }
+        }
+        if (!is_array($entry) || !$entry['local']) config_context_error(400, 'This credential is not set in the current scope.');
+        $result = config_context_run(['config', '--type', 'credentials', '--scope', $scope, 'unset', $key], $environment);
+        config_context_fail_run($result, 'Unable to delete credential.');
+    } else {
+        config_context_error(400, 'Unknown credentials operation.');
+    }
+
+    echo json_encode(['ok' => true] + config_context_credentials($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    exit;
+}
+if ($type !== 'general') config_context_error(400, 'Unknown configuration type.');
 
 if ($action === 'set') {
     $key = trim((string) ($input['key'] ?? ''));

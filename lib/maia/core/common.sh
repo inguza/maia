@@ -108,6 +108,24 @@ declare -A DEFAULT_CONFIG=(
 )
 CONFIG_KEYS=( "${!DEFAULT_CONFIG[@]}" )
 readonly CONFIG_KEYS
+# Credential keys use the lowercase configuration naming convention. Values
+# are exported using the environment variable names expected by API consumers.
+CREDENTIAL_KEYS=(
+    openai_api_key
+    aws_access_key_id
+    aws_secret_access_key
+    aws_session_token
+    maia_curl_extra_headers
+)
+readonly CREDENTIAL_KEYS
+declare -A CREDENTIAL_ENV_VARS=(
+    [openai_api_key]=OPENAI_API_KEY
+    [aws_access_key_id]=AWS_ACCESS_KEY_ID
+    [aws_secret_access_key]=AWS_SECRET_ACCESS_KEY
+    [aws_session_token]=AWS_SESSION_TOKEN
+    [maia_curl_extra_headers]=MAIA_CURL_EXTRA_HEADERS
+)
+readonly CREDENTIAL_ENV_VARS
 declare -A CONFIG=()
 
 # Map log levels to numeric priorities
@@ -1939,25 +1957,54 @@ files_in_scope() {
     done
 }
 
+# Load a layered MYL configuration file into a named associative array.
+# Arguments: target scope, filename, destination array, optional defaults array.
+load_scoped_myl() {
+    local target_scope="$1" filename="$2"
+    local -n _dst="$3"
+    local defaults="${4:-}" idx s file
+    if [[ -n "$defaults" ]]; then
+        copya "$defaults" _dst
+    else
+        _dst=()
+    fi
+    for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
+        s=${SCOPE_ORDER[idx]}
+        [[ "$s" == default ]] && continue
+        local -a files=()
+        mapfile_from_command files files_in_scope "$s" "$filename"
+        for file in "${files[@]}"; do
+            myl_load "$file" _dst
+        done
+        [[ "$s" == "$target_scope" ]] && break
+    done
+}
+
 load_config() {
     local target_scope="$1"
-    local -n _dst="$2"
-    copya DEFAULT_CONFIG _dst
-    # 2) Derive merge order by reversing SCOPE_ORDER, skipping "default"
-    for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
-	local s=${SCOPE_ORDER[idx]}
-	[[ "$s" == "default" ]] && continue
-	local -a files
-	local file
-	mapfile_from_command files files_in_scope "$s" "config.myl"
-	for file in "${files[@]}" ; do
-	    myl_load "$file" _dst
-	done
-	[[ "$s" == "$target_scope" ]] && break
-    done
+    local -n _config_destination="$2"
+    load_scoped_myl "$target_scope" config.myl "$2" DEFAULT_CONFIG
     export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
     PROFILE_SEARCH_DIRS_INITIALIZED=""
     init_scope_dirs
+}
+
+# Load credentials separately, mapping lowercase config keys to conventional
+# environment variable names. Configured values intentionally override values
+# inherited from the environment.
+load_credentials() {
+    local -A stored=()
+    local key env_name
+    load_scoped_myl session credentials.myl stored
+    for key in "${CREDENTIAL_KEYS[@]}"; do
+        env_name="${CREDENTIAL_ENV_VARS[$key]}"
+        if [[ -v stored["$key"] ]]; then
+            # The credentials file is MAIA's explicit configuration source and
+            # intentionally takes precedence over inherited environment values.
+            printf -v "$env_name" '%s' "${stored[$key]}"
+            export "$env_name"
+        fi
+    done
 }
 
 # Helper to convert environment variable MAIA_CURL_EXTRA_HEADERS into curl -H arguments.

@@ -11,6 +11,7 @@
 <p id="config-status" class="status" role="status" aria-live="polite"></p>
 <div class="config-tabs" role="tablist" aria-label="Configuration sections">
     <button id="config-settings-tab" class="config-tab" type="button" role="tab" aria-selected="true" aria-controls="config-settings-panel" tabindex="0">Settings</button>
+    <button id="config-credentials-tab" class="config-tab" type="button" role="tab" aria-selected="false" aria-controls="config-credentials-panel" tabindex="-1">Credentials</button>
     <button id="config-model-specific-tab" class="config-tab" type="button" role="tab" aria-selected="false" aria-controls="config-model-specific-panel" tabindex="-1">Model-specific</button>
     <button id="config-costs-tab" class="config-tab" type="button" role="tab" aria-selected="false" aria-controls="config-costs-panel" tabindex="-1">Model costs</button>
 </div>
@@ -20,6 +21,16 @@
         <table class="config-table" aria-label="Configuration settings">
             <thead><tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Scope</th><th scope="col">Action</th></tr></thead>
             <tbody id="config-settings-list"></tbody>
+        </table>
+    </div>
+</section>
+<section id="config-credentials-panel" class="config-tab-panel" role="tabpanel" aria-labelledby="config-credentials-tab" tabindex="0" hidden>
+    <p class="config-help">Credentials let MAIA authenticate with external services. Values are masked in this list.</p>
+    <p id="config-credentials-empty" class="muted" hidden>No credential parameters are available.</p>
+    <div class="config-table-wrap">
+        <table class="config-table" aria-label="External service credentials">
+            <thead><tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Scope</th><th scope="col">Action</th></tr></thead>
+            <tbody id="config-credentials-list"></tbody>
         </table>
     </div>
 </section>

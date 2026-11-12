@@ -45,6 +45,11 @@ OPTIONS
   --scope <scope>
     Specify the configuration layer: session, workspace, home (default), user, or system.
 
+  --type <type>
+    Select the configuration type: general (default) or credentials.
+    Credentials use lowercase names and are stored separately in credentials.myl;
+    their values are never displayed.
+
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.
     If the key is not present in any scope, behaves like a normal write (home by default).
@@ -71,6 +76,9 @@ EXAMPLES
 
   maia config --cost list
     List all cost related configuration keys.
+
+  maia config --type credentials set openai_api_key <value>
+    Store an external-service credential in credentials.myl.
 
   maia config scope model
     Show the scope for the "model" configuration key.
@@ -111,37 +119,48 @@ EOF
 }
 
 FILTER_CONFIG_KEYS=()
+CONFIG_FILENAME=config.myl
+CONFIG_SECRET=0
+ACTIVE_CONFIG_KEYS=()
+ACTIVE_CONFIG_PATTERNS=()
 
-# Helper: find the highest-priority scope (most specific) that currently contains a key.
-# Echoes scope name or empty string if not present in any on-disk scope.
+config_key_exists() {
+    local name="$1" keys_name="$2" patterns_name="$3" key pattern
+    local -n keys="$keys_name"
+    local -n patterns="$patterns_name"
+    for key in "${keys[@]}"; do
+        [[ "$name" == "$key" ]] && return 0
+    done
+    for pattern in "${patterns[@]}"; do
+        [[ "$name" == $pattern ]] && return 0
+    done
+    return 1
+}
+
+# Find the highest-priority scope containing a key in the selected config file.
 find_highest_scope_with_key() {
     local name="$1"
-    local view_scope="$2"
-    local start=false
-    if [[ -z "$start" ]] ; then
-	start="session"
-    fi
-    local start=false
-    local s
+    local view_scope="${2:-session}"
+    local start=false s
     for s in "${SCOPE_ORDER[@]}"; do
 	if [[ "$s" == "$view_scope" ]]; then
 	    start=true
 	fi
 	[[ "$start" != true ]] && continue
 	[[ "$s" == "default" ]] && continue
-	local -a files
-        local file
-        mapfile_from_command files files_in_scope "$s" "config.myl"
-        for file in "${files[@]}"; do
+	local -a files=()
+	mapfile_from_command files files_in_scope "$s" "$CONFIG_FILENAME"
+	local file
+	for file in "${files[@]}"; do
 	    local -A tmpconfig=()
 	    myl_load "$file" tmpconfig
 	    if [[ -v tmpconfig["$name"] ]] ; then
-                echo "$s"
+		printf '%s\n' "$s"
                 return 0
             fi
         done
     done
-    echo ""
+    printf '\n'
     return 1
 }
 
@@ -181,16 +200,22 @@ handle_config_command() {
     local write_scope=""
     local view_scope=""
     local effective_flag=0
+    local config_type="settings"
 
     # Parse optional flags
     while [[ $# -gt 0 ]]; do
 	case "$1" in
 	    --scope)
-		shift
-		scope="$1"
+		[[ -n "${2:-}" ]] || die "Option --scope requires a scope."
+		scope="$2"
 		scope_given=1
-		shift
+		shift 2
 		;;
+            --type)
+                [[ -n "${2:-}" ]] || die "Option --type requires a type."
+                config_type="$2"
+                shift 2
+                ;;
             --effective)
                 effective_flag=1
                 shift
@@ -218,12 +243,26 @@ handle_config_command() {
         die "Cannot combine --scope and --effective"
     fi
 
-    # Load merged config
-    load_config "$scope" CONFIG
+    case "$config_type" in
+        settings)
+            CONFIG_FILENAME=config.myl
+            CONFIG_SECRET=0
+            ACTIVE_CONFIG_KEYS=( "${CONFIG_KEYS[@]}" )
+            ACTIVE_CONFIG_PATTERNS=( 'cost_input_*' 'cost_output_*' 'file_handling_mode_*' )
+            ;;
+        credentials)
+            [[ "$filter" == normal ]] || die "--all, --cost, and --file cannot be combined with --type credentials."
+            CONFIG_FILENAME=credentials.myl
+            CONFIG_SECRET=1
+            ACTIVE_CONFIG_KEYS=( "${CREDENTIAL_KEYS[@]}" )
+            ACTIVE_CONFIG_PATTERNS=()
+            ;;
+        *)
+            die "Unknown configuration type '$config_type'. Supported types: settings, credentials."
+            ;;
+    esac
 
-    # Decide view vs write scopes:
-    # - If user provided --scope, both view and write should use that scope.
-    # - If not, viewing defaults to session (merged to session) while writing defaults to session.
+    # Decide view vs write scopes. Both default to session.
     if [[ "$scope_given" -eq 1 ]]; then
         write_scope="$scope"
         view_scope="$scope"
@@ -231,9 +270,17 @@ handle_config_command() {
         write_scope="session"
         view_scope="session"
     fi
+    [[ "$CONFIG_SECRET" == 0 || "$write_scope" != default ]] || die "Credentials cannot be stored in the default scope."
+
+    # Load the selected settings file into a local array for read operations.
+    local -A selected_config=()
+    local -A EMPTY_CONFIG_DEFAULTS=()
+    local defaults_array=DEFAULT_CONFIG
+    [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
+    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" selected_config "$defaults_array"
 
     local key
-    for key in ${CONFIG_KEYS[*]}; do
+    for key in "${ACTIVE_CONFIG_KEYS[@]}"; do
 	case "$filter" in
             normal)
 		if [[ "$key" == cost_* ]]; then
@@ -433,8 +480,11 @@ show_config() {
     local view_scope="${3:-session}"
     printf "%-30s %-10s %s\n" "CONFIG NAME" "SCOPE" "VALUE"
     echo "----------------------------------------------------------------------------"
-    local -A tmpconfig
-    load_config "$view_scope" tmpconfig
+    local -A tmpconfig=()
+    local -A EMPTY_CONFIG_DEFAULTS=()
+    local defaults_array=DEFAULT_CONFIG
+    [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
+    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
     local keys
     if [[ -n "$name" ]]; then
         keys=($name)
@@ -445,12 +495,28 @@ show_config() {
     fi
     local key
     for key in "${keys[@]}"; do
-	local found="$(find_highest_scope_with_key "$key" "$view_scope")"
-	if [[ -z "$found" ]] ; then
-	    found="default"
-	fi
-	local value="${tmpconfig[$key]}"
-	case "$value" in
+        if ! config_key_exists "$key" ACTIVE_CONFIG_KEYS ACTIVE_CONFIG_PATTERNS; then
+            continue
+        fi
+        local found="$(find_highest_scope_with_key "$key" "$view_scope")"
+        local value="${tmpconfig[$key]:-}"
+        if [[ "$CONFIG_SECRET" == 1 ]]; then
+            local env_name="${CREDENTIAL_ENV_VARS[$key]}"
+            if [[ -n "$found" || -n "$value" ]]; then
+                found="${found:-set}"
+                printf '%-30s %-10s %s\n' "$key" "$found" '********************************'
+            elif [[ -v $env_name && -n "${!env_name}" ]]; then
+                printf '%-30s %-10s %s\n' "$key" "env" '********************************'
+            else
+                found="default"
+                printf '%-30s %-10s %s\n' "$key" "$found" '(not set)'
+            fi
+            continue
+        fi
+        if [[ -z "$found" ]]; then
+            found="default"
+        fi
+        case "$value" in
 	    true|false)
 		printf '%-30s %-10s %s\n' "$key" "$found" "$value"
 		;;
@@ -477,13 +543,14 @@ show_config() {
         "AWS_SECRET_ACCESS_KEY"
         "AWS_SESSION_TOKEN"
         "OPENAI_API_KEY"
+        "MAIA_CURL_EXTRA_HEADERS"
     )
     local var
     for var in "${env_vars[@]}"; do
         if [[ -n "${!var}" || "$filter" == "all" ]]; then
             local display_value="${!var}"
             case "$var" in
-                AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|OPENAI_API_KEY)
+                AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|OPENAI_API_KEY|MAIA_CURL_EXTRA_HEADERS)
                     display_value="********************************"
                     ;;
 		*)
@@ -498,30 +565,18 @@ show_config() {
 # Determine the path to config.json for a given scope using SCOPE_DIR
 config_file_for_scope() {
     local scope=$1
-    # The pseudo‐scope “default” has no on-disk file
-    if [[ "$scope" == "default" ]]; then
-	echo ""
-	return
-    fi
-    # Look up the directory for this scope
+    # The pseudo-scope default has no on-disk file and cannot be written.
+    [[ "$scope" != "default" ]] || die "The default scope cannot store configuration."
+
     validate_scope "$scope"
-    local dir="${SCOPE_DIR[$scope]}"
-    echo "$dir/config.myl"
+    printf '%s/%s\n' "${SCOPE_DIR[$scope]}" "$CONFIG_FILENAME"
 }
 
 config_exists() {
     local name="$1"
     local found="no"
-    # Allow keys starting with cost_input_ or cost_output_ or file_handling_mode_
-    if [[ "$name" == cost_input_* || "$name" == cost_output_* || "$name" == file_handling_mode_* ]]; then
+    if config_key_exists "$name" ACTIVE_CONFIG_KEYS ACTIVE_CONFIG_PATTERNS; then
         found="yes"
-    else
-	local key
-        for key in ${CONFIG_KEYS[*]}; do
-            if [[ "$name" == "$key" ]] ; then
-                found="yes"
-            fi
-        done
     fi
     if [[ "$found" == "no" ]] ; then
         die "Configuration '$name' does not exist."
@@ -535,14 +590,40 @@ get_scope_config() {
 	config_exists "$name"
     fi
     local scope="${2:-session}"
-    local -A tmpconfig
-    load_config "$scope" tmpconfig
-    if [[ -n "$name" ]]; then
-	echo "${tmpconfig[$name]}"
+    local -A tmpconfig=()
+    local -A EMPTY_CONFIG_DEFAULTS=()
+    local defaults_array=DEFAULT_CONFIG
+    [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
+    load_scoped_myl "$scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
+    if [[ "$CONFIG_SECRET" == 1 ]]; then
+        local -a keys_to_show=()
+        if [[ -n "$name" ]]; then
+            keys_to_show=( "$name" )
+        else
+            keys_to_show=( "${ACTIVE_CONFIG_KEYS[@]}" )
+        fi
+        local key env_name masked_value
+        for key in "${keys_to_show[@]}"; do
+            env_name="${CREDENTIAL_ENV_VARS[$key]}"
+            if [[ -v tmpconfig["$key"] || ( -n "$env_name" && -v $env_name && -n "${!env_name}" ) ]]; then
+                masked_value='********************************'
+            elif [[ -n "$name" ]]; then
+                masked_value='(not set)'
+            else
+                continue
+            fi
+            if [[ -n "$name" ]]; then
+                printf '%s\n' "$masked_value"
+            else
+                printf '%s=%s\n' "$key" "$masked_value"
+            fi
+        done
+    elif [[ -n "$name" ]]; then
+        echo "${tmpconfig[$name]}"
     else
-	for key in "${!tmpconfig[@]}"; do
-	    printf '%s=%s\n' "$key" "${tmpconfig[$key]}"
-	done
+        for key in "${!tmpconfig[@]}"; do
+            printf '%s=%s\n' "$key" "${tmpconfig[$key]}"
+        done
     fi
 }
 
@@ -552,10 +633,26 @@ set_config() {
     config_exists "$name"
     local value="$2"
     local scope="$3"
+    [[ "$CONFIG_SECRET" == 0 || "$scope" != default ]] || die "Credentials cannot be stored in the default scope."
     local file="$(config_file_for_scope "$scope")" || exit 1
 
     mkdir -p "$(dirname "$file")"
-    myl_update "$file" "$name" "$value"
+    if [[ "$CONFIG_SECRET" == 1 ]]; then
+        local previous_umask
+        previous_umask="$(umask)"
+        umask 077
+        if ! myl_update "$file" "$name" "$value"; then
+            umask "$previous_umask"
+            die "Unable to write credentials configuration."
+        fi
+        if ! chmod 600 "$file"; then
+            umask "$previous_umask"
+            die "Unable to secure credentials configuration file permissions."
+        fi
+        umask "$previous_umask"
+    else
+        myl_update "$file" "$name" "$value"
+    fi
 }
 
 # Unset a configuration key in the given scope
@@ -563,8 +660,8 @@ unset_config() {
     local name=$1
     config_exists "$name"
     local scope=$2
+    [[ "$CONFIG_SECRET" == 0 || "$scope" != default ]] || die "Credentials cannot be stored in the default scope."
 
-    # Determine the path to the scope’s config.myl
     local file="$(config_file_for_scope "$scope")"
 
     # If there's no config file at all, nothing to unset
@@ -583,5 +680,8 @@ unset_config() {
 
     # Otherwise delete the key and overwrite the file
     myl_delete "$file" "$name"
+    if [[ "$CONFIG_SECRET" == 1 ]]; then
+        chmod 600 "$file" || die "Unable to secure credentials configuration file permissions."
+    fi
     info "Unset '$name' in scope '$scope'"
 }

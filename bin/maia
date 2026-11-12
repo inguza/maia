@@ -81,6 +81,9 @@ fi
 
 # Load shared utilities
 . "$MAIA_CORE_LIB_DIR/common.sh"
+# Load separately stored provider credentials into their conventional
+# environment variables so existing API consumers need no changes.
+load_credentials
 export TERM_LOGLEVEL=NOTICE
 
 # Check for required tools

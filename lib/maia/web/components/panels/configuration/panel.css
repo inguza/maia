@@ -116,17 +116,20 @@
 }
 
 .config-add-cost,
-.config-add-model-setting {
+.config-add-model-setting,
+.config-add-credential {
     margin-top: .8rem;
 }
 
 .config-add-cost summary,
-.config-add-model-setting summary {
+.config-add-model-setting summary,
+.config-add-credential summary {
     cursor: pointer;
 }
 
 .config-add-cost form,
-.config-add-model-setting form {
+.config-add-model-setting form,
+.config-add-credential form {
     display: grid;
     gap: .45rem;
     margin-top: .55rem;
@@ -134,7 +137,9 @@
 }
 
 .config-add-cost input,
-.config-add-model-setting input {
+.config-add-model-setting input,
+.config-add-credential input,
+.config-add-credential select {
     box-sizing: border-box;
     font: inherit;
     min-width: 0;

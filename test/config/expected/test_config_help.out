@@ -35,6 +35,11 @@ OPTIONS
   --scope <scope>
     Specify the configuration layer: session, workspace, home (default), user, or system.
 
+  --type <type>
+    Select the configuration type: general (default) or credentials.
+    Credentials use lowercase names and are stored separately in credentials.myl;
+    their values are never displayed.
+
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.
     If the key is not present in any scope, behaves like a normal write (home by default).
@@ -61,6 +66,9 @@ EXAMPLES
 
   maia config --cost list
     List all cost related configuration keys.
+
+  maia config --type credentials set openai_api_key <value>
+    Store an external-service credential in credentials.myl.
 
   maia config scope model
     Show the scope for the "model" configuration key.
