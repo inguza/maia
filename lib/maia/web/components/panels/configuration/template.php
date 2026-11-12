@@ -33,6 +33,14 @@
             <tbody id="config-credentials-list"></tbody>
         </table>
     </div>
+    <details class="config-add-credential">
+        <summary>Add credential</summary>
+        <form id="config-credential-form" class="config-add-credential-form">
+            <input id="config-credential-key" name="key" type="text" autocomplete="off" placeholder="<mcp_name>_token" aria-label="Credential parameter name" pattern="[a-z0-9_]+" required>
+            <input id="config-credential-value" name="value" type="password" autocomplete="new-password" placeholder="Value" aria-label="Credential value" required>
+            <button id="config-credential-save" type="submit">Add</button>
+        </form>
+    </details>
 </section>
 <section id="config-model-specific-panel" class="config-tab-panel" role="tabpanel" aria-labelledby="config-model-specific-tab" tabindex="0" hidden>
     <p id="config-model-specific-empty" class="muted" hidden>No model-specific parameters are configured.</p>

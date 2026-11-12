@@ -276,11 +276,10 @@ $action = (string) ($input['action'] ?? '');
 $type = (string) ($input['type'] ?? 'general');
 
 if ($type === 'credentials') {
-    $credentialKeys = config_context_run(['config', '--type', 'credentials', 'list'], $environment);
-    config_context_fail_run($credentialKeys, 'Unable to list credential names.');
-    $allowed = array_fill_keys(array_filter(array_map('trim', preg_split('/\\R/', $credentialKeys['output'])), static fn (string $key): bool => $key !== ''), true);
     $key = trim((string) ($input['key'] ?? ''));
-    if (!isset($allowed[$key])) config_context_error(400, 'This credential name is not supported.');
+    if (!preg_match('/^[a-z0-9_]+$/', $key)) {
+        config_context_error(400, 'Credential names must use lowercase letters, numbers, and underscores.');
+    }
 
     if ($action === 'credential-set') {
         $value = $input['value'] ?? null;

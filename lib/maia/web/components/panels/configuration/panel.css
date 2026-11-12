@@ -136,6 +136,23 @@
     max-width: 36rem;
 }
 
+.config-add-credential form {
+    align-items: center;
+    grid-template-columns: 28% minmax(0, 1fr) auto;
+    max-width: none;
+}
+
+.config-add-credential button,
+.config-add-credential input {
+    box-sizing: border-box;
+    height: 2.25rem;
+}
+
+.config-add-credential button {
+    margin: 0;
+    padding: .35rem .45rem;
+}
+
 .config-add-cost input,
 .config-add-model-setting input,
 .config-add-credential input,

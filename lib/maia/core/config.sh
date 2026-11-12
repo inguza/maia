@@ -128,6 +128,9 @@ config_key_exists() {
     local name="$1" keys_name="$2" patterns_name="$3" key pattern
     local -n keys="$keys_name"
     local -n patterns="$patterns_name"
+    if [[ "$CONFIG_SECRET" == 1 && "$name" =~ ^[a-z0-9_]+$ ]]; then
+        return 0
+    fi
     for key in "${keys[@]}"; do
         [[ "$name" == "$key" ]] && return 0
     done
@@ -279,6 +282,7 @@ handle_config_command() {
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
     load_scoped_myl "$view_scope" "$CONFIG_FILENAME" selected_config "$defaults_array"
 
+    FILTER_CONFIG_KEYS=()
     local key
     for key in "${ACTIVE_CONFIG_KEYS[@]}"; do
 	case "$filter" in
@@ -309,6 +313,14 @@ handle_config_command() {
         esac 
         FILTER_CONFIG_KEYS+=( "$key" )
     done
+    if [[ "$CONFIG_SECRET" == 1 ]]; then
+        for key in "${!selected_config[@]}"; do
+            [[ "$key" =~ ^[a-z0-9_]+$ ]] || continue
+            if [[ ! " ${FILTER_CONFIG_KEYS[*]} " == *" $key "* ]]; then
+                FILTER_CONFIG_KEYS+=( "$key" )
+            fi
+        done
+    fi
     
     local cmd="$1"
     case "$cmd" in
@@ -501,7 +513,7 @@ show_config() {
         local found="$(find_highest_scope_with_key "$key" "$view_scope")"
         local value="${tmpconfig[$key]:-}"
         if [[ "$CONFIG_SECRET" == 1 ]]; then
-            local env_name="${CREDENTIAL_ENV_VARS[$key]}"
+            local env_name="${CREDENTIAL_ENV_VARS[$key]:-}"
             if [[ -n "$found" || -n "$value" ]]; then
                 found="${found:-set}"
                 printf '%-30s %-10s %s\n' "$key" "$found" '********************************'
@@ -600,11 +612,11 @@ get_scope_config() {
         if [[ -n "$name" ]]; then
             keys_to_show=( "$name" )
         else
-            keys_to_show=( "${ACTIVE_CONFIG_KEYS[@]}" )
+            keys_to_show=( "${FILTER_CONFIG_KEYS[@]}" )
         fi
         local key env_name masked_value
         for key in "${keys_to_show[@]}"; do
-            env_name="${CREDENTIAL_ENV_VARS[$key]}"
+            env_name="${CREDENTIAL_ENV_VARS[$key]:-}"
             if [[ -v tmpconfig["$key"] || ( -n "$env_name" && -v $env_name && -n "${!env_name}" ) ]]; then
                 masked_value='********************************'
             elif [[ -n "$name" ]]; then
