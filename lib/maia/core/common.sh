@@ -182,10 +182,7 @@ resolve_plugin_paths() {
 #   history, project, home, user, system
 # Usage: call init_scope_dirs; then access "${SCOPE_DIR[$scope]}"
 init_scope_dirs() {
-    local data_dir="$MAIA_HOME"
-    if [[ -z "$data_dir" ]] ; then
-	data_dir="$(resolve_home_dir)"
-    fi
+    local data_dir="$(resolve_home_dir)"
 
     local user_dir="$HOME/.maia"
     SCOPE_DIR=(
