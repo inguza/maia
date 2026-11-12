@@ -50,7 +50,7 @@ Tools are classified by the effects they can have, and operations with potential
 such as executing commands or modifying files, result in change proposals that can be inspected before they are applied.
 Explicit tool permissions control which capabilities are available to the AI.
 
-### Command-line First
+### Command-line Integration
 
 Designed to work naturally from the command line and to be easy to incorporate into scripts, applications, and other software as a command-line tool.
 
@@ -89,6 +89,7 @@ For optional functionality:
 | `maia shell enter` | `script` from bsdutils | |
 | AWS API | `xxd` | |
 | Binary files | `file` | If `file` is not available a less precise heuristic is used |
+| GUI | `php` | |
 
 Some MAIA tools have additional dependencies:
 
