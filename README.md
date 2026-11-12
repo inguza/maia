@@ -265,6 +265,12 @@ Set your API key:
 export OPENAI_API_KEY='your_api_key_here'
 ```
 
+or alternatively
+
+```bash
+maia config --scope home --type credentials openai_api_key 'your_api_key_here'
+```
+
 #### OpenAI Responses
 
 The [Responses API](https://developers.openai.com/api/reference/responses/overview) is used by default. No additional configuration is required.
@@ -285,6 +291,14 @@ Set your [AWS credentials](https://docs.aws.amazon.com/sdkref/latest/guide/envir
 export AWS_ACCESS_KEY_ID="..."
 export AWS_SECRET_ACCESS_KEY="..."
 export AWS_SESSION_TOKEN="..."
+```
+
+or alternatively
+
+```bash
+maia config --scope home --type credentials aws_access_key_id "..."
+maia config --scope home --type credentials aws_secret_access_key "..."
+maia config --scope home --type credentials aws_session_token "..."
 ```
 
 `AWS_SESSION_TOKEN` is only needed when using temporary credentials.
@@ -362,6 +376,12 @@ If the provider requires additional HTTP headers for authentication or other pur
 
 ```bash
 export MAIA_CURL_EXTRA_HEADERS=$'X-My-Auth: mytoken\nX-Another-Header: value'
+```
+
+or alternatively
+
+```bash
+maia config --scope home --type credentials maia_curl_extra_headers $'X-My-Auth: mytoken\nX-Another-Header: value'
 ```
 
 Each line must use the standard HTTP header format: `Header-Name: value`.
@@ -516,7 +536,8 @@ Alias /somelocation /path/to/lib/maia/web
     # The following three are not needed if you use PHP-FPM, they are set there instead
     SetEnv MAIA_HOME /a/path/to/maia_home
     SetEnv MAIA_BIN /path/to/bin/maia
-    SetEnv OPENAI_API_KEY ...key here...
+    # Uncomment the following line to always set the authentication key
+    #SetEnv OPENAI_API_KEY ...key here...
     Require all granted
 </Location>
 ```
@@ -538,7 +559,8 @@ listen.mode = 0660
 ; Pass MAIA configuration to PHP.
 env[MAIA_HOME] = /home/<user>
 env[MAIA_BIN] = ...path to maia...
-env[OPENAI_API_KEY] = ...key here ...
+; Uncomment the following line to always set the authentication key
+;env[OPENAI_API_KEY] = ...key here ...
 
 ; Example resource limits.
 pm = ondemand
