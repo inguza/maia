@@ -452,9 +452,8 @@ The token is sent as `Authorization: Bearer <token>`.
 
 ---
 
-# Web GUI
+# Graphical User Interface - GUI
 
-MAIA includes an web GUI that can run either using PHP's built-in web server or through Apache.
 
 To handle really long conversations you need to increase the default memory limit to 256 or 512 MB depending on
 the history size.
@@ -506,7 +505,6 @@ The following example uses placeholder paths. Adjust them and the URL prefix to 
 Enable the required Apache modules, including mod_alias, mod_rewrite, and mod_env, and add the following configuration:
 
 ```text
-Alias /somelocation /path/to/lib/maia/web
 <Directory /path/to/lib/maia/web>
   AllowOverride All
   Options FollowSymLinks
@@ -526,12 +524,15 @@ Alias /somelocation /path/to/lib/maia/web
 
   # Route GUI and API requests through the router.
   RewriteRule ^ router.php [END]
-  # Uncomment the below to allow use of PHP-FPM (replace <user> with the username)
-  # <FilesMatch "\.php$">
-  #   SetHandler "proxy:unix:/run/php/<user>.sock|fcgi://localhost/"
-  # </FilesMatch>
 </Directory>
+```
 
+Then depending on whether you enable it directly using php module or php-fpm you add some more.
+
+### Apache without php-fpm
+
+```text
+Alias /somelocation /path/to/lib/maia/web
 <Location /somelocation>
     # The following three are not needed if you use PHP-FPM, they are set there instead
     SetEnv MAIA_HOME /a/path/to/maia_home
@@ -539,10 +540,26 @@ Alias /somelocation /path/to/lib/maia/web
     # Uncomment the following line to always set the authentication key
     #SetEnv OPENAI_API_KEY ...key here...
     Require all granted
+  # Uncomment the below to allow use of PHP-FPM (replace <user> with the username)
 </Location>
+  # <LocationMatch "\.php$">
+  #   SetHandler "proxy:unix:/run/php/<user>.sock|fcgi://localhost/"
+  # </LocationMatch>
 ```
 
-If you want to use PHP-FPM you add a file (the path depends on your php software)
+### Apache with php-fpm
+
+```text
+Alias /somelocation /path/to/lib/maia/web
+<Location /somelocation>
+    Require all granted
+</Location>
+<LocationMatch "/^somelocation.*\.php$">
+    SetHandler "proxy:unix:/run/php/<user>.sock|fcgi://localhost/"
+</LocationMatch>
+```
+
+Also add a file (the path depends on your php software)
 /etc/php/<version>/fpm/pool.d/<user>.conf to the PHP-FPM configuration and it should look something like this
  (replace <user> with the user name):
 
@@ -570,6 +587,8 @@ pm.max_requests = 500
 ; This part is important to make sure send response is fast
 php_admin_value[output_buffering] = 0
 ```
+
+### Outside Apache
 
 The configuration serves existing files directly and sends other requests to router.php.
 The MAIA_HOME and MAIA_BIN environment variables specify the MAIA home directory and executable.
