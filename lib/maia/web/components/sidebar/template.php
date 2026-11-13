@@ -12,6 +12,7 @@
 <aside id="sidebar" class="sidebar" aria-label="MAIA navigation" aria-hidden="true">
     <header class="sidebar-header">
         <a class="brand" href="<?= $homeUrl ?>">MAIA</a>
+        <button id="sidebar-refresh" class="sidebar-refresh" type="button" aria-label="Refresh sessions and workspaces" title="Refresh sessions and workspaces">&#x21BB;</button>
         <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close navigation">&#x00D7;</button>
     </header>
 

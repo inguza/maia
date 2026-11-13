@@ -28,7 +28,8 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
 }
 .sidebar-header h2 { margin: 0; font-size: 1.2rem; }
 .sidebar-header a, .sidebar-list a, .sidebar-list a:visited { color: inherit; }
-.sidebar-close { border: 0; padding: .25rem .5rem; }
+.sidebar-refresh, .sidebar-close { border: 0; padding: .25rem .5rem; }
+.sidebar-refresh { margin-left: auto; }
 .sidebar-section { margin: 0 0 1.5rem; }
 .sidebar-section h2 { margin: 0 0 .5rem; font-size: .9rem; text-transform: uppercase; }
 .resource-search { display: flex; gap: .4rem; margin: .5rem 0; }
