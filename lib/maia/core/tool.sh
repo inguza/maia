@@ -495,7 +495,7 @@ handle_tool_command() {
 	    ;;
         disable)
             mkdir -p "${SCOPE_DIR[$scope]}"
-            [[ -f "$filepath" ]] || : > "$filepath"
+            copy_over "$implicit_scope" "$prompt_type" "$filepath"
             local tmpfile="$(mktemp)"
             while IFS= read -r current || [[ -n "$current" ]]; do
                 local remove=false
