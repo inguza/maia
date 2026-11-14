@@ -55,7 +55,7 @@ handle_api_command() {
     [[ "$2" =~ ^-h|--help$ ]] && api_usage
 
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     local maia_api_base_url="$(get_config api_base_url)"
     local api_type=$(get_config api_type)

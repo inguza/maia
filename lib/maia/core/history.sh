@@ -653,7 +653,7 @@ handle_history_command() {
 
     # Load merged config
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     local history_dir=$(resolve_session_base)
     local history_name=$(resolve_session_name)  # Resolve the active history name using `used`

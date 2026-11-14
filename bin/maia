@@ -122,7 +122,6 @@ COMMANDS:
     profile          Profile management (create, list, delete)
     send|s           Send prompt to API (with dry-run, response-file options)
     user|u|outbox    User outbox management (show, append, replace, clear, delete)
-    count            Estimate token count for API payload
     system           System prompt management (show, append, replace, clear)
     [+]edit          An alias of 'maia user +edit'
     [+]compose	     An alias of 'maia send +compose'
@@ -349,11 +348,6 @@ case "$COMMAND" in
 	shift
 	. "$MAIA_CORE_LIB_DIR/send.sh"
 	handle_send_command "$@"
-	;;
-    count)
-	shift
-	. "$MAIA_CORE_LIB_DIR/count.sh"
-	handle_count_command "$@"
 	;;
     change|c)
 	shift

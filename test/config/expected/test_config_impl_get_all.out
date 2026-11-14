@@ -24,6 +24,8 @@ default_session_extra_send_filesets default    ""
 default_session_filesets       default    "__SESSION_NAME__"
 default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
+file_handling_mode_mistral_24b default    "APPEND"
+file_handling_mode_qwen2_5_14b default    "APPEND"
 http_logging                   default    true
 max_input_tokens               default    64000
 max_output_tokens              default    32000
@@ -36,6 +38,7 @@ prune_when_skipped             default    true
 send_hook                      default    ""
 temperature                    default    "null"
 term_loglevel                  home       "NOTICE"
+token_accuracy                 default    "auto"
 tool_iteration_limit           default    20
 tool_loop_prevent              default    "file-write file-change file-rm"
 top_p                          default    "null"

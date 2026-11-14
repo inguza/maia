@@ -105,7 +105,7 @@ handle_fileset_command() {
 
     # Load merged config
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     # Base directory for this workspace
     local ws_path="$(resolve_workspace_path)"

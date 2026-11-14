@@ -35,7 +35,7 @@
     </div>
     <details class="config-add-credential">
         <summary>Add credential</summary>
-        <form id="config-credential-form" class="config-add-credential-form">
+        <form id="config-credential-form" class="config-add-inline-form config-add-credential-form">
             <input id="config-credential-key" name="key" type="text" autocomplete="off" placeholder="<mcp_name>_token" aria-label="Credential parameter name" pattern="[a-z0-9_]+" required>
             <input id="config-credential-value" name="value" type="password" autocomplete="new-password" placeholder="Value" aria-label="Credential value" required>
             <button id="config-credential-save" type="submit">Add</button>
@@ -52,12 +52,10 @@
     </div>
     <details class="config-add-model-setting">
         <summary>Add model-specific parameter</summary>
-        <form id="config-model-specific-form">
-            <label for="config-model-specific-key">Parameter</label>
-            <input id="config-model-specific-key" name="key" type="text" autocomplete="off" placeholder="file_handling_mode_model_name" required>
-            <label for="config-model-specific-value">Value</label>
-            <input id="config-model-specific-value" name="value" type="text" autocomplete="off" placeholder="APPEND" required>
-            <button id="config-model-specific-save" type="submit">+ Add parameter</button>
+        <form id="config-model-specific-form" class="config-add-inline-form config-add-model-setting-form">
+            <input id="config-model-specific-key" name="key" type="text" autocomplete="off" placeholder="file_handling_mode_model_name" aria-label="Model-specific parameter name" required>
+            <input id="config-model-specific-value" name="value" type="text" autocomplete="off" placeholder="APPEND" aria-label="Model-specific parameter value" required>
+            <button id="config-model-specific-save" type="submit">Add</button>
         </form>
     </details>
 </section>
@@ -72,18 +70,11 @@
     </div>
     <details class="config-add-cost">
         <summary>Add model costs</summary>
-        <form id="config-cost-form">
-            <label for="config-cost-model">Model name</label>
-            <input id="config-cost-model" name="model" type="text" autocomplete="off" placeholder="e.g. gpt-5-mini" required>
-            <div class="config-cost-fields">
-                <label for="config-cost-input">Input cost ($ per 1M tokens)
-                    <input id="config-cost-input" name="input" type="number" min="0" step="any">
-                </label>
-                <label for="config-cost-output">Output cost ($ per 1M tokens)
-                    <input id="config-cost-output" name="output" type="number" min="0" step="any">
-                </label>
-            </div>
-            <button id="config-cost-save" type="submit">+ Add model cost</button>
+        <form id="config-cost-form" class="config-add-inline-form config-add-cost-form">
+            <input id="config-cost-model" name="model" type="text" autocomplete="off" placeholder="Model name" aria-label="Model name" required>
+            <input id="config-cost-input" name="input" type="number" min="0" step="any" placeholder="Input cost ($ per 1M tokens)" aria-label="Input cost in dollars per 1 million tokens">
+            <input id="config-cost-output" name="output" type="number" min="0" step="any" placeholder="Output cost ($ per 1M tokens)" aria-label="Output cost in dollars per 1 million tokens">
+            <button id="config-cost-save" type="submit">Add</button>
         </form>
     </details>
 </section>

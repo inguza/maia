@@ -24,17 +24,17 @@ COMMANDS
   get [<name>]
     Display the effective merged setting for each key, or only <name> if given.
     Honors the --scope option for restricting to a particular layer.
-    Ignores --all and --cost.
+    Ignores --all.
 
   set <name> <value>
     Set the configuration key <name> to <value> in the specified scope.
-    Ignores --all and --cost.
+    Ignores --all and.
     Use --effective to target the highest-priority scope where the key is currently defined.
 
   unset <name>
     Remove <name> from the specified scope, reverting to a lower-level setting
     or default.
-    Ignores --all and --cost.
+    Ignores --all and.
     Use --effective to target the highest-priority scope where the key is currently defined.
 
   When no command is given it defaults to set when both name and value is provided and
@@ -46,22 +46,11 @@ OPTIONS
     Specify the configuration layer: session, workspace, home (default), user, or system.
 
   --type <type>
-    Select the configuration type: general (default) or credentials.
-    Credentials use lowercase names and are stored separately in credentials.myl;
-    their values are never displayed.
+    Select the configuration type: settings (default), cost or credentials.
 
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.
-    If the key is not present in any scope, behaves like a normal write (home by default).
-
-  --all
-    Show all configuration items.
-
-  --cost
-    Show only cost related configuration items.
-
-  --file
-    Show only file handling mode related configuration items.
+    If the key is not present in any scope, behaves like a normal write (session by default).
 
   -h, --help
     Show this help message and exit.
@@ -69,13 +58,7 @@ OPTIONS
 EXAMPLES
 
   maia config list
-    List all available configuration keys, except cost related.
-
-  maia config --all list
     List all available configuration keys.
-
-  maia config --cost list
-    List all cost related configuration keys.
 
   maia config --type credentials set openai_api_key <value>
     Store an external-service credential in credentials.myl.
@@ -93,9 +76,6 @@ EXAMPLES
     Unset the "stream" key in the user scope.
 
   maia config
-    Show non-cost related configuration.
-
-  maia config --all
     Show all configuration.
 
 NOTES
@@ -223,18 +203,6 @@ handle_config_command() {
                 effective_flag=1
                 shift
                 ;;
-	    --all)
-                filter="all"
-                shift
-                ;;
-            --cost)
-                filter="cost"
-                shift
-                ;;
-            --file)
-                filter="file"
-                shift
-                ;;
 	    *)
                 # For now, treat as normal config keys or subcommands
                 break
@@ -246,22 +214,31 @@ handle_config_command() {
         die "Cannot combine --scope and --effective"
     fi
 
+    local defaults_array
     case "$config_type" in
         settings)
             CONFIG_FILENAME=config.myl
             CONFIG_SECRET=0
             ACTIVE_CONFIG_KEYS=( "${CONFIG_KEYS[@]}" )
-            ACTIVE_CONFIG_PATTERNS=( 'cost_input_*' 'cost_output_*' 'file_handling_mode_*' )
+            ACTIVE_CONFIG_PATTERNS=( 'file_handling_mode_*' )
+	    defaults_array=DEFAULT_CONFIG
             ;;
         credentials)
-            [[ "$filter" == normal ]] || die "--all, --cost, and --file cannot be combined with --type credentials."
             CONFIG_FILENAME=credentials.myl
             CONFIG_SECRET=1
             ACTIVE_CONFIG_KEYS=( "${CREDENTIAL_KEYS[@]}" )
-            ACTIVE_CONFIG_PATTERNS=()
+            ACTIVE_CONFIG_PATTERNS=( '*_token' )
+	    defaults_array=EMPTY_CONFIG_DEFAULTS
+            ;;
+        cost)
+            CONFIG_FILENAME=cost.myl
+            CONFIG_SECRET=0
+            ACTIVE_CONFIG_KEYS=( "${COST_KEYS[@]}" )
+            ACTIVE_CONFIG_PATTERNS=( 'input_*' 'output_*')
+	    defaults_array=DEFAULT_COST
             ;;
         *)
-            die "Unknown configuration type '$config_type'. Supported types: settings, credentials."
+            die "Unknown configuration type '$config_type'. Supported types: settings, cost, credentials."
             ;;
     esac
 
@@ -273,54 +250,21 @@ handle_config_command() {
         write_scope="session"
         view_scope="session"
     fi
-    [[ "$CONFIG_SECRET" == 0 || "$write_scope" != default ]] || die "Credentials cannot be stored in the default scope."
 
     # Load the selected settings file into a local array for read operations.
     local -A selected_config=()
     local -A EMPTY_CONFIG_DEFAULTS=()
-    local defaults_array=DEFAULT_CONFIG
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
     load_scoped_myl "$view_scope" "$CONFIG_FILENAME" selected_config "$defaults_array"
 
     FILTER_CONFIG_KEYS=()
     local key
-    for key in "${ACTIVE_CONFIG_KEYS[@]}"; do
-	case "$filter" in
-            normal)
-		if [[ "$key" == cost_* ]]; then
-		    # Exclude keys starting with cost_
-		    continue
-		fi
-                if [[ "$key" == file_handling_mode_* ]]; then
-                    # Include only file_handling_mode keys
-		    continue
-                fi
-		;;
-            cost)
-                if [[ "$key" != cost_* ]]; then
-                    # Include only cost_ keys
-		    continue
-                fi
-                ;;
-            file)
-                if [[ "$key" != file_handling_mode_* ]]; then
-                    # Include only file_handling_mode keys
-		    continue
-                fi
-                ;;
-            all)
-                ;;
-        esac 
-        FILTER_CONFIG_KEYS+=( "$key" )
+    for key in "${!selected_config[@]}"; do
+        [[ "$key" =~ ^[a-z0-9_]+$ ]] || continue
+        if [[ ! " ${ACTIVE_CONFIG_KEYS[*]} " == *" $key "* ]]; then
+            ACTIVE_CONFIG_KEYS+=( "$key" )
+        fi
     done
-    if [[ "$CONFIG_SECRET" == 1 ]]; then
-        for key in "${!selected_config[@]}"; do
-            [[ "$key" =~ ^[a-z0-9_]+$ ]] || continue
-            if [[ ! " ${FILTER_CONFIG_KEYS[*]} " == *" $key "* ]]; then
-                FILTER_CONFIG_KEYS+=( "$key" )
-            fi
-        done
-    fi
     
     local cmd="$1"
     case "$cmd" in
@@ -332,7 +276,7 @@ handle_config_command() {
 	    shift
 	    # Optional name
 	    local name="$1"
-	    show_config "$name" "$filter" "$view_scope"
+            show_config "$name" "$view_scope" "$defaults_array"
 	    ;;
 
 	get)
@@ -345,13 +289,13 @@ handle_config_command() {
 	    fi
 	    if [ -z "$name" ] ; then
 		# Show merged config according to view scope (defaults to session when --scope not given)
-		get_scope_config "" "$view_scope"
+	    get_scope_config "" "$view_scope" "$defaults_array"
 		return
 	    fi
 	    if [[ "$name" == --* ]]; then
 		die "Invalid configuration key name '$name'. It cannot start with '--'."
 	    fi
-	    get_scope_config "$name" "$view_scope"
+	    get_scope_config "$name" "$view_scope" "$defaults_array"
 	    ;;
 
 	set)
@@ -434,7 +378,7 @@ handle_config_command() {
 	    ;;
 
 	"")
-	    show_config "" "$filter" "$view_scope"
+	    show_config "" "$view_scope" "$defaults_array"
 	    ;;
 
 	*)
@@ -444,7 +388,7 @@ handle_config_command() {
 		show_config # This cannot happen since we have "" above
 	    elif [[ -n "$name" && -z "$value" ]] ; then
 		debug "Get config"
-		get_scope_config "$name" "$view_scope"
+		get_scope_config "$name" "$view_scope" "$defaults_array"
 	    else
 		# Special handling for default_session_filesets to convert CSV to JSON array
 		# TODO change
@@ -480,7 +424,7 @@ handle_config_command() {
 
 # List available configuration keys
 list_config_keys() {
-    for k in "${FILTER_CONFIG_KEYS[@]}"; do
+    for k in "${ACTIVE_CONFIG_KEYS[@]}"; do
 	echo "$k"
     done
 }
@@ -488,21 +432,20 @@ list_config_keys() {
 # Show effective scope for keys (name optional)
 show_config() {
     local name="$1"
-    local filter="$2" # Only used to determine environment variables to be shown or not
-    local view_scope="${3:-session}"
+    local view_scope="${2:-session}"
+    local defaults_array="${3:-DEFAULT_CONFIG}"
     printf "%-30s %-10s %s\n" "CONFIG NAME" "SCOPE" "VALUE"
     echo "----------------------------------------------------------------------------"
     local -A tmpconfig=()
     local -A EMPTY_CONFIG_DEFAULTS=()
-    local defaults_array=DEFAULT_CONFIG
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
     load_scoped_myl "$view_scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
     local keys
     if [[ -n "$name" ]]; then
         keys=($name)
     else
-        # Sort FILTER_CONFIG_KEYS alphabetically
-        IFS=$'\n' keys=($(sort <<<"${FILTER_CONFIG_KEYS[*]}"))
+        # Sort ACTIVE_CONFIG_KEYS alphabetically
+        IFS=$'\n' keys=($(sort <<<"${ACTIVE_CONFIG_KEYS[*]}"))
         unset IFS
     fi
     local key
@@ -602,9 +545,9 @@ get_scope_config() {
 	config_exists "$name"
     fi
     local scope="${2:-session}"
+    local defaults_array="${3:-DEFAULT_CONFIG}"
     local -A tmpconfig=()
     local -A EMPTY_CONFIG_DEFAULTS=()
-    local defaults_array=DEFAULT_CONFIG
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
     load_scoped_myl "$scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
     if [[ "$CONFIG_SECRET" == 1 ]]; then
@@ -612,7 +555,7 @@ get_scope_config() {
         if [[ -n "$name" ]]; then
             keys_to_show=( "$name" )
         else
-            keys_to_show=( "${FILTER_CONFIG_KEYS[@]}" )
+            keys_to_show=( "${ACTIVE_CONFIG_KEYS[@]}" )
         fi
         local key env_name masked_value
         for key in "${keys_to_show[@]}"; do

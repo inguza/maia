@@ -249,7 +249,7 @@ handle_update_command() {
     init_profile_search_dirs
     
     local scope="home"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     local cmd="${1:-upgrade}"
     shift || true

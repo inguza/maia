@@ -136,19 +136,29 @@
     max-width: 36rem;
 }
 
-.config-add-credential form {
+.config-add-inline-form {
     align-items: center;
     grid-template-columns: 28% minmax(0, 1fr) auto;
-    max-width: none;
+    max-width: none !important;
+}
+
+.config-add-cost-form {
+    grid-template-columns: 28% repeat(2, minmax(0, 1fr)) auto;
 }
 
 .config-add-credential button,
-.config-add-credential input {
+.config-add-credential input,
+.config-add-model-setting button,
+.config-add-model-setting input,
+.config-add-cost button,
+.config-add-cost input {
     box-sizing: border-box;
     height: 2.25rem;
 }
 
-.config-add-credential button {
+.config-add-credential button,
+.config-add-model-setting button,
+.config-add-cost button {
     margin: 0;
     padding: .35rem .45rem;
 }
@@ -162,23 +172,6 @@
     min-width: 0;
     padding: .35rem .45rem;
     width: 100%;
-}
-
-.config-cost-fields {
-    display: grid;
-    gap: .6rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.config-cost-fields label {
-    display: grid;
-    gap: .25rem;
-}
-
-.config-add-cost button,
-.config-add-model-setting button {
-    justify-self: start;
-    margin: .25rem 0 0;
 }
 
 @media (max-width: 40rem) {

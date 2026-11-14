@@ -71,7 +71,8 @@ handle_count_command() {
     [[ "$2" =~ ^-h|--help$ ]] && count_usage
 
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
+    load_cost "$scope"
 
     # Parse arguments for --model option
     local model=$(get_config model)
@@ -111,11 +112,11 @@ handle_count_command() {
     model_key="${model_key//-/_}"
 
     # Extract cost per token for user and assistant from config or fallback to defaults
-    local cost_input_key="cost_input_${model_key}"
-    local cost_output_key="cost_output_${model_key}"
+    local cost_input_key="input_${model_key}"
+    local cost_output_key="output_${model_key}"
 
-    local cost_input=$(get_config "$cost_input_key")
-    local cost_output=$(get_config "$cost_output_key")
+    local cost_input=$(get_cost "$cost_input_key")
+    local cost_output=$(get_cost "$cost_output_key")
 
     # Determine history and outbox
     local history_dir=$(resolve_session_path)
@@ -147,7 +148,9 @@ handle_count_command() {
     local last_assistant_tokens=0
 
     count=$(jq 'length' <<<"$messages_json")
+    len=${#messages_json}
     echo
+    len=${#content}
     echo "Approximate token counts per message (chars/4 ≈ tokens):"
     index=0
     uindex=0
@@ -155,7 +158,6 @@ handle_count_command() {
     for idx in $(seq 0 $((count - 1))); do
         role=$(jq -r ".[$idx].role" <<<"$messages_json")
         content=$(jq -r ".[$idx].content" <<<"$messages_json")
-        len=${#content}
         tokens=$(((len + 3) / 4))
 	sindex=
 	xindex=

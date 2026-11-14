@@ -14,17 +14,17 @@ COMMANDS
   get [<name>]
     Display the effective merged setting for each key, or only <name> if given.
     Honors the --scope option for restricting to a particular layer.
-    Ignores --all and --cost.
+    Ignores --all.
 
   set <name> <value>
     Set the configuration key <name> to <value> in the specified scope.
-    Ignores --all and --cost.
+    Ignores --all and.
     Use --effective to target the highest-priority scope where the key is currently defined.
 
   unset <name>
     Remove <name> from the specified scope, reverting to a lower-level setting
     or default.
-    Ignores --all and --cost.
+    Ignores --all and.
     Use --effective to target the highest-priority scope where the key is currently defined.
 
   When no command is given it defaults to set when both name and value is provided and
@@ -36,22 +36,11 @@ OPTIONS
     Specify the configuration layer: session, workspace, home (default), user, or system.
 
   --type <type>
-    Select the configuration type: general (default) or credentials.
-    Credentials use lowercase names and are stored separately in credentials.myl;
-    their values are never displayed.
+    Select the configuration type: settings (default), cost or credentials.
 
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.
-    If the key is not present in any scope, behaves like a normal write (home by default).
-
-  --all
-    Show all configuration items.
-
-  --cost
-    Show only cost related configuration items.
-
-  --file
-    Show only file handling mode related configuration items.
+    If the key is not present in any scope, behaves like a normal write (session by default).
 
   -h, --help
     Show this help message and exit.
@@ -59,13 +48,7 @@ OPTIONS
 EXAMPLES
 
   maia config list
-    List all available configuration keys, except cost related.
-
-  maia config --all list
     List all available configuration keys.
-
-  maia config --cost list
-    List all cost related configuration keys.
 
   maia config --type credentials set openai_api_key <value>
     Store an external-service credential in credentials.myl.
@@ -83,9 +66,6 @@ EXAMPLES
     Unset the "stream" key in the user scope.
 
   maia config
-    Show non-cost related configuration.
-
-  maia config --all
     Show all configuration.
 
 NOTES

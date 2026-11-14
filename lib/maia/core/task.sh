@@ -264,7 +264,7 @@ handle_task_command() {
     fi
 
     validate_scope "$scope"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 	
     local filepath="${SCOPE_DIR[$scope]}/taskset.txt"
 

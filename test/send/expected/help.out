@@ -52,6 +52,9 @@ OPTIONS
   --no-tasks
     Do not include tasks in the request.
 
+  --count
+    Count input tokens and exit.
+
 EXAMPLES
 
     maia send "Hello, AI!"

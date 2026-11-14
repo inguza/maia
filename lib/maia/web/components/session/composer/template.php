@@ -6,6 +6,7 @@
         <button type="button" class="session-composer-usage" data-composer-usage aria-haspopup="dialog">
             <span data-composer-usage-today>Today: --</span>
         </button>
+        <button type="button" class="session-composer-input-percent" data-composer-input-percent aria-label="Refresh prompt input token count" title="Click to refresh prompt input token count">[--%]<span class="spinner" data-composer-input-spinner aria-hidden="true" hidden></span></button>
         <button type="button" class="session-composer-cancel" data-composer-cancel hidden aria-label="Cancel active send" title="Cancel active send">
             <span data-composer-cancel-icon aria-hidden="true">&#x23F9;</span>
             <span class="spinner" data-composer-cancel-spinner aria-hidden="true" hidden></span>
@@ -19,6 +20,13 @@
             <h2>Token usage</h2>
             <button type="button" class="session-composer-usage-close" data-composer-usage-close aria-label="Close usage details">&times;</button>
         </header>
+        <section data-usage-section="input-count">
+            <h3>Current prompt size <span data-usage-dialog-input-percent>[--%]</span></h3>
+            <dl>
+                <dt>Input</dt><dd data-usage-detail="input-count">--</dd>
+                <dt>Max</dt><dd data-usage-detail="input-limit">--</dd>
+            </dl>
+        </section>
         <section data-usage-section="session">
             <h3 data-usage-detail="session-title">Session total</h3>
             <dl>

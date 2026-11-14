@@ -142,7 +142,7 @@ handle_snippet_command() {
         esac
     done
 
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     # The next argument should be subcommand or list (if none)
     subcmd="$1"

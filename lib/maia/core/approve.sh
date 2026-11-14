@@ -97,7 +97,7 @@ handle_approve_command() {
 
     validate_scope "$scope"
     [[ "$scope" != "default" ]] || die "The default scope cannot store approval rules."
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     local filepath="${SCOPE_DIR[$scope]}/${prompt_type}.txt"
 

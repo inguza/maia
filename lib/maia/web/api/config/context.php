@@ -130,9 +130,10 @@ function config_context_parse_show(string $output): array
     return $rows;
 }
 
-function config_context_values(string $scope, array $environment): array
+function config_context_values(string $scope, array $environment, string $type = 'settings'): array
 {
-    $keyResult = config_context_run(['config', '--all', 'list'], $environment);
+    $typeArguments = $type === 'cost' ? ['--type', 'cost'] : [];
+    $keyResult = config_context_run(array_merge(['config'], $typeArguments, ['list']), $environment);
     config_context_fail_run($keyResult, 'Unable to list configuration keys.');
     $knownKeys = [];
     foreach (preg_split('/\R/', $keyResult['output']) as $key) {
@@ -142,16 +143,16 @@ function config_context_values(string $scope, array $environment): array
         }
     }
 
-    $effectiveResult = config_context_run(['config', '--scope', $scope, 'get'], $environment);
+    $effectiveResult = config_context_run(array_merge(['config'], $typeArguments, ['--scope', $scope, 'get']), $environment);
     config_context_fail_run($effectiveResult, 'Unable to get effective configuration.');
     $effective = config_context_parse_values($effectiveResult['output']);
     foreach (array_keys($effective) as $key) {
-        if (preg_match('/^(?:cost_(?:input|output)_|file_handling_mode_)/', $key) && !config_context_is_hidden_key($key)) {
+        if ($type === 'settings' && preg_match('/^file_handling_mode_/', $key) && !config_context_is_hidden_key($key)) {
             $knownKeys[$key] = true;
         }
     }
 
-    $showResult = config_context_run(['config', '--scope', $scope, '--all', 'show'], $environment);
+    $showResult = config_context_run(array_merge(['config'], $typeArguments, ['--scope', $scope, 'show']), $environment);
     config_context_fail_run($showResult, 'Unable to resolve configuration scopes.');
     $sources = config_context_parse_show($showResult['output']);
 
@@ -162,7 +163,7 @@ function config_context_values(string $scope, array $environment): array
         if ($source === '') {
             // Dynamically added model-specific settings are intentionally supported
             // even when they are not in common.sh's built-in key list.
-            $detail = config_context_run(['config', '--scope', $scope, '--all', 'show', $key], $environment);
+            $detail = config_context_run(array_merge(['config'], $typeArguments, ['--scope', $scope, 'show', $key]), $environment);
             config_context_fail_run($detail, "Unable to resolve the source of '$key'.");
             $source = config_context_parse_show($detail['output'])[$key]['scope'] ?? 'default';
         }
@@ -231,9 +232,10 @@ function config_context_credentials(string $scope, array $environment): array
     ];
 }
 
-function config_context_allowed_keys(string $scope, array $environment): array
+function config_context_allowed_keys(string $scope, array $environment, string $type = 'settings'): array
 {
-    $keyResult = config_context_run(['config', '--all', 'list'], $environment);
+    $typeArguments = $type === 'cost' ? ['--type', 'cost'] : [];
+    $keyResult = config_context_run(array_merge(['config'], $typeArguments, ['list']), $environment);
     config_context_fail_run($keyResult, 'Unable to list configuration keys.');
     $allowed = [];
     foreach (preg_split('/\R/', $keyResult['output']) as $key) {
@@ -242,10 +244,10 @@ function config_context_allowed_keys(string $scope, array $environment): array
             $allowed[$key] = true;
         }
     }
-    $effectiveResult = config_context_run(['config', '--scope', $scope, 'get'], $environment);
+    $effectiveResult = config_context_run(array_merge(['config'], $typeArguments, ['--scope', $scope, 'get']), $environment);
     config_context_fail_run($effectiveResult, 'Unable to get effective configuration.');
     foreach (array_keys(config_context_parse_values($effectiveResult['output'])) as $key) {
-        if (preg_match('/^(?:cost_(?:input|output)_|file_handling_mode_)/', $key)) $allowed[$key] = true;
+        if ($type === 'settings' && preg_match('/^file_handling_mode_/', $key)) $allowed[$key] = true;
     }
     return $allowed;
 }
@@ -259,7 +261,9 @@ if ($method === 'GET') {
     if ($type === 'credentials') {
         echo json_encode(['ok' => true] + config_context_credentials($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     } elseif ($type === 'general') {
-        echo json_encode(['ok' => true] + config_context_values($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        echo json_encode(['ok' => true] + config_context_values($scope, $environment, $type === 'cost' ? 'cost' : 'settings'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } elseif ($type === 'cost') {
+        echo json_encode(['ok' => true] + config_context_values($scope, $environment, 'cost'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     } else {
         config_context_error(400, 'Unknown configuration type.');
     }
@@ -302,14 +306,15 @@ if ($type === 'credentials') {
     echo json_encode(['ok' => true] + config_context_credentials($scope, $environment), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
-if ($type !== 'general') config_context_error(400, 'Unknown configuration type.');
+if (!in_array($type, ['general', 'cost'], true)) config_context_error(400, 'Unknown configuration type.');
+$configTypeArguments = $type === 'cost' ? ['--type', 'cost'] : [];
 
 if ($action === 'set') {
     $key = trim((string) ($input['key'] ?? ''));
     $value = $input['value'] ?? null;
     if (!is_string($value)) config_context_error(400, 'Configuration value must be text.');
     if ($value === '') config_context_error(400, 'An empty value cannot be saved; use Delete to remove the scope value.');
-    $allowed = config_context_allowed_keys($scope, $environment);
+    $allowed = config_context_allowed_keys($scope, $environment, $type === 'cost' ? 'cost' : 'settings');
     if (!isset($allowed[$key]) || config_context_is_hidden_key($key)) {
         config_context_error(400, 'This configuration key is not available in the web interface.');
     }
@@ -317,16 +322,16 @@ if ($action === 'set') {
         $decoded = json_decode($value, true);
         if (is_array($decoded)) $value = implode(',', array_map('strval', $decoded));
     }
-    $result = config_context_run(['config', '--scope', $scope, 'set', $key, $value], $environment);
+    $result = config_context_run(array_merge(['config'], $configTypeArguments, ['--scope', $scope, 'set', $key, $value]), $environment);
     config_context_fail_run($result, 'Unable to save configuration value.');
 } elseif ($action === 'delete') {
     $key = trim((string) ($input['key'] ?? ''));
-    $before = config_context_values($scope, $environment);
+    $before = config_context_values($scope, $environment, $type === 'cost' ? 'cost' : 'settings');
     $localKeys = array_column($before['local'], 'key');
     if (!in_array($key, $localKeys, true) || config_context_is_hidden_key($key)) {
         config_context_error(400, 'This value is not set in the current scope.');
     }
-    $result = config_context_run(['config', '--scope', $scope, 'unset', $key], $environment);
+    $result = config_context_run(array_merge(['config'], $configTypeArguments, ['--scope', $scope, 'unset', $key]), $environment);
     config_context_fail_run($result, 'Unable to delete configuration value.');
 } elseif ($action === 'add-model-setting') {
     $key = trim((string) ($input['key'] ?? ''));
@@ -352,11 +357,11 @@ if ($action === 'set') {
         if (!is_numeric($value) || (float) $value < 0) {
             config_context_error(400, 'Model costs must be non-negative numbers.');
         }
-        $costs[$prefix . $suffix] = $value;
+        $costs[($field === 'inputCost' ? 'input_' : 'output_') . $suffix] = $value;
     }
     if ($costs === []) config_context_error(400, 'Enter an input cost, an output cost, or both.');
     foreach ($costs as $key => $value) {
-        $result = config_context_run(['config', '--scope', $scope, 'set', $key, $value], $environment);
+        $result = config_context_run(['config', '--type', 'cost', '--scope', $scope, 'set', $key, $value], $environment);
         config_context_fail_run($result, 'Unable to save model cost.');
     }
 } else {

@@ -66,7 +66,7 @@ handle_job_command() {
     [[ "$1" =~ ^-h|--help$ ]] && job_usage
 
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     local cmd="$1"
     shift

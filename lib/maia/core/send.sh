@@ -64,6 +64,9 @@ OPTIONS
   --no-tasks
     Do not include tasks in the request.
 
+  --count
+    Count input tokens and exit.
+
 EXAMPLES
 
     maia send "Hello, AI!"
@@ -516,7 +519,7 @@ handle_send_command() {
     [[ "$2" =~ ^-h|--help$ ]] && send_usage
 
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
     # Important to be able to see the instructions
     init_instruction_search_dirs
     init_task_search_dirs
@@ -561,6 +564,7 @@ handle_send_command() {
     local response_file=""
     local args=()
     local continue=false
+    local count=false
     while [[ $# -gt 0 ]]; do
         case "$1" in
 	    --dry-run)
@@ -577,6 +581,10 @@ handle_send_command() {
                 shift
                 response_file="$1"
                 ;;
+	    --count)
+		shift
+		count=true
+		;;
             --model)
                 shift
                 model="$1"
@@ -688,28 +696,34 @@ handle_send_command() {
     # Use --slurpfile to avoid argument list too long problem
     local tmp_payload=$(mktemp)
     local url=""
+    local count_url=""
     local usage_filter=""
     local tools_json=null
     local tools_enabled=false
     case "$api_type" in
 	OPENAI_CHAT_COMPLETIONS)
             url="${maia_api_base_url}/v1/chat/completions"
+            #count_url not supported
 	    usage_filter="send-openai-chat-completions-usage.jq"
 	    ;;
 	AWS_BEDROCK_CONVERSE)
             url="${maia_api_base_url}/model/${model}/converse"
+	    count_url="${url}/count-tokens"
 	    usage_filter="send-aws-bedrock-converse-usage.jq"
 	    ;;
 	OPENAI_RESPONSES)
             url="${maia_api_base_url}/v1/responses"
+	    count_url="${url}/input_tokens"
 	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	AWS_BEDROCK_RESPONSES_RUNTIME)
             url="${maia_api_base_url}/openai/v1/responses"
+	    count_url="${url}/input_tokens"
 	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	AWS_BEDROCK_RESPONSES_MANTLE)
 	    url="${maia_api_base_url}/v1/responses"
+	    count_url="${url}/input_tokens"
 	    usage_filter="send-openai-responses-usage.jq"
 	    ;;
 	*)
@@ -752,13 +766,29 @@ handle_send_command() {
     trap 'send_session_lock_signal_handler "$session_lock" 130' INT
     trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
 
+    # --count is a read-only preview: save state before applying any supplied
+    # draft and before the normal send path prunes stale reasoning entries.
+    local count_outbox_backup="" count_history_backup=""
+    local count_outbox_existed=false
+    if [[ "$count" == true ]]; then
+        if [[ -e "$outbox_file" ]]; then
+            count_outbox_existed=true
+            count_outbox_backup="$(mktemp "${outbox_file}.count.XXXXXX")"
+            cp -p -- "$outbox_file" "$count_outbox_backup" || die "Unable to preserve the session outbox for token counting."
+        fi
+        if [[ -e "$history_file" ]]; then
+            count_history_backup="$(mktemp "${history_file}.count.XXXXXX")"
+            cp -p -- "$history_file" "$count_history_backup" || die "Unable to preserve session history for token counting."
+        fi
+    fi
+
     # If there are arguments, replace the outbox with the remaining args
     if (( ${#args[@]} > 0 )); then
         handle_user_command replace "${args[@]}"
     fi
 
     # Ensure outbox is not empty.
-    if [[ ! -s "$outbox_file" && "$continue" == false ]]; then
+    if [[ ! -s "$outbox_file" && "$continue" == false && "$count" == false ]]; then
 	release_lock "$session_lock"
         trap - INT TERM
         die "Outbox is empty. Nothing to send."
@@ -810,6 +840,7 @@ handle_send_command() {
 	    die "Internal error. Empty message json."
 	fi
 	trigger_event "pre-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
+	local count_data_file=""
 	case "$api_type" in
 	    OPENAI_CHAT_COMPLETIONS)
 		local tmpmf="$(mktemp)"
@@ -840,6 +871,13 @@ handle_send_command() {
 		   --slurpfile messages "$tmpmf" \
 		   -f "$MAIA_CORE_LIB_DIR/send-openai-responses-request.jq" \
 		   > "$tmp_payload"
+		count_data_file="${tmp_payload}.count"
+		jq -n \
+		   --arg model "$model" \
+		   --argjson tools "$tools_json" \
+		   --slurpfile messages "$tmpmf" \
+		   -f "$MAIA_CORE_LIB_DIR/send-openai-responses-count.jq" \
+		   > "$count_data_file"
 		rm -f "$tmpmf"
 		;;
 	    AWS_BEDROCK_CONVERSE)
@@ -853,6 +891,7 @@ handle_send_command() {
 		   --argjson tools "$tools_json" \
 		   -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-request.jq" \
 		> "$tmp_payload"
+		count_data_file="${tmp_payload}"
 		;;
 	    *)
 		:
@@ -879,15 +918,6 @@ handle_send_command() {
 	elif $dry_run; then
             reply="Dry-run response"
 	else
-	    # Check prompt token count before sending
-            local prompt_tokens=$(estimate_tokens "$messages_json")
-            if (( prompt_tokens > max_input_tokens )); then
-		error "Prompt uses an estimated $prompt_tokens tokens, exceeds max_input_tokens=$max_input_tokens"
-		rm -f "$tmp_payload"
-		release_lock "$session_lock"
-		return 1
-            fi
-
 	    # Prepare extra headers for curl
             local curl_headers=(
 		-H "Content-Type: application/json"
@@ -905,7 +935,53 @@ handle_send_command() {
 	    fi
             curl_extra_headers curl_headers
 
+	    # Check prompt token count before sending
+	    local count_mode="$(get_config "token_accuracy")"
+            local prompt_tokens
+	    if [[ -n "$count_data_file" && "$count_mode" == "auto" ]] ; then
+		count_mode="exact"
+	    fi
+	    if [[ "$count_mode" == "exact" ]] ; then
+		if [[ -n "$count_data_file" ]] ; then
+		    local count_json=$(curl -s \
+					    "${curl_headers[@]}" \
+					    --data-binary @"${count_data_file}" \
+					    "$count_url")
+		    if ! prompt_tokens=$(printf '%s' "$count_json" | jq -r '.input_tokens' 2>/dev/null) ; then
+			prompt_tokens=""
+		    fi
+		else
+		    warn "API type '$api_type' do not support token_accuracy = 'exact', falling back to 'heuristic'."
+		fi
+	    fi
+	    if [[ -z "$prompt_tokens" ]] ; then
+		prompt_tokens=$(estimate_tokens "$messages_json")
+	    fi
+	    # We explicitly remove this, not count_data_file since count_data_file may point to tmp_payload
+	    rm -f "${tmp_payload}.count"
+	    if [[ "$count" = "true" ]] ; then
+		echo "$prompt_tokens"
+		rm -f "$tmp_payload"
+		if [[ -n "$count_outbox_backup" ]]; then
+		    mv -f -- "$count_outbox_backup" "$outbox_file"
+		elif [[ "$count_outbox_existed" == false ]]; then
+		    rm -f -- "$outbox_file"
+		fi
+		if [[ -n "$count_history_backup" ]]; then
+		    mv -f -- "$count_history_backup" "$history_file"
+		fi
+		release_lock "$session_lock"
+		return 0
+	    fi
+            if (( prompt_tokens > max_input_tokens )); then
+		error "Prompt uses an estimated $prompt_tokens tokens, exceeds max_input_tokens=$max_input_tokens"
+		rm -f "$tmp_payload"
+		release_lock "$session_lock"
+		return 1
+            fi
+
 	    trigger_event "pre-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$tmp_payload"
+
 	    # Call API chat completions endpoint
 	    # Binary mode is important for AWS but it does not hurt for other APIs
             local curl_output_file="$(mktemp)"

@@ -205,7 +205,7 @@ handle_file_command() {
 
     # Load merged config
     local scope="session"
-    load_config "$scope" CONFIG
+    load_config "$scope"
 
     # Determine active session and ensure it exists
     local session_name=$(resolve_session_name)

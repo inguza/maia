@@ -60,12 +60,6 @@ run_send_cmd() {
     run_and_check "test_send_${test_id}" $MAIA send "$@"
 }
 
-run_count_cmd() {
-    local test_id="$1"
-    shift
-    run_and_check "test_count_${test_id}" $MAIA count "$@"
-}
-
 run_tool_cmd() {
     local test_id="$1"
     shift
@@ -193,11 +187,8 @@ for api in "${api_types_and_configs[@]}"; do
 
     # Test 6: send with file handling mode override (valid modes)
     run_send_cmd "file_handling_default${suffix}" --file-handling DEFAULT "Test file handling default"
-    run_count_cmd "count_file_handling_default${suffix}" --file-handling DEFAULT "Test file handling default"
     run_send_cmd "file_handling_before${suffix}" --file-handling BEFORE "Test file handling before"
-    run_count_cmd "count_file_handling_before${suffix}" --file-handling BEFORE "Test file handling before"
     run_send_cmd "file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
-    run_count_cmd "count_file_handling_append${suffix}" --file-handling APPEND "Test file handling append"
 
     # Test 7: tool and skill support
     run_tool_cmd "enable_pipe_seq_tool${suffix}_3" enable core-pipe core-sequence
@@ -207,11 +198,8 @@ for api in "${api_types_and_configs[@]}"; do
     run_skill_cmd "skill_remember_pipe_seq_tool${suffix}_2" remember session
     run_skill_cmd "enable_pipe_seq_tool_show${suffix}_4" show
     run_send_cmd "tool_file_handling_default${suffix}" --file-handling DEFAULT "Test tool and file handling default"
-    run_count_cmd "tool_count_file_handling_default${suffix}" --file-handling DEFAULT "Test tool and file handling default"
     run_send_cmd "tool_file_handling_before${suffix}" --file-handling BEFORE "Test tool and file handling before"
-    run_count_cmd "tool_count_file_handling_before${suffix}" --file-handling BEFORE "Test tool and file handling before"
     run_send_cmd "tool_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
-    run_count_cmd "tool_count_file_handling_append${suffix}" --file-handling APPEND "Test tool and file handling append"
     run_tool_cmd "enable_pipe_seq_tool${suffix}_4" delete
     run_history_cmd "history_clear_1${suffix}" clear
     run_skill_cmd "skill_delete_seq_tool${suffix}_2" delete

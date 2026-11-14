@@ -39,6 +39,7 @@ declare -A DEFAULT_CONFIG=(
     [model]="gpt-6-luna"
     [max_output_tokens]=32000
     [max_input_tokens]=64000
+    [token_accuracy]=auto
     # Model related parameters
     [temperature]=null
     [top_p]=null
@@ -79,36 +80,41 @@ declare -A DEFAULT_CONFIG=(
     [default_agent_skill_forget]=""
     [default_agent_instruction_remember]="*"
     [default_agent_instruction_forget]=""
-    # Default cost configuration (flat keys with cost_ prefix)
-    [cost_input_gpt_6_sol]=2
-    [cost_output_gpt_6_sol]=10
-    [cost_input_gpt_6_luna]=0.1
-    [cost_output_gpt_6_luna]=0.5
-    #
-    [cost_input_gpt_5_6_terra]=2.0
-    [cost_output_gpt_5_6_terra]=12.0
-    [cost_input_gpt_5_6_luna]=0.2
-    [cost_output_gpt_5_6_luna]=1.2
-    #
-    [cost_input_gpt_5_4]=2.5
-    [cost_output_gpt_5_4]=15
-    [cost_input_gpt_5_4_mini]=0.75
-    [cost_output_gpt_5_4_mini]=4.5
-    [cost_input_gpt_5_4_nano]=0.2
-    [cost_output_gpt_5_4_nano]=1.25
-    #
-    [cost_input_gpt_4_1]=2
-    [cost_output_gpt_4_1]=8
-    [cost_input_gpt_4_1_mini]=0.4
-    [cost_output_gpt_4_1_mini]=1.6
-    [cost_input_gpt_4_1_nano]=0.1
-    [cost_output_gpt_4_1_nano]=0.4
     # File handling mode overrides
     [file_handling_mode_mistral_24b]=APPEND
     [file_handling_mode_qwen2_5_14b]=APPEND
 )
 CONFIG_KEYS=( "${!DEFAULT_CONFIG[@]}" )
 readonly CONFIG_KEYS
+
+declare -A DEFAULT_COST=(
+    [input_gpt_6_sol]=2
+    [output_gpt_6_sol]=10
+    [input_gpt_6_luna]=0.1
+    [output_gpt_6_luna]=0.5
+    #
+    [input_gpt_5_6_terra]=2.0
+    [output_gpt_5_6_terra]=12.0
+    [input_gpt_5_6_luna]=0.2
+    [output_gpt_5_6_luna]=1.2
+    #
+    [input_gpt_5_4]=2.5
+    [output_gpt_5_4]=15
+    [input_gpt_5_4_mini]=0.75
+    [output_gpt_5_4_mini]=4.5
+    [input_gpt_5_4_nano]=0.2
+    [output_gpt_5_4_nano]=1.25
+    #
+    [input_gpt_4_1]=2
+    [output_gpt_4_1]=8
+    [input_gpt_4_1_mini]=0.4
+    [output_gpt_4_1_mini]=1.6
+    [input_gpt_4_1_nano]=0.1
+    [output_gpt_4_1_nano]=0.4
+)
+COST_KEYS=( "${!DEFAULT_COST[@]}" )
+readonly COST_KEYS
+
 # Credential keys use the lowercase configuration naming convention. Values
 # are exported using the environment variable names expected by API consumers.
 CREDENTIAL_KEYS=(
@@ -398,6 +404,19 @@ get_config() {
 	var="$default"
     else
 	var="${CONFIG[$param]}"
+    fi
+    printf '%s' "$var"
+    return 0
+}
+
+get_cost() {
+    local param="$1"
+    local default="$2"
+    local var
+    if [[ ! -v COST["$param"] ]] ; then
+	var="$default"
+    else
+	var="${COST[$param]}"
     fi
     printf '%s' "$var"
     return 0
@@ -1979,12 +1998,14 @@ load_scoped_myl() {
 }
 
 load_config() {
-    local target_scope="$1"
-    local -n _config_destination="$2"
-    load_scoped_myl "$target_scope" config.myl "$2" DEFAULT_CONFIG
+    load_scoped_myl "$1" config.myl CONFIG DEFAULT_CONFIG
     export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
     PROFILE_SEARCH_DIRS_INITIALIZED=""
     init_scope_dirs
+}
+
+load_cost() {
+    load_scoped_myl "$1" cost.myl COST DEFAULT_COST
 }
 
 # Load credentials separately, mapping lowercase config keys to conventional

@@ -28,14 +28,8 @@ run_config_cmd "help" --help
 # Test list config keys
 run_config_cmd "list" list
 
-# Test list all config keys
-run_config_cmd "list_all" --all list
-
 # Test list cost related config keys
-run_config_cmd "list_cost" --cost list
-
-# Test list file related config keys
-run_config_cmd "list_file" --file list
+run_config_cmd "list_cost" --type cost list
 
 unset AWS_ACCESS_KEY_ID
 unset AWS_SECRET_ACCESS_KEY
@@ -52,13 +46,7 @@ export OPENAI_API_KEY="dummy4"
 run_config_cmd "show_env"
 
 # Test show config (no args)
-run_config_cmd "show_all" --all
-
-# Test show config (no args)
-run_config_cmd "show_cost" --cost
-
-# Test show config (no args)
-run_config_cmd "show_file" --file
+run_config_cmd "show_cost" --type cost
 
 # Test get all config keys (default)
 run_config_cmd "get_all" get
