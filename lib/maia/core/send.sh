@@ -519,7 +519,7 @@ handle_send_command() {
     [[ "$2" =~ ^-h|--help$ ]] && send_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
     # Important to be able to see the instructions
     init_instruction_search_dirs
     init_task_search_dirs

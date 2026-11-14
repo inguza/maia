@@ -186,7 +186,7 @@ handle_profile_command() {
         die "Scope 'profile' is not a storage scope. Use the parent profile name with its defining scope."
     fi
 
-    load_config "$scope"
+    load_settings "$scope"
     
     local prompt_type="profile"
     

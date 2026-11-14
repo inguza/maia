@@ -162,7 +162,7 @@ handle_system_command() {
     fi
 
     validate_scope "$scope"
-    load_config "$scope"
+    load_settings "$scope"
 
     # compute filename & path
     local filename="${prompt_type}.txt"

@@ -12,6 +12,10 @@
 * `max_tool_calls` — The maximum number of total calls to built-in tools that can be processed in a response. Only for OpenAI Responses API.
 * `send_hook` — Optional hook executed when preparing or sending a request. This can be used, for example, to read the API credentials.
 
+It is also possible to set file handling mode per model as file_handling_mode_<model>.
+
+Example: file_handling_mode_mistral_24b file_handling_mode_qwen2_5_14b
+
 ### API parameters
 
 * `model` — Model to use for requests.

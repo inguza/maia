@@ -319,7 +319,7 @@ handle_tool_command() {
     fi
 
     validate_scope "$scope"
-    load_config "$scope"
+    load_settings "$scope"
     init_tool_search_dirs "$scope"
 
     # compute filename & path

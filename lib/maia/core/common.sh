@@ -33,7 +33,7 @@ TOOLS_DIRNAME="tools"
 TOOLSET_DEF_EXT=".td"
 
 # Default configuration values
-declare -A DEFAULT_CONFIG=(
+declare -A DEFAULT_SETTINGS=(
     [api_type]="AUTODETECT"
     [api_base_url]="https://api.openai.com"
     [model]="gpt-6-luna"
@@ -80,12 +80,9 @@ declare -A DEFAULT_CONFIG=(
     [default_agent_skill_forget]=""
     [default_agent_instruction_remember]="*"
     [default_agent_instruction_forget]=""
-    # File handling mode overrides
-    [file_handling_mode_mistral_24b]=APPEND
-    [file_handling_mode_qwen2_5_14b]=APPEND
 )
-CONFIG_KEYS=( "${!DEFAULT_CONFIG[@]}" )
-readonly CONFIG_KEYS
+SETTINGS_KEYS=( "${!DEFAULT_SETTINGS[@]}" )
+readonly SETTINGS_KEYS
 
 declare -A DEFAULT_COST=(
     [input_gpt_6_sol]=2
@@ -133,7 +130,7 @@ declare -A CREDENTIAL_ENV_VARS=(
     [maia_curl_extra_headers]=MAIA_CURL_EXTRA_HEADERS
 )
 readonly CREDENTIAL_ENV_VARS
-declare -A CONFIG=()
+declare -A SETTINGS=()
 
 # Map log levels to numeric priorities
 declare -A LOG_PRIORITIES=(
@@ -400,10 +397,10 @@ get_config() {
     local param="$1"
     local default="$2"
     local var
-    if [[ ! -v CONFIG["$param"] ]] ; then
+    if [[ ! -v SETTINGS["$param"] ]] ; then
 	var="$default"
     else
-	var="${CONFIG[$param]}"
+	var="${SETTINGS[$param]}"
     fi
     printf '%s' "$var"
     return 0
@@ -1997,8 +1994,8 @@ load_scoped_myl() {
     done
 }
 
-load_config() {
-    load_scoped_myl "$1" config.myl CONFIG DEFAULT_CONFIG
+load_settings() {
+    load_scoped_myl "$1" settings.myl SETTINGS DEFAULT_SETTINGS
     export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
     PROFILE_SEARCH_DIRS_INITIALIZED=""
     init_scope_dirs

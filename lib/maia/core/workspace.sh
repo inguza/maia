@@ -151,7 +151,7 @@ handle_workspace_command() {
     [[ "$2" =~ ^-h|--help$ ]] && workspace_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
 
     local cmd="${1:-}"
 

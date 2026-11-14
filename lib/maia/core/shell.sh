@@ -13,7 +13,7 @@ handle_shell_command() {
     [[ "$2" =~ ^-h|--help$ ]] && shell_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
 
     local subcmd="${1:-}"
     shift

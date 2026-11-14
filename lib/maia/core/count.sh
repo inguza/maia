@@ -71,7 +71,7 @@ handle_count_command() {
     [[ "$2" =~ ^-h|--help$ ]] && count_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
     load_cost "$scope"
 
     # Parse arguments for --model option

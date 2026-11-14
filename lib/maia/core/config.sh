@@ -98,8 +98,7 @@ EOF
     exit 0
 }
 
-FILTER_CONFIG_KEYS=()
-CONFIG_FILENAME=config.myl
+CONFIG_FILENAME=settings.myl
 CONFIG_SECRET=0
 ACTIVE_CONFIG_KEYS=()
 ACTIVE_CONFIG_PATTERNS=()
@@ -217,11 +216,11 @@ handle_config_command() {
     local defaults_array
     case "$config_type" in
         settings)
-            CONFIG_FILENAME=config.myl
+            CONFIG_FILENAME=settings.myl
             CONFIG_SECRET=0
-            ACTIVE_CONFIG_KEYS=( "${CONFIG_KEYS[@]}" )
+            ACTIVE_CONFIG_KEYS=( "${SETTINGS_KEYS[@]}" )
             ACTIVE_CONFIG_PATTERNS=( 'file_handling_mode_*' )
-	    defaults_array=DEFAULT_CONFIG
+	    defaults_array=DEFAULT_SETTINGS
             ;;
         credentials)
             CONFIG_FILENAME=credentials.myl
@@ -385,7 +384,7 @@ handle_config_command() {
 	    local name="$1"
 	    local value="$2"
 	    if [[ -z "$name" && -z "$value" ]]; then
-		show_config # This cannot happen since we have "" above
+		show_config "" "$view_scope" "$defaults_array" # This cannot happen since we have "" above
 	    elif [[ -n "$name" && -z "$value" ]] ; then
 		debug "Get config"
 		get_scope_config "$name" "$view_scope" "$defaults_array"
@@ -432,8 +431,8 @@ list_config_keys() {
 # Show effective scope for keys (name optional)
 show_config() {
     local name="$1"
-    local view_scope="${2:-session}"
-    local defaults_array="${3:-DEFAULT_CONFIG}"
+    local view_scope="$2"
+    local defaults_array="$3"
     printf "%-30s %-10s %s\n" "CONFIG NAME" "SCOPE" "VALUE"
     echo "----------------------------------------------------------------------------"
     local -A tmpconfig=()
@@ -544,8 +543,8 @@ get_scope_config() {
     if [[ -n "$name" ]] ; then
 	config_exists "$name"
     fi
-    local scope="${2:-session}"
-    local defaults_array="${3:-DEFAULT_CONFIG}"
+    local scope="$2"
+    local defaults_array="$3"
     local -A tmpconfig=()
     local -A EMPTY_CONFIG_DEFAULTS=()
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS

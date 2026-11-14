@@ -89,6 +89,47 @@ convert_workspace_json_files() {
     convert_x_json_files "workspace" '*/workspace.json'
 }
 
+move_config_myl_to_settings_myl_files() {
+    local maia_home="$(resolve_home_dir)"
+    local config_file settings_file moved=0 skipped=0 failed=0
+
+    [[ -d "$maia_home" ]] || {
+        notice "MAIA home '$maia_home' does not exist; nothing to migrate."
+        return 0
+    }
+
+    local filelist="$(mktemp)" || die "Unable to create temporary file."
+
+    if ! find "$maia_home" -type f -name 'config.myl' -print0 > "$filelist"; then
+        rm -f -- "$filelist"
+        die "Unable to find config.myl files to migrate."
+    fi
+
+    while IFS= read -r -d '' config_file; do
+        settings_file="${config_file%/*}/settings.myl"
+
+        if [[ -e "$settings_file" ]]; then
+            info "Skipping '$config_file': '$settings_file' already exists."
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        if ! mv -- "$config_file" "$settings_file"; then
+            error "Unable to migrate '$config_file' to '$settings_file'."
+            failed=$((failed + 1))
+            continue
+        fi
+
+        info "Migrated '$config_file' to '$settings_file'."
+        moved=$((moved + 1))
+    done < "$filelist"
+
+    rm -f -- "$filelist"
+
+    notice "config.myl migration complete: $moved moved, $skipped skipped, $failed failed."
+    (( failed == 0 ))
+}
+
 convert_x_json_files() {
     local type="$1"
     shift
@@ -249,7 +290,7 @@ handle_update_command() {
     init_profile_search_dirs
     
     local scope="home"
-    load_config "$scope"
+    load_settings "$scope"
 
     local cmd="${1:-upgrade}"
     shift || true
@@ -265,6 +306,7 @@ handle_update_command() {
             convert_session_json_files
             convert_profile_json_files
             convert_workspace_json_files
+	    move_config_myl_to_settings_myl_files
             ;;
         refresh)
             refresh_scopes

@@ -511,7 +511,7 @@ handle_session_command() {
     [[ "$1" =~ ^-h|--help$ ]] && session_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
 
     local cmd="$1"
 	case "$cmd" in

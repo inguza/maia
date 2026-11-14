@@ -9,12 +9,10 @@ allowed_profiles
 agent_session_prefix
 tool_loop_prevent
 max_output_tokens
-file_handling_mode_qwen2_5_14b
 default_workspace
 token_accuracy
 term_loglevel
 tool_iteration_limit
-file_handling_mode_mistral_24b
 default_agent_instruction_remember
 send_hook
 api_type

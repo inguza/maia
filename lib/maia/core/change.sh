@@ -651,7 +651,7 @@ handle_change_command() {
     [[ "$2" =~ ^-h|--help$ ]] && change_usage
 
     local scope="session"
-    load_config "$scope"
+    load_settings "$scope"
 
     local cmd=$1
     shift

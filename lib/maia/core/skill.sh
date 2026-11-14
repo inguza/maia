@@ -375,7 +375,7 @@ handle_skill_command() {
     fi
 
     validate_scope "$scope"
-    load_config "$scope"
+    load_settings "$scope"
 
     local skillset_file="${SCOPE_DIR[$scope]}/skillset.txt"
     local skillset_context_file="${SCOPE_DIR[$scope]}/skillsetcontext.txt"
