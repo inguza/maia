@@ -22,6 +22,7 @@ DEFAULT_SKILLSET_PROMPT_GEN=""
 DEFAULT_SKILLSETCONTEXT_PROMPT_GEN=""
 DEFAULT_INSTRUCTIONS_PROMPT_TXT="# Available instructions\n\n"
 DEFAULT_INSTRUCTIONSCONTEXT_PROMPT_TXT="# Instructions\n\n"
+DEFAULT_EXPLORED_PROMPT_TXT="# Explored paths\n\n"
 DEFAULT_TASKS_PROMPT_TXT="# Available tasks\n\n"
 DEFAULT_TASKSCONTEXT_PROMPT_TXT="# Tasks\n\n"
 # TODO: Get rid of this and instead expand from the default tools prompt

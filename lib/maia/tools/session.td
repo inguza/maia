@@ -315,6 +315,43 @@
     }
   },
   {
+    "name": "session-file-explore",
+    "description": "Find paths that may be useful as context.",
+    "command": "file-explore.sh",
+    "instructions": [ "session.txt" ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns of files and directories to explore. Only paths relative to the current directory allowed."
+        },
+        "max_new": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum additional entries to discover (default 20)."
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum directory traversal depth (default 1)."
+        },
+        "max_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cumulative index entry budget (default 1000)."
+        },
+        "session": {
+          "type": "string",
+          "description": "Session whose workspace to explore."
+        }
+      },
+      "required": ["pathspecs", "session"],
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "session-file-forget",
     "description": "Make a session forget file content.",
     "command": "file-forget.sh",

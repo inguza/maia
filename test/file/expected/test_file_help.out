@@ -26,8 +26,18 @@ COMMANDS
     Forget entries matching the given filename or glob from the selected
     filesets.
 
+  explore
+    Print the session's explored list as an LLM tree.
+
+  explore --auto
+    Refresh the bounded exploration index after file-context updates.
+
+  explore [--max-new N] [--max-depth N] [--max-budget N] <paths...>
+    Explore the specified workspace-relative paths.
+    Defaults: --max-new 20, --max-depth 1, --max-budget 1000.
+
   discover
-    Discover resources.
+    Discover resources from MCP providers.
 
   verify
     Check the file entries for duplicates and whether the files still exist or not.

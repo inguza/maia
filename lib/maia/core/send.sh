@@ -245,6 +245,7 @@ build_system_text() {
                 :
                 ;;
         esac
+
     fi
     printf '%s' "$sys"
 }
@@ -267,7 +268,23 @@ build_messages_json() {
     # 1) Gather file content from session.filesets
     local ws_name=$(resolve_workspace_name)
     local files_json="$(session_content_extract "$session")"
+    # Empty filesets produce no JSON output; the AUTOTOOL payload still needs
+    # a valid empty array when it checks for non-text files.
+    [[ -n "$files_json" ]] || files_json='[]'
     local combined=$(printf '%s' "$files_json" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
+    # The exploration tree is dynamic file context, alongside #Files, rather
+    # than part of the system prompt. It is omitted with --no-files below.
+    if [[ -n "$ws_name" && "$no_files" == false ]]; then
+        local explore_index="$(resolve_session_path "$session")/exploreset.gen"
+        if [[ -s "$explore_index" ]]; then
+            . "$MAIA_CORE_LIB_DIR/explore-common.sh"
+            local explored_tree="$(explore_render_index "$explore_index")"
+            if [[ -n "$explored_tree" ]]; then
+                local explored_header="$(prompt_for_scope "session" "explored")"
+                combined+=$'\n\n'"$explored_header"$'\n\n'"$explored_tree"
+            fi
+        fi
+    fi
     local task_list=""
     local task_memory=""
     if [[ "$no_tasks" == false ]]; then
@@ -929,7 +946,9 @@ handle_send_command() {
         if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
             errormsg="Send cancelled by user."
         elif [[ -n "$response" && "$response" != "null" ]]; then
-	    usage_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/$usage_filter" <<<"$response")
+            if ! usage_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/$usage_filter" <<<"$response" 2>/dev/null) ; then
+                usage_json='{"input":0,"cached":0,"output":0,"reasoning":0}'
+	    fi
 	    if [[ "$api_type" == "OPENAI_CHAT_COMPLETIONS" ]] ; then
 		if ! errormsg=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null) ; then
 		    errormsg="$response"

@@ -36,8 +36,18 @@ COMMANDS
     Forget entries matching the given filename or glob from the selected
     filesets.
 
+  explore
+    Print the session's explored list as an LLM tree.
+
+  explore --auto
+    Refresh the bounded exploration index after file-context updates.
+
+  explore [--max-new N] [--max-depth N] [--max-budget N] <paths...>
+    Explore the specified workspace-relative paths.
+    Defaults: --max-new 20, --max-depth 1, --max-budget 1000.
+
   discover
-    Discover resources.
+    Discover resources from MCP providers.
 
   verify
     Check the file entries for duplicates and whether the files still exist or not.
@@ -306,8 +316,95 @@ handle_file_command() {
 		fi
 	    fi
             ;;
+        explore)
+            shift
+            local auto=false max_new=20 max_depth=1 max_budget=1000
+            local -a explore_paths=()
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --auto)
+                        auto=true
+                        shift
+                        ;;
+                    --max-new)
+                        [[ $# -ge 2 && "$2" =~ ^[0-9]+$ ]] || die "--max-new requires a non-negative integer."
+                        max_new="$2"
+                        shift 2
+                        ;;
+                    --max-depth)
+                        [[ $# -ge 2 && "$2" =~ ^[0-9]+$ ]] || die "--max-depth requires a non-negative integer."
+                        max_depth="$2"
+                        shift 2
+                        ;;
+                    --max-budget)
+                        [[ $# -ge 2 && "$2" =~ ^[0-9]+$ ]] || die "--max-budget requires a non-negative integer."
+                        max_budget="$2"
+                        shift 2
+                        ;;
+                    -h|--help)
+                        file_usage
+                        ;;
+                    --*)
+                        die "Unknown explore option '$1'."
+                        ;;
+                    *)
+                        explore_paths+=("$1")
+                        shift
+                        ;;
+                esac
+            done
 
-	verify|clean)
+            local session_dir="$(resolve_session_path "$session_name")"
+            local index_file="$session_dir/exploreset.gen"
+            if [[ -z "$session_ws" ]]; then
+                if [[ "$auto" == true ]]; then
+                    return 0
+                elif ((${#explore_paths[@]} == 0)); then
+                    . "$MAIA_CORE_LIB_DIR/explore-common.sh"
+                    explore_render_index "$index_file"
+                    return 0
+                else
+                    die "A workspace is required to explore paths."
+                fi
+            fi
+            validate_workspace_exists "$session_ws"
+            local workspace_root="$(resolve_workspace_root "$session_ws")"
+            local fs line path file_part
+            local -a seeds=()
+            local -A seen_seeds=()
+            . "$MAIA_CORE_LIB_DIR/explore-common.sh"
+            explore_clear_visit_cache
+
+            if [[ "$auto" == true ]]; then
+                [[ ${#explore_paths[@]} -eq 0 ]] || die "--auto does not accept explicit paths."
+                # Explore fileset paths first, then the workspace root. Both
+                # scans share the session index and its cumulative budget.
+                for fs in "${active_fs[@]}"; do
+                    ensure_file_exists "$ws_dir/$fs.fileset"
+                    while IFS= read -r line || [[ -n "$line" ]]; do
+                        line="$(strip_cr "$line")"
+                        [[ -n "$line" && "$line" != *'#'* ]] || continue
+                        file_part="${line%%|*}"
+                        path="${file_part%%:*}"
+                        [[ -n "$path" && ! -v seen_seeds["$path"] ]] || continue
+                        seen_seeds["$path"]=1
+                        seeds+=("$path")
+                    done < "$ws_dir/$fs.fileset"
+                done
+                explore_path "$index_file" "$workspace_root" 20 1 50 "${seeds[@]}"
+                explore_path "$index_file" "$workspace_root" 200 1 50 "/"
+                return 0
+            fi
+
+            # Explicit paths update the shared session index. With no paths,
+            # only print the existing LLM-facing exploration tree.
+            if ((${#explore_paths[@]})); then
+                explore_path "$index_file" "$workspace_root" "$max_new" "$max_depth" "$max_budget" "${explore_paths[@]}"
+            fi
+            explore_render_index "$index_file"
+            ;;
+
+        verify|clean)
             shift
             local workspace_root=$(resolve_workspace_root "$session_ws")
             if [[ ! -d "$workspace_root" ]]; then

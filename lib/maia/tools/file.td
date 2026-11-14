@@ -171,6 +171,40 @@
     }
   },
   {
+    "name": "content-file-explore",
+    "description": "Find paths that may be useful as context.",
+    "command": "file-explore.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to explore. Only paths relative to the current directory allowed."
+        },
+        "max_new": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum additional entries to discover (default 20)."
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum directory traversal depth (default 1)."
+        },
+        "max_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cumulative index entry budget (default 1000)."
+        }
+      },
+      "required": ["pathspecs"],
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "change-apply.sh",

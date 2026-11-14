@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Automatically keep a bounded workspace exploration index up to date.
+"$MAIA_BIN" file explore --auto >/dev/null 2>&1

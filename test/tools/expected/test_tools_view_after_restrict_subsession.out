@@ -1,6 +1,7 @@
 change-apply:write
 change-revert:write
 change-skip:write
+content-file-explore:write
 context-file-forget:write
 context-file-remember:write
 context-instruction-forget:write

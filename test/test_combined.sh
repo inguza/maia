@@ -417,6 +417,23 @@ run_session_cmd "show_after_ee" show ee
 run_session_cmd "create_dup_ee" create dupee ee
 run_session_cmd "show_after_dup_ee" show dupee
 
+# A session exploration tree is included in system context unless --no-files is set.
+$MAIA session create --workspace ws explore
+export MAIA_SESSION=explore
+mkdir -p "$XMAIA_HOME/explored-project"
+$MAIA workspace create --path "$XMAIA_HOME/explored-project" explored-project
+$MAIA session set --workspace explored-project
+printf 'sentinel content\n' > "$XMAIA_HOME/explored-project/sentinel.txt"
+run_file_cmd "sentinel_explore" explore --max-new 0 --max-depth 0 sentinel.txt
+$MAIA config api_type OPENAI_RESPONSES
+export OPENAI_API_KEY="mockedapikey"
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+export MOCK_CURL_RESPONSE_FILE="${canned_responses[responses_success]}"
+run_send_cmd "exploreset_context" "Check explored paths"
+$MAIA history clear
+run_send_cmd "exploreset_context_no_files" --no-files "Do not include file context"
+unset MOCK_CURL_RESPONSE_FILE
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

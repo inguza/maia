@@ -399,3 +399,18 @@ test_start() {
 test_end() {
     echo "${SUITENAME^} tests completed."
 }
+
+# Assert functionality
+
+assert_equals() {
+    local desc="$1"
+    local a="$2"
+    local b="$3"
+    if [[ "$a" == "$b" ]] ; then
+	echo "$desc: pass"
+	return 0
+    else
+	echo "$desc: fail ('$a' != '$b')"
+	return 1
+    fi
+}

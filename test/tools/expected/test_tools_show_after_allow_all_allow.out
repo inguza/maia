@@ -431,6 +431,43 @@ Tool definitions:
     "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
+    "name": "content-file-explore",
+    "description": "Find paths that may be useful as context.",
+    "command": "file-explore.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to explore. Only paths relative to the current directory allowed."
+        },
+        "max_new": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum additional entries to discover (default 20)."
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum directory traversal depth (default 1)."
+        },
+        "max_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cumulative index entry budget (default 1000)."
+        }
+      },
+      "required": [
+        "pathspecs"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
+  },
+  {
     "name": "change-apply",
     "description": "Applies one or more change proposals. This circumvent write permission problems from file operations. Before applying, verify that the proposed change match the intended update. This modifies the actual files.",
     "command": "change-apply.sh",
@@ -2297,6 +2334,51 @@ Tool definitions:
       },
       "required": [
         "files",
+        "session"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/session.td"
+  },
+  {
+    "name": "session-file-explore",
+    "description": "Find paths that may be useful as context.",
+    "command": "file-explore.sh",
+    "instructions": [
+      "session.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pathspecs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of files and directories to explore. Only paths relative to the current directory allowed."
+        },
+        "max_new": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum additional entries to discover (default 20)."
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum directory traversal depth (default 1)."
+        },
+        "max_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cumulative index entry budget (default 1000)."
+        },
+        "session": {
+          "type": "string",
+          "description": "Session whose workspace to explore."
+        }
+      },
+      "required": [
+        "pathspecs",
         "session"
       ],
       "additionalProperties": false

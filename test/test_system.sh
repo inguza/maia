@@ -91,6 +91,11 @@ run_system_cmd "show_type_tools" --type tools show
 run_system_cmd "append_type_files" --type tools "- One more generic tool instruction."
 run_system_cmd "show_type_tools_after_append" --type tools show
 
+# The explored type manages the prompt header for the generated tree.
+run_system_cmd "show_type_explored" --type explored show
+run_system_cmd "append_type_explored" --type explored --scope session append "Session exploration header."
+run_system_cmd "show_type_explored_after_append" --type explored show
+
 # Cleanup
 cleanup_maia_home
 common_cleanup_output_dir

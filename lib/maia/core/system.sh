@@ -52,6 +52,7 @@ OPTIONS
       - skillscontext
       - instructions
       - instructionscontext
+      - explored
 
 SCOPES
 
@@ -123,11 +124,11 @@ handle_system_command() {
 		shift
 		prompt_type="$1"; shift || true
 		case "$prompt_type" in
-		    system|tools|skills|skillscontext|tool_instr|instructions|instructionscontext)
+		    system|tools|skills|skillscontext|tool_instr|instructions|instructionscontext|explored)
 			:
 			;;
 		    *)
-			die "Unknown type '$prompt_type'. Valid: system, files, tools, skills, skillscontext, tool_instr."
+			die "Unknown type '$prompt_type'. Valid: system, tools, skills, skillscontext, tool_instr, instructions, instructionscontext, explored."
 			;;
 		esac
 		;;
