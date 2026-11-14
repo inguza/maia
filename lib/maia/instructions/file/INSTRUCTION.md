@@ -131,3 +131,7 @@ context instead.
 
 Do not revert a change if you think it was already applied. Since the
 file content is the latest that will always happen once you apply a change.
+
+# Special files
+
+MAIA.md is a special file that contain instructions for that specific path and will be put as a system message.
