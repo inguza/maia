@@ -53,6 +53,9 @@ COMMANDS
     include the whole day. 'last' returns the latest usage record and the
     configured max_input_tokens value.
 
+  cancel
+    Cancel the active AI operation in the current session.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
