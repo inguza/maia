@@ -23,7 +23,7 @@
         </header>
         <section class="home-usage" data-home-usage aria-labelledby="home-usage-title">
             <h2 id="home-usage-title">Token usage</h2>
-            <p class="home-usage-status" data-home-usage-status role="status" aria-live="polite">Loading usage&hellip;</p>
+            <p class="home-usage-status" data-home-usage-status role="status" aria-live="polite"><span class="spinner" data-home-usage-spinner aria-hidden="true"></span><span data-home-usage-message>Loading usage&hellip;</span></p>
             <div class="home-usage-periods">
                 <section aria-labelledby="home-usage-total-title">
                     <h3 id="home-usage-total-title">All sessions</h3>

@@ -14,8 +14,8 @@
     padding: .9rem 1rem 1rem;
 }
 .home-usage h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
-.home-usage-status { color: #6b7280; font-size: .85rem; margin: 0; }
-.home-usage-status:empty { display: none; }
+.home-usage-status { align-items: center; color: #6b7280; display: flex; font-size: .85rem; gap: .5rem; margin: 0; }
+.home-usage-status[hidden] { display: none; }
 .home-usage-periods { display: grid; gap: 1rem 2rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .home-usage-periods h3 { font-size: 1rem; margin: .35rem 0 .45rem; }
 .home-usage-periods dl { display: grid; gap: .3rem 1rem; grid-template-columns: 1fr auto; margin: 0; }
