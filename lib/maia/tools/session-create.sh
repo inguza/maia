@@ -40,7 +40,7 @@ apply_config_param() {
     local param_name="$1"
     local maia_cmd1="$2"
     local maia_cmd2="$3"
-    local value="$(get_config "$param_name")"
+    local value="$(get_setting "$param_name")"
     # Git Bash workaround
     value="$(strip_cr "$value")"
     read -ra patterns <<< "$value"

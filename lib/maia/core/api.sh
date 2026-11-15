@@ -57,8 +57,8 @@ handle_api_command() {
     local scope="session"
     load_settings "$scope"
 
-    local maia_api_base_url="$(get_config api_base_url)"
-    local api_type=$(get_config api_type)
+    local maia_api_base_url="$(get_setting api_base_url)"
+    local api_type=$(get_setting api_type)
     # Detect API type
     if [[ "$api_type" == "AUTODETECT" || -z "$api_type" ]] ; then
 	if [[ "${maia_api_base_url}" == *"bedrock"*"amazonaws.com"* ]] ; then

@@ -94,7 +94,7 @@ generate_allowed_toolset_def_file() {
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
     local -a _arr
-    mapfile_from_command _arr get_config default_allowed_tool_effects
+    mapfile_from_command _arr get_setting default_allowed_tool_effects
     local default_allowed_effects="$(printf '%s\n' "${_arr[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')"
     # We match the names against the regexp and then for the matched ones we keep only the last if there are
     # several with the same name.
@@ -402,7 +402,7 @@ handle_tool_command() {
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
 	discover)
-	    local serverscfg="$(get_config mcp_servers empty)"
+	    local serverscfg="$(get_setting mcp_servers empty)"
 	    IFS="," read -ra servers <<< "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"

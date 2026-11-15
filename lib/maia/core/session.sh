@@ -210,7 +210,7 @@ session_usage_command() {
     local start="" end="" label=""
     local today_key="$(date +%Y%m%d)"
     local today_label="$(date +%Y-%m-%d)"
-    local max_input_tokens="$(get_config max_input_tokens)"
+    local max_input_tokens="$(get_setting max_input_tokens)"
     [[ "$max_input_tokens" =~ ^[0-9]+$ ]] || max_input_tokens=null
 
     case ${#range_args[@]} in
@@ -558,9 +558,9 @@ handle_session_command() {
             fi
 
 	    local ws_source=" (from default_workspace configuration)"
-	    local workspace=$(get_config default_workspace)
+	    local workspace=$(get_setting default_workspace)
 	    local profile_source=" (from default_profile configuration)"
-	    local profile=$(get_config default_profile)
+	    local profile=$(get_setting default_profile)
 	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
 		ws_source=" (resolved from current session)"
 		workspace="$(resolve_workspace_name)"
@@ -644,12 +644,12 @@ handle_session_command() {
 		if [[ -v PARSED_FILESETS ]]; then
 		    filesets="$PARSED_FILESETS"
 		else
-		    filesets="$(get_config default_session_filesets)"
+		    filesets="$(get_setting default_session_filesets)"
 		fi
 		if [[ -v PARSED_EXTRA_SEND_FILESETS ]]; then
                     extra_send_filesets="$PARSED_EXTRA_SEND_FILESETS"
 		else
-		    extra_send_filesets="$(get_config default_session_extra_send_filesets)"
+		    extra_send_filesets="$(get_setting default_session_extra_send_filesets)"
 		fi
 	    fi
 

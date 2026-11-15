@@ -477,7 +477,7 @@ handle_file_command() {
             fi
             local workspace_root=$(resolve_workspace_root "$session_ws")
 	    local -a servers
-	    local serverscfg="$(get_config mcp_servers empty)"
+	    local serverscfg="$(get_setting mcp_servers empty)"
 	    IFS="," read -ra servers <<< "$serverscfg"
 	    declare -A services
 	    for server in "${servers[@]}" ; do
@@ -572,7 +572,7 @@ handle_file_command() {
 	discover)
 	    init_tool_search_dirs
 	    local -a servers
-	    local serverscfg="$(get_config mcp_servers empty)"
+	    local serverscfg="$(get_setting mcp_servers empty)"
 	    IFS="," read -ra servers <<< "$serverscfg"
 	    for server in "${servers[@]}" ; do
 		local name="${server%%=*}"

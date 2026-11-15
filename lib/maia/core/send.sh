@@ -153,9 +153,9 @@ determine_file_handling_mode() {
     model_key="${model_key//-/_}"
     # Extract cost per token for user and assistant from config or fallback to defaults
     local file_handling_key="file_handling_mode_${model_key}"
-    local mode="$(get_config "$file_handling_key")"
+    local mode="$(get_setting "$file_handling_key")"
     if [[ -z "$mode" ]] ; then
-	mode=$(get_config file_handling_mode)
+	mode=$(get_setting file_handling_mode)
     fi
     if [[ $file_handling_mode_raw ]] ; then
 	mode=$file_handling_mode_raw
@@ -293,7 +293,7 @@ build_messages_json() {
 	# We use an extremely improbable character sequence so we can change it to the
 	# actual usage post jq build later.
 	local token_usage="$(printf "%-19s %10s tokens" "Current usage:" "~%~~~%~=")"
-	local   token_max="$(printf "%-19s %10s tokens" "Maximum capacity:" "$(get_config "max_input_tokens")")"
+	local   token_max="$(printf "%-19s %10s tokens" "Maximum capacity:" "$(get_setting "max_input_tokens")")"
         combined+=$'\n\n'"$token_header"$'\n\n'"$token_usage"$'\n'"$token_max"
     fi
     # Task
@@ -533,7 +533,7 @@ handle_send_command() {
     init_instruction_search_dirs
     init_task_search_dirs
 
-    local maia_api_base_url="$(get_config api_base_url)"
+    local maia_api_base_url="$(get_setting api_base_url)"
 
     local history_dir=$(resolve_session_path)
     local history_file=$(resolve_history_meta)
@@ -548,18 +548,18 @@ handle_send_command() {
 
     # Extract config values into local variables
     # TODO: speed up configuration reading by using fewer jq commands
-    local model=$(get_config model)
-    local temperature=$(get_config temperature)
-    local max_output_tokens=$(get_config max_output_tokens)
-    local max_input_tokens=$(get_config max_input_tokens)
-    local top_p=$(get_config top_p)
-    local max_tool_calls=$(get_config max_tool_calls)
+    local model=$(get_setting model)
+    local temperature=$(get_setting temperature)
+    local max_output_tokens=$(get_setting max_output_tokens)
+    local max_input_tokens=$(get_setting max_input_tokens)
+    local top_p=$(get_setting top_p)
+    local max_tool_calls=$(get_setting max_tool_calls)
     local tool_loop_prevent
-    read -ra tool_loop_prevent <<< "$(get_config 'tool_loop_prevent')"
+    read -ra tool_loop_prevent <<< "$(get_setting 'tool_loop_prevent')"
     local tool_loop_prevent_glob="$(make_glob_from_var "${tool_loop_prevent[@]}")"
-    local api_type=$(get_config api_type)
-    local http_logging=$(get_config http_logging)
-    local send_hook=$(get_config send_hook)
+    local api_type=$(get_setting api_type)
+    local http_logging=$(get_setting http_logging)
+    local send_hook=$(get_setting send_hook)
     local file_handling_mode_raw
     local output_mode="full"
     local no_files=false
@@ -831,7 +831,7 @@ handle_send_command() {
             'map(select(.role != "reasoning"))'
     fi
 
-    local allowed_iterations=$(get_config tool_iteration_limit)
+    local allowed_iterations=$(get_setting tool_iteration_limit)
     local allowed_iterations_left=$allowed_iterations
     declare -A seen_commands=()
     declare -A seen_commands_this
@@ -945,7 +945,7 @@ handle_send_command() {
             curl_extra_headers curl_headers
 
 	    # Check prompt token count before sending
-	    local count_mode="$(get_config "token_accuracy")"
+	    local count_mode="$(get_setting "token_accuracy")"
             local prompt_tokens
 	    if [[ -n "$count_data_file" && "$count_mode" == "auto" ]] ; then
 		count_mode="exact"

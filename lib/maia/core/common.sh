@@ -235,7 +235,7 @@ init_profile_search_dirs() {
 	[system]="${SCOPE_DIR[system]}/profiles"
 	[install]="${MAIA_PROFILES_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "profiles")"
-	[extra]="$(get_config additional_profile_paths)"
+	[extra]="$(get_setting additional_profile_paths)"
     )
     PROFILE_SEARCH_DIRS_INITIALIZED=1
 }
@@ -256,7 +256,7 @@ init_tool_search_dirs() {
 	[system]="${SCOPE_DIR[system]}/tools"
 	[install]="${MAIA_TOOLS_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "tools")"
-	[extra]="$(get_config additional_tool_paths)"
+	[extra]="$(get_setting additional_tool_paths)"
     )
     case "$scope" in
 	profile)
@@ -304,7 +304,7 @@ init_skill_search_dirs() {
 	[system]="${SCOPE_DIR[system]}/skills"
 	[install]="${MAIA_SKILLS_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "skills")"
-	[extra]="$(get_config additional_skill_paths)"
+	[extra]="$(get_setting additional_skill_paths)"
     )
     case "$scope" in
 	profile)
@@ -348,7 +348,7 @@ init_instruction_search_dirs() {
 	[system]="${SCOPE_DIR[system]}/instructions"
 	[install]="${MAIA_INSTRUCTIONS_LIB_DIR}"
 	[plugins]="$(resolve_plugin_paths "instructions")"
-	[extra]="$(get_config additional_instruction_paths)"
+	[extra]="$(get_setting additional_instruction_paths)"
     )
 }
 
@@ -393,7 +393,7 @@ is_first_letter_upper() {
 
 # resolve_home_paths from fast.sh
 
-get_config() {
+get_setting() {
     local param="$1"
     local default="$2"
     local var
@@ -1071,7 +1071,7 @@ profile_allowed() {
     local pattern
     local -a patterns
 
-    read -ra patterns <<< "$(get_config allowed_profiles)"
+    read -ra patterns <<< "$(get_setting allowed_profiles)"
     profile_allowed_raw "$profile" "${patterns[@]}"
     return $?
 }
@@ -1146,7 +1146,7 @@ ensure_session_exists() {
 	    validate_workspace_exists "$workspace"
 	else
 	    # Default
-	    workspace="$(get_config default_workspace)"
+	    workspace="$(get_setting default_workspace)"
 	    if [[ "$workspace" == "__SESSION_WORKSPACE__" ]] ; then
 		local workspace="$(resolve_workspace_name)"
 	    fi
@@ -1157,7 +1157,7 @@ ensure_session_exists() {
 	if [[ -n "$profile" ]] ; then
 	    validate_profile_exists "$profile"
 	fi
-	local filesets_json="$(get_config default_session_filesets)"
+	local filesets_json="$(get_setting default_session_filesets)"
 	update_session "default" "true" "$workspace" "$profile" "$filesets_json"
 	trigger_event "post-session-create" "default"
     fi
@@ -1342,9 +1342,9 @@ fileset_content_extract() {
     local -a mcpspecs=()
     local -A seen=()
     local sendset
-    local default_filter="$(get_config default_filter)"
+    local default_filter="$(get_setting default_filter)"
     # MCP support
-    local serverscfg="$(get_config mcp_servers empty)"
+    local serverscfg="$(get_setting mcp_servers empty)"
     local -a servers
     IFS="," read -ra servers <<< "$serverscfg"
     declare -A services
@@ -1996,7 +1996,7 @@ load_scoped_myl() {
 
 load_settings() {
     load_scoped_myl "$1" settings.myl SETTINGS DEFAULT_SETTINGS
-    export TERM_LOGLEVEL="$(get_config 'term_loglevel')"
+    export TERM_LOGLEVEL="$(get_setting 'term_loglevel')"
     PROFILE_SEARCH_DIRS_INITIALIZED=""
     init_scope_dirs
 }

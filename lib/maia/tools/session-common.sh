@@ -18,7 +18,7 @@ resolve_subsession_name() {
 }
 
 resolve_subsession_prefix() {
-    local prefix="$(get_config 'agent_session_prefix')"
+    local prefix="$(get_setting 'agent_session_prefix')"
     local this="$(resolve_session_name)"
     prefix="${prefix//__SESSION_NAME__/$this}"
     printf '%s' "$prefix"
@@ -33,7 +33,7 @@ validate_subsession() {
 	die "Invalid session name '$session': Only letters, digits, . _ - , : = + are allowed." >&2
     fi
     local allowed
-    read -ra allowed <<< "$(get_config 'agent_session_allowed')"
+    read -ra allowed <<< "$(get_setting 'agent_session_allowed')"
     if ! subsession_allowed "$session" "${allowed[@]}" ; then
 	die "Session with name '$session' not allowed."
     fi
@@ -63,7 +63,7 @@ subsession_allowed() {
 
 list_filter() {
     local allowed
-    read -ra allowed <<< "$(get_config 'agent_session_allowed')"
+    read -ra allowed <<< "$(get_setting 'agent_session_allowed')"
     while read -r session || [[ -n "$session" ]] ; do
 	if subsession_allowed "$session" "${allowed[@]}" ; then
 	    printf "%s\n" "$session"

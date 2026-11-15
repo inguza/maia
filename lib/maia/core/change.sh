@@ -667,12 +667,12 @@ handle_change_command() {
     changes_dir="$(resolve_changes_path "$session_ws")"
 
     # Global flags
-    UPDATE_HISTORY=$(get_config prune_when_applied)
+    UPDATE_HISTORY=$(get_setting prune_when_applied)
     if [ "$cmd" = "skipped" ] ; then
-	UPDATE_HISTORY=$(get_config prune_when_skipped)
+	UPDATE_HISTORY=$(get_setting prune_when_skipped)
     fi
     DRY_RUN=false
-    AUTO_ADD=$(get_config auto_add_new_files_on_apply true)
+    AUTO_ADD=$(get_setting auto_add_new_files_on_apply true)
     while [[ "$1" =~ ^-- ]]; do
 	case "$1" in
 	    --update-history) UPDATE_HISTORY=true;  shift;;

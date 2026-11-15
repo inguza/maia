@@ -48,7 +48,7 @@ list_profiles() {
     local selected="$(resolve_profile_name)"
     local profilesdata="$(get_all_ordered_profile_names "description")"
 
-    read -ra patterns <<< "$(get_config allowed_profiles)"
+    read -ra patterns <<< "$(get_setting allowed_profiles)"
 
     printf '  %-22s%s\n' "NAME" "DESCRIPTION"
     printf '%s\n' "======================================================================="

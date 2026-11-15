@@ -419,7 +419,7 @@ history_prune() {
     local -a ranges=()
 
     # Default mode from config
-    local mode=$(get_config "prune_mode")
+    local mode=$(get_setting "prune_mode")
 
     # Parse flags before ranges
     while [[ $# -gt 0 ]]; do

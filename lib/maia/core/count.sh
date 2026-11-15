@@ -75,7 +75,7 @@ handle_count_command() {
     load_cost "$scope"
 
     # Parse arguments for --model option
-    local model=$(get_config model)
+    local model=$(get_setting model)
     local file_handling_mode_raw
     local args=()
     while [[ $# -gt 0 ]]; do
@@ -135,7 +135,7 @@ handle_count_command() {
 
     # Build the shared messages payload
     # Assume tools are always disabled
-    local api_type=$(get_config api_type)
+    local api_type=$(get_setting api_type)
     local mode="$(determine_file_handling_mode "$model" "$api_type" "$file_handling_mode_raw")"
     local sys="$(build_system_text "$mode" "false" "false" "false" "false" "false")"
     local messages_json=$(build_messages_json "$outbox_file" "$sys" "$model" "false" "$mode" "false" "false" "$api_type")
