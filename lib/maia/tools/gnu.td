@@ -2,7 +2,7 @@
   {
     "name":"util-grep",
     "description": "Search files using regular expressions, extended syntax.",
-    "command": "util-grep.sh -R -F -G -i -v -w -x -c -s -n -a -I --",
+    "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
       "type": "object",
       "properties": {
