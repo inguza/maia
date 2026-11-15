@@ -769,11 +769,33 @@ handle_send_command() {
 
     local session_lock="$(session_lock_file)"
     acquire_lock "$session_lock"
+    # Install signal handlers immediately after acquiring the lock so a cancel
+    # command that observes it cannot hit the startup window unhandled.
+    trap 'send_session_lock_signal_handler "$session_lock" 130' INT
+    trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
     MAIA_SEND_INTERRUPTED=false
     local active_curl_pid=""
     local tool_tmp_dir=""
-    trap 'send_session_lock_signal_handler "$session_lock" 130' INT
-    trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
+
+    # Consume a pending cancellation after the traps are active, before changing
+    # history or making the first provider request. The file contains only its
+    # Unix expiry time; concurrent cancel requests share the same marker.
+    local cancel_file="$(resolve_session_path)/cancel"
+    if [[ -r "$cancel_file" ]]; then
+        local cancel_expiry cancel_now
+        cancel_expiry="$(cat "$cancel_file" 2>/dev/null)"
+        cancel_now="$(date +%s)"
+        if [[ "$cancel_expiry" =~ ^[0-9]+$ ]] && (( cancel_now < cancel_expiry )); then
+            rm -f -- "$cancel_file"
+            release_lock "$session_lock"
+            trap - INT TERM
+            die "Send cancelled by user."
+        elif [[ "$(cat "$cancel_file" 2>/dev/null)" == "$cancel_expiry" ]]; then
+            # Discard expired or malformed markers so they cannot cancel a
+            # later send.
+            rm -f -- "$cancel_file"
+        fi
+    fi
 
     # --count is a read-only preview: save state before applying any supplied
     # draft and before the normal send path prunes stale reasoning entries.

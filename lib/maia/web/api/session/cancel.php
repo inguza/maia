@@ -34,6 +34,10 @@ if (!maia_session_exists($session)) {
     session_cancel_error(404, 'The requested session does not exist.');
 }
 
+// The CLI may wait up to 30 seconds for a just-starting send to acquire the
+// session lock or consume its pending cancellation marker.
+set_time_limit(0);
+
 $process = proc_open(
     [maia_binary(), 'session', 'cancel'],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
