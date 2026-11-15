@@ -176,6 +176,7 @@ $routes = [
     '/api/session/create' => __DIR__ . '/api/session/create.php',
     '/api/session/settings' => __DIR__ . '/api/session/settings.php',
     '/api/session/usage' => __DIR__ . '/api/session/usage.php',
+    '/api/home/usage' => __DIR__ . '/api/home/usage.php',
     '/api/session/input-count' => __DIR__ . '/api/session/input-count.php',
     '/api/workspace/create' => __DIR__ . '/api/workspace/create.php',
     '/api/workspace/delete' => __DIR__ . '/api/workspace/delete.php',

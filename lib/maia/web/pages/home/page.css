@@ -5,6 +5,21 @@
     margin: 0 0 1rem;
 }
 .topbar h1 { margin: 0; font-size: 1.5rem; }
+.home-usage {
+    background: color-mix(in srgb, Canvas 97%, #6b7280);
+    border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+    border-radius: .5rem;
+    margin: 0 0 1.25rem;
+    max-width: 48rem;
+    padding: .9rem 1rem 1rem;
+}
+.home-usage h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
+.home-usage-status { color: #6b7280; font-size: .85rem; margin: 0; }
+.home-usage-status:empty { display: none; }
+.home-usage-periods { display: grid; gap: 1rem 2rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.home-usage-periods h3 { font-size: 1rem; margin: .35rem 0 .45rem; }
+.home-usage-periods dl { display: grid; gap: .3rem 1rem; grid-template-columns: 1fr auto; margin: 0; }
+.home-usage-periods dd { font-variant-numeric: tabular-nums; margin: 0; text-align: right; }
 .home-panels {
     display: flex;
     flex-wrap: wrap;
@@ -14,4 +29,5 @@
 .error { margin: .75rem 0; color: #b91c1c; }
 @media (max-width: 48rem) {
     .topbar { padding-left: 2.5rem; }
+    .home-usage-periods { grid-template-columns: 1fr; gap: .5rem; }
 }

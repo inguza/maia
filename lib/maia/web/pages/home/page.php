@@ -21,6 +21,7 @@ use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
 use Maia\Web\Components\Sidebar\SidebarComponent;
 use Maia\Web\Core\Page;
+use Maia\Web\Core\Script;
 use Maia\Web\Core\Stylesheet;
 
 require_once __DIR__ . '/../common.php';
@@ -71,6 +72,8 @@ final class HomePage extends Page
 
         $this->addPageResources([
             new Stylesheet('pages/home/page.css'),
+            new Script('core/api.js'),
+            new Script('pages/home/page.js'),
         ]);
     }
 

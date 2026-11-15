@@ -15,6 +15,10 @@ COMMANDS
     Delete the MAIA home from the given directory.
     If <dir> is omitted, defaults to the current working directory.
 
+  usage [--json] [today|<start> [<end>]]
+    Show combined token usage across all sessions in this MAIA home.
+    With no range, show home and today's totals. --json outputs machine-readable JSON.
+
   (no command)
     Show the current MAIA home directory.
 
@@ -30,6 +34,9 @@ EXAMPLES
 
   maia home delete /path/to/home
     Delete the MAIA home at the specified directory.
+
+  maia home usage
+    Show combined token usage across all sessions in this MAIA home.
 
   maia home
     Show the current MAIA home directory.

@@ -21,6 +21,30 @@
         <header class="topbar">
             <h1>home</h1>
         </header>
+        <section class="home-usage" data-home-usage aria-labelledby="home-usage-title">
+            <h2 id="home-usage-title">Token usage</h2>
+            <p class="home-usage-status" data-home-usage-status role="status" aria-live="polite">Loading usage&hellip;</p>
+            <div class="home-usage-periods">
+                <section aria-labelledby="home-usage-total-title">
+                    <h3 id="home-usage-total-title">All sessions</h3>
+                    <dl>
+                        <dt>Input</dt><dd data-home-usage="home-input">&mdash;</dd>
+                        <dt>Cached input</dt><dd data-home-usage="home-cached">&mdash;</dd>
+                        <dt>Output</dt><dd data-home-usage="home-output">&mdash;</dd>
+                        <dt>Reasoning</dt><dd data-home-usage="home-reasoning">&mdash;</dd>
+                    </dl>
+                </section>
+                <section aria-labelledby="home-usage-today-title">
+                    <h3 id="home-usage-today-title">Today</h3>
+                    <dl>
+                        <dt>Input</dt><dd data-home-usage="today-input">&mdash;</dd>
+                        <dt>Cached input</dt><dd data-home-usage="today-cached">&mdash;</dd>
+                        <dt>Output</dt><dd data-home-usage="today-output">&mdash;</dd>
+                        <dt>Reasoning</dt><dd data-home-usage="today-reasoning">&mdash;</dd>
+                    </dl>
+                </section>
+            </div>
+        </section>
         <div class="home-panels" aria-label="Home tools">
             <?= $page->renderComponent('profiles') ?>
             <?= $page->renderComponent('credentials') ?>
