@@ -171,7 +171,7 @@
     }
   },
   {
-    "name": "content-file-explore",
+    "name": "context-file-explore",
     "description": "Find paths that may be useful as context.",
     "command": "file-explore.sh",
     "inputSchema": {

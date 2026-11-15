@@ -3,7 +3,7 @@ Allowed tools:
 change-apply:write
 change-revert:write
 change-skip:write
-content-file-explore:write
+context-file-explore:write
 context-file-forget:write
 context-file-remember:write
 context-instruction-forget:write
@@ -513,7 +513,7 @@ Tool definitions:
     "source": "<MAIA_ROOT>/lib/maia/tools/file.td"
   },
   {
-    "name": "content-file-explore",
+    "name": "context-file-explore",
     "description": "Find paths that may be useful as context.",
     "command": "file-explore.sh",
     "inputSchema": {
