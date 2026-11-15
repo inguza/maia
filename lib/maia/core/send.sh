@@ -275,8 +275,7 @@ build_messages_json() {
     # a valid empty array when it checks for non-text files.
     [[ -n "$files_json" ]] || files_json='[]'
     local combined=$(printf '%s' "$files_json" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
-    # The exploration tree is dynamic file context, alongside #Files, rather
-    # than part of the system prompt. It is omitted with --no-files below.
+    # Explored paths
     if [[ -n "$ws_name" && "$no_files" == false ]]; then
         local explore_index="$(resolve_session_path "$session")/exploreset.gen"
         if [[ -s "$explore_index" ]]; then
@@ -288,6 +287,16 @@ build_messages_json() {
             fi
         fi
     fi
+    # Token status
+    if [[ "$no_files" == false ]]; then
+	local token_header="# Token status"
+	# We use an extremely improbable character sequence so we can change it to the
+	# actual usage post jq build later.
+	local token_usage="$(printf "%-19s %10s tokens" "Current usage:" "~%~~~%~=")"
+	local   token_max="$(printf "%-19s %10s tokens" "Maximum capacity:" "$(get_config "max_input_tokens")")"
+        combined+=$'\n\n'"$token_header"$'\n\n'"$token_usage"$'\n'"$token_max"
+    fi
+    # Task
     local task_list=""
     local task_memory=""
     if [[ "$no_tasks" == false ]]; then
@@ -954,7 +963,7 @@ handle_send_command() {
 		    warn "API type '$api_type' do not support token_accuracy = 'exact', falling back to 'heuristic'."
 		fi
 	    fi
-	    if [[ -z "$prompt_tokens" ]] ; then
+	    if [[ -z "$prompt_tokens" || "$prompt_tokens" == "null" ]] ; then
 		prompt_tokens=$(estimate_tokens "$messages_json")
 	    fi
 	    # We explicitly remove this, not count_data_file since count_data_file may point to tmp_payload
@@ -979,6 +988,9 @@ handle_send_command() {
 		release_lock "$session_lock"
 		return 1
             fi
+	    # Now we do a little trick, we replace the string with the prompt_tokens, before we trigger the event
+	    local prompt_tokens_aligned="$(printf '%8s' "$prompt_tokens")"
+	    sed -i "s/~%~~~%~=/$prompt_tokens_aligned/;" "${tmp_payload}"
 
 	    trigger_event "pre-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$tmp_payload"
 
@@ -988,9 +1000,9 @@ handle_send_command() {
             trap 'send_curl_signal_handler "${active_curl_pid:-}" INT' INT
             trap 'send_curl_signal_handler "${active_curl_pid:-}" TERM' TERM
             curl -s \
-			    "${curl_headers[@]}" \
-			    --data-binary @"$tmp_payload" \
-			    "$url" > "$curl_output_file" &
+		 "${curl_headers[@]}" \
+		 --data-binary @"$tmp_payload" \
+		 "$url" > "$curl_output_file" &
             active_curl_pid=$!
             if [[ "$MAIA_SEND_INTERRUPTED" == true ]]; then
                 kill -INT "$active_curl_pid" 2>/dev/null || true

@@ -47,6 +47,9 @@ File tools like `util-grep`, `util-cat`, `util-sed` (and others) are available t
 - filter the result of other tools
 - to produce new file content
 
+Limit tool output to avoid exhausting the available context. For example,
+combine find or grep with head or tail.
+
 NOTE! It is hard to predict if you need only a snapshot of a file once, therefore
 context-file-remember should be the primary way to learn about files.
 
@@ -81,6 +84,11 @@ tokens without providing a corresponding benefit. When relevant content is alrea
 available in the file context, use it directly instead of retrieving it again.
 Follow this principle even when a tool call would otherwise be permitted by its tool description.
 Even retreiving a small amount of data for a file already in context is unnecessary.
+
+Pay attention to token usage, which represents how much of the available
+context window is occupied. Compare current token usage with the maximum
+token capacity and adjust the amount of information retrieved and produced
+accordingly.
 
 
 
