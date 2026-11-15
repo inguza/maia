@@ -1,2 +1,3 @@
-[NOTICE] Updated to state 'skipped' for change <dateandtime>-abcd1234-1.
+[NOTICE] <dateandtime>-abcd1234-1 skipped
+[NOTICE] <dateandtime>-abcd1234 skipped
 [NOTICE] History file for session 'default' does not exist; skipping pruning

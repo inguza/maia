@@ -16,9 +16,10 @@ COMMANDS
      --finished
      --failed
      --running
+     --done
      --all
+     --sub, --subs
      --all-sessions
-     --all-states
 
   show [--raw] [<ID>]
     Display metadata and change suggestions.
@@ -61,10 +62,10 @@ COMMANDS
 OPTIONS COMMON TO APPLY/APPLIED/SKIP:
 
   --update-history
-    Rewrite history when fully applied/skipped.
+    Rewrite history when a set becomes done or skipped.
 
   --keep-history
-    Retain history when fully applied/skipped.
+    Retain history when a set becomes done or skipped.
 
   --dry-run
     (apply) Do not write changes.

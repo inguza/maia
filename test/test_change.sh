@@ -88,16 +88,19 @@ run_change_cmd "skipped" skipped "${set1}-1"
 show_x skipped
 
 # Test finished command
-run_change_cmd "finished" applied "${set1}-1"
+run_change_cmd "finished" finished "${set2}-1"
 show_x finished
 
 # Test running command
-run_change_cmd "running" applied "${set1}-1"
+run_change_cmd "running" running "${set2}-1"
 show_x running
 
 # Test failed command
-run_change_cmd "failed" applied "${set1}-1"
+run_change_cmd "failed" failed "${set2}-1"
 show_x failed
+
+# Test failed command
+run_change_cmd "pending2" pending "${set2}-1"
 
 # Test run command
 run_change_cmd "run" run "${set2}-1" &
@@ -105,6 +108,113 @@ sleep 0.5
 show_x after_run
 sleep 4
 show_x after_run_3
+
+# Set change tests
+setup_set_change_cases() {
+    local changes_dir="$XMAIA_HOME/.maia/workspaces/ws/changes/default"
+    local set_run_shell=20250513T142512-abcd1240
+    local set_apply_patch=20250513T142512-abcd1241
+    local set_run_pending_patch=20250513T142512-abcd1242
+    local set_run_skipped_patch=20250513T142512-abcd1243
+    local set_run_failed=20250513T142512-abcd1244
+    local set_skip_all=20250513T142512-abcd1245
+    local set_finished_mixed=20250513T142512-abcd1246
+    local set_empty=20250513T142512-abcd1247
+    local set_run_two_shells_patch=20250513T142512-abcd1248
+    local set_run_two_shells=20250513T142512-abcd1249
+    echo 'type: set' > "$changes_dir/$set_run_shell-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_shell-1-pending.myl"
+    echo 'echo set-run-shell' > "$changes_dir/$set_run_shell-1-pending.shell"
+    echo 'type: set' > "$changes_dir/$set_apply_patch-+-pending.myl"
+    echo 'type: patch' > "$changes_dir/$set_apply_patch-1-pending.myl"
+    echo 'filename: set-cases/applied.txt' >> "$changes_dir/$set_apply_patch-1-pending.myl"
+    echo 'MAIA-EMPTY-FILE: set-cases/applied.txt' > "$changes_dir/$set_apply_patch-1-pending.patch"
+    echo 'type: set' > "$changes_dir/$set_run_pending_patch-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_pending_patch-1-pending.myl"
+    echo 'echo set-run-with-pending-patch' > "$changes_dir/$set_run_pending_patch-1-pending.shell"
+    echo 'type: patch' > "$changes_dir/$set_run_pending_patch-2-pending.myl"
+    echo 'filename: set-cases/pending.txt' >> "$changes_dir/$set_run_pending_patch-2-pending.myl"
+    echo 'MAIA-EMPTY-FILE: set-cases/pending.txt' > "$changes_dir/$set_run_pending_patch-2-pending.patch"
+    echo 'type: set' > "$changes_dir/$set_run_skipped_patch-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_skipped_patch-1-pending.myl"
+    echo 'echo set-run-with-skipped-patch' > "$changes_dir/$set_run_skipped_patch-1-pending.shell"
+    echo 'type: patch' > "$changes_dir/$set_run_skipped_patch-2-skipped.myl"
+    echo 'filename: set-cases/skipped.txt' >> "$changes_dir/$set_run_skipped_patch-2-skipped.myl"
+    echo 'type: set' > "$changes_dir/$set_run_failed-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_failed-1-pending.myl"
+    echo 'false' > "$changes_dir/$set_run_failed-1-pending.shell"
+    echo 'type: patch' > "$changes_dir/$set_run_failed-2-pending.myl"
+    echo 'filename: set-cases/failed-other.txt' >> "$changes_dir/$set_run_failed-2-pending.myl"
+    echo 'MAIA-EMPTY-FILE: set-cases/failed-other.txt' > "$changes_dir/$set_run_failed-2-pending.patch"
+    echo 'type: set' > "$changes_dir/$set_skip_all-+-pending.myl"
+    echo 'type: patch' > "$changes_dir/$set_skip_all-1-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_skip_all-2-pending.myl"
+    echo 'echo not-run' > "$changes_dir/$set_skip_all-2-pending.shell"
+    echo 'type: set' > "$changes_dir/$set_finished_mixed-+-pending.myl"
+    echo 'type: patch' > "$changes_dir/$set_finished_mixed-1-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_finished_mixed-2-pending.myl"
+    echo 'echo not-run' > "$changes_dir/$set_finished_mixed-2-pending.shell"
+    echo 'type: set' > "$changes_dir/$set_empty-+-pending.myl"
+    echo 'type: set' > "$changes_dir/$set_run_two_shells_patch-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_two_shells_patch-1-pending.myl"
+    echo 'echo first-shell-with-patch' > "$changes_dir/$set_run_two_shells_patch-1-pending.shell"
+    echo 'type: shell' > "$changes_dir/$set_run_two_shells_patch-2-pending.myl"
+    echo 'echo second-shell-with-patch' > "$changes_dir/$set_run_two_shells_patch-2-pending.shell"
+    echo 'type: patch' > "$changes_dir/$set_run_two_shells_patch-3-pending.myl"
+    echo 'filename: set-cases/two-shells-patch.txt' >> "$changes_dir/$set_run_two_shells_patch-3-pending.myl"
+    echo 'MAIA-EMPTY-FILE: set-cases/two-shells-patch.txt' > "$changes_dir/$set_run_two_shells_patch-3-pending.patch"
+    echo 'type: set' > "$changes_dir/$set_run_two_shells-+-pending.myl"
+    echo 'type: shell' > "$changes_dir/$set_run_two_shells-1-pending.myl"
+    echo 'echo first-of-two-shells' > "$changes_dir/$set_run_two_shells-1-pending.shell"
+    echo 'type: shell' > "$changes_dir/$set_run_two_shells-2-pending.myl"
+    echo 'echo second-of-two-shells' > "$changes_dir/$set_run_two_shells-2-pending.shell"
+}
+
+setup_set_change_cases
+set_run_shell=20250513T142512-abcd1240
+set_apply_patch=20250513T142512-abcd1241
+set_run_pending_patch=20250513T142512-abcd1242
+set_run_skipped_patch=20250513T142512-abcd1243
+set_run_failed=20250513T142512-abcd1244
+set_skip_all=20250513T142512-abcd1245
+set_finished_mixed=20250513T142512-abcd1246
+set_empty=20250513T142512-abcd1247
+set_run_two_shells_patch=20250513T142512-abcd1248
+set_run_two_shells=20250513T142512-abcd1249
+
+show_set_x() {
+    local test_id="$1"
+    local set_id="$2"
+    run_change_cmd "list_all_after_set_$test_id" list --all
+    run_change_cmd "show_set_after_$test_id" show "$set_id"
+}
+
+run_change_cmd "set_run_shell" run "$set_run_shell"
+show_set_x run_shell "$set_run_shell"
+run_change_cmd "set_apply_patch" apply "$set_apply_patch"
+show_set_x apply_patch "$set_apply_patch"
+run_change_cmd "set_run_pending_patch" run "$set_run_pending_patch"
+show_set_x run_pending_patch "$set_run_pending_patch"
+run_change_cmd "set_skip_patch_subchange" skipped "$set_run_skipped_patch-2"
+show_set_x skip_patch "$set_run_skipped_patch"
+run_change_cmd "set_run_skipped_patch" run "$set_run_skipped_patch"
+show_set_x run_skipped_patch "$set_run_skipped_patch"
+run_change_cmd "set_run_failed" run "$set_run_failed"
+show_set_x run_failed "$set_run_failed"
+run_change_cmd "skip_failed_other" skipped "$set_run_failed-2"
+show_set_x skip_failed_other "$set_run_failed"
+run_change_cmd "set_skip_all" skipped "$set_skip_all"
+show_set_x skip_all "$set_skip_all"
+run_change_cmd "set_finished_mixed" finished "$set_finished_mixed"
+show_set_x finished_mixed "$set_finished_mixed"
+run_change_cmd "skip_finished_other" skipped "$set_finished_mixed-1"
+show_set_x skip_finished_other "$set_finished_mixed"
+run_change_cmd "set_empty" run "$set_empty"
+show_set_x empty "$set_empty"
+run_change_cmd "set_run_two_shells_patch" run "$set_run_two_shells_patch"
+show_set_x run_two_shells_patch "$set_run_two_shells_patch"
+run_change_cmd "set_run_two_shells" run "$set_run_two_shells"
+show_set_x run_two_shells "$set_run_two_shells"
 
 # Test delete command
 run_change_cmd "delete_fail" delete "${set1}-1"

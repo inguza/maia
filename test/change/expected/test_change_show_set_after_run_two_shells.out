@@ -1,0 +1,39 @@
+State: done
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1249-1
+State: finished
+Type: shell
+
+Suggested commands below:
+=========================
+echo first-of-two-shells
+
+Command output below:
+=====================
+$ echo first-of-two-shells
+first-of-two-shells
+
+Exit status below:
+==================
+0
+
+
+Sub-change: <dateandtime>-abcd1249-2
+State: finished
+Type: shell
+
+Suggested commands below:
+=========================
+echo second-of-two-shells
+
+Command output below:
+=====================
+$ echo second-of-two-shells
+second-of-two-shells
+
+Exit status below:
+==================
+0
+

@@ -1,0 +1,3 @@
+[WARN] Change set <dateandtime>-abcd1247 has no sub-changes; treating it as skipped.
+[NOTICE] <dateandtime>-abcd1247 skipped
+[NOTICE] History file for session 'default' does not exist; skipping pruning

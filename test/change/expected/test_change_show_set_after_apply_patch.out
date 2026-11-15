@@ -1,0 +1,12 @@
+State: done
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1241-1
+State: applied
+Type: patch
+Filename: set-cases/applied.txt
+
+Suggested patch below:
+======================
+MAIA-EMPTY-FILE: set-cases/applied.txt

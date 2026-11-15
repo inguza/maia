@@ -1,0 +1,30 @@
+State: pending
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1242-1
+State: finished
+Type: shell
+
+Suggested commands below:
+=========================
+echo set-run-with-pending-patch
+
+Command output below:
+=====================
+$ echo set-run-with-pending-patch
+set-run-with-pending-patch
+
+Exit status below:
+==================
+0
+
+
+Sub-change: <dateandtime>-abcd1242-2
+State: pending
+Type: patch
+Filename: set-cases/pending.txt
+
+Suggested patch below:
+======================
+MAIA-EMPTY-FILE: set-cases/pending.txt

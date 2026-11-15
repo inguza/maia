@@ -1,0 +1,21 @@
+State: done
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1240-1
+State: finished
+Type: shell
+
+Suggested commands below:
+=========================
+echo set-run-shell
+
+Command output below:
+=====================
+$ echo set-run-shell
+set-run-shell
+
+Exit status below:
+==================
+0
+

@@ -25,9 +25,10 @@ COMMANDS
      --finished
      --failed
      --running
+     --done
      --all
+     --sub, --subs
      --all-sessions
-     --all-states
 
   show [--raw] [<ID>]
     Display metadata and change suggestions.
@@ -70,10 +71,10 @@ COMMANDS
 OPTIONS COMMON TO APPLY/APPLIED/SKIP:
 
   --update-history
-    Rewrite history when fully applied/skipped.
+    Rewrite history when a set becomes done or skipped.
 
   --keep-history
-    Retain history when fully applied/skipped.
+    Retain history when a set becomes done or skipped.
 
   --dry-run
     (apply) Do not write changes.
@@ -108,18 +109,19 @@ EOF
 
 prune_history() {
     local idbase=$1      # e.g. 20250513T142512Z-abcd1234
-    local action=$2      # "applied" or "skipped"
+    local action=$2      # "done" or "skipped"
 
-    info "Pruning history for $idbase (applied)"
+    info "Pruning history for $idbase ($action)"
 
     # Map action to state suffix used in filenames
-    local state_suffix
+    local state_suffix=""
     case "$action" in
         apply)   state_suffix="applied" ;;
         applied) state_suffix="applied" ;;
         skip)    state_suffix="skipped" ;;
         skipped) state_suffix="skipped" ;;
         pending) state_suffix="pending" ;;
+        "done")    state_suffix="done" ;;
         *)       state_suffix="$action" ;;  # fallback
     esac
 
@@ -150,7 +152,7 @@ prune_history() {
     local instructions=$(read_file "$instructions_file")
 
     # 2) Append the status line
-    if [[ "$action" == "applied" ]]; then
+    if [[ "$action" == "done" || "$action" == "applied" ]]; then
         instructions+="
 
 The above has been considered and the history is pruned."
@@ -190,12 +192,14 @@ find_last_set_change_id() {
     fi
     # Extract IDs by stripping directory and trailing '-+.myl'
     local ids=()
+    local f
     for f in "${files[@]}"; do
         local fname=$(basename -- "$f")
         local id="${fname%-+-*.myl}"
         ids+=( "$id" )
     done
     # Sort lexically and pick last
+    local -a sorted=()
     IFS=$'\n' sorted=($(sort <<<"${ids[*]}"))
     unset IFS
     last_id="${sorted[-1]}"
@@ -212,6 +216,7 @@ pre_check() {
     shopt -s nullglob
 
     # Look at numbered sub-entries only; the -+-*.myl file is the set metadata.
+    local f
     for f in "$changes_dir/$session/${base}-"[0-9]*".myl"; do
 	[[ -f "$f" ]] || continue
 	if [[ "$(get_status "$f")" == "pending" ]]; then
@@ -223,93 +228,190 @@ pre_check() {
     PREVIOUSLY_PENDING=$pending
 }
 
-# Post-check: if any were pending, and now all match $2, update base and prune
+# State commands do not execute the proposed action; they only rename artifacts.
+# Each change type supports a specific set of states.
+change_state_allowed_for_type() {
+    local type="$1"
+    local state="$2"
+    case "$type" in
+        patch|manual|file|snippet|diff)
+            case "$state" in
+                pending|applied|skipped|failed|reverted)
+                    return 0
+                    ;;
+            esac
+            ;;
+        shell|action)
+            case "$state" in
+                pending|running|finished|failed|skipped)
+                    return 0
+                    ;;
+            esac
+            ;;
+    esac
+    return 1
+}
+
+# Calculate the set state from its children. Empty sets and sets whose
+# children are all skipped are skipped; any unresolved or unknown child state
+# leaves the set pending. Otherwise the set is done.
 post_check() {
     local session="$1"
     local base="$2"
-    local status="$3"
-    local all_match=true
+    local report_still="${3:-false}"
+    local desired=done
+    local has_children=false
+    local all_skipped=true
     shopt -s nullglob
-    # Verify every numbered sub-entry now has .status != pending.
-    # The -+-*.myl file is the set metadata and must not participate.
+    local f
     for f in "$changes_dir/$session/${base}-"[0-9]*".myl"; do
-	[[ -f "$f" ]] || continue
-	if [[ "$(get_status "$f")" == "pending" ]]; then
-	    all_match=false
-	    break
-	fi
-    done
-
-    # If we transitioned from some pending to all-matching, bump the base
-    if [[ "$PREVIOUSLY_PENDING" == true && "$all_match" == true ]]; then
-        # The set metadata is deliberately excluded from the scan above, so
-        # update it only after all numbered sub-entries have transitioned.
-        local setmeta
-        setmeta="$(match_single_file "$changes_dir/$session/${base}-+-" ".myl")"
-        if [[ -n "$setmeta" ]]; then
-            change_state_for_meta "$status" "$setmeta"
+        [[ -f "$f" ]] || continue
+        has_children=true
+        local status="$(get_status "$f")"
+        if [[ "$status" != skipped ]]; then
+            all_skipped=false
         fi
-	# Prune history if configured
-	[[ "$UPDATE_HISTORY" == true ]] && prune_history "$base" "$status"
+        case "$status" in
+            applied|finished|skipped)
+                :
+                ;;
+            *)
+                desired=pending
+                ;;
+        esac
+    done
+    if [[ "$has_children" == false ]]; then
+        desired=skipped
+        warn "Change set $base has no sub-changes; treating it as skipped."
+    elif [[ "$all_skipped" == true ]]; then
+        desired=skipped
     fi
+
+    local setmeta="$(match_single_file "$changes_dir/$session/${base}-+-" ".myl")"
+    [[ -n "$setmeta" ]] || return 0
+    local old="$(get_status "$setmeta")"
+    if [[ "$old" != "$desired" ]]; then
+        change_state_for_meta "$desired" "$setmeta"
+        if [[ "$UPDATE_HISTORY" == true ]]; then
+            if [[ "$desired" == done ]]; then
+                prune_history "$base" done
+            elif [[ "$desired" == skipped ]]; then
+                prune_history "$base" skipped
+            fi
+        fi
+    elif [[ "$report_still" == true ]]; then
+        notice "$base still $desired"
+    fi
+}
+
+# State requests on a set are attempted independently on each compatible child.
+# The set itself is always recalculated from the resulting child states.
+set_change_state() {
+    local session="$1"
+    local base="$2"
+    local state="$3"
+    local -a subs=()
+    local f
+    shopt -s nullglob
+    subs=( "$changes_dir/$session/${base}-"[0-9]*".myl" )
+    for f in "${subs[@]}"; do
+        local type="$(myl_get "$f" type)"
+        if change_state_allowed_for_type "$type" "$state"; then
+            change_state_for_meta "$state" "$f"
+        fi
+    done
+    post_check "$session" "$base" true
+}
+
+run_one_change() {
+    local session="$1"
+    local metaf="$2"
+    local workspace_root="$3"
+    local id="$(basename -- "${metaf%.myl}")"
+    id="${id%-*}"
+    local type="$(myl_get "$metaf" type)"
+    if [[ "$(get_status "$metaf")" != pending ]] ; then
+        notice "Skipping change '$id' since it is not 'pending'"
+        return 1
+    fi
+    if [[ "$type" != shell && "$type" != action ]] ; then
+        return 2
+    fi
+    local shellfile="$changes_dir/$session/$id-pending.$type"
+    if [[ ! -f "$shellfile" ]] ; then
+        warn "Skipping change '$id' since it is missing its command file."
+        return 1
+    fi
+    change_state_for_meta running --quiet "$metaf"
+    shellfile="$changes_dir/$session/$id-running.$type"
+    local outputfile="$changes_dir/$session/$id-running.output"
+    if ! cd "$workspace_root" ; then
+        metaf="$(match_single_file "$changes_dir/$session/$id-running" ".myl")"
+        if [[ -n "$metaf" ]] ; then
+            change_state_for_meta failed "$metaf"
+        fi
+        return 1
+    fi
+    (
+        export PS1='$ '
+        export PS2='> '
+        bash --noprofile --norc -i < "$shellfile" > "$outputfile" 2>&1
+    )
+    local exit_status=$?
+    if [[ "$(tail -n 1 "$outputfile")" == '$ exit' ]] ; then
+        sed -i '$d' "$outputfile"
+    fi
+    echo "$exit_status" > "$changes_dir/$session/$id-running.exit_status"
+    if [[ "$exit_status" == 0 ]] ; then
+        metaf="$(match_single_file "$changes_dir/$session/$id-running" ".myl")"
+        change_state_for_meta finished "$metaf"
+        return 0
+    fi
+    metaf="$(match_single_file "$changes_dir/$session/$id-running" ".myl")"
+    change_state_for_meta failed "$metaf"
+    return 1
 }
 
 change_list() {
     local session="$1"
     shift
-    # 1) parse status flags
-    local status_filter=""
+    # 1) Parse status and session filters.
+    local -a status_filters=()
+    local all_states=false
+    local filter_subs=false
     local session_filter="$session"
     local print_sessname=0
     while [[ "$1" =~ ^-- ]]; do
-	case "$1" in
-	    --pending)
-		status_filter="pending"
-		shift
-		;;
-	    --applied)
-		status_filter="applied"
-		shift ;;
-	    --skipped)
-		status_filter="skipped"
-		shift
-		;;
-	    --finished)
-		status_filter="finished"
-		shift
-		;;
-	    --failed)
-		status_filter="failed"
-		shift
-		;;
-	    --running)
-		status_filter="running"
-		shift
-		;;
-	    --all)
-		status_filter="*"
-		session_filter="*"
-		print_sessname=1
-		shift
-		;;
-	    --all-sessions)
-		session_filter="*"
-		print_sessname=1
-		shift
-		;;
-	    --all-states)
-		status_filter="*"
-		shift
-		;;
-	    *)
-		die "Unknown option: $1"
-		;;
-	esac
+        case "$1" in
+            --pending|--applied|--skipped|--finished|--failed|--running|--done)
+                status_filters+=("${1#--}")
+                shift
+                ;;
+            --all)
+                all_states=true
+                shift
+                ;;
+            --sub|--subs)
+                filter_subs=true
+                shift
+                ;;
+            --all-sessions)
+                session_filter="*"
+                print_sessname=1
+                shift
+                ;;
+            *)
+                die "Unknown option: $1"
+                ;;
+        esac
     done
-
-    # Default to showing only pending if no filter specified
-    if [[ -z "$status_filter" ]]; then
+    local status_filter
+    if [[ "$all_states" == true ]]; then
+        status_filter="*"
+    elif ((${#status_filters[@]} == 0)); then
         status_filter="@(pending|running|failed)"
+    else
+        status_filter="@($(IFS='|'; printf '%s' "${status_filters[*]}"))"
     fi
 
     # 2) bail if no directory
@@ -321,8 +423,7 @@ change_list() {
     # 3) collect only the top-level change IDs (no "-n" suffix)
     shopt -s nullglob
     # 4) print a single header
-    printf "  %-30s %-10s %-10s %s
-" "ID" "TYPE" "STATUS" "FILENAME"
+    printf '  %-30s %-10s %-10s %s\n' "ID" "TYPE" "STATUS" "FILENAME"
     # 5) for each base, print its status and then its sub-entries
     LC_COLLATE=C
     local scdir
@@ -332,50 +433,74 @@ change_list() {
 	# We do not need to check that $scdir is a directory, because this
 	# for look will do that anyway
 	shopt -s extglob
+	local file
 	for file in "$scdir"/*-${status_filter}.myl; do
-	    local fname base status index id type filename
+            if [[ "$file" != *-+-*.myl ]]; then
+                local child_fname="$(basename -- "$file")"
+                local child_base="${child_fname%.myl}"
+                local child_id="${child_base%-*}"
+                local parent_id="${child_id%-[0-9]*}"
+                local parent_set_file="$(match_single_file "$scdir/$parent_id-+-" ".myl")"
+                if [[ -n "$parent_set_file" ]]; then
+                    local parent_status="$(get_status "$parent_set_file")"
+                    if [[ "$parent_status" == $status_filter ]]; then
+                        continue
+                    fi
+                fi
+            fi
 	    if [[ $scprinted -eq 0 ]] ; then
 		if [[ $print_sessname -eq 1 ]] ; then
-		    printf "%s:
-" \
-		    $scname
+		    printf '%s:\n' "$scname"
 		    scprinted=1
 		fi
 	    fi
-	    fname=$(basename $file)
-	    base="${fname%.myl}"                # => "...-+-pending" or "...-0-pending"
-	    status=$(get_status "$file")
+	    local fname="$(basename -- "$file")"
+	    local base="${fname%.myl}"                # => "...-+-pending" or "...-0-pending"
+	    local status="$(get_status "$file")"
 	    # 3) Extract the “index” field (either "+" or a digit)
-	    tmp="${base%-*}"                     # => "...-+-" or "...-0"
-	    index="${tmp##*-}"                   # => "+" or "0"
+	    local tmp="${base%-*}"                     # => "...-+-" or "...-0"
+	    local index="${tmp##*-}"                   # => "+" or "0"
 	    # 4) Compute filebase = everything up to (and including) the index
-	    filebase="$tmp"                      # => "2025-05-17T19:10:54-81610843-+"
+	    local filebase="$tmp"                      # => "2025-05-17T19:10:54-81610843-+"
             #    or "…-81610843-0"
-	    type=$(myl_get "$file" 'type')
-	    filename=$(myl_get "$file" 'filename')
+	    local type="$(myl_get "$file" 'type')"
+	    local filename="$(myl_get "$file" 'filename')"
 	    # 5) Compute id: drop the “-+” for a set file, keep “-0” for numbered
 	    if [[ "$index" == "+" ]]; then
 		# remove the trailing “-+”
-		id="${filebase%-+}"                # => "2025-05-17T19:10:54-81610843"
-		printf "  %-30s %-10s %-10s %s
-" \
-		"$id" "set" "$status" ""
+		local id="${filebase%-+}"                # => "2025-05-17T19:10:54-81610843"
+		printf '  %-30s %-10s %-10s %s\n' \
+		    "$id" "set" "$status" ""
+                local subfile
+                for subfile in "$scdir/$id-"[0-9]*.myl; do
+                    [[ -f "$subfile" ]] || continue
+                    local subfname="$(basename -- "$subfile")"
+                    local subbase="${subfname%.myl}"
+                    local subid="${subbase%-*}"
+                    local substatus="$(get_status "$subfile")"
+                    if [[ "$filter_subs" == true && ! "$substatus" == $status_filter ]]; then
+                        continue
+                    fi
+                    local subtype="$(myl_get "$subfile" 'type')"
+                    local subfilename="$(myl_get "$subfile" 'filename')"
+                    printf '   %-29s %-10s %-10s %s\n' \
+                        " $subid" "$subtype" "$substatus" "$subfilename"
+                done
 	    else
 		# keep the trailing “-0” (or any digit)
-		id="$filebase"                     # => "…-81610843-0"
-		printf "   %-29s %-10s %-10s %s
-" \
-		" $id" "$type" "$status" "$filename"
+		local id="$filebase"                     # => "…-81610843-0"
+		printf '   %-29s %-10s %-10s %s\n' \
+		    " $id" "$type" "$status" "$filename"
 	    fi
 	done
     done
 }
 
 get_status() {
-    local file="$1" fname base status
-    fname="$(basename -- "$file")"      # strip directory
-    base="${fname%.*}"                  # remove extension
-    status="${base##*-}"                # take text after last “-”
+    local file="$1"
+    local fname="$(basename -- "$file")"      # strip directory
+    local base="${fname%.*}"                  # remove extension
+    local status="${base##*-}"                # take text after last “-”
     echo "$status"
 }
 
@@ -393,7 +518,7 @@ add_file_to_session_filesets() {
     local session="$2"
     local ws_name=$(resolve_session_workspace "$session")
     local expanded_filesets=$(get_session_expanded_filesets "$session")
-    local -a sess_fs
+    local -a sess_fs=()
     read -ra sess_fs <<< "$expanded_filesets"
     local workspace_root="$(resolve_workspace_root "$ws_name")"
     local ws_root=$(resolve_workspace_path "$ws_name")
@@ -434,8 +559,11 @@ apply_patch() {
 	revert=true
 	shift
     fi
-    local workspace_root="$1"; shift
-    pushd "$workspace_root" >/dev/null  || die "Cannot cd to workspace root"
+    local workspace_root="$1"
+    shift
+    pushd "$workspace_root" >/dev/null || die "Cannot cd to workspace root"
+    local pf
+    local empty_path
     for pf in "$@"; do
         if empty_path="$(maia_empty_file_patch_path "$pf")"; then
             case "$empty_path" in
@@ -453,20 +581,20 @@ apply_patch() {
             continue
         fi
         if [[ "$revert" == false ]] ; then
-            pid=$(basename -- "$pf" -pending.patch)
+            local pid=$(basename -- "$pf" -pending.patch)
             patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
         else
-            pid=$(basename -- "$pf" -applied.patch)
+            local pid=$(basename -- "$pf" -applied.patch)
             patch -R --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
         fi
     done
-    [[ "$DRY_RUN" == true ]] && {
-	popd >/dev/null
-	return
-    }
+    if [[ "$DRY_RUN" == true ]]; then
+        popd >/dev/null
+        return
+    fi
     for pf in "$@"; do
 	if [[ "$revert" == false ]] ; then
-	    pid=$(basename -- "$pf" -pending.patch)
+	    local pid="$(basename -- "$pf" -pending.patch)"
 	    local metaf="$changes_dir/$session/${pid}-pending.myl"
             if empty_path="$(maia_empty_file_patch_path "$pf")"; then
                 mkdir -p -- "$(dirname -- "$empty_path")"
@@ -477,7 +605,7 @@ apply_patch() {
                 notice "Applied change '$pid'"
             fi
 	else
-	    pid=$(basename -- "$pf" -applied.patch)
+	    local pid="$(basename -- "$pf" -applied.patch)"
 	    local metaf="$changes_dir/$session/${pid}-applied.myl"
             if empty_path="$(maia_empty_file_patch_path "$pf")"; then
                 rm -f -- "$empty_path"
@@ -503,7 +631,7 @@ apply_patch() {
 	if [[ "$revert" == false ]] ; then
 	    change_state_for_meta applied "$metaf"
 	else
-	    change_state_for_meta pending "$metaf"
+	    change_state_for_meta reverted "$metaf"
 	fi
     done
     popd >/dev/null
@@ -516,7 +644,13 @@ change_state_for_meta() {
 
     shopt -s nullglob
 
+    local quiet=false
+    if [[ "$1" == --quiet ]]; then
+        quiet=true
+        shift
+    fi
     trigger_event "pre-change-state-${new_state}" "$@"
+    local metaf
     for metaf in "$@"; do
 	[[ -f "$metaf" ]] || die "File not found: $metaf"
 	# basename + strip extension → e.g. 20250517T191054-81610843-+-pending
@@ -529,24 +663,21 @@ change_state_for_meta() {
 	local id_with_index="${id_with_index_state%-${old_state}}"
 	local id="${id_with_index%-+}"
 	if [ "$old_state" = "$new_state" ] ; then
-	    if [ "$id_with_index" = "$id" ] ; then
-		notice "Sub-change $id already has state $new_state"
-	    else
-		notice "Change $id already has state $new_state"
-	    fi
+            if [[ "$quiet" == false ]]; then
+                notice "$id already $new_state"
+            fi
 	    continue
 	fi
 	# now glob and rename every artifact f for this id+old_state
+	local f
 	for f in "$changes_dir/$session/${id_with_index_state}-${old_state}".*; do
 	    [[ -f "$f" ]] || continue
 	    # compute new name by swapping old_state → new_state
 	    local target="${f%-${old_state}.*}-${new_state}.${f##*.}"
 	    mv -- "$f" "$target"
 	done
-	if [ "$id_with_index" = "$id" ] ; then
-            info "Marked sub-change $id as $new_state"
-	else
-            info "Marked change $id as $new_state"
+	if [[ "$quiet" == false ]]; then
+            notice "$id $new_state"
 	fi
     done
     trigger_event "post-change-state-${new_state}" "$@"
@@ -561,11 +692,10 @@ make_patch() {
     local orig_file="$ws_root/$fname"
 
     # Determine source label for diff (must be /dev/null if file missing)
-    local src_label
+    local src_label="/dev/null"
     if [[ -f "$orig_file" ]]; then
         src_label="a/$fname"
     else
-        src_label="/dev/null"
         orig_file="/dev/null"
     fi
 
@@ -704,16 +834,15 @@ handle_change_command() {
 		die "Cannot save to a directory."
 	    fi
 	    shift
-	    id="$1"
+	    local id="$1"
 	    shift
 	    if [[ -n "$1" ]] ; then
 		die "Can only save one change at a time."
 	    fi
-	    local prefix file
+	    local prefix="$changes_dir/$session/$id-+-"
+	    local file="$(match_single_file "$prefix" ".myl")"
 	    LC_COLLATE=C
 	    shopt -s nullglob
-	    prefix="$changes_dir/$session/$id-+-"
-	    file=$(match_single_file "$prefix" ".myl")
 	    if [[ -n "$file" ]]; then
 		# It's a set id; show the set plus its sub-IDs
 		die "Cannot save a change set."
@@ -736,7 +865,7 @@ handle_change_command() {
 	    ;;
 
 	show)
-	    raw=false
+	    local raw=false
 	    if [[ "$1" == "--raw" ]] ; then
 		raw=true
 		shift
@@ -747,12 +876,12 @@ handle_change_command() {
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
-	    id=$1; shift
-	    local prefix file
+	    local id="$1"
+	    shift
+	    local prefix="$changes_dir/$session/$id-+-"
+	    local file="$(match_single_file "$prefix" ".myl")"
 	    LC_COLLATE=C
 	    shopt -s nullglob
-	    prefix="$changes_dir/$session/$id-+-"
-	    file=$(match_single_file "$prefix" ".myl")
 	    if [[ -n "$file" ]]; then
 		# It's a set id; show the set plus its sub-IDs
 		if $raw; then
@@ -775,6 +904,7 @@ handle_change_command() {
 		# Now show all sub-IDs
 		shopt -s nullglob
 		local files=( "$changes_dir/$session/${id}-"[0-9]*".myl" )
+		local subchange
 		for subchange in "${files[@]}"; do
 		    local subbase=$(basename "$subchange" .myl)
 		    local subid="${subbase%-*}"
@@ -820,10 +950,11 @@ handle_change_command() {
 		set -- "$xid"
 	    fi
 
+	    local id
 	    for id in "$@"; do
 		# 1) Try to find the “set” (index = +)
-		prefix="$changes_dir/$session/$id-+-"
-		file=$(match_single_file "$prefix" ".myl")
+		local prefix="$changes_dir/$session/$id-+-"
+		local file=$(match_single_file "$prefix" ".myl")
 		# 2) Fallback to numbered if no set file
 		if [[ -z "$file" ]]; then
 		    prefix="$changes_dir/$session/$id-"
@@ -843,196 +974,174 @@ handle_change_command() {
 	    ;;
 
 	run|"do")
-	    local ws_meta="$(resolve_workspace_meta)"
-	    # Global root
 	    local workspace_root="$(resolve_workspace_root "$ws_name")"
+	    local id
 	    for id in "$@"; do
 		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
 		    local prefix="$changes_dir/$session/$id-"
-		    local metaf=$(match_single_file "$prefix" ".myl")
-		    if [[ ! -e "$metaf" ]] ; then
+		    local metaf="$(match_single_file "$prefix" ".myl")"
+		    if [[ ! -e "$metaf" ]]; then
 			warn "Metadata for sub-change $id not found, skipping."
 			continue
 		    fi
-		    local status=$(get_status "$metaf")                 # => "pending"
-		    local type=$(myl_get "$metaf" "type")
-		    [[ "$status" == "pending" ]] || { notice "Skipping change '$id' since it is not 'pending'"; continue; }
-		    [[ "$type"   == "shell"  || "$type" == "action" ]] || die "Cannot auto-apply non-shell '$id'"
-                    pre_check "$session" "${id%-*}"
-		    change_state_for_meta "running" "$metaf"
-		    # OBSERVE! Files are changed now to running!!!
-		    metaf=$(match_single_file "$prefix" ".myl")
-		    local shellfile="${changes_dir}/$session/${id}-running.${type}"
-		    [[ -e "${shellfile}" ]] || { warn "Skipping change '$id' since it is missing a shell command file."; continue; }
-		    local outputfile="${changes_dir}/$session/${id}-running.output"
-		    cd "$workspace_root"
-		    (
-			export PS1='$ '
-			export PS2='> '
-			bash --noprofile --norc -i < "${shellfile}" > "$outputfile" 2>&1
-		    )
-		    local exit_status=$?
-		    # Remove the tailing $exit from the file
-		    if [[ "$(tail -n 1 "$outputfile")" == '$ exit' ]]; then
-			sed -i '$d' "$outputfile"
+		    local type="$(myl_get "$metaf" type)"
+		    [[ "$type" == shell || "$type" == action ]] || die "Cannot run non-shell/action change '$id'."
+		    if run_one_change "$session" "$metaf" "$workspace_root" || [[ "$(get_status "$metaf")" == failed ]]; then
+			post_check "$session" "${id%-*}"
 		    fi
-		    echo $exit_status > "${changes_dir}/$session/${id}-running.exit_status"
-		    if [[ $exit_status == 0 ]] ; then
-			change_state_for_meta "finished" "$metaf"
-			post_check "$session" "${id%-*}" finished
-		    else
-			change_state_for_meta "failed" "$metaf"
-			post_check "$session" "${id%-*}" failed
-		    fi
-		    # OBSERVE! Files are changed now to finished or failed!!!
-		    metaf=$(match_single_file "$prefix" ".myl")
 		else
-		    # While change set
-		    notice "$id is a change set. Execute individually instead."
-		    post_check "$session" "$id" applied
-		fi    
+		    local setmeta="$(match_single_file "$changes_dir/$session/$id-+-" ".myl")"
+		    if [[ -z "$setmeta" ]]; then
+			warn "Change set $id not found."
+			continue
+		    fi
+		    local -a subs=()
+		    shopt -s nullglob
+		    subs=( "$changes_dir/$session/${id}-"[0-9]*".myl" )
+		    local child
+		    for child in "${subs[@]}"; do
+			local child_type="$(myl_get "$child" type)"
+			local child_status="$(get_status "$child")"
+			if [[ ( "$child_type" == shell || "$child_type" == action ) && "$child_status" == pending ]]; then
+			    run_one_change "$session" "$child" "$workspace_root" || true
+			fi
+		    done
+		    post_check "$session" "$id" true
+		fi
 	    done
 	    ;;
 	
-	apply|revert)
-	    # apply|revert [--dry-run] [--keep-history] [--update-history] <ID> [<ID>...]
-	    # Add ID if none specified
+	apply)
 	    if (( $# < 1 )); then
 		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
-
-	    # Determine project root
 	    local ws_meta="$(resolve_workspace_meta)"
-	    # Global root
 	    local workspace_root="$(resolve_workspace_root "$ws_name")"
-	    if [[ ! -f "$ws_meta" ]]; then
-		die "No workspace in use. Create a workspace and set it as the session workspace first."
-	    fi
+	    [[ -f "$ws_meta" ]] || die "No workspace in use. Create a workspace and set it as the session workspace first."
+	    local id
 	    for id in "$@"; do
-		# If this is a sub-entry (numeric suffix), treat individually
-		# We can handle up to 999 changes
 		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
-		    # --- single sub-entry ---
-		    # Find its metadata
-		    prefix="$changes_dir/$session/$id-"
-		    metaf=$(match_single_file "$prefix" ".myl")
-		    if [[ ! -e "$metaf" ]] ; then
+		    local prefix="$changes_dir/$session/$id-"
+		    local metaf="$(match_single_file "$prefix" ".myl")"
+		    if [[ ! -e "$metaf" ]]; then
 			warn "Metadata for sub-change $id not found, skipping."
 			continue
 		    fi
-		    status=$(get_status "$metaf")                 # => "pending"
-		    type=$(myl_get "$metaf" "type")
-		    if [[ "$cmd" == "apply" ]] ; then
-			[[ "$status" == "pending" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
-			[[ "$type"   == "patch"  ]] || die "Cannot auto-apply non-patch '$id'"
-			pre_check "$session" "${id%-*}"
-			apply_patch "$workspace_root" "${changes_dir}/$session/${id}-pending.patch"
-			post_check "$session" "${id%-*}" applied
-		elif [[ "$cmd" == "revert" ]] ; then
-			[[ "$status" == "applied" ]] || { notice "Sub-change '$id' already in status $status"; continue; }
-			[[ "$type"   == "patch"  ]] || die "Cannot auto-revert non-patch '$id'"
-			pre_check "$session" "${id%-*}"
-			apply_patch -R "$workspace_root" "${changes_dir}/$session/${id}-applied.patch"
-			post_check "$session" "${id%-*}" pending
-		    fi
+		    local type="$(myl_get "$metaf" type)"
+		    [[ "$type" == patch ]] || die "Cannot apply non-patch '$id'."
+		    if [[ "$(get_status "$metaf")" == pending ]]; then
+			apply_patch "$workspace_root" "$changes_dir/$session/$id-pending.patch"
+			[[ "$DRY_RUN" == true ]] || post_check "$session" "${id%-*}"
+		fi
 		else
-		    # --- whole change set ---
-		    pre_check "$session" "$id"
-		    # Collect all pending patches
-		    shopt -s nullglob
-		    export LC_COLLATE=C
-		    local subs=( "$changes_dir/$session/${id}-"*[0-9]"-"*".myl" )
-		    if (( ${#subs[@]} == 0 )); then
-			notice "No sub-entries found for $id"
+	    local setmeta="$(match_single_file "$changes_dir/$session/$id-+-" ".myl")"
+		    if [[ -z "$setmeta" ]]; then
+			warn "Change set $id not found."
 			continue
 		    fi
-		    # 2) Verify no non-patch pending entries
-		    bad=false
-		    for jf in "${subs[@]}"; do
-			status=$(get_status "$jf")
-			type=$(myl_get "$jf" 'type')
-			if [[ "$type" != "patch" ]] ; then
-			    if [[ "$status" == "pending" && "$cmd" == "apply" ]]; then
-				local subid=$(basename -- "$jf" .myl)
-				subid=${subid%-pending}
-				error "Cannot auto-apply: $subid is of type $type."
-				bad=true
-			    fi
-			    if [[ "$status" == "applied" && "$cmd" == "revert" ]]; then
-				local subid=$(basename -- "$jf" .myl)
-				subid=${subid%-applied}
-				error "Cannot auto-revert: $subid is of type $type."
-				bad=true
-			    fi
+		    local -a subs=()
+		    local -a patches=()
+		    local child
+		    shopt -s nullglob
+		    subs=( "$changes_dir/$session/${id}-"[0-9]*".myl" )
+		    for child in "${subs[@]}"; do
+			local child_type="$(myl_get "$child" type)"
+			local child_status="$(get_status "$child")"
+			if [[ "$child_type" == patch && "$child_status" == pending ]]; then
+			    patches+=( "${child%.myl}.patch" )
 			fi
 		    done
-		    $bad && continue
-		    # 3) Collect only the pending patch files
-		    if [[ "$cmd" == "apply" ]] ; then
-			patches=( "$changes_dir/$session/${id}-"*[0-9]"-pending.patch" )
-			if (( ${#patches[@]} == 0 )); then
-			    notice "No pending patches for $id"
-			    continue
-			fi
+		    if [[ "${#patches[@]}" -gt 0 ]]; then
 			apply_patch "$workspace_root" "${patches[@]}"
-			change_state_for_meta applied $(match_single_file "$changes_dir/$session/${id}-+-pending.myl")
-			# Change the state
-			notice "Applied all patches for change set $id"
-			post_check "$session" "$id" applied
-		    elif [[ "$cmd" == "revert" ]] ; then
-			patches=( "$changes_dir/$session/${id}-"*[0-9]"-applied.patch" )
-			if (( ${#patches[@]} == 0 )); then
-			    notice "No applied patches for $id"
-			    continue
-			fi
-			apply_patch -R "$workspace_root" "${patches[@]}"
-			change_state_for_meta pending $(match_single_file "$changes_dir/$session/${id}-+-applied.myl")
-			# Change the state
-			notice "Reverted all patches for change set $id"
-			# No post check, because this is a revert: post_check "$session" "$id" pending
 		    fi
+		    [[ "$DRY_RUN" == true ]] || post_check "$session" "$id" true
+		fi
+	    done
+	    ;;
+
+	revert)
+	    if (( $# < 1 )); then
+		local xid=$(find_last_set_change_id "$session")
+		[[ -n "$xid" ]] || die "No change ID found."
+		set -- "$xid"
+	    fi
+	    local workspace_root="$(resolve_workspace_root "$ws_name")"
+	    local id
+	    for id in "$@"; do
+		if [[ "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
+		    local prefix="$changes_dir/$session/$id-"
+		    local metaf="$(match_single_file "$prefix" ".myl")"
+		    if [[ -z "$metaf" ]]; then
+			warn "Metadata for sub-change $id not found, skipping."
+			continue
+		    fi
+		    local type="$(myl_get "$metaf" type)"
+		    [[ "$type" == patch ]] || die "Cannot revert non-patch '$id'."
+		    if [[ "$(get_status "$metaf")" == applied ]]; then
+			apply_patch -R "$workspace_root" "$changes_dir/$session/$id-applied.patch"
+			post_check "$session" "${id%-*}"
+		    fi
+		else
+	    local setmeta="$(match_single_file "$changes_dir/$session/$id-+-" ".myl")"
+		    if [[ -z "$setmeta" ]]; then
+			warn "Change set $id not found."
+			continue
+		    fi
+		    local -a subs=()
+		    local -a patches=()
+		    local child
+		    shopt -s nullglob
+		    subs=( "$changes_dir/$session/${id}-"[0-9]*".myl" )
+		    for child in "${subs[@]}"; do
+			local child_type="$(myl_get "$child" type)"
+			local child_status="$(get_status "$child")"
+			if [[ "$child_type" == patch && "$child_status" == applied ]]; then
+			    patches+=( "${child%.myl}.patch" )
+			fi
+		    done
+		    if [[ "${#patches[@]}" -gt 0 ]]; then
+			apply_patch -R "$workspace_root" "${patches[@]}"
+		    fi
+		    post_check "$session" "$id" true
 		fi
 	    done
 	    ;;
 
 	applied|skipped|pending|finished|failed|running)
-	    # Add ID if none specified
 	    if (( $# < 1 )); then
 		local xid=$(find_last_set_change_id "$session")
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
 	    local action=$cmd
+	    if [[ "$action" == revert ]]; then
+		action=pending
+	    fi
 	    export LC_COLLATE=C
 	    shopt -s nullglob
+	    local id
 	    for id in "$@"; do
 		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ ]]; then
-		    # --- whole change set ---
-		    if [[ "$action" != "pending" ]]; then
-			pre_check "$session" "$id"
-		    fi
-		    change_state_for_meta "$action" \
-					  "$changes_dir/$session/${id}-"*[0-9]"-"*".myl" \
-					  $(match_single_file "$changes_dir/$session/$id-+-" ".myl")
-		    notice "Updated to state '$action' for change set $id and all sub-entries."
+		    set_change_state "$session" "$id" "$action" || continue
 		else
-		    # --- single sub-entry ---
-		    if [[ "$action" != "pending" ]]; then
-			pre_check "$session" "${id%-*}"
+		    local prefix="$changes_dir/$session/${id}-"
+		    local metaf="$(match_single_file "$prefix" ".myl")"
+		    if [[ -z "$metaf" ]]; then
+			warn "Metadata for sub-change $id not found, skipping."
+			continue
 		    fi
-		    change_state_for_meta "$action" "$changes_dir/$session/${id}-"*".myl"
-		    notice "Updated to state '$action' for change $id."
-		    if [[ "$action" != "pending" ]]; then
-			post_check "$session" "${id%-*}" "$action"
+		    local type="$(myl_get "$metaf" type)"
+		    if ! change_state_allowed_for_type "$type" "$action"; then
+			error "Cannot mark $id as $action: state is not valid for type '$type'."
+			continue
 		    fi
+		    change_state_for_meta "$action" "$metaf"
+		    post_check "$session" "${id%-*}" "$action"
 		fi
-		if [[ ! "$id" =~ -[0-9][0-9]?[0-9]?$ && "$action" != "pending" ]]; then
-		    # --- whole change set ---
-		    post_check "$session" "$id" "$action"
-		fi
-	    done ;;
+	    done
+	    ;;
 
 	delete)
 	    local MATCH=""
@@ -1045,11 +1154,11 @@ handle_change_command() {
 	    done
 	    if [[ -n "$MATCH" ]] ; then
 		local -a all_ids=()
-		local f fname id
+		local f
 		for f in "$changes_dir/$session"/$MATCH; do
 		    [[ -f "$f" ]] || continue
-		    fname=$(basename -- "$f")
-		    id=${fname%%-+-*}
+		    local fname="$(basename -- "$f")"
+		    local id="${fname%%-+-*}"
 		    all_ids+=( "$id" )
 		done
 		if [[ ${#all_ids[@]} -eq 0 ]]; then
@@ -1065,6 +1174,7 @@ handle_change_command() {
 		[[ -n "$xid" ]] || die "No change ID found."
 		set -- "$xid"
 	    fi
+	    local id
 	    for id in "$@"; do
 		# Gather relevant files
 		local files=("$changes_dir/$session/$id-"*.myl)

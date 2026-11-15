@@ -3,7 +3,7 @@ Type: set
 
 
 Sub-change: <dateandtime>-abcd1235-1
-State: pending
+State: running
 Type: shell
 Filename: 
 

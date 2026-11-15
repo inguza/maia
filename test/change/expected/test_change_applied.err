@@ -1,2 +1,3 @@
-[NOTICE] Updated to state 'applied' for change <dateandtime>-abcd1234-1.
+[NOTICE] <dateandtime>-abcd1234-1 applied
+[NOTICE] <dateandtime>-abcd1234 done
 [NOTICE] History file for session 'default' does not exist; skipping pruning

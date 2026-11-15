@@ -1,0 +1,18 @@
+State: pending
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1243-1
+State: pending
+Type: shell
+
+Suggested commands below:
+=========================
+echo set-run-with-skipped-patch
+
+
+Sub-change: <dateandtime>-abcd1243-2
+State: skipped
+Type: patch
+Filename: set-cases/skipped.txt
+

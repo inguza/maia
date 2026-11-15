@@ -1,0 +1,32 @@
+  ID                             TYPE       STATUS     FILENAME
+  <dateandtime>-abcd1234       set        skipped    
+    <dateandtime>-abcd1234-1   patch      skipped    src/file1.txt
+  <dateandtime>-abcd1235       set        done       
+    <dateandtime>-abcd1235-1   shell      finished   
+  <dateandtime>-abcd1240       set        done       
+    <dateandtime>-abcd1240-1   shell      finished   
+  <dateandtime>-abcd1241       set        done       
+    <dateandtime>-abcd1241-1   patch      applied    set-cases/applied.txt
+  <dateandtime>-abcd1242       set        pending    
+    <dateandtime>-abcd1242-1   shell      finished   
+    <dateandtime>-abcd1242-2   patch      pending    set-cases/pending.txt
+  <dateandtime>-abcd1243       set        pending    
+    <dateandtime>-abcd1243-1   shell      pending    
+    <dateandtime>-abcd1243-2   patch      skipped    set-cases/skipped.txt
+  <dateandtime>-abcd1244       set        pending    
+    <dateandtime>-abcd1244-1   shell      pending    
+    <dateandtime>-abcd1244-2   patch      pending    set-cases/failed-other.txt
+  <dateandtime>-abcd1245       set        pending    
+    <dateandtime>-abcd1245-1   patch      pending    
+    <dateandtime>-abcd1245-2   shell      pending    
+  <dateandtime>-abcd1246       set        pending    
+    <dateandtime>-abcd1246-1   patch      pending    
+    <dateandtime>-abcd1246-2   shell      pending    
+  <dateandtime>-abcd1247       set        pending    
+  <dateandtime>-abcd1248       set        pending    
+    <dateandtime>-abcd1248-1   shell      pending    
+    <dateandtime>-abcd1248-2   shell      pending    
+    <dateandtime>-abcd1248-3   patch      pending    set-cases/two-shells-patch.txt
+  <dateandtime>-abcd1249       set        pending    
+    <dateandtime>-abcd1249-1   shell      pending    
+    <dateandtime>-abcd1249-2   shell      pending    

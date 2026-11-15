@@ -1,0 +1,17 @@
+State: done
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1246-1
+State: skipped
+Type: patch
+
+
+Sub-change: <dateandtime>-abcd1246-2
+State: finished
+Type: shell
+
+Suggested commands below:
+=========================
+echo not-run
+

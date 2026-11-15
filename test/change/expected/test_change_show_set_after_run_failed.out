@@ -1,0 +1,29 @@
+State: pending
+Type: set
+
+
+Sub-change: <dateandtime>-abcd1244-1
+State: failed
+Type: shell
+
+Suggested commands below:
+=========================
+false
+
+Command output below:
+=====================
+$ false
+
+Exit status below:
+==================
+1
+
+
+Sub-change: <dateandtime>-abcd1244-2
+State: pending
+Type: patch
+Filename: set-cases/failed-other.txt
+
+Suggested patch below:
+======================
+MAIA-EMPTY-FILE: set-cases/failed-other.txt
