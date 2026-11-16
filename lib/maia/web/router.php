@@ -188,6 +188,7 @@ $routes = [
     '/api/profile/create' => __DIR__ . '/api/profile/create.php',
     '/api/profile/delete' => __DIR__ . '/api/profile/delete.php',
     '/api/profile/settings' => __DIR__ . '/api/profile/settings.php',
+    '/api/task' => __DIR__ . '/api/task.php',
     '/api/file/list' => __DIR__ . '/api/file/list.php',
     '/api/file/add' => __DIR__ . '/api/file/add.php',
     '/api/file/clear' => __DIR__ . '/api/file/clear.php',

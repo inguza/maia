@@ -12,6 +12,7 @@ use Maia\Web\Core\BrowserRoot;
 use Maia\Web\Core\WorkspaceRoot;
 use Maia\Web\Components\Panels\Expandable\ExpandablePanel;
 use Maia\Web\Components\Panels\Files\KnownFilesPanel;
+use Maia\Web\Components\Panels\Tasks\TasksPanel;
 use Maia\Web\Components\Panels\Changes\ChangesPanel;
 use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Configuration\ConfigurationPanel;
@@ -27,6 +28,7 @@ require_once dirname(__DIR__, 2) . '/api/web.php';
 require_once dirname(__DIR__, 2) . '/components/sidebar/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/expandable/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/files/component.php';
+require_once dirname(__DIR__, 2) . '/components/panels/tasks/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/changes/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/configuration/component.php';
@@ -57,6 +59,7 @@ final class SessionPage extends Page
         $changesPanel = $workspaceName !== ''
             ? new ExpandablePanel('changes', 'Changes', new ChangesPanel())
             : null;
+        $tasksPanel = new ExpandablePanel('tasks', 'Tasks', new TasksPanel());
         $workspacePanel = null;
         if ($workspaceName !== '') {
             $resolvedWorkspace = WorkspaceRoot::resolve($workspaceName);
@@ -86,7 +89,7 @@ final class SessionPage extends Page
         $composer = new SessionComposerComponent();
         $this->addComponent(
             'composer',
-            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $behaviorPanel, $configurationPanel, $workspacePanel, $changesPanel, $approvalsPanel)
+            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $behaviorPanel, $configurationPanel, $workspacePanel, $changesPanel, $approvalsPanel, $tasksPanel)
         );
         $this->addPageResources([new Stylesheet('pages/session/page.css')]);
     }

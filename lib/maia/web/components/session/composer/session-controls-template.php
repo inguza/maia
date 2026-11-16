@@ -10,6 +10,9 @@
         <?php if ($workspacePanel !== ''): ?>
             <?= $workspacePanel ?>
         <?php endif; ?>
+        <?php if ($tasksPanel !== ''): ?>
+            <?= $tasksPanel ?>
+        <?php endif; ?>
         <?= $skillsPanel ?>
         <?= $toolsPanel ?>
         <?php if ($approvalsPanel !== ''): ?>

@@ -320,9 +320,9 @@ handle_task_command() {
 	    local task
 	    for task in "$@" ; do
 		local file="$(find_task_file "$task")"
+		handle_task_command forget "$task"
 		rm -f "$file"
 		notice "Task $task removed."
-		handle_task_command forget "$name"
 	    done
 	    ;;
 	update)
