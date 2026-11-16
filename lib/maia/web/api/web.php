@@ -448,7 +448,7 @@ function maia_history_change_set_ids(): array
         return [];
     }
     $process = proc_open(
-        [maia_binary(), 'change', 'list', '--all-states'],
+        [maia_binary(), 'change', 'list', '--all'],
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         null,

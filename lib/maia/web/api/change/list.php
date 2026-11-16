@@ -16,7 +16,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     change_api_error(405, 'Method not allowed.');
 }
 
-$result = change_api_run(['change', 'list', '--all-states']);
+$result = change_api_run(['change', 'list', '--all']);
 if ($result['status'] !== 0) {
     change_api_error(502, trim($result['error']) ?: trim($result['output']) ?: 'Unable to list changes.');
 }
