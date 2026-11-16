@@ -1,4 +1,8 @@
 ----------------- Tool output manual start ------------------------------------
-[NOTICE] Updated to state 'skipped' for change <dateandtime>-58059449-1.
-[NOTICE] Updated to state 'skipped' for change <dateandtime>-28c581f9-1.
+[NOTICE] <dateandtime>-58059449-1 skipped
+[NOTICE] <dateandtime>-58059449 skipped
+[NOTICE] History file for session 'default' does not exist; skipping pruning
+[NOTICE] <dateandtime>-28c581f9-1 skipped
+[NOTICE] <dateandtime>-28c581f9 skipped
+[NOTICE] History file for session 'default' does not exist; skipping pruning
 ----------------- Tool output manual end --------------------------------------

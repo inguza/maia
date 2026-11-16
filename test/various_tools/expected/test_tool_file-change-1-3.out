@@ -1,14 +1,15 @@
 ----------------- Tool output manual start ------------------------------------
 [NOTICE] The requested file change requires approval. It has not been applied and the file is unchanged.
-Change ID: <dateandtime>-6a83bd8c-1
+Change ID: <dateandtime>-c35336a6-1
 Review the change and decide whether to apply or skip it.
 
 The content of the proposed change is the following:
 ```patch
 --- a/x/1.txt
 +++ b/x/1.txt
-@@ -1 +1 @@
+@@ -1,2 +1,2 @@
 -Second write content 1
 +Rewritten content 1
+ Append it 1
 ```
 ----------------- Tool output manual end --------------------------------------

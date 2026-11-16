@@ -1,6 +1,8 @@
 ----------------- Tool output manual start ------------------------------------
 checking file x/1.txt
 patching file x/1.txt
-[NOTICE] Applied change '<dateandtime>-6a83bd8c-1'
+[NOTICE] Applied change '<dateandtime>-c35336a6-1'
+[NOTICE] <dateandtime>-c35336a6-1 applied
+[NOTICE] <dateandtime>-c35336a6 done
 [NOTICE] History file for session 'default' does not exist; skipping pruning
 ----------------- Tool output manual end --------------------------------------

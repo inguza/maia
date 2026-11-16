@@ -4,8 +4,8 @@
     <dateandtime>-abcd1235-1   shell      finished   
   <dateandtime>-abcd1240       set        done       
     <dateandtime>-abcd1240-1   shell      finished   
-  <dateandtime>-abcd1241       set        done       
-    <dateandtime>-abcd1241-1   patch      applied    set-cases/applied.txt
+  <dateandtime>-abcd1241       set        pending    
+    <dateandtime>-abcd1241-1   patch      pending    set-cases/applied.txt
   <dateandtime>-abcd1242       set        pending    
     <dateandtime>-abcd1242-1   shell      finished   
     <dateandtime>-abcd1242-2   patch      pending    set-cases/pending.txt

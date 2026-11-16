@@ -13,6 +13,7 @@ COMMANDS
      --pending
      --applied
      --skipped
+     --reverted
      --finished
      --failed
      --running
@@ -29,6 +30,9 @@ COMMANDS
 
   apply [--dry-run] [--keep-history] [--update-history] [<ID> [<ID>...]]
     Apply changes (patch files) for a change set.
+
+  revert [<ID> [<ID>...]]
+    Revert changes (patch files) for a change set.
 
   run [<ID> [<ID>...]]
     Apply cahges by running the shell commands.

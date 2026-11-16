@@ -22,6 +22,7 @@ COMMANDS
      --pending
      --applied
      --skipped
+     --reverted
      --finished
      --failed
      --running
@@ -38,6 +39,9 @@ COMMANDS
 
   apply [--dry-run] [--keep-history] [--update-history] [<ID> [<ID>...]]
     Apply changes (patch files) for a change set.
+
+  revert [<ID> [<ID>...]]
+    Revert changes (patch files) for a change set.
 
   run [<ID> [<ID>...]]
     Apply cahges by running the shell commands.
@@ -564,7 +568,15 @@ apply_patch() {
     pushd "$workspace_root" >/dev/null || die "Cannot cd to workspace root"
     local pf
     local empty_path
+    local state
+    local pid
     for pf in "$@"; do
+        if [[ "$revert" == true ]]; then
+            state=applied
+        else
+            state="$(get_status "$pf")"
+        fi
+        pid="$(basename -- "$pf" "-$state.patch")"
         if empty_path="$(maia_empty_file_patch_path "$pf")"; then
             case "$empty_path" in
                 ""|/*|~*|..|../*|*/../*|*/..)
@@ -581,10 +593,8 @@ apply_patch() {
             continue
         fi
         if [[ "$revert" == false ]] ; then
-            local pid=$(basename -- "$pf" -pending.patch)
             patch --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
         else
-            local pid=$(basename -- "$pf" -applied.patch)
             patch -R --dry-run -p1 < "$pf" || die "Dry-run failed on $pid"
         fi
     done
@@ -593,9 +603,14 @@ apply_patch() {
         return
     fi
     for pf in "$@"; do
+        if [[ "$revert" == true ]]; then
+            state=applied
+        else
+            state="$(get_status "$pf")"
+        fi
+        pid="$(basename -- "$pf" "-$state.patch")"
 	if [[ "$revert" == false ]] ; then
-	    local pid="$(basename -- "$pf" -pending.patch)"
-	    local metaf="$changes_dir/$session/${pid}-pending.myl"
+	    local metaf="$changes_dir/$session/${pid}-${state}.myl"
             if empty_path="$(maia_empty_file_patch_path "$pf")"; then
                 mkdir -p -- "$(dirname -- "$empty_path")"
                 : > "$empty_path"
@@ -605,8 +620,7 @@ apply_patch() {
                 notice "Applied change '$pid'"
             fi
 	else
-	    local pid="$(basename -- "$pf" -applied.patch)"
-	    local metaf="$changes_dir/$session/${pid}-applied.myl"
+	    local metaf="$changes_dir/$session/${pid}-${state}.myl"
             if empty_path="$(maia_empty_file_patch_path "$pf")"; then
                 rm -f -- "$empty_path"
                 notice "Removed empty file '$empty_path'"
@@ -1031,8 +1045,9 @@ handle_change_command() {
 		    fi
 		    local type="$(myl_get "$metaf" type)"
 		    [[ "$type" == patch ]] || die "Cannot apply non-patch '$id'."
-		    if [[ "$(get_status "$metaf")" == pending ]]; then
-			apply_patch "$workspace_root" "$changes_dir/$session/$id-pending.patch"
+		    local status="$(get_status "$metaf")"
+		    if [[ "$status" == pending || "$status" == reverted ]]; then
+			apply_patch "$workspace_root" "$changes_dir/$session/$id-$status.patch"
 			[[ "$DRY_RUN" == true ]] || post_check "$session" "${id%-*}"
 		fi
 		else
@@ -1049,8 +1064,8 @@ handle_change_command() {
 		    for child in "${subs[@]}"; do
 			local child_type="$(myl_get "$child" type)"
 			local child_status="$(get_status "$child")"
-			if [[ "$child_type" == patch && "$child_status" == pending ]]; then
-			    patches+=( "${child%.myl}.patch" )
+			if [[ "$child_type" == patch && ( "$child_status" == pending || "$child_status" == reverted ) ]]; then
+			    patches+=( "$changes_dir/$session/$(basename -- "${child%.myl}")-$child_status.patch" )
 			fi
 		    done
 		    if [[ "${#patches[@]}" -gt 0 ]]; then

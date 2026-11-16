@@ -225,6 +225,8 @@ $MAIA tool allow "change-*:write"
 
 # file-* tools
 # write
+$MAIA approve allow "*:create"
+$MAIA approve allow "*:append"
 run_tool_cmd "file-write-1-1" "file-write" '{"path": "x/1.txt","content":"First write content 1\n"}'
 run_change_cmd "change-list-after-file-write-1-1" list
 run_tool_cmd "file-write-2-1" "file-write" '{"path": "pathx/2.txt","content": "First write content 2\n"}'
@@ -249,16 +251,17 @@ run_tool_cmd "maia-change-reapply-2" "change-apply" '{"ids": ["'$C1'","'$C2'"]}'
 run_tool_cmd "maia-change-apply-err" "change-apply" '{"ids": ["20260817T214714-68e33e97-3"]}'
 run_change_cmd "change-list-after-apply-err" list
 # Out of path
-run_tool_cmd "file-write-3-1" "file-write" '{"path": "../x/1.txt","content":"First write content 1"}'
-run_tool_cmd "file-write-4-1" "file-write" '{"path": "/../x/1.txt","content":"First write content 1"}'
-run_tool_cmd "file-write-5-1" "file-write" '{"path": "~/1.txt","content":"First write content 1"}'
-run_tool_cmd "file-write-6-1" "file-write" '{"path": "x/../../1.txt","content":"First write content 1"}'
+run_tool_cmd "file-write-3-1" "file-write" '{"path": "../x/1.txt","content":"First write content 1x"}'
+run_tool_cmd "file-write-4-1" "file-write" '{"path": "/../x/1.txt","content":"First write content 1x"}'
+run_tool_cmd "file-write-5-1" "file-write" '{"path": "~/1.txt","content":"First write content 1x"}'
+run_tool_cmd "file-write-6-1" "file-write" '{"path": "x/../../1.txt","content":"First write content 1x"}'
 
 # Append
 run_tool_cmd "file-append-1-3" "file-append" '{"path": "x/1.txt","content":"Append it 1\n"}'
 run_change_cmd "change-list-after-file-append" list
 #export ASSISTANT_BASEID="20260817T214714-68e33e99"
-run_tool_cmd "file-change-1-3" "file-change" '{"path": "x/1.txt","changes":[{"old":"Second write content 1\n","new":"Rewritten content 1\n"}]}'
+cat x/1.txt
+run_tool_cmd "file-change-1-3" "file-change" '{"path": "x/1.txt","changes":[{"existing":"Second write content 1\n","replacement":"Rewritten content 1\n"}]}'
 C3=$(capture_change "file-change-1-3")
 run_change_cmd "change-list-after-file-change" list
 run_tool_cmd "maia-change-apply-4" "change-apply" '{"ids": ["'$C3'"]}'
