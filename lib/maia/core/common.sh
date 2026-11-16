@@ -970,13 +970,12 @@ add_file_to_fileset_file() {
 
 validate_workspace_exists() {
     local ws_name="$1"
+    if [[ -z "$ws_name" ]]; then
+        die "No workspace defined. Create one with 'maia workspace create <name>' and set it as the default workspace or assign it to the session."
+    fi
     local ws_dir="$(resolve_workspace_path "$ws_name")"
     if [[ ! -d "$ws_dir" ]]; then
-	if [[ -n "$ws_name" ]] ; then
-            die "Workspace '$ws_name' does not exist. Create it with 'maia workspace create $ws_name' first."
-	else
-            warn "No workspace defined. Create a workspace with 'maia workspace create <name>' first and uset or or set <name> to be the default-workspace in the configuration."
-	fi
+        die "Workspace '$ws_name' does not exist. Create it with 'maia workspace create $ws_name' first."
     fi
 }
 

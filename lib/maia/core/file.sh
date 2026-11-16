@@ -262,9 +262,6 @@ handle_file_command() {
     fi
     # Validate chosen filesets exist on disk
     local ws_dir=$(resolve_workspace_path "$session_ws")
-    if [[ -z "$ws_dir" ]] ; then
-	die "No workspace defined. File operations require a workspace."
-    fi
     for fs in "${active_fs[@]}"; do
 	ensure_file_exists "$ws_dir/${fs}.fileset"
     done
