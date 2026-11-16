@@ -31,6 +31,9 @@ COMMANDS
   disable <string> [<string> [...]]
       Remove exact approval entries from the specified scope.
 
+  change <existing-line> <new-line>
+      Replace one exact approval entry. Quote lines containing spaces.
+
   clear
       Clear all approval definitions in the specified scope.
 
@@ -126,7 +129,7 @@ handle_approve_command() {
         view|"")
             prompt_for_scope "$scope" "$prompt_type"
             ;;
-        append|edit|replace|delete|clear|clearnonotice)
+        append|edit|change|replace|delete|clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
             handle_text_file_command "$filepath" "$subcmd" "$@"
             deduplicate_files "$filepath"

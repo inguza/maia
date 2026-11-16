@@ -58,12 +58,24 @@ if (!in_array($scope, ['session', 'workspace', 'profile', 'home'], true)) {
 }
 
 if ($method === 'POST') {
-    if (($input['action'] ?? '') !== 'refresh') {
+    $action = (string) ($input['action'] ?? '');
+    if ($action === 'refresh') {
+        $arguments = ['tool', '--scope', $scope, 'refresh'];
+    } elseif ($action === 'change') {
+        $pattern = trim((string) ($input['pattern'] ?? ''));
+        $replacement = trim((string) ($input['replacement'] ?? ''));
+        foreach ([$pattern, $replacement] as $value) {
+            if ($value === '' || str_contains($value, "\0") || str_contains($value, "\n") || str_contains($value, "\r")) {
+                tool_context_error(400, 'Both the existing and replacement tool patterns are required.');
+            }
+        }
+        $arguments = ['tool', '--scope', $scope, 'change', $pattern, $replacement];
+    } else {
         tool_context_error(400, 'Unknown tool operation.');
     }
-    $refresh = tool_context_run(['tool', '--scope', $scope, 'refresh']);
-    if ($refresh['status'] !== 0) {
-        tool_context_error(502, trim($refresh['error']) ?: trim($refresh['output']) ?: 'Unable to refresh tools.');
+    $result = tool_context_run($arguments);
+    if ($result['status'] !== 0) {
+        tool_context_error(502, trim($result['error']) ?: trim($result['output']) ?: 'Unable to update tool patterns.');
     }
     echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;

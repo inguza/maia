@@ -31,6 +31,9 @@ COMMANDS
   disable
       Remove exact allowed-skill entries from the specified scope.
 
+  change <existing-line> <new-line>
+      Replace one exact entry in the selected skill list. Quote lines containing spaces.
+
   replace [--remember] <skillname>...
       Replace allowed skills with specified ones. Wildcards supported.
       If --remember is given, also replace loaded context.

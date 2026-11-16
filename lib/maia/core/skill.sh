@@ -248,6 +248,9 @@ COMMANDS
   disable
       Remove exact allowed-skill entries from the specified scope.
 
+  change <existing-line> <new-line>
+      Replace one exact entry in the selected skill list. Quote lines containing spaces.
+
   replace [--remember] <skillname>...
       Replace allowed skills with specified ones. Wildcards supported.
       If --remember is given, also replace loaded context.
@@ -524,7 +527,7 @@ handle_skill_command() {
 	    echo "----------------------------"
 	    prompt_for_scope "$scope" "skillsetcontext" "gen"
             ;;
-        append|allow|edit|replace|clear|clearnonotice|delete)
+        append|allow|edit|change|replace|clear|clearnonotice|delete)
 	    # seed on first append
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"

@@ -507,7 +507,7 @@ handle_tool_command() {
             mv "$tmpfile" "$filepath"
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
-        append|edit|replace|delete|clear|clearnonotice)
+        append|edit|change|replace|delete|clear|clearnonotice)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    refresh_allowed_toolset_files "$scope" "$filepath"
@@ -560,6 +560,9 @@ COMMANDS
 
   disable <string> [<string> [...]]
       Remove exact allowed-tool entries from the specified scope.
+
+  change <existing-line> <new-line>
+      Replace one exact allowed-tool entry. Both lines must be quoted if they contain spaces.
 
   run <toolname> [argumentsjsonstring]
       Run a tool directly. The result is not recorded in the conversation history.

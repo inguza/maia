@@ -22,6 +22,7 @@
     <button id="skill-delete" type="button"
             title="Remove the skill settings for this scope; MAIA will use settings from another scope if available."
             aria-label="Remove the skill settings for this scope; MAIA will use settings from another scope if available." hidden>Delete</button>
+    <button id="skill-remove-selected" class="remove-selected" type="button" hidden>Remove selected</button>
 </div>
 <p id="skills-status" class="status" role="status" aria-live="polite"></p>
 <ul id="skill-pattern-list" class="item-list" aria-label="Allowed skill patterns"></ul>

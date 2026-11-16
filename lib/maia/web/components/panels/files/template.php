@@ -10,8 +10,9 @@
         <button type="button" data-known-files-action="remove-pattern">Remove</button>
         <button type="submit">Add</button>
     </form>
-    <div class="known-files-actions">
+    <div class="known-files-actions known-files-selection-actions">
         <button type="button" data-known-files-action="clear" title="Clear file list." aria-label="Clear file list.">Clear</button>
+        <button type="button" data-known-files-action="remove-selected" hidden>Remove selected</button>
     </div>
     <p class="known-files-status" data-known-files-role="status" role="status"></p>
     <ul class="known-files-list" data-known-files-role="list"></ul>

@@ -49,9 +49,8 @@ function approval_api_run(array $arguments): array
     return ['output' => $output, 'error' => $error, 'status' => proc_close($process)];
 }
 
-function approval_api_rule(): string
+function approval_api_validate_rule(string $rule): string
 {
-    $rule = trim((string) (file_get_contents('php://input') ?: ''));
     if ($rule === '' || strpos($rule, "\0") !== false || str_contains($rule, "\n") || str_contains($rule, "\r") ||
         !preg_match('/^(.+):([^:]+)$/D', $rule)) {
         approval_api_error(400, 'Enter one approval rule in path-pattern:action form.');
@@ -61,6 +60,11 @@ function approval_api_rule(): string
         approval_api_error(400, "Unknown approval action '$action'. Valid actions: append, create, change, delete.");
     }
     return $rule;
+}
+
+function approval_api_rule(): string
+{
+    return approval_api_validate_rule(trim((string) (file_get_contents('php://input') ?: '')));
 }
 
 function approval_api_require_post(): void

@@ -19,6 +19,7 @@
 <div class="panel-actions">
     <button id="approval-clear" type="button" title="Clear rules in this scope; inherited rules will be masked.">Clear</button>
     <button id="approval-delete" type="button" title="Delete rules in this scope; inherited rules will apply." hidden>Delete</button>
+    <button id="approval-remove-selected" class="remove-selected" type="button" hidden>Remove selected</button>
 </div>
 <p id="approvals-status" class="status" role="status" aria-live="polite"></p>
 <ul id="approval-rule-list" class="item-list" aria-label="Approval rules"></ul>

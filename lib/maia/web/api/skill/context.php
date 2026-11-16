@@ -147,6 +147,14 @@ if ($action === 'append' || $action === 'disable') {
     }
     $command = $action === 'append' ? 'append' : 'disable';
     $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', $command, $pattern]);
+} elseif ($action === 'change') {
+    $replacement = trim((string) ($input['replacement'] ?? ''));
+    foreach ([$pattern, $replacement] as $value) {
+        if ($value === '' || str_contains($value, "\0") || str_contains($value, "\n") || str_contains($value, "\r")) {
+            skill_context_error(400, 'Both the existing and replacement skill patterns are required.');
+        }
+    }
+    $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', 'change', $pattern, $replacement]);
 } elseif ($action === 'clear' || $action === 'delete') {
     $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', $action]);
 } else {

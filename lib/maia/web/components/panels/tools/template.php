@@ -20,6 +20,7 @@
 <div class="panel-actions">
     <button id="tool-clear" type="button">Clear</button>
     <button id="tool-delete" type="button" hidden>Delete</button>
+    <button id="tool-remove-selected" class="remove-selected" type="button" hidden>Remove selected</button>
 </div>
 <p id="tools-status" class="status" role="status" aria-live="polite"></p>
 <ul id="tool-pattern-list" class="item-list" aria-label="Allowed tool patterns"></ul>

@@ -208,6 +208,7 @@ $routes = [
     '/api/approval/context' => __DIR__ . '/api/approval/context.php',
     '/api/approval/append' => __DIR__ . '/api/approval/append.php',
     '/api/approval/disable' => __DIR__ . '/api/approval/disable.php',
+    '/api/approval/change' => __DIR__ . '/api/approval/change.php',
     '/api/approval/clear' => __DIR__ . '/api/approval/clear.php',
     '/api/approval/delete' => __DIR__ . '/api/approval/delete.php',
     '/api/skill/context' => __DIR__ . '/api/skill/context.php',

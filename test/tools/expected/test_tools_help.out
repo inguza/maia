@@ -32,6 +32,9 @@ COMMANDS
   disable <string> [<string> [...]]
       Remove exact allowed-tool entries from the specified scope.
 
+  change <existing-line> <new-line>
+      Replace one exact allowed-tool entry. Both lines must be quoted if they contain spaces.
+
   run <toolname> [argumentsjsonstring]
       Run a tool directly. The result is not recorded in the conversation history.
       Note that the tool is run detached from stdin and stdout just as when run normally.

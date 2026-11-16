@@ -1823,6 +1823,33 @@ handle_text_file_command() {
 		esac
             done
             ;;
+        change)
+            shift || true
+            [[ $# -eq 2 ]] || die "Usage: change <existing-line> <new-line>"
+            local old_line="$1" new_line="$2"
+            [[ -n "$old_line" && -n "$new_line" && "$old_line" != *$'\n'* && "$new_line" != *$'\n'* ]] ||
+                die "The old and new values for change must each be a non-empty single line."
+            [[ -f "$file" ]] || die "Cannot change a line in '$file': file does not exist."
+            local tmpfile
+            tmpfile="$(mktemp "${file}.tmp.XXXXXX")" || die "Unable to create a temporary file for '$file'."
+            local found=0 line
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                if [[ "$line" == "$old_line" ]]; then
+                    found=$((found + 1))
+                    printf '%s\n' "$new_line" >> "$tmpfile"
+                else
+                    printf '%s\n' "$line" >> "$tmpfile"
+                fi
+            done < "$file"
+            if (( found == 0 )); then
+                rm -f "$tmpfile"
+                die "Line not found in '$file': $old_line"
+            elif (( found > 1 )); then
+                rm -f "$tmpfile"
+                die "Line occurs more than once in '$file'; refusing to change an ambiguous entry: $old_line"
+            fi
+            mv "$tmpfile" "$file"
+            ;;
         replace)
             shift || true
             handle_text_file_command "$file" clearnonotice
