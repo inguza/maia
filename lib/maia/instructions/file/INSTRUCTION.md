@@ -16,6 +16,7 @@ regardless of tool combination.
 When a file is relevant to the ongoing work, use `context-file-remember` to
 register it as part of your file context.
 Use `context-file-forget` to stop supplying a file's contents as context.
+
 Provided files are remembered and shall not be registered again.
 
 Reading a file using other tools provides a snapshot of its contents. The
@@ -48,7 +49,8 @@ File tools like `util-grep`, `util-cat`, `util-sed` (and others) are available t
 - to produce new file content
 
 Limit tool output to avoid exhausting the available context. For example,
-combine find or grep with head or tail.
+use a `core-sequence` to combine `util-find` or `util-grep` and put a maximum
+output limit using `util-head` or `util-tail`.
 
 NOTE! It is hard to predict if you need only a snapshot of a file once, therefore
 context-file-remember should be the primary way to learn about files.
@@ -89,6 +91,15 @@ Pay attention to token usage, which represents how much of the available
 context window is occupied. Compare current token usage with the maximum
 token capacity and adjust the amount of information retrieved and produced
 accordingly.
+
+If you realize that only part of a file is needed, you can forget the irrelevant parts of the
+file by doing this sequence:
+1) context-file-forget <file>
+2) context-file-remember <file> <linestart> <lineend)
+3) ... more context file remember ...
+
+If you plan to change a file, make sure you remember enough lines so you still see the
+content after the change, since the line numbers may change.
 
 
 
