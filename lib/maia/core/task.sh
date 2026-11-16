@@ -13,11 +13,12 @@ list_tasks() {
     local scope="$1"
     local taskset_file="$2"
     local tasksdata="$(get_all_ordered_task_names "file")"
+    local task taskfile status
 
     local memorized_glob=$(make_glob_from_file "$taskset_file")
     
     while IFS=' ' read -r task taskfile; do
-        local status="$(myl_get "$taskfile" "status")"
+        status="$(myl_get "$taskfile" "status")"
 	if [[ -n $memorized_glob && $task == $memorized_glob ]]; then
 	    printf '* %s %s %s\n' "$task" "$status" "$taskfile"
 	else
@@ -31,6 +32,7 @@ show_tasks() {
     local scope="$1"
     local taskset_file="$2"
     local tasksdata="$(get_all_ordered_task_names "file")"
+    local task taskfile
 
     local memorized_glob=$(make_glob_from_file "$taskset_file")
     
@@ -46,7 +48,7 @@ show_tasks() {
 # Show tasks selected by their task IDs.  Resolve through the task catalogue so
 # this also works for shared tasks and respects the normal shadowing order.
 show_selected_tasks() {
-    local requested taskfile
+    local requested taskfile task candidate
 
     local all_tasks=$(get_all_ordered_task_names "file")
     
@@ -72,6 +74,7 @@ expand_taskset_file() {
     local scope="$1" taskset_file="$2"
     local memory_glob="$(make_glob_from_file "$taskset_file")"
     local tasks="$(get_all_ordered_task_names "name")"
+    local task
     rm -f "${taskset_file}"
     touch "${taskset_file}"
     while IFS=' ' read -r task ; do
@@ -86,6 +89,7 @@ expand_task_wildcards() {
     local tasksdata="$(get_all_ordered_task_names "name")"
     local glob="$(make_glob_from_var "$@")"
 
+    local task
     while IFS=' ' read -r task ; do
 	if [[ -n $glob && $task == $glob ]]; then
 	    echo $task
@@ -111,6 +115,7 @@ find_task_index() {
 find_task_file() {
     local task="$1"
     local type
+    local scope
     local tname
     local index
     if [[ "$task" =~ ^task-([a-z]+)-([a-zA-Z0-9_]+)-([0-9]+)$ ]] ; then
@@ -434,6 +439,8 @@ handle_task_command() {
 	    deduplicate_files "$filepath"
 	    ;;
         forget)
+            local pattern task ms regex_pattern skip
+            local -a current_tasks_globs=() current_tasks=() matched_tasks=() new_tasks=()
             # Forget tasks
             if [[ ! -s "$filepath" ]]; then
                 # Nothing to forget if file does not exist, or if it is empty
@@ -444,20 +451,19 @@ handle_task_command() {
 	    mapfile_from_command current_tasks expand_task_wildcards "${current_tasks_globs[@]}"
 
             # Expand wildcards for given patterns
-            local matched_tasks=()
             for pattern in "$@"; do
                 # Convert wildcard to regex
-                local regex_pattern="^${pattern//\*/.*}$"
-                for task in "${current_tasks[@]}"; do
+                regex_pattern="^${pattern//\*/.*}$"
+		for task in "${current_tasks[@]}"; do
                     if [[ $task =~ $regex_pattern ]]; then
                         matched_tasks+=("$task")
                     fi
                 done
             done
             # Remove matched tasks from current tasks
-            local new_tasks=()
+            new_tasks=()
             for task in "${current_tasks[@]}"; do
-                local skip=false
+                skip=false
                 for ms in "${matched_tasks[@]}"; do
                     if [[ "$task" == "$ms" ]]; then
                         skip=true
