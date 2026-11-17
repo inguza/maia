@@ -397,8 +397,9 @@ handle_file_command() {
             # only print the existing LLM-facing exploration tree.
             if ((${#explore_paths[@]})); then
                 explore_path "$index_file" "$workspace_root" "$max_new" "$max_depth" "$max_budget" "${explore_paths[@]}"
+	    else
+		explore_render_index "$index_file"
             fi
-            explore_render_index "$index_file"
             ;;
 
         verify|clean)
