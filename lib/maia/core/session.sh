@@ -644,8 +644,7 @@ handle_session_command() {
 		shopt -s dotglob nullglob
 		for item in "$src_path"/*; do
 		    base_item="$(basename "$item")"
-		    # TODO: Exclude usage.json
-		    if [[ "$base_item" != "logs" && $base_item != "jobs" ]]; then
+		    if [[ "$base_item" != "logs" && "$base_item" != "jobs" && "$base_item" != "usage.json" ]]; then
 			if [[ -d "$item" ]]; then
 			    cp -a "$item" "$path/"
 			else
