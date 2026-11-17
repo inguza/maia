@@ -19,8 +19,8 @@
         <p id="profile-settings-scope" class="profile-settings-scope"></p>
         <p id="profile-settings-status" class="profile-settings-status" role="status"></p>
         <div class="profile-settings-actions">
-            <button type="submit" value="cancel">Cancel</button>
-            <button id="profile-settings-save" type="submit" value="save">Save</button>
+            <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+            <button class="action-normal" id="profile-settings-save" type="submit" value="save">Save</button>
         </div>
     </form>
 </dialog>

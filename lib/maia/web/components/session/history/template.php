@@ -23,8 +23,8 @@
             <textarea data-history-role="edit-content" required></textarea>
             <p class="session-history-dialog-error" role="alert" data-history-role="edit-error" hidden></p>
             <div class="session-history-dialog-actions">
-                <button type="submit" value="cancel">Cancel</button>
-                <button type="submit" value="save" data-history-action="save-edit">Save</button>
+                <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+                <button class="action-normal" type="submit" value="save" data-history-action="save-edit">Save</button>
             </div>
         </form>
     </dialog>
@@ -40,8 +40,8 @@
             </div>
             <p class="session-history-dialog-error" role="status" data-history-role="settings-status"></p>
             <div class="session-history-dialog-actions">
-                <button type="submit" value="cancel">Cancel</button>
-                <button type="submit" value="save" data-history-action="save-settings">Save</button>
+                <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+                <button class="action-normal" type="submit" value="save" data-history-action="save-settings">Save</button>
             </div>
         </form>
     </dialog>
@@ -52,8 +52,8 @@
             <label>New session name<input data-history-role="rename-name" type="text" pattern="[A-Za-z0-9_.%+\\-]+" required autocomplete="off"></label>
             <p class="session-history-dialog-error" role="alert" data-history-role="rename-error" hidden></p>
             <div class="session-history-dialog-actions">
-                <button type="submit" value="cancel">Cancel</button>
-                <button type="submit" value="rename" data-history-action="save-rename">Rename</button>
+                <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+                <button class="action-normal" type="submit" value="rename" data-history-action="save-rename">Rename</button>
             </div>
         </form>
     </dialog>
@@ -64,8 +64,8 @@
             <label>New session name<input data-history-role="copy-name" type="text" pattern="[A-Za-z0-9_.%+\\-]+" required autocomplete="off"></label>
             <p class="session-history-dialog-error" role="alert" data-history-role="copy-error" hidden></p>
             <div class="session-history-dialog-actions">
-                <button type="submit" value="cancel">Cancel</button>
-                <button type="submit" value="copy" data-history-action="save-copy">Copy</button>
+                <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+                <button class="action-normal" type="submit" value="copy" data-history-action="save-copy">Copy</button>
             </div>
         </form>
     </dialog>

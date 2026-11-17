@@ -71,8 +71,8 @@
 .session-history-original-tool-output-label { color:#6b7280; font-size:.8rem; font-weight:600; margin-bottom:.25rem; }
 .session-history-original-tool-output-content { background:color-mix(in srgb, CanvasText 4%, Canvas); border-radius:.25rem; overflow-wrap:anywhere; padding:.4rem .5rem; white-space:pre-wrap; }
 .session-history-backup-toggle { background:transparent; border:0; color:#6b7280; cursor:pointer; font-size:.8rem; margin:0; padding:0; text-decoration:underline; }
-.session-history-dialog { border:1px solid #d1d5db; border-radius:.6rem; color:CanvasText; max-width:min(40rem,calc(100vw - 2rem)); padding:1.25rem; width:min(40rem,calc(100vw - 2rem)); }
-.session-history-dialog::backdrop { background:rgb(0 0 0 / 45%); }
+.session-history-dialog { background:Canvas; border:1px solid #d1d5db; border-radius:.6rem; color:CanvasText; max-width:min(40rem,calc(100vw - 2rem)); padding:1.25rem; width:min(40rem,calc(100vw - 2rem)); }
+.session-history-dialog::backdrop { background:rgb(0 0 0 / 40%); }
 .session-history-dialog h2 { font-size:1.1rem; margin:0 0 1rem; }
 .session-history-dialog label { display:flex; flex-direction:column; gap:.25rem; margin-top:.75rem; }
 .session-history-dialog input,.session-history-dialog textarea,.session-history-dialog select { box-sizing:border-box; font:inherit; padding:.4rem .5rem; width:100%; }

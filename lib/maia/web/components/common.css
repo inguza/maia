@@ -72,3 +72,16 @@ button.action-cancel:focus-visible,
 button.action-normal:focus-visible,
 button.action-check:focus-visible,
 button.action-warning:focus-visible { outline: 2px solid CanvasText; outline-offset: 2px; }
+
+.maia-confirm-dialog, .maia-input-dialog {
+    background: Canvas; border: 1px solid color-mix(in srgb, CanvasText 25%, Canvas);
+    border-radius: .6rem; color: CanvasText; max-width: min(36rem, calc(100vw - 2rem));
+    padding: 1.25rem; width: min(36rem, calc(100vw - 2rem));
+}
+.maia-confirm-dialog::backdrop, .maia-input-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.maia-confirm-dialog h2, .maia-input-dialog h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
+.maia-confirm-dialog p { margin: 0; overflow-wrap: anywhere; }
+.maia-input-dialog-label { display: grid; gap: .35rem; }
+.maia-input-dialog-label input { min-width: 0; padding: .4rem .5rem; width: 100%; }
+.maia-confirm-dialog-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1.25rem; }
+.maia-confirm-dialog-actions button { margin: 0; }

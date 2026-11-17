@@ -14,8 +14,8 @@ COMMANDS
   create <name>
     Create an empty group.
 
-  show [<name>] [--json]
-    Show the sessions in a group, or all groups if <name> is omitted.
+  show [--json] [<name>...]
+    Show the sessions in the specified groups, or all groups if no name is given.
     --json outputs an array of groups, each with a name and sessions array.
 
   edit <name>

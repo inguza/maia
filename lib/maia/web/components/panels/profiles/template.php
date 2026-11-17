@@ -30,8 +30,8 @@
             <p class="profiles-settings-scope" data-profile-settings-scope></p>
             <p class="profiles-status" role="status" data-profile-settings-status></p>
             <div class="profiles-dialog-actions">
-                <button type="button" data-profile-settings-cancel>Close</button>
-                <button type="submit" data-profile-settings-save>Save</button>
+                <button class="action-cancel" type="button" data-profile-settings-cancel>Close</button>
+                <button class="action-normal" type="submit" data-profile-settings-save>Save</button>
             </div>
         </form>
     </dialog>

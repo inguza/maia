@@ -13,7 +13,7 @@
 .profile-name, .profile-name:visited { color: inherit; flex: 1 1 10rem; overflow-wrap: anywhere; text-decoration: none; }
 .profile-name:hover { text-decoration: underline; }
 .profile-actions { display: flex; gap: .4rem; }
-.profiles-settings-dialog { border: 1px solid #9ca3af; border-radius: .5rem; color: CanvasText; max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: calc(100% - 2rem); }
+.profiles-settings-dialog { background: Canvas; border: 1px solid #9ca3af; border-radius: .5rem; color: CanvasText; max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: calc(100% - 2rem); }
 .profiles-settings-dialog::backdrop { background: rgb(0 0 0 / 40%); }
 .profiles-settings-dialog h2 { font-size: 1.1rem; margin: 0 0 .75rem; overflow-wrap: anywhere; }
 .profiles-settings-dialog label { display: block; margin-bottom: .25rem; }
