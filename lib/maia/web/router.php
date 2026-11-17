@@ -168,6 +168,7 @@ $routes = [
     '/api/history/show' => __DIR__ . '/api/history/show.php',
     '/api/history/action' => __DIR__ . '/api/history/action.php',
     '/api/session/list' => __DIR__ . '/api/session/list.php',
+    '/api/session/groups' => __DIR__ . '/api/session/groups.php',
     '/api/session/lock-status' => __DIR__ . '/api/session/lock-status.php',
     '/api/session/cancel' => __DIR__ . '/api/session/cancel.php',
     '/api/session/select' => __DIR__ . '/api/session/select.php',

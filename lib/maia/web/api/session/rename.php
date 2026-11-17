@@ -47,7 +47,7 @@ if ($oldName === $newName) {
 }
 
 $process = proc_open(
-    [maia_binary(), 'session', 'rename', $newName, $oldName],
+    [maia_binary(), 'session', 'rename', $oldName, $newName],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,

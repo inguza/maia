@@ -1,0 +1,181 @@
+#
+# Copyright (c) 2025-2026 Ola Lundqvist <ola@inguza.com>
+#
+# Licensed under the GNU General Public License v3.0.
+# See LICENSE-GPLv3.txt for the full license text.
+# Commercial licensing is available separately.
+#
+
+group_usage() {
+    cat <<'EOF'
+USAGE
+
+  maia group <command> [<name>] [<session>...]
+
+Manage named groups of sessions. Groups are stored as plain-text files under
+$MAIA_HOME/groups (or the configured MAIA home directory), with one session
+name per line.
+
+COMMANDS
+
+  list|ls
+    List all groups.
+
+  create <name>
+    Create an empty group.
+
+  show <name>
+    Show the sessions in a group.
+
+  edit <name>
+    Edit a group's session list.
+
+  add <name> [<session>...]
+    Add session names to a group. If no session is given, do nothing.
+
+  remove <name> [<session>...]
+    Remove session names from a group. If no session is given, do nothing.
+
+  change <name> <old-session> <new-session>
+    Change a session name in a group.
+
+  replace <name> [<session>...]
+    Replace a group's session list with the given names.
+
+  clear <name>
+    Remove all sessions from a group.
+
+  delete <name>
+    Delete a group.
+
+EOF
+    exit 0
+}
+
+group_directory() {
+    printf '%s/groups' "$(resolve_home_dir)"
+}
+
+group_validate_name() {
+    local name="$1"
+    [[ -n "$name" ]] || die "Group name is required."
+    [[ "$name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid group name '$name'."
+    [[ "$name" != "." && "$name" != ".." ]] || die "Invalid group name '$name'."
+}
+
+group_file() {
+    group_validate_name "$1"
+    printf '%s/%s.txt' "$(group_directory)" "$1"
+}
+
+handle_group_command() {
+    [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && group_usage
+    local cmd="${1:-list}"
+    shift || true
+    local name file session tmp
+
+    case "$cmd" in
+        list|ls)
+            [[ $# -eq 0 ]] || die "Usage: maia group list"
+            local dir="$(group_directory)"
+            [[ -d "$dir" ]] || return 0
+            local f
+            for f in "$dir"/*.txt; do
+                [[ -f "$f" ]] || continue
+                printf '%s\n' "$(basename "$f" .txt)"
+            done
+            ;;
+        create)
+            [[ $# -eq 1 ]] || die "Usage: maia group create <name>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ ! -e "$file" ]] || die "Group '$name' already exists."
+            mkdir -p "$(dirname "$file")" || die "Unable to create group directory."
+            : > "$file" || die "Unable to create group '$name'."
+            notice "Created group '$name'."
+            ;;
+        show)
+            [[ $# -eq 1 ]] || die "Usage: maia group show <name>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            handle_text_file_command "$file" show
+            ;;
+        edit)
+            [[ $# -eq 1 ]] || die "Usage: maia group edit <name>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            handle_text_file_command "$file" edit
+            deduplicate_files "$file"
+            ;;
+        add|remove)
+            [[ $# -ge 1 ]] || die "Usage: maia group $cmd <name> [<session>...]"
+            name="$1"
+            shift
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            # A missing session argument is intentionally a quiet no-op.
+            [[ $# -gt 0 ]] || return 0
+            if [[ "$cmd" == "add" ]]; then
+                for session in "$@"; do
+                    [[ -n "$session" ]] || continue
+                    printf '%s\n' "$session" >> "$file" || die "Unable to update group '$name'."
+                done
+                deduplicate_files "$file"
+            else
+                tmp="$(mktemp "${file}.tmp.XXXXXX")" || die "Unable to update group '$name'."
+                local line remove_session
+                while IFS= read -r line || [[ -n "$line" ]]; do
+                    local remove=false
+                    for remove_session in "$@"; do
+                        if [[ "$line" == "$remove_session" ]]; then
+                            remove=true
+                            break
+                        fi
+                    done
+                    [[ "$remove" == true ]] || printf '%s\n' "$line" >> "$tmp"
+                done < "$file"
+                mv -- "$tmp" "$file" || { rm -f -- "$tmp"; die "Unable to update group '$name'."; }
+            fi
+            ;;
+        change)
+            [[ $# -eq 3 ]] || die "Usage: maia group change <name> <old-session> <new-session>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            handle_text_file_command "$file" change "$2" "$3"
+            deduplicate_files "$file"
+            ;;
+        replace)
+            [[ $# -ge 1 ]] || die "Usage: maia group replace <name> [<session>...]"
+            name="$1"
+            shift
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            handle_text_file_command "$file" replace "$@"
+            deduplicate_files "$file"
+            ;;
+        clear)
+            [[ $# -eq 1 ]] || die "Usage: maia group clear <name>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            handle_text_file_command "$file" clear
+            ;;
+        delete)
+            [[ $# -eq 1 ]] || die "Usage: maia group delete <name>"
+            name="$1"
+            file="$(group_file "$name")"
+            [[ -f "$file" ]] || die "Group '$name' does not exist."
+            rm -f -- "$file" || die "Unable to delete group '$name'."
+            notice "Deleted group '$name'."
+            ;;
+        "")
+            group_usage
+            ;;
+        *)
+            group_usage
+            ;;
+    esac
+}

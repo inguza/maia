@@ -1,0 +1,41 @@
+USAGE
+
+  maia group <command> [<name>] [<session>...]
+
+Manage named groups of sessions. Groups are stored as plain-text files under
+$MAIA_HOME/groups/session (or the configured MAIA home directory), with one session
+name per line.
+
+COMMANDS
+
+  list|ls
+    List all groups.
+
+  create <name>
+    Create an empty group.
+
+  show [<name>] [--json]
+    Show the sessions in a group, or all groups if <name> is omitted.
+    --json outputs an array of groups, each with a name and sessions array.
+
+  edit <name>
+    Edit a group's session list.
+
+  add <name> [<session>...]
+    Add session names to a group. If no session is given, do nothing.
+
+  remove <name> [<session>...]
+    Remove session names from a group. If no session is given, do nothing.
+
+  change <name> <old-session> <new-session>
+    Change a session name in a group.
+
+  replace <name> [<session>...]
+    Replace a group's session list with the given names.
+
+  clear <name>
+    Remove all sessions from a group.
+
+  delete <name>
+    Delete a group.
+

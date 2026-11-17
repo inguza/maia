@@ -20,7 +20,7 @@ COMMANDS
   create [options] <name> [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
-  rename <new-name> <old-name>
+  rename <old-name> <new-name>
     Rename a session and its session-associated fileset.
 
   list
@@ -869,8 +869,8 @@ handle_session_command() {
         rename)
             shift
             [[ $# -eq 2 ]] || die "Usage: maia session rename <new-name> <old-name>"
-            local new_name="$1"
-            local old_name="$2"
+            local old_name="$1"
+            local new_name="$2"
             [[ "$new_name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid new session name '$new_name'."
             [[ "$old_name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid old session name '$old_name'."
             [[ "$new_name" != "_EMPTY_" && "$old_name" != "_EMPTY_" ]] || die "Session name _EMPTY_ is not allowed."
@@ -929,6 +929,10 @@ handle_session_command() {
                 die "Unable to rename session '$old_name' to '$new_name'."
             fi
             rm -f -- "$new_path/$(basename "$metadata_backup")"
+            if ! rename_session_in_groups "$old_name" "$new_name"; then
+                trigger_event "post-session-rename $old_name $new_name"
+                die "Session '$old_name' was renamed to '$new_name', but one or more session groups could not be updated. Please inspect the group files."
+            fi
             notice "Renamed session '$old_name' to '$new_name'."
             trigger_event "post-session-rename $old_name $new_name"
             ;;

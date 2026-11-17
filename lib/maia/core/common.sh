@@ -524,6 +524,131 @@ handle_x_edit() {
 
 # resolve_x_meta from fast.sh
 
+# Shared storage helpers for groups of named resources.
+# Group files are stored under $MAIA_HOME/groups/<type>/<name>.txt.
+resolve_group_directory() {
+    local type="$1"
+    [[ "$type" =~ ^[A-Za-z0-9_-]+$ ]] || die "Invalid group resource type '$type'."
+    printf '%s/groups/%s' "$(resolve_home_dir)" "$type"
+}
+
+validate_group_name() {
+    local name="$1"
+    [[ -n "$name" ]] || die "Group name is required."
+    [[ "$name" =~ ^[A-Za-z0-9_.%+-]+$ ]] || die "Invalid group name '$name'."
+    [[ "$name" != "." && "$name" != ".." ]] || die "Invalid group name '$name'."
+}
+
+resolve_group_file() {
+    local type="$1"
+    local name="$2"
+    validate_group_name "$name"
+    printf '%s/%s.txt' "$(resolve_group_directory "$type")" "$name"
+}
+
+# Replace a session name in all session-group files. Prepare each update in a
+# temporary file first, then commit the staged changes; roll back committed
+# files if a later commit fails.
+rename_session_in_groups() {
+    local old_name="$1"
+    local new_name="$2"
+    local dir="$(resolve_group_directory session)"
+    [[ -d "$dir" ]] || return 0
+    [[ -n "$old_name" && -n "$new_name" && "$old_name" != "$new_name" ]] || {
+        error "Invalid session group rename: old and new names must be distinct and non-empty."
+        return 1
+    }
+
+    local -a files=() staged=() backups=()
+    local file tmp backup grep_status
+    local preparation_failed=false
+    for file in "$dir"/*.txt; do
+        [[ -f "$file" ]] || continue
+        if grep -Fxq -- "$old_name" "$file"; then
+            :
+        else
+            grep_status=$?
+            if ((grep_status == 1)); then
+                continue
+            fi
+            error "Unable to read session group '$file'."
+            preparation_failed=true
+            break
+        fi
+
+        tmp="$(mktemp "${file}.rename.XXXXXX")" || {
+            error "Unable to stage session group update in '$file'."
+            preparation_failed=true
+            break
+        }
+        if ! cp -p -- "$file" "$tmp"; then
+            rm -f -- "$tmp"
+            error "Unable to stage session group update in '$file'."
+            preparation_failed=true
+            break
+        fi
+        # The shared change operation expects one matching line; normalize
+        # existing duplicate entries before invoking it, then deduplicate again
+        # in case the new name was already present.
+        if ! deduplicate_files "$tmp" ||
+            ! (handle_text_file_command "$tmp" change "$old_name" "$new_name") ||
+            ! deduplicate_files "$tmp"; then
+            rm -f -- "$tmp"
+            error "Unable to update session group '$file'."
+            preparation_failed=true
+            break
+        fi
+        backup="$(mktemp "${file}.backup.XXXXXX")" || {
+            rm -f -- "$tmp"
+            error "Unable to prepare rollback for session group '$file'."
+            preparation_failed=true
+            break
+        }
+        if ! cp -p -- "$file" "$backup"; then
+            rm -f -- "$tmp" "$backup"
+            error "Unable to prepare rollback for session group '$file'."
+            preparation_failed=true
+            break
+        fi
+        files+=("$file")
+        staged+=("$tmp")
+        backups+=("$backup")
+    done
+
+    if [[ "$preparation_failed" == true ]]; then
+        for tmp in "${staged[@]}" "${backups[@]}"; do
+            [[ -n "$tmp" ]] && rm -f -- "$tmp"
+        done
+        return 1
+    fi
+
+    local committed=0 i
+    for ((i = 0; i < ${#files[@]}; i++)); do
+        if ! mv -f -- "${staged[i]}" "${files[i]}"; then
+            error "Unable to commit session group update in '${files[i]}'; rolling back prior updates."
+            local rollback_failed=false
+            local j
+            for ((j = committed - 1; j >= 0; j--)); do
+                if ! mv -f -- "${backups[j]}" "${files[j]}"; then
+                    rollback_failed=true
+                    error "Unable to restore session group '${files[j]}'."
+                fi
+            done
+            for ((j = i; j < ${#files[@]}; j++)); do
+                rm -f -- "${staged[j]}" "${backups[j]}"
+            done
+            [[ "$rollback_failed" == false ]] || error "Some session group files may need manual recovery."
+            return 1
+        fi
+        ((committed += 1))
+    done
+
+    for backup in "${backups[@]}"; do
+        rm -f -- "$backup"
+    done
+    return 0
+}
+
 #
 # Shell handling
 #
@@ -1562,7 +1687,7 @@ require_command() {
 
 is_known_command() {
     case "$1" in
-	session|workspace|parse|u|user|system|history|h|project|p|fileset|fs|file|f|config|send|s|count|interactive|i|chat|change|c|approve)
+	session|group|workspace|parse|u|user|system|history|h|project|p|fileset|fs|file|f|config|send|s|count|interactive|i|chat|change|c|approve)
 	    return 0 ;;
 	*)
 	    return 1 ;;

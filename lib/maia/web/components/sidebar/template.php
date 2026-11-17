@@ -17,14 +17,17 @@
     </header>
 
     <section class="sidebar-section">
-        <h2>Sessions</h2>
+        <div class="sidebar-section-heading">
+            <h2>Sessions</h2>
+            <button id="session-group-create" class="sidebar-small-button" type="button" aria-label="Create session group" title="Create session group">+</button>
+        </div>
         <form id="session-search" class="resource-search">
             <label class="visually-hidden" for="session-search-input">Find or create session</label>
             <input id="session-search-input" type="search" autocomplete="off" placeholder="Session name">
             <button type="submit" aria-label="Search or open session">&#x1F50D;</button>
             <button id="session-create" type="button" aria-label="Create session" hidden>+</button>
         </form>
-        <ul id="session-list" class="sidebar-list" aria-label="MAIA sessions"></ul>
+        <div id="session-list" class="sidebar-list sidebar-session-groups" aria-label="MAIA sessions"></div>
         <p id="session-list-placeholder" class="sidebar-placeholder" role="status">Loading sessions&hellip;</p>
     </section>
 
@@ -50,8 +53,31 @@
         <label>Extra send filesets<select id="sidebar-setting-extra-filesets" multiple></select></label>
         <p id="sidebar-session-settings-status" role="status"></p>
         <div class="sidebar-dialog-actions">
-            <button type="submit" value="cancel">Close</button>
-            <button id="sidebar-session-settings-save" type="submit" value="save">Save</button>
+            <button class="action-cancel" type="submit" value="cancel">Close</button>
+            <button id="sidebar-session-settings-save" class="action-normal" type="submit" value="save">Save</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-session-move-dialog" class="sidebar-dialog">
+    <form id="sidebar-session-move-form" method="dialog">
+        <h2 id="sidebar-session-move-title">Move</h2>
+        <label>Group<select id="sidebar-session-move-group"></select></label>
+        <div class="sidebar-dialog-actions">
+            <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+            <button class="action-normal" type="submit" value="move">Move</button>
+        </div>
+    </form>
+</dialog>
+<dialog id="sidebar-session-group-create-dialog" class="sidebar-dialog">
+    <form id="sidebar-session-group-create-form" method="dialog">
+        <h2 id="sidebar-session-group-create-title">Create group</h2>
+        <p id="sidebar-session-group-create-message"></p>
+        <label id="sidebar-session-group-create-label">Group name
+            <input id="sidebar-session-group-create-name" type="text" autocomplete="off">
+        </label>
+        <div class="sidebar-dialog-actions">
+            <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+            <button class="action-normal" type="submit" value="create">Create</button>
         </div>
     </form>
 </dialog>
@@ -60,58 +86,30 @@
         <h2>Create workspace directory?</h2>
         <p id="sidebar-workspace-directory-message"></p>
         <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
+            <button class="action-cancel" value="cancel">Cancel</button>
+            <button class="action-normal" value="create">Create</button>
         </div>
     </form>
 </dialog>
-<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+<dialog id="sidebar-input-dialog" class="sidebar-dialog">
     <form method="dialog">
-        <h2>Create workspace directory?</h2>
-        <p id="sidebar-workspace-directory-message"></p>
+        <h2 id="sidebar-input-title">Action</h2>
+        <label id="sidebar-input-label" for="sidebar-input-value">Value
+            <input id="sidebar-input-value" type="text" autocomplete="off">
+        </label>
         <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
+            <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+            <button id="sidebar-input-confirm" class="action-normal" type="submit" value="confirm">OK</button>
         </div>
     </form>
 </dialog>
-<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
+<dialog id="sidebar-confirm-dialog" class="sidebar-dialog">
     <form method="dialog">
-        <h2>Create workspace directory?</h2>
-        <p id="sidebar-workspace-directory-message"></p>
+        <h2 id="sidebar-confirm-title">Confirm</h2>
+        <p id="sidebar-confirm-message"></p>
         <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
-        </div>
-    </form>
-</dialog>
-<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
-    <form method="dialog">
-        <h2>Create workspace directory?</h2>
-        <p id="sidebar-workspace-directory-message"></p>
-        <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
-        </div>
-    </form>
-</dialog>
-<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
-    <form method="dialog">
-        <h2>Create workspace directory?</h2>
-        <p id="sidebar-workspace-directory-message"></p>
-        <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
-        </div>
-    </form>
-</dialog>
-<dialog id="sidebar-workspace-directory-dialog" class="sidebar-dialog">
-    <form method="dialog">
-        <h2>Create workspace directory?</h2>
-        <p id="sidebar-workspace-directory-message"></p>
-        <div class="sidebar-dialog-actions">
-            <button value="cancel">Cancel</button>
-            <button value="create">Create directory</button>
+            <button class="action-cancel" type="submit" value="cancel">Cancel</button>
+            <button id="sidebar-confirm-action" class="action-check" type="submit" value="confirm">Remove</button>
         </div>
     </form>
 </dialog>

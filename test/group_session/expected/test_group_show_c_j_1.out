@@ -1,0 +1,19 @@
+[
+  {
+    "name": "a",
+    "sessions": [
+      "foo1",
+      "foo2"
+    ]
+  },
+  {
+    "name": "b",
+    "sessions": [
+      "gaz1"
+    ]
+  },
+  {
+    "name": "c",
+    "sessions": []
+  }
+]

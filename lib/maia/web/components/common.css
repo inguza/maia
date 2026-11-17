@@ -49,3 +49,26 @@ button:disabled { cursor: default; opacity: .6; }
 @media (prefers-color-scheme: dark) {
     .item-list li button, .available-list li button { color: CanvasText; }
 }
+
+/* Shared action button types for consistent dialogs and confirmations. */
+button.action-cancel {
+    background: Canvas; border: 1px solid color-mix(in srgb, CanvasText 35%, Canvas);
+    color: CanvasText;
+}
+button.action-normal {
+    background: #2563eb; border: 1px solid #2563eb; color: #fff;
+}
+button.action-check {
+    background: #b45309; border: 1px solid #b45309; color: #fff;
+}
+button.action-warning {
+    background: #b91c1c; border: 1px solid #b91c1c; color: #fff;
+}
+button.action-cancel:hover { background: color-mix(in srgb, CanvasText 8%, Canvas); }
+button.action-normal:hover { background: #1d4ed8; border-color: #1d4ed8; }
+button.action-check:hover { background: #92400e; border-color: #92400e; }
+button.action-warning:hover { background: #991b1b; border-color: #991b1b; }
+button.action-cancel:focus-visible,
+button.action-normal:focus-visible,
+button.action-check:focus-visible,
+button.action-warning:focus-visible { outline: 2px solid CanvasText; outline-offset: 2px; }
