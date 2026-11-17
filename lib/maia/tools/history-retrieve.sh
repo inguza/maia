@@ -1,5 +1,4 @@
 #!/bin/bash
-# Remember a skill instruction
 #
 # Copyright (c) 2026 Ola Lundqvist <ola@inguza.com>
 #
