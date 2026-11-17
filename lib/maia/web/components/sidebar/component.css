@@ -108,22 +108,26 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
 .sidebar-small-button:hover, .sidebar-group-remove:hover {
     background: color-mix(in srgb, #2563eb 14%, Canvas);
 }
+.sidebar-section-actions { align-items: center; display: flex; gap: .3rem; }
+.sidebar-icon-button svg { display: block; height: 1.05rem; width: 1.05rem; }
+.sidebar-session-create-child { flex: 0 0 auto; }
 .sidebar-session-groups { overflow: visible; }
 .sidebar-session-group {
     border-radius: .25rem; margin: .2rem 0; min-width: 0;
 }
-.sidebar-session-group > summary {
-    align-items: center; cursor: pointer; display: flex; gap: .35rem;
-    list-style: none; min-height: 1.9rem; padding: .2rem .25rem;
-    user-select: none;
+.sidebar-session-group-header {
+    align-items: center; display: flex; gap: .35rem;
+    min-height: 1.9rem; padding: .2rem .25rem;
 }
-.sidebar-session-group > summary::-webkit-details-marker { display: none; }
-.sidebar-session-group > summary::before {
-    content: '\25B8'; display: inline-block; flex: 0 0 1rem; text-align: center;
-    transition: transform .12s ease;
+.sidebar-session-group-header:hover { background: color-mix(in srgb, #2563eb 8%, Canvas); }
+.sidebar-session-group-content[hidden] { display: none; }
+.sidebar-tree-toggle, .sidebar-tree-toggle-spacer {
+    align-items: center; background: transparent; border: 0; color: inherit;
+    display: inline-flex; flex: 0 0 1rem; height: 1.5rem; justify-content: center;
+    margin: 0; padding: 0; width: 1rem;
 }
-.sidebar-session-group[open] > summary::before { transform: rotate(90deg); }
-.sidebar-session-group > summary:hover { background: color-mix(in srgb, #2563eb 8%, Canvas); }
+.sidebar-tree-toggle:hover { background: color-mix(in srgb, #2563eb 12%, Canvas); }
+.sidebar-session-group-header .sidebar-tree-toggle { font-size: .8rem; }
 .sidebar-group-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .sidebar-group-show-all {
     background: transparent; border: 1px solid #9ca3af; border-radius: .25rem;
@@ -166,18 +170,15 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
 .sidebar-session-tree-item { display: block !important; min-width: 0; padding: 0 !important; }
 .sidebar-session-tree-node { min-width: 0; }
 .sidebar-session-tree-summary {
-    align-items: center; cursor: pointer; display: flex; gap: .2rem;
-    list-style: none; min-width: 0; padding: .1rem 0;
+    align-items: center; display: flex; gap: .2rem;
+    min-width: 0; padding: .1rem 0;
 }
-.sidebar-session-tree-summary::-webkit-details-marker { display: none; }
-.sidebar-session-tree-summary::before {
-    content: '\25B8'; flex: 0 0 1rem; text-align: center; transition: transform .12s ease;
-}
-.sidebar-session-tree-node[open] > .sidebar-session-tree-summary::before { transform: rotate(90deg); }
+.sidebar-session-tree-summary .sidebar-tree-toggle { font-size: .8rem; }
 .sidebar-session-row {
     align-items: center; border-radius: .25rem; display: flex; gap: .5rem;
     min-width: 0; padding: .35rem .45rem;
 }
+.sidebar-session-row .sidebar-list a { flex: 1; min-width: 0; }
 .sidebar-session-row:hover { background: color-mix(in srgb, #2563eb 8%, Canvas); }
 .sidebar-session-row.sidebar-current-item {
     background: color-mix(in srgb, #2563eb 16%, Canvas);
@@ -187,3 +188,39 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
 .sidebar-session-virtual-name { display: block; overflow-wrap: anywhere; padding: .35rem .45rem; }
 
 
+
+.sidebar-session-group-header {
+    background: color-mix(in srgb, CanvasText 5%, Canvas);
+    border-radius: .25rem;
+}
+.sidebar-session-group.sidebar-current-group > .sidebar-session-group-header {
+    background: color-mix(in srgb, #2563eb 10%, Canvas);
+    box-shadow: inset .2rem 0 #2563eb;
+}
+.sidebar-session-group.sidebar-current-group > .sidebar-session-group-header .sidebar-group-name {
+    font-weight: 700;
+}
+.sidebar-inline-create {
+    display: flex; flex-direction: column; gap: .4rem;
+    margin: .25rem .35rem .5rem 1.25rem; min-width: 0;
+}
+.sidebar-inline-create input {
+    box-sizing: border-box; font: inherit; min-height: 2rem; min-width: 0;
+    padding: .3rem .45rem; width: 100%;
+}
+.sidebar-inline-create-actions {
+    display: flex; gap: .4rem; justify-content: flex-end;
+}
+.sidebar-inline-create-actions button {
+    margin: 0; padding: .3rem .55rem;
+}
+
+/* Virtual hierarchy branches have no group file or membership yet. */
+.sidebar-session-group.sidebar-virtual-group > .sidebar-session-group-header {
+    background: transparent;
+    border: 1px dashed color-mix(in srgb, CanvasText 30%, Canvas);
+}
+.sidebar-session-group.sidebar-virtual-group > .sidebar-session-group-header .sidebar-group-name {
+    color: color-mix(in srgb, CanvasText 72%, Canvas);
+    font-style: italic;
+}

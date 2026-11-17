@@ -18,6 +18,8 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 function session_groups_error(int $status, string $message): never
 {
@@ -76,9 +78,33 @@ function session_groups_run_or_error(array $arguments, string $fallback): void
     }
 }
 
+/** Acquire the shared lock so concurrent web requests cannot interleave group updates. */
+function session_groups_lock(int $mode)
+{
+    $home = trim((string) (getenv('MAIA_HOME') ?: ''));
+    if ($home === '') {
+        session_groups_error(500, 'MAIA_HOME is not configured.');
+    }
+    $directory = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'groups' . DIRECTORY_SEPARATOR . 'session';
+    if (!is_dir($directory) && !mkdir($directory, 0770, true) && !is_dir($directory)) {
+        session_groups_error(500, 'Unable to access the session groups directory.');
+    }
+    $handle = @fopen($directory . DIRECTORY_SEPARATOR . '.groups.lock', 'c');
+    if ($handle === false || !flock($handle, $mode)) {
+        if (is_resource($handle)) {
+            fclose($handle);
+        }
+        session_groups_error(500, 'Unable to lock session group data.');
+    }
+    return $handle;
+}
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method === 'GET') {
+    $lock = session_groups_lock(LOCK_SH);
     $groups = session_groups_read();
+    flock($lock, LOCK_UN);
+    fclose($lock);
     echo json_encode(['ok' => true, 'groups' => $groups], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
@@ -92,12 +118,96 @@ if (!is_array($input)) {
     session_groups_error(400, 'Invalid session group request.');
 }
 $action = (string) ($input['action'] ?? '');
+$lock = session_groups_lock(LOCK_EX);
 
 if ($action === 'create' || $action === 'delete') {
     $name = trim((string) ($input['name'] ?? ''));
     session_groups_validate_name($name);
     session_groups_run_or_error(['group', $action, $name], "Unable to $action group '$name'.");
     echo json_encode(['ok' => true, 'name' => $name], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    exit;
+}
+
+if ($action === 'rename') {
+    $oldName = trim((string) ($input['oldName'] ?? ''));
+    $newName = trim((string) ($input['newName'] ?? ''));
+    session_groups_validate_name($oldName);
+    session_groups_validate_name($newName);
+    if ($oldName === $newName) {
+        echo json_encode(['ok' => true, 'name' => $newName], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        exit;
+    }
+
+    $groups = session_groups_read();
+    $oldNames = [];
+    $renames = [];
+    foreach ($groups as $item) {
+        $groupName = (string) ($item['name'] ?? '');
+        if ($groupName === $oldName || strncmp($groupName, $oldName . '%', strlen($oldName) + 1) === 0) {
+            $oldNames[$groupName] = true;
+            $renames[$groupName] = $newName . substr($groupName, strlen($oldName));
+        }
+    }
+    if (!isset($oldNames[$oldName])) {
+        session_groups_error(404, "Group '$oldName' does not exist.");
+    }
+    foreach ($renames as $targetName) {
+        session_groups_validate_name($targetName);
+        if (in_array($targetName, array_column($groups, 'name'), true) && !isset($oldNames[$targetName])) {
+            session_groups_error(409, "Group '$targetName' already exists.");
+        }
+    }
+
+    $home = trim((string) (getenv('MAIA_HOME') ?: ''));
+    $directory = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'groups' . DIRECTORY_SEPARATOR . 'session';
+    $staged = [];
+    foreach ($renames as $sourceName => $targetName) {
+        $sourcePath = $directory . DIRECTORY_SEPARATOR . $sourceName . '.txt';
+        if (!is_file($sourcePath)) {
+            foreach ($staged as $temporaryPath) @unlink($temporaryPath);
+            session_groups_error(404, "Group '$sourceName' does not exist.");
+        }
+        $temporaryPath = @tempnam($directory, '.group-rename-');
+        $contents = @file_get_contents($sourcePath);
+        if ($temporaryPath === false || $contents === false || @file_put_contents($temporaryPath, $contents) === false) {
+            if (is_string($temporaryPath)) @unlink($temporaryPath);
+            foreach ($staged as $path) @unlink($path);
+            session_groups_error(500, 'Unable to stage group rename.');
+        }
+        @chmod($temporaryPath, fileperms($sourcePath) & 0777);
+        $staged[$sourceName] = $temporaryPath;
+    }
+
+    $backups = [];
+    foreach (array_keys($renames) as $sourceName) {
+        $sourcePath = $directory . DIRECTORY_SEPARATOR . $sourceName . '.txt';
+        $backupPath = $sourcePath . '.rename-' . bin2hex(random_bytes(6));
+        if (!@rename($sourcePath, $backupPath)) {
+            foreach ($backups as $originalName => $path) {
+                @rename($path, $directory . DIRECTORY_SEPARATOR . $originalName . '.txt');
+            }
+            foreach ($staged as $path) @unlink($path);
+            session_groups_error(500, 'Unable to prepare group rename.');
+        }
+        $backups[$sourceName] = $backupPath;
+    }
+
+    $createdTargets = [];
+    foreach ($renames as $sourceName => $targetName) {
+        $targetPath = $directory . DIRECTORY_SEPARATOR . $targetName . '.txt';
+        if (!@rename($staged[$sourceName], $targetPath)) {
+            foreach ($createdTargets as $path) @unlink($path);
+            foreach ($backups as $originalName => $path) {
+                @rename($path, $directory . DIRECTORY_SEPARATOR . $originalName . '.txt');
+            }
+            foreach ($staged as $path) @unlink($path);
+            session_groups_error(500, 'Unable to complete group rename.');
+        }
+        $createdTargets[] = $targetPath;
+    }
+    foreach ($backups as $path) @unlink($path);
+
+    echo json_encode(['ok' => true, 'name' => $newName], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
     exit;
 }
 
@@ -120,24 +230,57 @@ if ($action === 'move') {
         session_groups_error(404, "Group '$group' does not exist.");
     }
 
-    foreach ($groups as $item) {
-        $name = (string) ($item['name'] ?? '');
-        $members = $item['sessions'] ?? [];
-        if ($name === '' || !is_array($members) || !in_array($session, $members, true)) {
-            continue;
-        }
-        $result = session_groups_run(['group', 'remove', $name, $session]);
+    // Add to the destination first, so a failure cannot leave the session ungrouped.
+    if ($group !== '') {
+        $result = session_groups_run(['group', 'add', $group, $session]);
         if ($result['status'] !== 0) {
-            session_groups_error(502, 'Unable to move session; some group memberships may already have been removed. '
+            session_groups_error(502, 'Unable to add the session to its new group; its existing memberships were left unchanged. '
                 . (trim($result['error']) ?: trim($result['output']) ?: ''));
         }
     }
 
-    if ($group !== '') {
-        $result = session_groups_run(['group', 'add', $group, $session]);
+    foreach ($groups as $item) {
+        $name = (string) ($item['name'] ?? '');
+        $members = $item['sessions'] ?? [];
+        if ($name === '' || $name === $group || !is_array($members) || !in_array($session, $members, true)) {
+            continue;
+        }
+        $result = session_groups_run(['group', 'remove', $name, $session]);
         if ($result['status'] !== 0) {
-            session_groups_error(502, 'Unable to add the session to its new group; it may now be ungrouped. '
+            session_groups_error(502, 'Unable to remove the session from all previous groups; it has been added to its new group. '
                 . (trim($result['error']) ?: trim($result['output']) ?: ''));
+        }
+    }
+
+    $updatedGroups = session_groups_read();
+    $membershipCorrect = static function (array $currentGroups) use ($session, $group): bool {
+        foreach ($currentGroups as $item) {
+            $name = (string) ($item['name'] ?? '');
+            $members = $item['sessions'] ?? [];
+            $shouldContain = $group !== '' && $name === $group;
+            if (is_array($members) && in_array($session, $members, true) !== $shouldContain) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    if (!$membershipCorrect($updatedGroups)) {
+        // Repair a transient write race before reporting success to the sidebar.
+        if ($group !== '') {
+            session_groups_run_or_error(['group', 'add', $group, $session], 'Unable to persist the new session group.');
+        }
+        foreach ($updatedGroups as $item) {
+            $name = (string) ($item['name'] ?? '');
+            $members = $item['sessions'] ?? [];
+            if ($name === '' || $name === $group || !is_array($members) || !in_array($session, $members, true)) {
+                continue;
+            }
+            session_groups_run_or_error(['group', 'remove', $name, $session], 'Unable to remove an old session group.');
+        }
+        $updatedGroups = session_groups_read();
+        if (!$membershipCorrect($updatedGroups)) {
+            session_groups_error(502, 'The session group update did not persist as requested.');
         }
     }
 

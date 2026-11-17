@@ -19,7 +19,10 @@
     <section class="sidebar-section">
         <div class="sidebar-section-heading">
             <h2>Sessions</h2>
-            <button id="session-group-create" class="sidebar-small-button" type="button" aria-label="Create session group" title="Create session group">+</button>
+            <div class="sidebar-section-actions">
+                <button id="session-group-create" class="sidebar-small-button sidebar-icon-button" type="button" aria-label="Create session group" title="Create session group"></button>
+                <button id="session-create-top" class="sidebar-small-button sidebar-icon-button" type="button" aria-label="Create session" title="Create session"></button>
+            </div>
         </div>
         <form id="session-search" class="resource-search">
             <label class="visually-hidden" for="session-search-input">Find or create session</label>
