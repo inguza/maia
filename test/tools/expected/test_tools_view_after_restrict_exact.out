@@ -42,6 +42,7 @@ git-rm:write
 git-show:write
 git-status:write
 git-switch:write
+history-prune-tools:write
 history-retrieve:write
 job-cancel:write
 job-delete:write

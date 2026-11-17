@@ -101,6 +101,9 @@ file by doing this sequence:
 If you plan to change a file, make sure you remember enough lines so you still see the
 content after the change, since the line numbers may change.
 
+When the information from all tool calls are no longer relevant, use `history-prune-tools` to
+replace the tool output with a "Pruned" marker.
+
 
 
 # File modification

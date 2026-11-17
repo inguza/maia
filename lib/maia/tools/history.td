@@ -17,5 +17,17 @@
       "required": ["ids"],
       "additionalProperties": false
     }
+  },
+  {
+    "name":"history-prune-tools",
+    "description": "Replace tool call output information for all tool calls with a Pruned marker.",
+    "command": "history-prune-tools.sh",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+      },
+      "required": [],
+      "additionalProperties": false
+    }
   }
 ]

@@ -50,6 +50,7 @@
 * util-diff                        -                (<MAIA_ROOT>/lib/maia/tools/gnu.td)
 * util-patch                       write            (<MAIA_ROOT>/lib/maia/tools/gnu.td)
 * history-retrieve                 -                (<MAIA_ROOT>/lib/maia/tools/history.td)
+* history-prune-tools              -                (<MAIA_ROOT>/lib/maia/tools/history.td)
 * context-instruction-remember     -                (<MAIA_ROOT>/lib/maia/tools/instruction.td)
 * context-instruction-forget       -                (<MAIA_ROOT>/lib/maia/tools/instruction.td)
 * job-start                        -                (<MAIA_ROOT>/lib/maia/tools/job.td)
