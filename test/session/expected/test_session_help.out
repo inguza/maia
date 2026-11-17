@@ -10,7 +10,7 @@ COMMANDS
   create [options] <name> [<src>]
     Create a new session (empty history & outbox) or copy from an existing session.
 
-  rename <new-name> <old-name>
+  rename <old-name> <new-name>
     Rename a session and its session-associated fileset.
 
   list
