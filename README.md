@@ -586,6 +586,7 @@ pm.process_idle_timeout = 60s
 pm.max_requests = 500
 ; This part is important to make sure send response is fast
 php_admin_value[output_buffering] = 0
+php_admin_flag[implicit_flush] = on
 ```
 
 ### Outside Apache
