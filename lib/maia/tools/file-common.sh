@@ -189,7 +189,14 @@ approval_is_allowed() {
             [[ "$rule" == *:* ]] || continue
             pattern="${rule%:*}"
             rule_action="${rule##*:}"
-            [[ "$rule_action" == "$action" ]] || continue
+	    # <action>:<approved-by>
+            case "$action:$rule_action" in
+                append:append|append:change|append:write|create:create|create:write|change:change|change:write|delete:delete|move-source:delete|move-source:write|move-target:create|move-target:write)
+                    ;;
+                *)
+                    continue
+                    ;;
+            esac
             if [[ "$path" == $pattern ]]; then
                 path_allowed=true
                 break

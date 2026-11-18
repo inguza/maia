@@ -18,6 +18,14 @@ USAGE
 Manage file-operation approvals. Rules use shell globs relative to the
 workspace root.
 
+Possible actions to approve:
+ - append - Append data to a file
+ - create - Create a file
+ - change - Change content in a file (also allows append)
+ - delete - Delete a file
+ - write  - Allows create and change. Also allow a file to be moved.
+
+
 COMMANDS
 
   view

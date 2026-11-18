@@ -56,8 +56,8 @@ function approval_api_validate_rule(string $rule): string
         approval_api_error(400, 'Enter one approval rule in path-pattern:action form.');
     }
     $action = substr($rule, strrpos($rule, ':') + 1);
-    if (!in_array($action, ['append', 'create', 'change', 'delete'], true)) {
-        approval_api_error(400, "Unknown approval action '$action'. Valid actions: append, create, change, delete.");
+    if (!in_array($action, ['append', 'create', 'change', 'delete', 'write'], true)) {
+        approval_api_error(400, "Unknown approval action '$action'. Valid actions: append, create, change, delete, write.");
     }
     return $rule;
 }

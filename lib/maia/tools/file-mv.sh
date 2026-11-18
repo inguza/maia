@@ -120,7 +120,7 @@ for source in "${paths[@]}"; do
     fi
     targets+=("$target")
 done
-if approval_is_allowed delete "${paths[@]}" && approval_is_allowed create "${targets[@]}"; then
+if approval_is_allowed move-source "${paths[@]}" && approval_is_allowed move-target "${targets[@]}"; then
     "$MAIA_BIN" change run "$id" >/dev/null 2>&1 || true
     status_file="$ws_changes/${id}-finished.exit_status"
     if [[ -f "$status_file" && "$(read_file "$status_file")" == "0" ]]; then
