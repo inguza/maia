@@ -73,7 +73,7 @@ handle_approve_command() {
     done
     local prompt_type="approval"
 
-    local subcmd="${1:-show}"
+    local subcmd="${1:-view}"
     shift
 
     determine_implicit_scope "$prompt_type"
