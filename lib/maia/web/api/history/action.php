@@ -65,6 +65,8 @@ if (in_array($action, ['hide', 'unhide', 'delete'], true)) {
     $arguments = ['history', 'hide', 'all'];
 } elseif ($action === 'compact') {
     $arguments = ['history', 'compact'];
+} elseif ($action === 'prune-tools') {
+    $arguments = ['history', 'prune', '--tool', '--cut', '0-'];
 } elseif ($action === 'replace') {
     if (!is_int($index) && !(is_string($index) && ctype_digit($index))) {
         history_action_error(400, 'A history index is required.');
