@@ -994,7 +994,17 @@ handle_session_command() {
 		trigger_event "pre-session-delete $session"
 	    done
 	    for session in "$@" ; do
+		local workspace=""
+		if [[ "$session" != "default" && -d "$(resolve_session_path "$session")" ]]; then
+		    workspace="$(read_session_workspace_raw "$session")"
+		fi
 		handle_x_delete session "$session" # Handles empty name
+		if [[ -n "$workspace" ]]; then
+		    local workspace_dir="$(resolve_workspace_path "$workspace")"
+		    if [[ -n "$workspace_dir" ]]; then
+			rm -f -- "$workspace_dir/${session}.fileset"
+		    fi
+		fi
 	    done
 	    for session in "$@" ; do
 		trigger_event "post-session-delete $session"

@@ -33,6 +33,12 @@ run_workspace_cmd() {
     run_and_check "test_workspace_${test_id}" $MAIA workspace "$@"
 }
 
+run_file_cmd() {
+    local test_id="$1"
+    shift
+    run_and_check "test_file_${test_id}" $MAIA file "$@"
+}
+
 # Test 1: list sessions initially (likely empty or default)
 run_session_cmd "list_empty" list
 
@@ -85,8 +91,16 @@ unset MAIA_SESSION
 run_session_cmd "delete_foo" delete foo
 run_session_cmd "list_after_delete_foo" list
 
-# Now test to create sessions with and without resolving
+# Create a workspace, then exercise the session fileset delete/rename sequence.
 run_workspace_cmd "create_workspace_no_use" create ws
+run_session_cmd "create_x1_for_delete_rename" create x1 --workspace ws
+run_session_cmd "create_x2_for_delete_rename" create x2 --workspace ws
+printf 'session file\n' > somefile
+export MAIA_SESSION=x1
+run_file_cmd "add_file_to_x1_for_delete_rename" add somefile
+unset MAIA_SESSION
+run_session_cmd "delete_x1_for_rename" delete x1
+run_session_cmd "rename_x2_to_x1_after_delete" rename x2 x1
 
 # Now create the session with and without resolving
 run_session_cmd "create_session_defaultresolve_noneused" create --workspace ws newsession
