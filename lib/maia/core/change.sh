@@ -1065,7 +1065,7 @@ handle_change_command() {
 			local child_type="$(myl_get "$child" type)"
 			local child_status="$(get_status "$child")"
 			if [[ "$child_type" == patch && ( "$child_status" == pending || "$child_status" == reverted ) ]]; then
-			    patches+=( "$changes_dir/$session/$(basename -- "${child%.myl}")-$child_status.patch" )
+			    patches+=( "${child%.myl}.patch" )
 			fi
 		    done
 		    if [[ "${#patches[@]}" -gt 0 ]]; then
