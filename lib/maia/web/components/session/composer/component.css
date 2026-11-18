@@ -28,10 +28,15 @@
 .session-composer-usage-dialog { border:0; border-radius:.6rem; box-shadow:0 1rem 3rem #0004; max-height:min(85vh,50rem); max-width:min(34rem,calc(100vw - 2rem)); overflow:auto; padding:0; width:100%; }
 .session-composer-usage-dialog::backdrop { background:#11182788; }
 .session-composer-usage-dialog-content { padding:1.25rem; }
-.session-composer-usage-dialog-header { align-items:flex-start; display:flex; justify-content:space-between; gap:1rem; position:relative; }
-.session-composer-usage-dialog-header h2 { margin:0; padding-right:2rem; }
-.session-composer .session-composer-usage-close { appearance:none; background:none; border:0; color:#374151; cursor:pointer; font:inherit; font-size:1.5rem; line-height:1; margin:0; padding:.2rem .35rem; position:absolute; right:.35rem; top:.2rem; }
-.session-composer .session-composer-usage-close:hover { background:none; color:#111827; }
+.session-composer-usage-dialog-header { align-items:flex-start; display:flex; justify-content:space-between; gap:1rem; }
+.session-composer-usage-dialog-header h2 { margin:0; }
+.session-composer-usage-dialog-actions { align-items:center; display:flex; flex:0 0 auto; gap:.1rem; margin:-.2rem -.25rem 0 0; }
+.session-composer .session-composer-usage-close,.session-composer .session-composer-usage-refresh { align-items:center; appearance:none; background:none; border:0; color:#374151; cursor:pointer; display:inline-flex; height:1.8rem; justify-content:center; line-height:1; margin:0; padding:.15rem; width:1.8rem; }
+.session-composer .session-composer-usage-close { font-size:1.5rem; }
+.session-composer .session-composer-usage-refresh { font-size:1.25rem; }
+.session-composer .session-composer-usage-close:hover,.session-composer .session-composer-usage-refresh:hover { background:none; color:#111827; }
+.session-composer .session-composer-usage-close:focus-visible,.session-composer .session-composer-usage-refresh:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer .session-composer-usage-refresh:disabled { cursor:wait; opacity:.7; }
 .session-composer-usage-dialog-content h3 { font-size:1rem; margin:.9rem 0 .4rem; }
 .session-composer-usage-dialog-content dl { display:grid; grid-template-columns:1fr auto; gap:.3rem 1rem; margin:.4rem 0; }
 .session-composer-usage-dialog-content dd { font-variant-numeric:tabular-nums; margin:0; text-align:right; }

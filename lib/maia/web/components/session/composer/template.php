@@ -18,7 +18,13 @@
     <div class="session-composer-usage-dialog-content">
         <header class="session-composer-usage-dialog-header">
             <h2>Token usage</h2>
-            <button type="button" class="session-composer-usage-close" data-composer-usage-close aria-label="Close usage details">&times;</button>
+            <div class="session-composer-usage-dialog-actions">
+                <button type="button" class="session-composer-usage-refresh" data-composer-usage-refresh aria-label="Refresh token usage statistics" title="Refresh statistics">
+                    <span data-usage-refresh-icon aria-hidden="true">&#x21BB;</span>
+                    <span class="spinner" data-usage-refresh-spinner aria-hidden="true" hidden></span>
+                </button>
+                <button type="button" class="session-composer-usage-close" data-composer-usage-close aria-label="Close usage details">&times;</button>
+            </div>
         </header>
         <section data-usage-section="input-count">
             <h3>Current prompt size <span data-usage-dialog-input-percent>[?%]</span></h3>
