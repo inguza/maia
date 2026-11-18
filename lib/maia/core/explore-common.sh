@@ -218,7 +218,7 @@ explore_path() {
     shift 5
     local -A records=() queued=() scan_children=()
     local -a queue_paths=() queue_depths=() queue_ancestors=() queue_required=()
-    local path logical physical key value parent ancestor cache_key visit_key queue_id
+    local path logical physical ancestor_physical key value parent ancestor cache_key visit_key queue_id
     local record_path record_value
     local dir depth carry_anc carry_required q=0 new_count=0 truncated child child_name child_path
     local cached_line cached_path cached_value count
@@ -291,9 +291,9 @@ explore_path() {
                     if [[ -v DISCOVER_DIR_ENTRY_COUNTS["$cache_key"] ]]; then
                         count="${DISCOVER_DIR_ENTRY_COUNTS[$cache_key]}"
                     else
-                        physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
-                        [[ -d "$physical" && ! -L "$physical" ]] || break
-                        count="$(explore_count_entries "$physical")" || break
+                        ancestor_physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
+                        [[ -d "$ancestor_physical" && ! -L "$ancestor_physical" ]] || break
+                        count="$(explore_count_entries "$ancestor_physical")" || break
                         DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
                     fi
                     explore_set_record records new_count "$max_new_entries" "$max_budget" "$ancestor" "$count" || break
@@ -401,9 +401,9 @@ explore_path() {
                 if [[ -v DISCOVER_DIR_ENTRY_COUNTS["$cache_key"] ]]; then
                     count="${DISCOVER_DIR_ENTRY_COUNTS[$cache_key]}"
                 else
-                    physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
-                    [[ -d "$physical" && ! -L "$physical" ]] || break
-                    count="$(explore_count_entries "$physical")" || break
+                    ancestor_physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
+                    [[ -d "$ancestor_physical" && ! -L "$ancestor_physical" ]] || break
+                    count="$(explore_count_entries "$ancestor_physical")" || break
                     DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
                 fi
                 explore_set_record records new_count "$max_new_entries" "$max_budget" "$ancestor" "$count" || break
