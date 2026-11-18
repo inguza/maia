@@ -78,14 +78,30 @@ function session_groups_run_or_error(array $arguments, string $fallback): void
     }
 }
 
+/** Resolve the same home directory used by MAIA's group commands. */
+function session_groups_directory(): string
+{
+    static $directory = null;
+    if ($directory !== null) {
+        return $directory;
+    }
+
+    $result = session_groups_run(['home', 'show']);
+    if ($result['status'] !== 0) {
+        session_groups_error(502, trim($result['error']) ?: trim($result['output']) ?: 'Unable to locate session group data.');
+    }
+    $home = trim($result['output']);
+    if ($home === '') {
+        session_groups_error(500, 'MAIA did not return a home directory.');
+    }
+    $directory = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'groups' . DIRECTORY_SEPARATOR . 'session';
+    return $directory;
+}
+
 /** Acquire the shared lock so concurrent web requests cannot interleave group updates. */
 function session_groups_lock(int $mode)
 {
-    $home = trim((string) (getenv('MAIA_HOME') ?: ''));
-    if ($home === '') {
-        session_groups_error(500, 'MAIA_HOME is not configured.');
-    }
-    $directory = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'groups' . DIRECTORY_SEPARATOR . 'session';
+    $directory = session_groups_directory();
     if (!is_dir($directory) && !mkdir($directory, 0770, true) && !is_dir($directory)) {
         session_groups_error(500, 'Unable to access the session groups directory.');
     }
@@ -158,8 +174,7 @@ if ($action === 'rename') {
         }
     }
 
-    $home = trim((string) (getenv('MAIA_HOME') ?: ''));
-    $directory = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'groups' . DIRECTORY_SEPARATOR . 'session';
+    $directory = session_groups_directory();
     $staged = [];
     foreach ($renames as $sourceName => $targetName) {
         $sourcePath = $directory . DIRECTORY_SEPARATOR . $sourceName . '.txt';

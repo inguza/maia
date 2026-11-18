@@ -15,6 +15,7 @@
         <button id="sidebar-refresh" class="sidebar-refresh" type="button" aria-label="Refresh sessions and workspaces" title="Refresh sessions and workspaces">&#x21BB;</button>
         <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Close navigation">&#x00D7;</button>
     </header>
+    <p id="sidebar-error" class="error" role="alert" hidden></p>
 
     <section class="sidebar-section">
         <div class="sidebar-section-heading">

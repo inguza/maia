@@ -38,7 +38,7 @@ $process = proc_open(
     [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
-        2 => ['pipe', 'w'],
+        2 => ['redirect', 1],
     ],
     $pipes,
     null,
@@ -52,12 +52,10 @@ if (!is_resource($process)) {
 fclose($pipes[0]);
 $output = (string) stream_get_contents($pipes[1]);
 fclose($pipes[1]);
-$error = (string) stream_get_contents($pipes[2]);
-fclose($pipes[2]);
 $status = proc_close($process);
 
 if ($status !== 0) {
-    session_delete_error(502, trim($error) ?: trim($output) ?: 'Unable to delete the session.');
+    session_delete_error(502, trim($output) ?: 'Unable to delete the session.');
 }
 
 echo json_encode([
