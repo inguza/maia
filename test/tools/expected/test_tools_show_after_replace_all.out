@@ -326,6 +326,9 @@ Tool definitions:
     "instructions": [
       "file.txt"
     ],
+    "effects": [
+      "limited-write"
+    ],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -350,6 +353,9 @@ Tool definitions:
     "command": "file-mv.sh",
     "instructions": [
       "file.txt"
+    ],
+    "effects": [
+      "limited-write"
     ],
     "inputSchema": {
       "type": "object",

@@ -85,6 +85,7 @@
     "description": "Remove files. Always creates a change proposal.",
     "command": "file-rm.sh",
     "instructions": [ "file.txt" ],
+    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -105,6 +106,7 @@
     "description": "Move files. Always creates a change proposal.",
     "command": "file-mv.sh",
     "instructions": [ "file.txt" ],
+    "effects":["limited-write"],
     "inputSchema": {
       "type": "object",
       "properties": {
