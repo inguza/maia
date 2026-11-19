@@ -47,43 +47,45 @@ explore_is_ignored_path() {
 }
 
 explore_normalize_path() {
-    local path="$1" is_dir="${2:-false}"
+    local path="$1" is_dir="$2" output_name="$3"
     [[ -n "$path" && "$path" != *$'\n'* ]] || return 1
     # Treat an absolute-looking path as rooted at base_dir, never as a host path.
     while [[ "$path" == /* ]]; do path="${path#/}"; done
     while [[ "$path" == ./* ]]; do path="${path#./}"; done
     [[ "$path" == "." ]] && path=""
     [[ "$path" != .. && "$path" != ../* && "$path" != */../* && "$path" != */.. ]] || return 1
+    local -n output="$output_name"
     if [[ -z "$path" ]]; then
-        printf '/'
+        output="/"
     elif [[ "$is_dir" == true ]]; then
-        path="/${path%/}/"
-        printf '%s' "$path"
+        output="/${path%/}/"
     else
-        printf '/%s' "${path%/}"
+        output="/${path%/}"
     fi
 }
 
 explore_resolve_path() {
-    local base_dir="$1" path="$2"
+    local base_dir="$1" path="$2" output_name="$3"
     [[ -n "$base_dir" ]] || return 1
+    local -n output="$output_name"
     if [[ "$path" == "/" ]]; then
-        printf '%s' "${base_dir%/}"
+        output="${base_dir%/}"
         if [[ "$base_dir" == "/" ]]; then
-            printf '/'
+            output="/"
         fi
         return 0
-    else
-        while [[ "$path" == /* ]]; do path="${path#/}"; done
-        printf '%s/%s' "${base_dir%/}" "${path%/}"
     fi
+
+    while [[ "$path" == /* ]]; do path="${path#/}"; done
+    output="${base_dir%/}/${path%/}"
 }
 
 explore_format_size() {
-    local input="$1" bytes divisor=1 whole remainder tenth unit_index=0
+    local input="$1" output_name="$2" bytes divisor=1 whole remainder tenth unit_index=0
     local -a units=(B KiB MiB GiB TiB PiB)
     [[ "$input" =~ ^[0-9]+$ ]] || return 1
     bytes=$((10#$input))
+    local -n output="$output_name"
 
     while ((unit_index < ${#units[@]} - 1 && bytes >= divisor * 1024)); do
         divisor=$((divisor * 1024))
@@ -91,7 +93,7 @@ explore_format_size() {
     done
 
     if ((unit_index == 0)); then
-        printf '%s%s' "$bytes" "${units[$unit_index]}"
+        output="${bytes}${units[$unit_index]}"
     else
         whole=$((bytes / divisor))
         remainder=$((bytes % divisor))
@@ -100,13 +102,13 @@ explore_format_size() {
             whole=$((whole + 1))
             tenth=0
         fi
-        printf '%s.%s%s' "$whole" "$tenth" "${units[$unit_index]}"
+        output="${whole}.${tenth}${units[$unit_index]}"
     fi
 }
 
 # Print the count of immediate, non-ignored children.
 explore_count_entries() {
-    local dir="$1" child name count=0 had_dotglob=false had_nullglob=false
+    local dir="$1" output_name="$2" child name entry_count=0 had_dotglob=false had_nullglob=false
     shopt -q dotglob && had_dotglob=true
     shopt -q nullglob && had_nullglob=true
     shopt -s dotglob nullglob
@@ -116,10 +118,11 @@ explore_count_entries() {
     for child in "${children[@]}"; do
         name="${child##*/}"
         if ! explore_is_ignored_path "$name"; then
-            count=$((count + 1))
+            entry_count=$((entry_count + 1))
         fi
     done
-    printf '%s' "$count"
+    local -n output="$output_name"
+    output="$entry_count"
     return 0
 }
 
@@ -130,14 +133,14 @@ explore_make_record() {
     local -n out_path="$out_path_name" out_value="$out_value_name"
     out_path=""
     out_value=""
-    physical="$(explore_resolve_path "$base_dir" "$logical")" || return 1
+    explore_resolve_path "$base_dir" "$logical" physical || return 1
     if [[ -d "$physical" && ! -L "$physical" ]]; then
-        out_path="$(explore_normalize_path "$path" true)" || return 1
-        out_value="$(explore_count_entries "$physical")" || return 1
+        explore_normalize_path "$path" true out_path || return 1
+        explore_count_entries "$physical" out_value || return 1
     elif [[ -f "$physical" || -L "$physical" ]]; then
         bytes=$(stat -c '%s' -- "$physical" 2>/dev/null) || return 1
-        out_path="$(explore_normalize_path "$path" false)" || return 1
-        out_value="$(explore_format_size "$bytes")" || return 1
+        explore_normalize_path "$path" false out_path || return 1
+        explore_format_size "$bytes" out_value || return 1
     else
         return 1
     fi
@@ -156,7 +159,7 @@ explore_load_index() {
         value="${BASH_REMATCH[2]}"
         is_dir=false
         [[ "$raw_path" == */ ]] && is_dir=true
-        canonical="$(explore_normalize_path "$raw_path" "$is_dir")" || continue
+        explore_normalize_path "$raw_path" "$is_dir" canonical || continue
         if explore_is_ignored_path "$canonical"; then
             continue
         fi
@@ -186,6 +189,24 @@ explore_save_index() {
     rm -f -- "$unsorted" || return 1
     return 0
 }
+
+# The .txt file is the canonical index; the .gen file is its cached rendered view.
+explore_view_file_for_index() {
+    local index_file="$1"
+    printf '%s.gen' "${index_file%.txt}"
+}
+
+explore_generate_view() {
+    local index_file="$1" view_file="$2" tmp
+    tmp=$(mktemp "${view_file}.tmp.XXXXXX") || return 1
+    if ! explore_render_index "$index_file" > "$tmp" || ! mv -f -- "$tmp" "$view_file"; then
+        rm -f -- "$tmp"
+        return 1
+    fi
+    return 0
+}
+
+# The caller generates the cached view once after completing all index updates.
 
 # Add or update an explicitly requested record without applying discovery
 # budgets. Explicit seeds are always indexed; the budgets limit additional
@@ -217,7 +238,7 @@ explore_path() {
     local index_file="$1" base_dir="$2" max_new_entries="$3" max_depth="$4" max_budget="$5"
     shift 5
     local -A records=() queued=() scan_children=()
-    local -a queue_paths=() queue_depths=() queue_ancestors=() queue_required=()
+    local -a queue_paths=() queue_depths=() queue_ancestors=() queue_required=() queue_values=()
     local path logical physical ancestor_physical key value parent ancestor cache_key visit_key queue_id
     local record_path record_value
     local dir depth carry_anc carry_required q=0 new_count=0 truncated child child_name child_path
@@ -231,22 +252,23 @@ explore_path() {
     # Prune missing paths before measuring the cumulative budget, so stale
     # records release capacity for this run.
     for key in "${!records[@]}"; do
-        physical="$(explore_resolve_path "$base_dir" "$key")" || continue
+        explore_resolve_path "$base_dir" "$key" physical || continue
         if [[ ! -e "$physical" && ! -L "$physical" ]]; then unset 'records[$key]'; fi
     done
 
     # Queue initial paths together. Explicit seeds bypass both budgets; their
     # ancestors and entries discovered while scanning them remain budgeted.
     for path in "$@"; do
-        logical="$(explore_normalize_path "$path")" || continue
+        explore_normalize_path "$path" false logical || continue
         explore_is_ignored_path "$logical" && continue
-        queue_id="$(explore_normalize_path "$logical")" || continue
+        queue_id="$logical"
         if [[ ! -v queued["$queue_id"] ]]; then
             queued["$queue_id"]=1
             queue_paths+=("$queue_id")
             queue_depths+=("$max_depth")
             queue_ancestors+=(1)
             queue_required+=(1)
+            queue_values+=("")
         fi
     done
 
@@ -255,12 +277,13 @@ explore_path() {
         depth="${queue_depths[$q]}"
         carry_anc="${queue_ancestors[$q]}"
         carry_required="${queue_required[$q]}"
+        cached_value="${queue_values[$q]}"
         q=$((q + 1))
-        physical="$(explore_resolve_path "$base_dir" "$path")" || continue
+        explore_resolve_path "$base_dir" "$path" physical || continue
         [[ -e "$physical" || -L "$physical" ]] || continue
 
         if [[ -d "$physical" && ! -L "$physical" ]]; then
-            key="$(explore_normalize_path "$path" true)" || continue
+            explore_normalize_path "$path" true key || continue
             cache_key="$index_file|$base_dir|$key"
             if [[ -v DISCOVER_DIR_ENTRY_COUNTS["$cache_key"] ]]; then
                 count="${DISCOVER_DIR_ENTRY_COUNTS[$cache_key]}"
@@ -268,7 +291,7 @@ explore_path() {
                 count="${DISCOVER_VISITED_DIRS[$cache_key]}"
                 DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
             else
-                count="$(explore_count_entries "$physical")" || continue
+                explore_count_entries "$physical" count || continue
                 DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
             fi
             if [[ "$carry_required" == 1 ]]; then
@@ -291,9 +314,9 @@ explore_path() {
                     if [[ -v DISCOVER_DIR_ENTRY_COUNTS["$cache_key"] ]]; then
                         count="${DISCOVER_DIR_ENTRY_COUNTS[$cache_key]}"
                     else
-                        ancestor_physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
+                        explore_resolve_path "$base_dir" "$ancestor" ancestor_physical || break
                         [[ -d "$ancestor_physical" && ! -L "$ancestor_physical" ]] || break
-                        count="$(explore_count_entries "$ancestor_physical")" || break
+                        explore_count_entries "$ancestor_physical" count || break
                         DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
                     fi
                     explore_set_record records new_count "$max_new_entries" "$max_budget" "$ancestor" "$count" || break
@@ -311,13 +334,14 @@ explore_path() {
                     explore_set_record records new_count "$max_new_entries" "$max_budget" "$cached_path" "$cached_value" || continue
                     if [[ "$cached_path" == */ && "$depth" -gt 1 ]]; then
                         cache_key="$index_file|$base_dir|$cached_path"
-                        queue_id="$(explore_normalize_path "$cached_path")" || continue
+                        explore_normalize_path "$cached_path" false queue_id || continue
                         if [[ ! -v queued["$queue_id"] ]]; then
                             queued["$queue_id"]=1
                             queue_paths+=("$queue_id")
                             queue_depths+=("$((depth - 1))")
                             queue_ancestors+=(0)
                             queue_required+=(0)
+                            queue_values+=("$cached_value")
                         fi
                     fi
                 done <<< "${DISCOVER_VISITED_CHILDREN[$visit_key]:-}"
@@ -346,35 +370,37 @@ explore_path() {
                     child_path="${dir%/}/$child_name"
                 fi
                 if [[ -d "$child" && ! -L "$child" ]]; then
-                    key="$(explore_normalize_path "$child_path" true)" || continue
+                    explore_normalize_path "$child_path" true key || continue
                     value="${DISCOVER_DIR_ENTRY_COUNTS["$index_file|$base_dir|$key"]:-}"
                     if [[ -z "$value" ]]; then
-                        value="$(explore_count_entries "$child")" || continue
+                        explore_count_entries "$child" value || continue
                         DISCOVER_DIR_ENTRY_COUNTS["$index_file|$base_dir|$key"]="$value"
                     fi
                     scan_children["$dir"]+="$key $value"$'\n'
                     # Queue directory so its count is recorded; only descend into
                     # its children when its remaining depth is positive.
-                    queue_id="$(explore_normalize_path "$key")" || continue
+                    explore_normalize_path "$key" false queue_id || continue
                     if [[ ! -v queued["$queue_id"] ]]; then
                         queued["$queue_id"]=1
                         queue_paths+=("$queue_id")
                         queue_depths+=("$((depth - 1))")
                         queue_ancestors+=(0)
                         queue_required+=(0)
+                        queue_values+=("")
                     fi
                 else
-                    key="$(explore_normalize_path "$child_path" false)" || continue
+                    explore_normalize_path "$child_path" false key || continue
                     if explore_make_record "$base_dir" "$child_path" "$key" record_path record_value; then
                         scan_children["$dir"]+="$record_path $record_value"$'\n'
                     fi
-                    queue_id="$(explore_normalize_path "$key")" || continue
+                    explore_normalize_path "$key" false queue_id || continue
                     if [[ ! -v queued["$queue_id"] ]]; then
                         queued["$queue_id"]=1
                         queue_paths+=("$queue_id")
                         queue_depths+=(0)
                         queue_ancestors+=(0)
                         queue_required+=(0)
+                        queue_values+=("$record_value")
                     fi
                 fi
             done
@@ -384,9 +410,14 @@ explore_path() {
             continue
         fi
 
-        key="$(explore_normalize_path "$path" false)" || continue
+        explore_normalize_path "$path" false key || continue
         if [[ -f "$physical" || -L "$physical" ]]; then
-            explore_make_record "$base_dir" "$path" "$key" record_path record_value || continue
+            if [[ -n "$cached_value" ]]; then
+                record_path="$key"
+                record_value="$cached_value"
+            else
+                explore_make_record "$base_dir" "$path" "$key" record_path record_value || continue
+            fi
             if [[ "$carry_required" == 1 ]]; then
                 explore_set_seed_record records "$record_path" "$record_value"
             else
@@ -401,9 +432,9 @@ explore_path() {
                 if [[ -v DISCOVER_DIR_ENTRY_COUNTS["$cache_key"] ]]; then
                     count="${DISCOVER_DIR_ENTRY_COUNTS[$cache_key]}"
                 else
-                    ancestor_physical="$(explore_resolve_path "$base_dir" "$ancestor")" || break
+                    explore_resolve_path "$base_dir" "$ancestor" ancestor_physical || break
                     [[ -d "$ancestor_physical" && ! -L "$ancestor_physical" ]] || break
-                    count="$(explore_count_entries "$ancestor_physical")" || break
+                    explore_count_entries "$ancestor_physical" count || break
                     DISCOVER_DIR_ENTRY_COUNTS["$cache_key"]="$count"
                 fi
                 explore_set_record records new_count "$max_new_entries" "$max_budget" "$ancestor" "$count" || break
@@ -422,7 +453,7 @@ explore_path() {
 
     # Every call prunes all records whose filesystem paths have disappeared.
     for key in "${!records[@]}"; do
-        physical="$(explore_resolve_path "$base_dir" "$key")" || continue
+        explore_resolve_path "$base_dir" "$key" physical || continue
         if [[ ! -e "$physical" && ! -L "$physical" ]]; then unset 'records[$key]'; fi
     done
     explore_save_index "$index_file" records || return 1

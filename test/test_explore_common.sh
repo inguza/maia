@@ -17,7 +17,8 @@ test_start
 common_setup_output_dir
 setup_maia_home
 
-index_file="$(mktemp)"
+test_tmp_dir="$(mktemp -d)"
+index_file="$test_tmp_dir/exploreset.txt"
 run_view_index_cmd() {
     local test_id="$1"
     shift
@@ -96,6 +97,7 @@ explore_path "$index_file" "." 0 0 0 a/1.txt 3.txt
 run_view_index_cmd "explicit_paths_ignore_budgets"
 
 # Cleanup
+rm -rf -- "$test_tmp_dir"
 cleanup_maia_home
 common_cleanup_output_dir
 

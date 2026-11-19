@@ -352,13 +352,17 @@ handle_file_command() {
             done
 
             local session_dir="$(resolve_session_path "$session_name")"
-            local index_file="$session_dir/exploreset.gen"
+            local index_file="$session_dir/exploreset.txt"
+            local view_file="$session_dir/exploreset.gen"
+            local explore_lock="$index_file.lock"
+            . "$MAIA_CORE_LIB_DIR/explore-common.sh"
             if [[ -z "$session_ws" ]]; then
                 if [[ "$auto" == true ]]; then
                     return 0
                 elif ((${#explore_paths[@]} == 0)); then
-                    . "$MAIA_CORE_LIB_DIR/explore-common.sh"
-                    explore_render_index "$index_file"
+		    if [[ -f "$view_file" ]] ; then
+			read_file "$view_file"
+		    fi
                     return 0
                 else
                     die "A workspace is required to explore paths."
@@ -369,7 +373,6 @@ handle_file_command() {
             local fs line path file_part
             local -a seeds=()
             local -A seen_seeds=()
-            . "$MAIA_CORE_LIB_DIR/explore-common.sh"
             explore_clear_visit_cache
 
             if [[ "$auto" == true ]]; then
@@ -388,17 +391,47 @@ handle_file_command() {
                         seeds+=("$path")
                     done < "$ws_dir/$fs.fileset"
                 done
-                explore_path "$index_file" "$workspace_root" 20 1 50 "${seeds[@]}"
-                explore_path "$index_file" "$workspace_root" 200 1 50 "/"
+                acquire_lock "$explore_lock" "Waiting for exploration index lock..."
+                if ! explore_path "$index_file" "$workspace_root" 20 1 50 "${seeds[@]}"; then
+                    release_lock "$explore_lock"
+                    die "Unable to update the exploration index."
+                fi
+                if ! explore_path "$index_file" "$workspace_root" 200 1 50 "/"; then
+                    release_lock "$explore_lock"
+                    die "Unable to update the exploration index."
+                fi
+                if ! explore_generate_view "$index_file" "$view_file"; then
+                    release_lock "$explore_lock"
+                    die "Unable to generate the exploration view."
+                fi
+                release_lock "$explore_lock"
                 return 0
             fi
 
             # Explicit paths update the shared session index. With no paths,
             # only print the existing LLM-facing exploration tree.
             if ((${#explore_paths[@]})); then
-                explore_path "$index_file" "$workspace_root" "$max_new" "$max_depth" "$max_budget" "${explore_paths[@]}"
+                acquire_lock "$explore_lock" "Waiting for exploration index lock..."
+                if ! explore_path "$index_file" "$workspace_root" "$max_new" "$max_depth" "$max_budget" "${explore_paths[@]}"; then
+                    release_lock "$explore_lock"
+                    die "Unable to update the exploration index."
+                fi
+                if ! explore_generate_view "$index_file" "$view_file"; then
+                    release_lock "$explore_lock"
+                    die "Unable to generate the exploration view."
+                fi
+                release_lock "$explore_lock"
 	    else
-		explore_render_index "$index_file"
+                if [[ -f "$view_file" ]] ; then
+		    read_file "$view_file"
+		elif [[ -f "$index_file" ]] ; then
+                    acquire_lock "$explore_lock" "Waiting for exploration index lock..."
+                    if ! explore_generate_view "$index_file" "$view_file"; then
+			release_lock "$explore_lock"
+			die "Unable to generate the exploration view."
+                    fi
+		    release_lock "$explore_lock"
+		fi
             fi
             ;;
 

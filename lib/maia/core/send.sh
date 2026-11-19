@@ -277,10 +277,10 @@ build_messages_json() {
     local combined=$(printf '%s' "$files_json" | jq -r -f "$MAIA_CORE_LIB_DIR/files-json-to-markdown.jq")
     # Explored paths
     if [[ -n "$ws_name" && "$no_files" == false ]]; then
-        local explore_index="$(resolve_session_path "$session")/exploreset.gen"
-        if [[ -s "$explore_index" ]]; then
-            . "$MAIA_CORE_LIB_DIR/explore-common.sh"
-            local explored_tree="$(explore_render_index "$explore_index")"
+        local explore_session_dir="$(resolve_session_path "$session")"
+        local explore_view="$explore_session_dir/exploreset.gen"
+        if [[ -s "$explore_view" ]]; then
+            local explored_tree="$(read_file "$explore_view")"
             if [[ -n "$explored_tree" ]]; then
                 local explored_header="$(prompt_for_scope "session" "explored")"
                 combined+=$'\n\n'"$explored_header"$'\n\n'"$explored_tree"
