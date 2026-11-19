@@ -1,9 +1,9 @@
-State: pending
+State: done
 Type: set
 
 
 Sub-change: <dateandtime>-abcd1241-1
-State: pending
+State: applied
 Type: patch
 Filename: set-cases/applied.txt
 
