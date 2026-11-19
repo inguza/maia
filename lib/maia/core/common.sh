@@ -2384,6 +2384,39 @@ exclusive_json_modify() {
     return $result
 }
 
+### Expiring marker handling
+# Remove a marker only if it still contains the value observed by the caller.
+# This avoids deleting a newer marker that replaced it in the meantime.
+expiring_marker_remove_if_matches() {
+    local marker_file="$1" expected_value="$2"
+    local current_value
+    if ! current_value="$(cat "$marker_file" 2>/dev/null)"; then
+        return 1
+    fi
+    if [[ "$current_value" != "$expected_value" ]]; then
+        return 1
+    fi
+    rm -f -- "$marker_file"
+}
+
+# Remove an expiring marker if its numeric expiry has passed.
+# Remove only the expired marker observed, preserving any concurrent replacement.
+expiring_marker_remove_if_expired() {
+    local marker_file="$1"
+    local current_expiry now
+    if ! current_expiry="$(cat "$marker_file" 2>/dev/null)"; then
+        return 1
+    fi
+    if [[ ! "$current_expiry" =~ ^[0-9]+$ ]]; then
+        return 1
+    fi
+    now="$(date +%s)"
+    if (( now < current_expiry )); then
+        return 1
+    fi
+    expiring_marker_remove_if_matches "$marker_file" "$current_expiry"
+}
+
 ### Lock handling
 session_lock_file() {
     local session_dir=$(resolve_session_path)

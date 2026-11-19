@@ -20,6 +20,11 @@
 .session-composer .session-composer-input-percent:hover { background:none; color:#111827; text-decoration:underline; }
 .session-composer .session-composer-input-percent:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
 .session-composer .session-composer-usage:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer .session-composer-pause { align-items:center; appearance:none; background:transparent; border:1px solid #6b7280; border-radius:.35rem; color:#4b5563; display:inline-flex; justify-content:center; line-height:1; margin:0; min-height:2.3rem; min-width:2.5rem; padding:.35rem; }
+.session-composer .session-composer-pause:hover:not(:disabled) { background:color-mix(in srgb, #6b7280 10%, Canvas); }
+.session-composer .session-composer-pause:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.session-composer .session-composer-pause[hidden], .session-composer .session-composer-pause [hidden] { display:none; }
+.session-composer-pause [data-composer-pause-icon] { font-size:1.2rem; }
 .session-composer .session-composer-cancel { align-items:center; appearance:none; background:transparent; border:1px solid #b91c1c; border-radius:.35rem; color:#b91c1c; display:inline-flex; justify-content:center; line-height:1; margin:0; min-height:2.3rem; min-width:2.5rem; padding:.35rem; }
 .session-composer .session-composer-cancel:hover:not(:disabled) { background:color-mix(in srgb, #b91c1c 10%, Canvas); }
 .session-composer .session-composer-cancel:focus-visible { outline:2px solid currentColor; outline-offset:2px; }

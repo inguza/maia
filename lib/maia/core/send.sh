@@ -453,6 +453,22 @@ estimate_tokens() {
     echo $(((total_chars + 3) / 4))
 }
 
+send_pause_requested() {
+    local pause_file="$1"
+
+    # Expired markers must not pause a later send.
+    if expiring_marker_remove_if_expired "$pause_file"; then
+        return 1
+    fi
+
+    # Pause regardless of which command created the marker, then consume it.
+    if [[ -e "$pause_file" ]]; then
+        rm -f -- "$pause_file"
+        return 0
+    fi
+    return 1
+}
+
 send_session_lock_signal_handler() {
     local lockfile="$1" exit_status="$2"
     local owner_pid=""
@@ -462,6 +478,7 @@ send_session_lock_signal_handler() {
         owner_pid="${lock_fields[lpid]:-}"
     fi
     if [[ "$owner_pid" == "$$" ]]; then
+        rm -f -- "${lockfile%/lock}/pause"
         release_lock "$lockfile"
     fi
     trap - INT TERM
@@ -781,18 +798,22 @@ handle_send_command() {
     # history or making the first provider request. The file contains only its
     # Unix expiry time; concurrent cancel requests share the same marker.
     local cancel_file="$(resolve_session_path)/cancel"
+    local pause_file="$(resolve_session_path)/pause"
     if [[ -r "$cancel_file" ]]; then
         local cancel_expiry cancel_now
         cancel_expiry="$(cat "$cancel_file" 2>/dev/null)"
         cancel_now="$(date +%s)"
         if [[ "$cancel_expiry" =~ ^[0-9]+$ ]] && (( cancel_now < cancel_expiry )); then
+            # This send consumes the cancellation marker regardless of whether
+            # another cancellation replaced it while this send was starting.
             rm -f -- "$cancel_file"
+            rm -f -- "$pause_file"
             release_lock "$session_lock"
             trap - INT TERM
             die "Send cancelled by user."
         elif [[ "$(cat "$cancel_file" 2>/dev/null)" == "$cancel_expiry" ]]; then
             # Discard expired or malformed markers so they cannot cancel a
-            # later send.
+            # later send. Do not remove a newer concurrent cancellation.
             rm -f -- "$cancel_file"
         fi
     fi
@@ -820,6 +841,7 @@ handle_send_command() {
 
     # Ensure outbox is not empty.
     if [[ ! -s "$outbox_file" && "$continue" == false && "$count" == false ]]; then
+	rm -f -- "$pause_file"
 	release_lock "$session_lock"
         trap - INT TERM
         die "Outbox is empty. Nothing to send."
@@ -846,7 +868,7 @@ handle_send_command() {
 
     local outbox_content=$(read_file "$outbox_file")
     if [[ -n "$outbox_content" ]]; then
-	# https://developers.openai.com/api/docs/guides/reasoning
+       # https://developers.openai.com/api/docs/guides/reasoning
         # A new user message starts a new reasoning context; keep reasoning only
         # across iterations within this send's tool-call cycle.
         exclusive_json_modify "$history_file" \
@@ -861,12 +883,17 @@ handle_send_command() {
     local separator=false
     while (( allowed_iterations_left > 0 )) && [[ "$MAIA_SEND_INTERRUPTED" != true ]]; do
 	((iteration++))
+        if send_pause_requested "$pause_file"; then
+            allowed_iterations_left=0
+            break
+        fi
 	local messages_json
 	if ! messages_json=$(build_messages_json "$outbox_file" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$no_tasks" "$api_type") ; then
 	    # Here we silently fail because this will only happen at die
 	    exit 1
 	fi
 	if [[ -z "$messages_json" ]]; then
+	    rm -f -- "$pause_file"
 	    release_lock "$session_lock"
 	    die "Internal error. Empty message json."
 	fi
@@ -966,6 +993,12 @@ handle_send_command() {
 	    fi
             curl_extra_headers curl_headers
 
+	    # Check for Pause before any token-count request as well as immediately
+	    # before the completion request below.
+	    if send_pause_requested "$pause_file"; then
+		rm -f "$tmp_payload" "${tmp_payload}.count"
+		break
+	    fi
 	    # Check prompt token count before sending
 	    local count_mode="$(get_setting "token_accuracy")"
             local prompt_tokens
@@ -1001,12 +1034,14 @@ handle_send_command() {
 		if [[ -n "$count_history_backup" ]]; then
 		    mv -f -- "$count_history_backup" "$history_file"
 		fi
+		rm -f -- "$pause_file"
 		release_lock "$session_lock"
 		return 0
 	    fi
             if (( prompt_tokens > max_input_tokens )); then
 		error "Prompt uses an estimated $prompt_tokens tokens, exceeds max_input_tokens=$max_input_tokens"
 		rm -f "$tmp_payload"
+		rm -f -- "$pause_file"
 		release_lock "$session_lock"
 		return 1
             fi
@@ -1015,6 +1050,11 @@ handle_send_command() {
 	    sed -i "s/~%~~~%~=/$prompt_tokens_aligned/;" "${tmp_payload}"
 
 	    trigger_event "pre-send-request" "${timestamp}-${iteration}" "$api_type" "$url" "$tmp_payload"
+
+	    if send_pause_requested "$pause_file"; then
+		rm -f "$tmp_payload" "${tmp_payload}.count"
+		break
+	    fi
 
 	    # Call API chat completions endpoint
 	    # Binary mode is important for AWS but it does not hurt for other APIs
@@ -1114,6 +1154,7 @@ handle_send_command() {
 	    errormsg="Empty response."
 	fi
 	if [[ -n "$errormsg" ]] ; then
+	    rm -f -- "$pause_file"
 	    release_lock "$session_lock"
             trap - INT TERM
 	    die "$errormsg"
@@ -1233,9 +1274,9 @@ handle_send_command() {
 	    done
 	fi
 	# Append assistant reply to history. This depends on whether we have function call or message or both
-	local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
+        local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
 
-	# Log the assistant response
+	# Log the assistant response when the API returned a message or tool call.
 	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then
 	    exclusive_json_modify "$history_file" \
 				  --arg txt "$reply" \
@@ -1455,6 +1496,7 @@ handle_send_command() {
 	trigger_event "post-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
     done
     trigger_event "post-send"
+    rm -f -- "$pause_file"
     release_lock "$session_lock"
     trap - INT TERM
 }

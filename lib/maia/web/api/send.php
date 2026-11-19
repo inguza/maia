@@ -36,9 +36,10 @@ echo "MAIA-REQUEST-START\n";
 flush();
 
 $message = file_get_contents('php://input');
-if ($message === false || trim($message) === '') {
+$continue = (($_SERVER['HTTP_X_MAIA_CONTINUE'] ?? '') === '1');
+if ($message === false || (trim($message) === '' && !$continue)) {
     http_response_code(400);
-    echo "Message cannot be empty.\n";
+    echo "Message cannot be empty unless continuing an unfinished turn.\n";
     exit;
 }
 
@@ -54,8 +55,15 @@ $descriptors = [
     2 => ['pipe', 'w'],
 ];
 
+$command = [$maia, 'send'];
+if ($continue) {
+    $command[] = '--continue';
+} else {
+    $command[] = '+read';
+}
+
 $process = proc_open(
-    [$maia, 'send', '+read'],
+    $command,
     $descriptors,
     $pipes,
     null,
@@ -68,7 +76,9 @@ if (!is_resource($process)) {
     exit;
 }
 
-fwrite($pipes[0], $message);
+if (!$continue && $message !== '') {
+    fwrite($pipes[0], $message);
+}
 fclose($pipes[0]);
 
 // Make sure the webserver do not close down things because of timeout or because

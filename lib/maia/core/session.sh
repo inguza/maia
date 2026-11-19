@@ -66,6 +66,9 @@ COMMANDS
   cancel
     Cancel the active AI operation in the current session.
 
+  pause
+    Pause the active AI operation at a safe loop boundary without killing tools.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
@@ -355,6 +358,48 @@ session_lock_is_active() {
     return 0
 }
 
+# Atomically create a session marker containing its Unix expiry time.
+# Print the expiry time so callers can tell a consumed marker from an expired one.
+session_create_expiring_marker() {
+    local marker_file="$1"
+    local lifetime="${2:-30}"
+    local now="$(date +%s)"
+    local marker_expiry=$((now + lifetime))
+    local marker_tmp="${marker_file}.${BASHPID:-$$}.$RANDOM.tmp"
+    if ! printf '%s\n' "$marker_expiry" > "$marker_tmp" ||
+        ! mv -f -- "$marker_tmp" "$marker_file"; then
+        rm -f -- "$marker_tmp"
+        notice "Unable to create the session marker."
+        return 1
+    fi
+    printf '%s' "$marker_expiry"
+}
+
+session_pause_command() {
+    local pause_file="$(resolve_session_path)/pause"
+
+    if ! session_lock_is_active; then
+        notice "No active AI operation to pause."
+        return 1
+    fi
+
+    local pause_expiry
+    if ! pause_expiry="$(session_create_expiring_marker "$pause_file" 30)"; then
+        notice "Unable to create a pause marker."
+        return 1
+    fi
+
+    # If the operation ended while the marker was being created, remove only
+    # this pause marker so it cannot affect a later send.
+    if ! session_lock_is_active; then
+        expiring_marker_remove_if_matches "$pause_file" "$pause_expiry"
+        notice "The active operation ended before the pause request was accepted."
+        return 1
+    fi
+
+    notice "Pause requested; the active operation will stop at its next safe boundary."
+}
+
 session_cancel_command() {
     local lockfile="$(session_lock_file)"
     local cancel_file="$(resolve_session_path)/cancel"
@@ -362,14 +407,9 @@ session_cancel_command() {
     # Publish a pending cancellation before checking the lock. A send that is
     # already starting will either consume this marker after installing its
     # traps, or become visible through the session lock and be signalled below.
-    local now cancel_expiry cancel_tmp
-    now="$(date +%s)"
-    cancel_expiry=$((now + 30))
-    cancel_tmp="${cancel_file}.${BASHPID:-$$}.$RANDOM.tmp"
-    if ! printf '%s\n' "$cancel_expiry" > "$cancel_tmp" || ! mv -f -- "$cancel_tmp" "$cancel_file"; then
-        rm -f -- "$cancel_tmp"
-        notice "Unable to create a pending cancellation request."
-        return 1
+    local now cancel_expiry
+    if ! cancel_expiry="$(session_create_expiring_marker "$cancel_file" 30)"; then
+        die "Unable to create a pending cancellation marker."
     fi
 
     local deadline=$((SECONDS + 30))
@@ -379,10 +419,10 @@ session_cancel_command() {
         if [[ ! -e "$cancel_file" ]]; then
             if (( now < cancel_expiry )); then
                 notice "The pending send received the cancellation request."
-                return 0
+                return
             fi
-            notice "No active AI operation started before the cancellation request expired."
-            return 1
+            warn "No active AI operation started before the cancellation request expired."
+            return
         fi
 
         if session_lock_is_active; then
@@ -390,28 +430,15 @@ session_cancel_command() {
             [[ -n "$lock_snapshot" ]] && break
         fi
 
-        local current_expiry
-        current_expiry="$(cat "$cancel_file" 2>/dev/null)"
-        if [[ "$current_expiry" =~ ^[0-9]+$ ]] && (( now >= current_expiry )); then
-            # Only remove the expired marker we observed; a concurrent cancel
-            # may have replaced it with a later expiry.
-            if [[ "$(cat "$cancel_file" 2>/dev/null)" == "$current_expiry" ]]; then
-                rm -f -- "$cancel_file"
-                notice "No active AI operation started before the cancellation request expired."
-                return 1
-            fi
+        if expiring_marker_remove_if_expired "$cancel_file"; then
+            warn "No active AI operation started before the cancellation request expired."
+            return
         fi
         sleep 0.1
     done
 
     if [[ -z "$lock_snapshot" ]]; then
-        now="$(date +%s)"
-        local current_expiry
-        current_expiry="$(cat "$cancel_file" 2>/dev/null)"
-        if [[ "$current_expiry" =~ ^[0-9]+$ ]] && (( now >= current_expiry )) &&
-            [[ "$(cat "$cancel_file" 2>/dev/null)" == "$current_expiry" ]]; then
-            rm -f -- "$cancel_file"
-        fi
+        expiring_marker_remove_if_expired "$cancel_file"
         notice "No active AI operation acquired the session lock within 30 seconds."
         return 1
     fi
@@ -422,7 +449,7 @@ session_cancel_command() {
     lpid="${lock_fields[lpid]:-}"
     lstart="${lock_fields[lstart]:-}"
     [[ "$lpid" =~ ^[0-9]+$ ]] || {
-        rm -f -- "$cancel_file"
+        expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
         notice "No active AI operation to cancel."
         return 0
     }
@@ -430,32 +457,33 @@ session_cancel_command() {
     # Verify that the same lock and process still own this session before
     # signalling; the owner may have completed since the lock was observed.
     [[ "$(cat "$lockfile" 2>/dev/null)" == "$lock_snapshot" ]] || {
-        rm -f -- "$cancel_file"
+        expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
         notice "The active operation changed before cancellation could be sent."
         return 1
     }
     if [[ -e /proc/version ]]; then
         local current_start="$(pid_starttime "$lpid" 2>/dev/null)"
         if [[ -z "$lstart" || -z "$current_start" || "$current_start" != "$lstart" ]]; then
-            rm -f -- "$cancel_file"
+            expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
             notice "No active AI operation to cancel."
             return 0
         fi
     elif ! kill -0 "$lpid" 2>/dev/null; then
-        rm -f -- "$cancel_file"
+        expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
         notice "No active AI operation to cancel."
         return 0
     fi
 
     if ! kill -INT "$lpid" 2>/dev/null; then
-        rm -f -- "$cancel_file"
+        expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
         notice "The active operation ended before cancellation could be sent."
         return 0
     fi
     # Once this operation was known to hold the session lock, the signal is
     # the cancellation mechanism; discard the startup marker so it cannot
-    # affect a later send.
-    rm -f -- "$cancel_file"
+    # affect a later send. Preserve a concurrent cancellation with a newer
+    # expiry if one was published in the meantime.
+    expiring_marker_remove_if_matches "$cancel_file" "$cancel_expiry"
     notice "Cancellation signal sent to the active AI operation; waiting for it to stop."
 
     # A successful kill only confirms that the signal was delivered. Wait for
@@ -496,6 +524,11 @@ handle_session_command() {
 	    shift
 	    [[ $# -eq 0 ]] || die "Usage: maia session cancel"
 	    session_cancel_command
+	    ;;
+	pause)
+	    shift
+	    [[ $# -eq 0 ]] || die "Usage: maia session pause"
+	    session_pause_command
 	    ;;
 	lock-status)
 	    # Lightweight read-only status used by the web client after a stream

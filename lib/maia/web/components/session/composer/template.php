@@ -7,10 +7,15 @@
             <span data-composer-usage-today>Today: --</span>
         </button>
         <button type="button" class="session-composer-input-percent" data-composer-input-percent aria-label="Input-token statistics are pending; click to refresh" title="Input-token statistics are pending">[?%]<span class="spinner" data-composer-input-spinner aria-hidden="true"></span></button>
+        <button type="button" class="session-composer-pause" data-composer-pause hidden aria-label="Pause active send" title="Pause active send">
+            <span data-composer-pause-icon aria-hidden="true">&#x23F8;</span>
+            <span class="spinner" data-composer-pause-spinner aria-hidden="true" hidden></span>
+        </button>
         <button type="button" class="session-composer-cancel" data-composer-cancel hidden aria-label="Cancel active send" title="Cancel active send">
             <span data-composer-cancel-icon aria-hidden="true">&#x23F9;</span>
             <span class="spinner" data-composer-cancel-spinner aria-hidden="true" hidden></span>
         </button>
+        <button type="button" class="session-composer-resume" data-composer-resume hidden aria-label="Resume unfinished turn" title="Resume unfinished turn">Resume</button>
         <button type="submit" data-composer-send>Send</button>
     </div>
 </form>

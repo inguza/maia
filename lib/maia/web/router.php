@@ -171,6 +171,7 @@ $routes = [
     '/api/session/groups' => __DIR__ . '/api/session/groups.php',
     '/api/session/lock-status' => __DIR__ . '/api/session/lock-status.php',
     '/api/session/cancel' => __DIR__ . '/api/session/cancel.php',
+    '/api/session/pause' => __DIR__ . '/api/session/pause.php',
     '/api/session/select' => __DIR__ . '/api/session/select.php',
     '/api/session/delete' => __DIR__ . '/api/session/delete.php',
     '/api/session/rename' => __DIR__ . '/api/session/rename.php',

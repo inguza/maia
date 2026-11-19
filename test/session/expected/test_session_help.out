@@ -56,6 +56,9 @@ COMMANDS
   cancel
     Cancel the active AI operation in the current session.
 
+  pause
+    Pause the active AI operation at a safe loop boundary without killing tools.
+
   delete <name> [<name2> [...]]
     Delete a session (cannot delete active).
 
