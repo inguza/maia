@@ -71,13 +71,13 @@ run_config_cmd "unset_key" unset temperature
 run_config_cmd "get_temperature_after_unset" get temperature
 
 # Test set a config key with explicit scope
-run_config_cmd "set_key_user" --scope user set temperature 0.7
+run_config_cmd "set_key_home" --scope home set temperature 0.7
 
-# Test get with explicit scope user
-run_config_cmd "get_key_user" --scope user get temperature
+# Test get with explicit scope home
+run_config_cmd "get_key_home" --scope home get temperature
 
-# Test unset with explicit scope user
-run_config_cmd "unset_key_user" --scope user unset temperature
+# Test unset with explicit scope home
+run_config_cmd "unset_key_home" --scope home unset temperature
 
 # Test default behavior: no command with name and value sets, with name only gets
 run_config_cmd "default_set" temperature 0.3
