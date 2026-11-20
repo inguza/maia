@@ -186,10 +186,14 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
     box-shadow: inset .2rem 0 #2563eb;
 }
 .sidebar-session-row.sidebar-current-item a { font-weight: 700; }
-.sidebar-session-virtual-name { display: block; overflow-wrap: anywhere; padding: .35rem .45rem; }
-
-
-
+.sidebar-session-virtual-row {
+    border: 1px dashed color-mix(in srgb, CanvasText 30%, Canvas);
+    border-radius: .25rem; flex: 1; min-width: 0;
+}
+.sidebar-session-virtual-name {
+    color: color-mix(in srgb, CanvasText 72%, Canvas); flex: 1; font-style: italic;
+    min-width: 0; overflow-wrap: anywhere; padding: .35rem .45rem;
+}
 .sidebar-session-group-header {
     background: color-mix(in srgb, CanvasText 5%, Canvas);
     border-radius: .25rem;

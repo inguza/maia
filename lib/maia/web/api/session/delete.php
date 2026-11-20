@@ -28,13 +28,25 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
     session_delete_error(405, 'Method not allowed.');
 }
 
-$name = trim((string) (file_get_contents('php://input') ?: ''));
-if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
+$body = (string) (file_get_contents('php://input') ?: '');
+$decoded = json_decode($body, true);
+if (is_array($decoded) && isset($decoded['names']) && is_array($decoded['names'])) {
+    $names = array_values(array_unique(array_map(static fn ($name): string => trim((string) $name), $decoded['names'])));
+} else {
+    // Keep accepting the original plain-text single-session request.
+    $names = [trim($body)];
+}
+if ($names === [] || in_array('', $names, true)) {
     session_delete_error(400, 'Invalid session name.');
+}
+foreach ($names as $name) {
+    if (!preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
+        session_delete_error(400, 'Invalid session name.');
+    }
 }
 
 $process = proc_open(
-    [maia_binary(), 'session', 'delete', $name],
+    array_merge([maia_binary(), 'session', 'delete'], $names),
     [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -60,6 +72,6 @@ if ($status !== 0) {
 
 echo json_encode([
     'ok' => true,
-    'name' => $name,
+    'names' => $names,
     'message' => trim($output) ?: 'Session deleted.',
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
