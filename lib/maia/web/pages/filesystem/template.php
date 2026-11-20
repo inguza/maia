@@ -15,7 +15,17 @@
     <?= $page->renderComponent('sidebar') ?>
     <main class="app">
         <header class="topbar">
-            <h1>MAIA: <span data-role="filesystem-location"></span> (<?= \maia_escape_html($page->sessionName() !== '' ? 'session ' . $page->sessionName() : 'workspace ' . $page->workspaceName()) ?>)</h1>
+            <h1>MAIA: <?php
+                $breadcrumbRoot = rtrim(\maia_base_path(), '/') . $page->uriRoot();
+                $breadcrumbPath = $page->relativePath();
+                $breadcrumbParts = $breadcrumbPath === '' ? [] : explode('/', $breadcrumbPath);
+                $breadcrumbCurrentPath = '';
+            ?><span class="path-browser-breadcrumb" role="group" aria-label="Filesystem path" data-role="filesystem-location" data-server-rendered="1">
+                <a href="<?= \maia_escape_html($breadcrumbRoot) ?>">/</a><?php foreach ($breadcrumbParts as $index => $part):
+                    $breadcrumbCurrentPath = $breadcrumbCurrentPath === '' ? $part : $breadcrumbCurrentPath . '/' . $part;
+                    $breadcrumbHref = $breadcrumbRoot . '/' . implode('/', array_map('rawurlencode', explode('/', $breadcrumbCurrentPath)));
+                    ?><span><?= $index === 0 ? ' ' : ' / ' ?></span><a href="<?= \maia_escape_html($breadcrumbHref) ?>"><?= \maia_escape_html($part) ?></a><?php endforeach; ?>
+            </span> (<?= \maia_escape_html($page->sessionName() !== '' ? 'session ' . $page->sessionName() : 'workspace ' . $page->workspaceName()) ?>)</h1>
         </header>
         <?= $page->renderComponent('browser') ?>
         <div id="filesystem-error" class="error" role="alert" hidden></div>

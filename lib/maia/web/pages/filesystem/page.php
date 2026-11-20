@@ -30,6 +30,7 @@ final class FilesystemPage extends Page
     private string $workspaceName;
     private string $sessionName;
     private string $relativePath;
+    private string $uriRoot;
     private bool $fileOnly;
 
     public function __construct(
@@ -51,6 +52,7 @@ final class FilesystemPage extends Page
         $this->workspaceName = $workspaceName;
         $this->sessionName = $sessionName;
         $this->relativePath = $relativePath;
+        $this->uriRoot = $root->uriRoot();
         $this->fileOnly = is_file($resolvedPath);
 
         $browserPath = $relativePath;
@@ -96,6 +98,16 @@ final class FilesystemPage extends Page
     public function fileOnly(): bool
     {
         return $this->fileOnly;
+    }
+
+    public function uriRoot(): string
+    {
+        return $this->uriRoot;
+    }
+
+    public function relativePath(): string
+    {
+        return $this->relativePath;
     }
 
     public function render(): string
