@@ -25,6 +25,9 @@
         </div>
     </div>
     <p class="path-browser-status" role="status" data-role="status"></p>
+    <div class="path-browser-select-all" data-role="select-all">
+        <label><input type="checkbox" data-role="select-all-checkbox" aria-label="Select all files and directories"> Select all</label>
+    </div>
     <ul class="path-browser-list" data-role="list"></ul>
     <section class="path-browser-viewer" data-role="viewer" hidden>
         <header class="path-browser-viewer-header">
