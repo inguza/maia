@@ -24,12 +24,14 @@
             </div>
         </div>
     </div>
-    <p class="path-browser-status" role="status" data-role="status"></p>
-    <div class="path-browser-select-all" data-role="select-all">
+    <div class="path-browser-listing-controls">
+        <p class="path-browser-status" role="status" data-role="status"></p>
+        <div class="path-browser-select-all" data-role="select-all">
         <span>Select:</span>
         <label><input type="checkbox" data-role="select-all-checkbox" aria-label="Select all files and directories"> All</label>
         <label><input type="checkbox" data-role="select-all-files-checkbox" aria-label="Select all files"> Files</label>
         <label><input type="checkbox" data-role="select-all-directories-checkbox" aria-label="Select all directories"> Directories</label>
+        </div>
     </div>
     <ul class="path-browser-list" data-role="list"><?php foreach ($initialEntries as $entry):
         $entryUrl = $this->root->urlFor($entry['path']) ?? '#';
