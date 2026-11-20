@@ -19,6 +19,8 @@
 .path-browser-navigation .path-browser-toolbar { flex: 1 1 auto; min-width: min(100%, 30rem); }
 .path-browser-navigation-controls, .path-browser-selection-actions, .path-browser-file-controls { align-items: center; display: inline-flex; gap: .35rem; }
 .path-browser-selection-actions { flex: 1 1 auto; justify-content: center; }
+.path-browser-select-all { align-items: center; display: flex; flex-wrap: wrap; gap: 1rem; margin: .5rem 0; }
+.path-browser-select-all label { align-items: center; display: inline-flex; gap: .35rem; }
 .path-browser-selection-actions button[data-action="copy-selected"],
 .path-browser-selection-actions button[data-action="move-selected"],
 .path-browser-selection-actions button[data-action="delete-selected"] {
@@ -163,6 +165,7 @@
 .path-browser-file-only .path-browser-navigation { display: flex; }
 .path-browser-file-only .path-browser-navigation-controls button[data-action="up"],
 .path-browser-file-only .path-browser-selection-actions,
+.path-browser-file-only .path-browser-select-all,
 .path-browser-file-only .path-browser-file-controls { display: none; }
 .path-browser-file-only .path-browser-breadcrumb { margin-top: 0; }
 .path-browser-file-only .path-browser-viewer { margin-top: .5rem; }
@@ -172,6 +175,7 @@
 .path-browser.viewer-open .path-browser-navigation-controls button[data-action="save"] + button[data-action="cancel"] { margin-left: 0; }
 .path-browser.viewer-open .path-browser-navigation-controls button[data-action="up"],
 .path-browser.viewer-open .path-browser-selection-actions,
+.path-browser.viewer-open .path-browser-select-all,
 .path-browser.viewer-open .path-browser-file-controls { display: none; }
 .path-browser [hidden] { display: none !important; }
 

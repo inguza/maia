@@ -26,7 +26,10 @@
     </div>
     <p class="path-browser-status" role="status" data-role="status"></p>
     <div class="path-browser-select-all" data-role="select-all">
-        <label><input type="checkbox" data-role="select-all-checkbox" aria-label="Select all files and directories"> Select all</label>
+        <span>Select:</span>
+        <label><input type="checkbox" data-role="select-all-checkbox" aria-label="Select all files and directories"> All</label>
+        <label><input type="checkbox" data-role="select-all-files-checkbox" aria-label="Select all files"> Files</label>
+        <label><input type="checkbox" data-role="select-all-directories-checkbox" aria-label="Select all directories"> Directories</label>
     </div>
     <ul class="path-browser-list" data-role="list"></ul>
     <section class="path-browser-viewer" data-role="viewer" hidden>
