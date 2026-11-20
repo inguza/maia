@@ -173,6 +173,7 @@ body.sidebar-open::before, body.sidebar-open > .sidebar-toggle { display: none; 
     align-items: center; display: flex; gap: .2rem;
     min-width: 0; padding: .1rem 0;
 }
+.sidebar-session-tree-summary .sidebar-session-row { flex: 1; }
 .sidebar-session-tree-summary .sidebar-tree-toggle { font-size: .8rem; }
 .sidebar-session-row {
     align-items: center; border-radius: .25rem; display: flex; gap: .5rem;
