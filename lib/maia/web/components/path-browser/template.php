@@ -1,4 +1,4 @@
-<section class="path-browser<?= $sessionTarget !== '' ? ' session-browser' : '' ?>" data-workspace="<?= $workspaceName ?>" data-relative-path="<?= $relativePath ?>" data-uri-root="<?= $uriRoot ?>" data-root-query="<?= $rootQuery ?>" data-session-target="<?= $sessionTarget ?>" data-initial-file="<?= $initialFile ?>" data-file-only="<?= $fileOnly ?>">
+<section class="path-browser<?= $sessionTarget !== '' ? ' session-browser' : '' ?>" data-workspace="<?= $workspaceName ?>" data-relative-path="<?= $relativePath ?>" data-uri-root="<?= $uriRoot ?>" data-root-query="<?= $rootQuery ?>" data-session-target="<?= $sessionTarget ?>" data-initial-file="<?= $initialFile ?>" data-file-only="<?= $fileOnly ?>" data-initial-loaded="<?= $initialLoaded ?>" data-initial-entries="<?= $initialEntriesJson ?>">
     <div class="path-browser-navigation">
         <nav class="path-browser-breadcrumb" aria-label="Filesystem path" data-role="breadcrumb"></nav>
         <div class="path-browser-toolbar">
@@ -31,7 +31,23 @@
         <label><input type="checkbox" data-role="select-all-files-checkbox" aria-label="Select all files"> Files</label>
         <label><input type="checkbox" data-role="select-all-directories-checkbox" aria-label="Select all directories"> Directories</label>
     </div>
-    <ul class="path-browser-list" data-role="list"></ul>
+    <ul class="path-browser-list" data-role="list"><?php foreach ($initialEntries as $entry):
+        $entryUrl = $this->root->urlFor($entry['path']) ?? '#';
+        $entryType = $entry['type'];
+        $entryName = htmlspecialchars($entry['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $entryPath = htmlspecialchars($entry['path'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $entryHref = htmlspecialchars($entryUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $entrySize = $entryType === 'directory' ? '' : ($entry['size'] === null ? 'File' : (function (int $size): string {
+            if ($size < 1024) return $size . ' B';
+            if ($size < 1024 * 1024) return number_format($size / 1024, 1) . ' KB';
+            return number_format($size / (1024 * 1024), 1) . ' MB';
+        })((int) $entry['size']));
+        ?><li data-path="<?= $entryPath ?>">
+            <input type="checkbox" aria-label="Select <?= $entryName ?>">
+            <a class="path-browser-entry-icon <?= $entryType ?>" href="<?= $entryHref ?>"<?= $entryType === 'file' ? ' draggable="true" data-workspace-path="' . $entryPath . '"' : '' ?> title="<?= $entryType === 'directory' ? 'Open folder ' : 'View file ' ?><?= $entryName ?>" aria-label="<?= $entryType === 'directory' ? 'Open folder ' : 'View file ' ?><?= $entryName ?>"><?= $entryType === 'directory' ? '&#x1F4C1;' : '&#x1F4C4;' ?></a>
+            <a class="path-browser-name<?= $entryType === 'directory' ? ' directory' : '' ?>" href="<?= $entryHref ?>"<?= $entryType === 'file' ? ' draggable="true" data-workspace-path="' . $entryPath . '"' : '' ?>><?= $entryName ?></a>
+            <span class="path-browser-entry-size"><?= htmlspecialchars($entrySize, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+        </li><?php endforeach; ?></ul>
     <section class="path-browser-viewer" data-role="viewer" hidden>
         <header class="path-browser-viewer-header">
             <strong data-role="viewer-title" hidden></strong>

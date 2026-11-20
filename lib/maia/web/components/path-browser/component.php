@@ -74,8 +74,57 @@ final class PathBrowser implements Component
         $initialFile = htmlspecialchars($this->initialFile, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $fileOnly = $this->fileOnly ? '1' : '0';
         $rootQuery = htmlspecialchars($this->rootQuery, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $initialEntries = $this->directoryEntries();
+        $initialLoaded = $initialEntries === null ? '0' : '1';
+        $initialEntriesJson = htmlspecialchars(
+            json_encode($initialEntries ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE),
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+        $initialEntries = $initialEntries ?? [];
         ob_start();
         require __DIR__ . '/template.php';
         return (string) ob_get_clean();
+    }
+
+    /** @return list<array{name:string,path:string,type:string,size:int|null,empty:bool}>|null */
+    private function directoryEntries(): ?array
+    {
+        $directory = $this->root->resolve($this->relativePath);
+        if ($directory === null || !is_dir($directory)) {
+            return null;
+        }
+
+        $filesystemRoot = $this->root->filesystemRoot();
+        $rootPrefix = rtrim($filesystemRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $relativePath = trim(str_replace('\\', '/', $this->relativePath), '/');
+        $relativePath = implode('/', array_values(array_filter(
+            explode('/', $relativePath),
+            static fn(string $part): bool => $part !== '' && $part !== '.'
+        )));
+        $entries = [];
+        foreach (scandir($directory) ?: [] as $name) {
+            if ($name === '.' || $name === '..') {
+                continue;
+            }
+            $fullPath = $directory . DIRECTORY_SEPARATOR . $name;
+            $resolved = realpath($fullPath);
+            if ($resolved === false || ($resolved !== $filesystemRoot && !str_starts_with($resolved, $rootPrefix))) {
+                continue;
+            }
+            $isDirectory = is_dir($fullPath);
+            $children = $isDirectory ? @scandir($fullPath) : false;
+            $entries[] = [
+                'name' => $name,
+                'path' => ($relativePath === '' ? '' : $relativePath . '/') . $name,
+                'type' => $isDirectory ? 'directory' : 'file',
+                'size' => $isDirectory ? null : (is_file($fullPath) ? (@filesize($fullPath) ?: 0) : null),
+                'empty' => $isDirectory && $children !== false && count(array_diff($children, ['.', '..'])) === 0,
+            ];
+        }
+        usort($entries, static function (array $a, array $b): int {
+            return [$a['type'] !== 'directory', strtolower($a['name'])] <=> [$b['type'] !== 'directory', strtolower($b['name'])];
+        });
+        return $entries;
     }
 }
