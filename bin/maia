@@ -113,7 +113,8 @@ COMMANDS:
   Configuration / General
     config           Configuration (list, scope, get, set, unset)
     home             Manage maia home directory (create, delete, show)
-    gui              Start and manage the GUI
+    gui              Start, stop, and launch the GUI
+    token            Create and manage GUI authentication tokens
     api              AI introspection (models, model)
     update	     Update data to latest software and refresh skills and tools.
 
@@ -246,7 +247,13 @@ case "$COMMAND" in
     gui)
 	shift
 	. "$MAIA_CORE_LIB_DIR/gui.sh"
+	. "$MAIA_CORE_LIB_DIR/token.sh"
 	handle_gui_command "$@"
+	;;
+    token)
+	shift
+	. "$MAIA_CORE_LIB_DIR/token.sh"
+	handle_token_command "$@"
 	;;
     debug)
 	;;

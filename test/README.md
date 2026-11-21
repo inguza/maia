@@ -62,6 +62,8 @@ The following internal tools are partially covered by indirect tests.
 - history unhide
 - file-change followed by apply (it is however the most common thing so it will be catched very quickly)
 - approve (except two tests in various tools test)
+- gui
+- token
 
 ## Areas that test with legacy OPENAI_CHAT_COMPLETIONS
 - parse_apply_flow

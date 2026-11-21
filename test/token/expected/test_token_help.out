@@ -1,0 +1,25 @@
+USAGE
+
+  maia token [command]
+     Create and manage MAIA GUI authentication tokens.
+
+COMMANDS
+
+  create [<name>] [--url <url>]
+     Create a token and print an authenticated GUI URL.
+     --url specifies the public MAIA URL, including an optional subpath.
+
+  list
+     List authentication token identifiers.
+
+  delete <name>:<salt>
+     Delete one authentication token.
+
+  clear
+     Delete all authentication tokens.
+
+OPTIONS
+
+  -h, --help
+     Show this help message and exit.
+

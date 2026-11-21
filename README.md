@@ -485,7 +485,7 @@ By default, the server listens only on `127.0.0.1`. To make it listen on another
 maia gui start --bind 0.0.0.0
 ```
 
-Only use a public bind address with appropriate network access controls. The current GUI does not provide its own authentication layer.
+Only use a public bind address with appropriate network access controls.
 
 Workspace access through the GUI is restricted. A workspace can be selected and used by the GUI only when its
 filesystem root is inside the base directory containing the resolved MAIA home directory. The CLI may still manage
@@ -597,7 +597,7 @@ The MAIA_HOME and MAIA_BIN environment variables specify the MAIA home directory
 After reloading Apache, generate the authentication URL using the externally accessible URL:
 
 ```bash
-maia gui create --url https://example.com/somelocation
+maia token create --url https://example.com/somelocation
 ```
 
 The command prints two URLs:
