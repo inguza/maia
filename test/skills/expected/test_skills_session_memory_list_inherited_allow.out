@@ -1,0 +1,3 @@
+{"marker":" ","name":"session","description":"How to delegate work using sessions","source":"<MAIA_ROOT>/lib/maia/skills/session/SKILL.md"}
+{"marker":"*","name":"skill-a","description":"Skill A description","source":"<MAIA_HOME>/.maia/skills/skill-a/SKILL.md"}
+{"marker":" ","name":"skill-b","description":"Skill B description","source":"<MAIA_HOME>/.maia/skills/skill-b/SKILL.md"}

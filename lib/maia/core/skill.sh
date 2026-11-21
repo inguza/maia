@@ -455,7 +455,7 @@ handle_skill_command() {
             done < "$skillset_file"
             mv "$disable_tmpfile" "$skillset_file"
             refresh_allowed_skillset_file "$scope" "$skillset_file"
-            expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+            expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
             deduplicate_files "$skillset_context_file"
             refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
@@ -499,7 +499,7 @@ handle_skill_command() {
             # Also clear skillset context if restrict is used
             rm -f "$skillset_context_file"
             refresh_allowed_skillset_file "$scope" "$skillset_file"
-            expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+            expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
             refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
         view|"")
@@ -540,7 +540,7 @@ handle_skill_command() {
 		    handle_text_file_command "$skillset_context_file" delete > /dev/null 2>&1
 		fi
 	    fi
-	    expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+	    expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
 	    deduplicate_files "$skillset_context_file"
 	    refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
@@ -553,7 +553,7 @@ handle_skill_command() {
         refresh)
 	    deduplicate_files "$skillset_file"
 	    refresh_allowed_skillset_file "$scope" "$skillset_file"
-	    expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+	    expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
 	    deduplicate_files "$skillset_context_file"
 	    refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
             ;;
@@ -590,7 +590,7 @@ handle_skill_command() {
     if [[ -n "$remember" ]] ; then
 	copy_over "$implicit_scope" "skillsetcontext" "$skillset_context_file"
 	handle_text_file_command "$skillset_context_file" "$subcmd" "${remember[@]}"
-	expand_allowed_skillset_context_file "$scope" "$skillset_file" "$skillset_context_file"
+	expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
 	deduplicate_files "$skillset_context_file"
 	refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
     fi

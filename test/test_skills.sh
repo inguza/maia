@@ -67,6 +67,23 @@ run_skills_cmd "list_after_append" list
 run_skills_cmd "show_after_append" show
 run_skills_cmd "scope_after_append" --scope
 
+# Regression: loading a home-allowed skill into a new session must preserve
+# the session memory entry when the session has no local skillset.txt.
+$MAIA session create skill-memory-inheritance
+export MAIA_SESSION=skill-memory-inheritance
+run_skills_cmd "home_allow_skill_a_for_session_memory" --scope home append skill-a
+run_skills_cmd "session_memory_append_inherited_allow" remember skill-a
+run_skills_cmd "session_memory_list_inherited_allow" list --json
+unset MAIA_SESSION
+
+# The allow --remember option must also load the allowed skill into memory.
+$MAIA session create skill-remember
+export MAIA_SESSION=skill-remember
+run_skills_cmd "session_allow_remember" append --remember skill-a
+run_skills_cmd "session_list_after_allow_remember" list --json
+unset MAIA_SESSION
+run_skills_cmd "home_allow_skill_a_for_session_memory" --scope home delete
+
 # Remember wrong
 run_skills_cmd "remember_wrong" remember unknown
 run_skills_cmd "show_after_remember_wrong" show
