@@ -24,6 +24,9 @@ COMMANDS
   forget <instructionname>...
       Remove instruction(s) from the loaded context.
 
+  change <instructionpattern> <replacement>
+      Replace one exact instruction pattern.
+
   clear
       Clear loaded instructions list.
 

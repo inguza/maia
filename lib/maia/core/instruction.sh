@@ -51,6 +51,34 @@ expand_instruction_wildcards() {
     done <<< "$instructionsdata"
 }
 
+change_instruction_pattern() {
+    local filepath="$1" old="$2" replacement="$3"
+    if [[ -z "$old" || -z "$replacement" || "$old" == *$'\n'* || "$old" == *$'\r'* || "$replacement" == *$'\n'* || "$replacement" == *$'\r'* ]]; then
+	die "Both the existing and replacement instruction patterns are required."
+    fi
+    if [[ ! -f "$filepath" ]]; then
+	die "Instruction pattern '$old' was not found."
+    fi
+
+    local temp="$(mktemp "${filepath}.XXXXXX")"
+    chmod --reference="$filepath" "$temp" 2>/dev/null || true
+    local found=false line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+	if [[ "$line" == "$old" ]]; then
+	    printf '%s\n' "$replacement" >> "$temp"
+	    found=true
+	else
+	    printf '%s\n' "$line" >> "$temp"
+	fi
+    done < "$filepath"
+    if [[ "$found" != true ]]; then
+	rm -f "$temp"
+	die "Instruction pattern '$old' was not found."
+    fi
+    mv -- "$temp" "$filepath"
+    deduplicate_files "$filepath"
+}
+
 instruction_usage() {
     cat <<EOF
 USAGE
@@ -78,6 +106,9 @@ COMMANDS
 
   forget <instructionname>...
       Remove instruction(s) from the loaded context.
+
+  change <instructionpattern> <replacement>
+      Replace one exact instruction pattern.
 
   clear
       Clear loaded instructions list.
@@ -115,7 +146,7 @@ copy_over() {
     local prompt_type="$2"
     local filepath="$3"
     if [[ ! -f "$filepath" ]]; then
-	local msg=$(prompt_for_scope "$implicit_scope" "prompt_type")
+	local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
 	if [[ -z "$msg" ]] ; then
 	    touch "$filepath"
 	else
@@ -213,15 +244,27 @@ handle_instruction_command() {
 	    echo "-----------------"
 	    prompt_for_scope "$scope" "instructionset"
             ;;
+        change)
+            [[ $# -eq 2 ]] || die "Usage: maia instruction change <instructionpattern> <replacement>"
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            copy_over "$implicit_scope" "$prompt_type" "$filepath"
+            change_instruction_pattern "$filepath" "$1" "$2"
+            ;;
         append|remember|add|edit|replace|clear|clearnonotice|delete)
 	    # seed on first append
 	    if [[ "$subcmd" == "remember" || "$subcmd" == "add" ]] ; then
 		subcmd="append"
 	    fi
+	    if [[ "$subcmd" == "clear" ]]; then
+		mkdir -p "${SCOPE_DIR[$scope]}"
+	    fi
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    deduplicate_files "$filepath"
 	    ;;
         forget)
+            # Materialize inherited selections before removing from this scope.
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            copy_over "$implicit_scope" "$prompt_type" "$filepath"
             # Forget instructions
             if [[ ! -s "$filepath" ]]; then
                 # Nothing to forget if file does not exist, or if it is empty

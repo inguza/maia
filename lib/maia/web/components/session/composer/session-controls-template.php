@@ -15,6 +15,9 @@
         <?php endif; ?>
         <?= $skillsPanel ?>
         <?= $toolsPanel ?>
+        <?php if ($instructionsPanel !== ''): ?>
+            <?= $instructionsPanel ?>
+        <?php endif; ?>
         <?php if ($approvalsPanel !== ''): ?>
             <?= $approvalsPanel ?>
         <?php endif; ?>

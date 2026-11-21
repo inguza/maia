@@ -7,7 +7,10 @@
  * Commercial licensing is available separately.
  */
 ?>
-<h2>Config</h2>
+<header class="panel-content-header">
+    <h2>Config</h2>
+    <button id="config-refresh" class="small-action" type="button" title="Refresh configuration" aria-label="Refresh configuration">&#x21BB;</button>
+</header>
 <p id="config-status" class="status" role="status" aria-live="polite"></p>
 <div class="config-tabs" role="tablist" aria-label="Configuration sections">
     <button id="config-settings-tab" class="config-tab" type="button" role="tab" aria-selected="true" aria-controls="config-settings-panel" tabindex="0">Settings</button>

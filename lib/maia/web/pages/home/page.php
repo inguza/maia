@@ -19,6 +19,7 @@ use Maia\Web\Components\Panels\Approvals\ApprovalsPanel;
 use Maia\Web\Components\Panels\Profiles\ProfilesPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
+use Maia\Web\Components\Panels\Instructions\InstructionsPanel;
 use Maia\Web\Components\Sidebar\SidebarComponent;
 use Maia\Web\Core\Page;
 use Maia\Web\Core\Script;
@@ -34,6 +35,7 @@ require_once dirname(__DIR__, 2) . '/components/panels/profiles/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/credentials/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/tools/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/instructions/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/approvals/panel.php';
 
 final class HomePage extends Page
@@ -64,6 +66,10 @@ final class HomePage extends Page
         $this->addComponent(
             'tools',
             new ExpandablePanel('tools', 'Tools', new ToolsPanel())
+        );
+        $this->addComponent(
+            'instructions',
+            new ExpandablePanel('instructions', 'Instructions', new InstructionsPanel())
         );
         $this->addComponent(
             'approvals',

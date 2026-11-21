@@ -18,6 +18,7 @@ final class SessionControlsComponent implements Component
     private Component $toolsPanel;
     private ?Component $approvalsPanel;
     private ?Component $tasksPanel;
+    private ?Component $instructionsPanel;
     private Component $behaviorPanel;
     private Component $configurationPanel;
 
@@ -31,7 +32,8 @@ final class SessionControlsComponent implements Component
         ?Component $workspacePanel = null,
         ?Component $changesPanel = null,
         ?Component $approvalsPanel = null,
-        ?Component $tasksPanel = null
+        ?Component $tasksPanel = null,
+        ?Component $instructionsPanel = null
     ) {
         $this->composer = $composer;
         $this->filesPanel = $filesPanel;
@@ -41,6 +43,7 @@ final class SessionControlsComponent implements Component
         $this->toolsPanel = $toolsPanel;
         $this->approvalsPanel = $approvalsPanel;
         $this->tasksPanel = $tasksPanel;
+        $this->instructionsPanel = $instructionsPanel;
         $this->behaviorPanel = $behaviorPanel;
         $this->configurationPanel = $configurationPanel;
     }
@@ -49,7 +52,7 @@ final class SessionControlsComponent implements Component
     public function resources(): array
     {
         $resources = $this->composer->resources();
-        foreach ([$this->filesPanel, $this->changesPanel, $this->workspacePanel, $this->tasksPanel, $this->skillsPanel, $this->toolsPanel, $this->approvalsPanel, $this->behaviorPanel, $this->configurationPanel] as $panel) {
+        foreach ([$this->filesPanel, $this->changesPanel, $this->workspacePanel, $this->tasksPanel, $this->skillsPanel, $this->toolsPanel, $this->approvalsPanel, $this->instructionsPanel, $this->behaviorPanel, $this->configurationPanel] as $panel) {
             if ($panel !== null) {
                 $resources = array_merge($resources, $panel->resources());
             }
@@ -67,6 +70,7 @@ final class SessionControlsComponent implements Component
         $toolsPanel = $this->toolsPanel->render();
         $approvalsPanel = $this->approvalsPanel?->render() ?? '';
         $tasksPanel = $this->tasksPanel?->render() ?? '';
+        $instructionsPanel = $this->instructionsPanel?->render() ?? '';
         $behaviorPanel = $this->behaviorPanel->render();
         $configurationPanel = $this->configurationPanel->render();
         ob_start();

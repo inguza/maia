@@ -7,7 +7,10 @@
  * Commercial licensing is available separately.
  */
 ?>
-<h2>Behavior</h2>
+<header class="panel-content-header">
+    <h2>Behavior</h2>
+    <button id="behavior-refresh" class="small-action" type="button" title="Refresh behavior" aria-label="Refresh behavior">&#x21BB;</button>
+</header>
 <p id="behavior-source" class="muted" aria-live="polite">Open this panel to load behavior settings.</p>
 <label class="behavior-label" for="behavior-text">How Maia should respond</label>
 <textarea id="behavior-text" rows="12" spellcheck="false" disabled></textarea>

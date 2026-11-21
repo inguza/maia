@@ -30,6 +30,7 @@
             <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
             <?= $page->renderComponent('tools') ?>
+            <?= $page->renderComponent('instructions') ?>
         </div>
         <p id="home-error" class="error" role="alert" hidden></p>
     </main>

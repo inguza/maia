@@ -18,6 +18,7 @@ use Maia\Web\Components\Panels\Behavior\BehaviorPanel;
 use Maia\Web\Components\Panels\Configuration\ConfigurationPanel;
 use Maia\Web\Components\Panels\Skills\SkillsPanel;
 use Maia\Web\Components\Panels\Tools\ToolsPanel;
+use Maia\Web\Components\Panels\Instructions\InstructionsPanel;
 use Maia\Web\Components\Panels\Approvals\ApprovalsPanel;
 use Maia\Web\Core\Page;
 use Maia\Web\Core\Stylesheet;
@@ -34,6 +35,7 @@ require_once dirname(__DIR__, 2) . '/components/panels/behavior/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/configuration/component.php';
 require_once dirname(__DIR__, 2) . '/components/panels/skills/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/tools/panel.php';
+require_once dirname(__DIR__, 2) . '/components/panels/instructions/panel.php';
 require_once dirname(__DIR__, 2) . '/components/panels/approvals/panel.php';
 require_once dirname(__DIR__, 2) . '/components/session/history/component.php';
 require_once dirname(__DIR__, 2) . '/components/session/composer/component.php';
@@ -83,13 +85,14 @@ final class SessionPage extends Page
         }
         $skillsPanel = new ExpandablePanel('skills', 'Skills', new SkillsPanel());
         $toolsPanel = new ExpandablePanel('tools', 'Tools', new ToolsPanel());
+        $instructionsPanel = new ExpandablePanel('instructions', 'Instructions', new InstructionsPanel());
         $approvalsPanel = new ExpandablePanel('approvals', 'Approvals', new ApprovalsPanel());
         $behaviorPanel = new ExpandablePanel('behavior', 'Behavior', new BehaviorPanel());
         $configurationPanel = new ExpandablePanel('configuration', 'Config', new ConfigurationPanel());
         $composer = new SessionComposerComponent();
         $this->addComponent(
             'composer',
-            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $behaviorPanel, $configurationPanel, $workspacePanel, $changesPanel, $approvalsPanel, $tasksPanel)
+            new SessionControlsComponent($composer, $filesPanel, $skillsPanel, $toolsPanel, $behaviorPanel, $configurationPanel, $workspacePanel, $changesPanel, $approvalsPanel, $tasksPanel, $instructionsPanel)
         );
         $this->addPageResources([new Stylesheet('pages/session/page.css')]);
     }

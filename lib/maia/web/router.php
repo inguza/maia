@@ -203,6 +203,7 @@ $routes = [
     '/api/system/behavior' => __DIR__ . '/api/system/behavior.php',
     '/api/config/context' => __DIR__ . '/api/config/context.php',
     '/api/tool/context' => __DIR__ . '/api/tool/context.php',
+    '/api/instruction/context' => __DIR__ . '/api/instruction/context.php',
     '/api/tool/append' => __DIR__ . '/api/tool/append.php',
     '/api/tool/disable' => __DIR__ . '/api/tool/disable.php',
     '/api/tool/clear' => __DIR__ . '/api/tool/clear.php',
