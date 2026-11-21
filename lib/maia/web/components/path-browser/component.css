@@ -7,6 +7,24 @@
     margin-bottom: 1rem;
     padding: .75rem;
 }
+.path-browser-heading { margin: 0 0 .65rem; font-size: 1.05rem; }
+.path-browser-heading-toggle {
+    background: color-mix(in srgb, CanvasText 7%, Canvas);
+    border: 0;
+    border-radius: .25rem;
+    box-sizing: border-box;
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    font: inherit;
+    font-weight: 600;
+    margin: 0;
+    padding: .4rem .6rem;
+    text-align: left;
+    width: 100%;
+}
+.path-browser-heading-toggle:hover { background: color-mix(in srgb, CanvasText 12%, Canvas); }
+.path-browser-heading-toggle:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .path-browser-header, .path-browser-toolbar, .path-browser-viewer-header {
     align-items: center;
     display: flex;

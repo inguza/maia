@@ -29,6 +29,8 @@ final class PathBrowser implements Component
     private string $initialFile;
     private bool $fileOnly;
     private string $rootQuery;
+    private string $heading;
+    private bool $collapsibleHeading;
 
     public function __construct(
         BrowserRoot $root,
@@ -37,7 +39,9 @@ final class PathBrowser implements Component
         string $sessionTarget = '',
         string $initialFile = '',
         bool $fileOnly = false,
-        string $rootQuery = ''
+        string $rootQuery = '',
+        string $heading = '',
+        bool $collapsibleHeading = false
     ) {
         $this->root = $root;
         $this->workspaceName = $workspaceName;
@@ -46,6 +50,8 @@ final class PathBrowser implements Component
         $this->initialFile = $initialFile;
         $this->fileOnly = $fileOnly;
         $this->rootQuery = $rootQuery;
+        $this->heading = $heading;
+        $this->collapsibleHeading = $collapsibleHeading;
     }
 
     /** @return list<\Maia\Web\Core\Resource> */
@@ -74,6 +80,8 @@ final class PathBrowser implements Component
         $initialFile = htmlspecialchars($this->initialFile, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $fileOnly = $this->fileOnly ? '1' : '0';
         $rootQuery = htmlspecialchars($this->rootQuery, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $heading = htmlspecialchars($this->heading, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $collapsibleHeading = $this->collapsibleHeading;
         $initialEntries = $this->directoryEntries();
         $initialLoaded = $initialEntries === null ? '0' : '1';
         $initialEntriesJson = htmlspecialchars(

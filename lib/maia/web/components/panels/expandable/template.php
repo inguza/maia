@@ -13,6 +13,14 @@
         <?= $safeLabel ?> <span aria-hidden="true">&#x25B8;</span>
     </button>
     <div class="panel-content" id="<?= $safeId ?>" hidden>
-        <?= $content ?>
+        <div class="panel-content-heading">
+            <button class="panel-content-title" type="button" data-panel-collapse aria-label="Collapse <?= $safeLabel ?> panel">
+                <span><?= $safeLabel ?></span><span class="panel-content-chevron" aria-hidden="true">&#x25BE;</span>
+            </button>
+            <div class="panel-content-heading-actions"></div>
+        </div>
+        <div class="panel-content-body">
+            <?= $content ?>
+        </div>
     </div>
 </section>

@@ -1,4 +1,5 @@
 <section class="path-browser<?= $sessionTarget !== '' ? ' session-browser' : '' ?>" data-workspace="<?= $workspaceName ?>" data-relative-path="<?= $relativePath ?>" data-uri-root="<?= $uriRoot ?>" data-root-query="<?= $rootQuery ?>" data-session-target="<?= $sessionTarget ?>" data-initial-file="<?= $initialFile ?>" data-file-only="<?= $fileOnly ?>" data-initial-loaded="<?= $initialLoaded ?>" data-initial-entries="<?= $initialEntriesJson ?>">
+    <?php if ($heading !== ''): ?><h2 class="path-browser-heading"><?php if ($collapsibleHeading): ?><button type="button" class="path-browser-heading-toggle" data-panel-collapse aria-label="Collapse Workspace panel"><?= $heading ?></button><?php else: ?><?= $heading ?><?php endif; ?></h2><?php endif; ?>
     <div class="path-browser-navigation">
         <nav class="path-browser-breadcrumb" aria-label="Filesystem path" data-role="breadcrumb"></nav>
         <div class="path-browser-toolbar">
