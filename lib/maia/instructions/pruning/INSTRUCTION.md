@@ -1,5 +1,6 @@
 ---
 description: How to handle original text reference
+autoload: true
 any-tool: file-* history-retrieve change-*
 loadable: false
 ---

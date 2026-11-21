@@ -2861,27 +2861,56 @@ pattern_found_in_list() {
     return 1
 }
 
+patterns_match_list() {
+    local mode="$1"
+    local patterns="$2"
+    shift 2
+    local pattern
+    local -a patterns_array positive_patterns negative_patterns
+    read -r -a patterns_array <<< "$patterns"
+
+    for pattern in "${patterns_array[@]}"; do
+        if [[ "$pattern" == !* ]]; then
+            pattern="${pattern#!}"
+            [[ -n "$pattern" ]] && negative_patterns+=("$pattern")
+        else
+            positive_patterns+=("$pattern")
+        fi
+    done
+
+    # A negative pattern is an exclusion: no value may match it.
+    for pattern in "${negative_patterns[@]}"; do
+        if pattern_found_in_list "$pattern" "$@"; then
+            return 1
+        fi
+    done
+
+    # With only exclusions, the condition passes if none matched.
+    ((${#positive_patterns[@]} > 0)) || return 0
+
+    if [[ "$mode" == any ]]; then
+        for pattern in "${positive_patterns[@]}"; do
+            pattern_found_in_list "$pattern" "$@" && return 0
+        done
+        return 1
+    fi
+
+    for pattern in "${positive_patterns[@]}"; do
+        pattern_found_in_list "$pattern" "$@" || return 1
+    done
+    return 0
+}
+
 any_patterns_found_in_list() {
     local patterns="$1"
     shift
-    local glob
-    local -a patterns_array
-    read -r -a patterns_array <<< "$patterns"
-    glob="$(make_glob_from_var "${patterns_array[@]}")"
-    pattern_found_in_list "$glob" "$@"
+    patterns_match_list any "$patterns" "$@"
 }
 
 all_patterns_found_in_list() {
     local patterns="$1"
     shift
-    local pattern
-    local -a patterns_array
-    read -r -a patterns_array <<< "$patterns"
-
-    for pattern in "${patterns_array[@]}"; do
-        pattern_found_in_list "$pattern" "$@" || return 1
-    done
-    return 0
+    patterns_match_list all "$patterns" "$@"
 }
 
 generate_path_instructions_header() {
@@ -2899,14 +2928,18 @@ generate_instructionset_gen() {
     local instructionset_file="$2"
     local avail_file="$3"
     local loaded_file="$4"
+    local no_tools="${5:-false}"
+    local model="${6:-}"
 
     local ws_root="$(resolve_workspace_root)"
     local sessionname="$(resolve_session_name)"
     local instructionsdata="$(get_all_ordered_instruction_names "file")"
     local memory_glob=$(make_glob_from_file "$instructionset_file")
-    local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
     local -a tools
-    mapfile_from_command tools jq -r '.[].name' <<< "$enabled_tools_json"
+    if [[ "$no_tools" != true ]] ; then
+	local enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
+	mapfile_from_command tools jq -r '.[].name' <<< "$enabled_tools_json"
+    fi
 
     # file -> true
     local -A loaded_instructions
@@ -2929,19 +2962,25 @@ generate_instructionset_gen() {
 	# In case of empty data
 	[[ -n "$instruction" ]] || continue
 	local fields
-	mapfile_from_command fields read_md_fields "$instructionfile" description any-path any-tool all-path all-tool loadable
+	mapfile_from_command fields read_md_fields "$instructionfile" description any-path any-tool all-path all-tool autoload loadable any-model all-model
 	local desc="${fields[0]}"
 	local any_path="${fields[1]}"
 	local any_tool="${fields[2]}"
 	local all_path="${fields[3]}"
 	local all_tool="${fields[4]}"
-	local loadable="${fields[5]}"
+	local autoload="${fields[5]}"
+	local loadable="${fields[6]}"
+	    local any_model="${fields[7]}"
+	    local all_model="${fields[8]}"
 
         if [[ -n "$memory_glob" && $instruction == $memory_glob ]]; then
 	    md_content_convert "$instruction" "$desc" "$instructionfile" >> "$loaded_file"
 	    loaded_instructions["$instructionfile"]=1
 	else
-	    local remember=true
+	    local remember=false
+	    if [[ "$autoload" == true ]] ; then
+		remember=true
+	    fi
 	    if [[ "$remember" == true && -n "$any_path" ]] ; then
 		if ! any_patterns_found_in_list "$any_path" "${files[@]}" ; then
 		    remember=false
@@ -2959,6 +2998,16 @@ generate_instructionset_gen() {
 	    fi
 	    if [[ "$remember" == true && -n "$all_tool" ]] ; then
 		if ! all_patterns_found_in_list "$all_tool" "${tools[@]}" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true && -n "$any_model" ]] ; then
+		if ! any_patterns_found_in_list "$any_model" "$model" ; then
+		    remember=false
+		fi
+	    fi
+	    if [[ "$remember" == true && -n "$all_model" ]] ; then
+		if ! all_patterns_found_in_list "$all_model" "$model" ; then
 		    remember=false
 		fi
 	    fi

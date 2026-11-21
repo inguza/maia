@@ -174,6 +174,7 @@ build_system_text() {
     local no_tools="$4"
     local no_skills="$5"
     local no_instructions="$6"
+    local model="$7"
     # 3) Build messages based on mode
     local skill_list="$(prompt_for_scope "session" "skillset" "gen")"
     local skill_memory="$(prompt_for_scope "session" "skillsetcontext" "gen")"
@@ -208,7 +209,7 @@ build_system_text() {
 	local instructionset_file="$(file_for_scope "session" "instructionset.txt")"
 	local instruction_list_file="$(mktemp)"
 	local instruction_memory_file="$(mktemp)"
-	generate_instructionset_gen "session" "$instructionset_file" "$instruction_list_file" "$instruction_memory_file"
+	generate_instructionset_gen "session" "$instructionset_file" "$instruction_list_file" "$instruction_memory_file" "$no_tools" "$model"
 	instruction_list="$(read_file "$instruction_list_file")"
 	instruction_memory="$(read_file "$instruction_memory_file")"
 	rm -f "$instruction_list_file" "$instruction_memory_file"
@@ -849,7 +850,7 @@ handle_send_command() {
 
     local mode="$(determine_file_handling_mode "$model" "$api_type" "$file_handling_mode_raw")"
     local sys
-    if ! sys="$(build_system_text "$mode" "$tools_enabled" "$no_files" "$no_tools" "$no_skills" "$no_instructions")" ; then
+    if ! sys="$(build_system_text "$mode" "$tools_enabled" "$no_files" "$no_tools" "$no_skills" "$no_instructions" "$model")" ; then
 	# Here we silently fail because this will only happen at die
 	exit 1
     fi

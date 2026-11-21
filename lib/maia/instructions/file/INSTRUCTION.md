@@ -1,5 +1,6 @@
 ---
 description: How to read and manipulate files using file, util-* and change tools
+autoload: true
 any-tool: file-* util-* context-file-* change-*
 loadable: false
 ---
