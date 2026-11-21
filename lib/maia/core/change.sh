@@ -616,7 +616,7 @@ apply_patch() {
                 : > "$empty_path"
                 notice "Created empty file '$empty_path'"
             else
-                patch -p1 < "$pf" || die "Apply failed on $pid"
+                patch --no-backup -p1 < "$pf" || die "Apply failed on $pid"
                 notice "Applied change '$pid'"
             fi
 	else
@@ -625,7 +625,7 @@ apply_patch() {
                 rm -f -- "$empty_path"
                 notice "Removed empty file '$empty_path'"
             else
-                patch -R -p1 < "$pf" || die "Revert failed on $pid"
+                patch --no-backup -R -p1 < "$pf" || die "Revert failed on $pid"
                 notice "Revert change '$pid'"
             fi
 	fi
