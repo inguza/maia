@@ -868,8 +868,9 @@ handle_send_command() {
     esac
 
     local outbox_content=$(read_file "$outbox_file")
-    if [[ -n "$outbox_content" ]]; then
-       # https://developers.openai.com/api/docs/guides/reasoning
+    local reasoning_context=$(get_setting reasoning_context)
+    if [[ -n "$outbox_content" && "$reasoning_context" == 'current_turn' ]]; then
+	# https://developers.openai.com/api/docs/guides/reasoning
         # A new user message starts a new reasoning context; keep reasoning only
         # across iterations within this send's tool-call cycle.
         exclusive_json_modify "$history_file" \

@@ -27,6 +27,10 @@ Example: file_handling_mode_mistral_24b file_handling_mode_qwen2_5_14b
 * `default_profile` — Profile used by default.
 * `allowed_profiles` — Profiles available to agents.
 
+## Reasoning
+
+* `reasoning_context` — Controls which reasoning items are retained in subsequent turns. Default 'current_turn'. Set to all_turns to keep reasoning in history.
+
 ## Agent managed sessions
 
 * `agent_session_prefix` — Prefix used for agent session names. It can be set to the empty string to allow agent-to-agent communication.

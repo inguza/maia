@@ -44,6 +44,8 @@ declare -A DEFAULT_SETTINGS=(
     [temperature]=null
     [top_p]=null
     [max_tool_calls]=null
+    # Reasoning related
+    [reasoning_context]='current_turn'
     # Logging control
     [http_logging]=true
     [term_loglevel]=NOTICE

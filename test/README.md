@@ -65,6 +65,10 @@ The following internal tools are partially covered by indirect tests.
 - gui
 - token
 
+## Configuration lacking coverage (not a full list)
+
+- reasoning_context
+
 ## Areas that test with legacy OPENAI_CHAT_COMPLETIONS
 - parse_apply_flow
 - send_history
