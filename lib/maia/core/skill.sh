@@ -220,7 +220,7 @@ USAGE
   maia skill [--scope <scope>] [--type <type>] <command> [<args>...]
      Manage skills
   maia skill --scope
-     Show the implicit scope for the current skill definitions
+     Show the scope for the current skill definitions
 Manage LLM skills.
 
 COMMANDS
