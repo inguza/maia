@@ -162,8 +162,12 @@ if ($action === 'append' || $action === 'disable') {
         }
     }
     $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', 'change', $pattern, $replacement]);
-} elseif ($action === 'clear' || $action === 'delete') {
-    $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', $action]);
+} elseif ($action === 'clear') {
+    $result = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', 'clear']);
+} elseif ($action === 'delete') {
+    // The CLI defaults to the allow type for delete, and its delete operation
+    // also removes the selected scope's skill memory file.
+    $result = skill_context_run(['skill', '--scope', $scope, 'delete']);
 } else {
     skill_context_error(400, 'Unknown skill operation.');
 }
