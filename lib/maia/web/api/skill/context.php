@@ -75,13 +75,16 @@ if ($method === 'GET') {
         ];
     }
 
-    $source = skill_context_run(['skill', '--scope']);
+    $source = skill_context_run(['skill', '--type', 'allow', '--scope']);
     if ($source['status'] !== 0) {
-        skill_context_error(502, trim($source['error']) ?: 'Unable to resolve skill scope.');
+        skill_context_error(502, trim($source['error']) ?: 'Unable to resolve allowed skill scope.');
     }
-    $effectiveScope = trim($source['output']) ?: 'default';
+    $allowedSourceScope = trim($source['output']) ?: 'default';
+    // With no stored allow definition, edit the current page scope rather than
+    // attempting to write to the pseudo-scope "default".
+    $allowedScope = $allowedSourceScope === 'default' ? $scope : $allowedSourceScope;
 
-    $patterns = skill_context_run(['skill', '--scope', $scope, '--type', 'allow', 'view']);
+    $patterns = skill_context_run(['skill', '--scope', $allowedScope, '--type', 'allow', 'view']);
     if ($patterns['status'] !== 0) {
         skill_context_error(502, trim($patterns['error']) ?: 'Unable to read skill patterns.');
     }
@@ -95,7 +98,11 @@ if ($method === 'GET') {
 
     echo json_encode([
         'ok' => true,
-        'scope' => $effectiveScope,
+        // Keep `scope` as a compatibility alias for the allowed-definition scope.
+        'scope' => $allowedScope,
+        'allowedScope' => $allowedScope,
+        'allowedSourceScope' => $allowedSourceScope,
+        'memoryScope' => $scope,
         'requestedScope' => $scope,
         'patterns' => array_values(array_unique($patternLines)),
         'skills' => $skills,
