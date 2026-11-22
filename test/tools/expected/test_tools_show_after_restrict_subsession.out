@@ -3,6 +3,7 @@ Allowed tools:
 change-apply:write
 change-revert:write
 change-skip:write
+command-exec:write
 context-file-explore:write
 context-file-forget:write
 context-file-remember:write
