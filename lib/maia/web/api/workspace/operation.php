@@ -100,6 +100,14 @@ $existing = static function (string $path) use ($root, $prefix): string {
     if ($resolved === false || ($resolved !== $root && !str_starts_with($resolved, $prefix))) workspace_operation_error(403, 'Path is outside the workspace.');
     return $resolved;
 };
+$rejectSymlinkPath = static function (string $path) use ($root): void {
+    $candidate = $root;
+    foreach (explode('/', $path) as $part) {
+        if ($part === '') continue;
+        $candidate .= DIRECTORY_SEPARATOR . $part;
+        if (is_link($candidate)) workspace_operation_error(400, 'Permissions cannot be changed through symbolic links.');
+    }
+};
 $parent = static function (string $path) use ($root, $prefix): string {
     $full = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
     $resolved = realpath(dirname($full));
@@ -110,6 +118,25 @@ $parent = static function (string $path) use ($root, $prefix): string {
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method === 'GET') {
     $path = $relative($_GET['path'] ?? '');
+    if (isset($_GET['permissions'])) {
+        if ($path === '') workspace_operation_error(400, 'A path is required.');
+        $rejectSymlinkPath($path);
+        $file = $existing($path);
+        if (!is_file($file) && !is_dir($file)) workspace_operation_error(400, 'Only files and directories have permissions.');
+        $permissions = @fileperms($file);
+        if ($permissions === false) workspace_operation_error(500, 'Unable to read path permissions.');
+        $isDirectory = is_dir($file);
+        $mode = $permissions & 0777;
+        if ($isDirectory) $mode |= $permissions & 03000;
+        echo json_encode([
+            'ok' => true,
+            'path' => $path,
+            'mode' => $mode,
+            'octal' => sprintf('%04o', $mode),
+            'isDirectory' => $isDirectory,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        exit;
+    }
     $file = $existing($path);
     if (!is_file($file)) workspace_operation_error(400, 'Only files can be downloaded.');
     $fileType = workspace_operation_file_type($file);
@@ -155,6 +182,7 @@ if (!is_array($input)) $input = [];
 $action = (string) ($input['action'] ?? ($method === 'DELETE' ? 'delete' : ''));
 $path = $relative($input['path'] ?? '');
 if ($action !== 'mkdir' && $path === '') workspace_operation_error(400, 'A path is required.');
+if ($action === 'chmod' && $path !== '') $rejectSymlinkPath($path);
 $source = $path === '' || $action === 'create' ? $root : $existing($path);
 $destinationPath = $relative($input['destination'] ?? '');
 $name = trim((string) ($input['name'] ?? ''));
@@ -209,6 +237,17 @@ if ($action === 'mkdir') {
         if (!$removed) workspace_operation_error(500, 'Unable to delete directory tree.');
     }
     if (!rmdir($source)) workspace_operation_error(500, 'Unable to delete directory tree.');
+} elseif ($action === 'chmod') {
+    $mode = $input['mode'] ?? null;
+    if (!is_int($mode) || $mode < 0 || $mode > 07777 || ($mode & 04000) !== 0) {
+        workspace_operation_error(400, 'Invalid permissions mode. Setuid is not supported.');
+    }
+    if (!is_file($source) && !is_dir($source)) workspace_operation_error(400, 'Only files and directories have permissions.');
+    $isDirectory = is_dir($source);
+    if (!$isDirectory && ($mode & 07000) !== 0) {
+        workspace_operation_error(400, 'Special permissions are only valid for directories.');
+    }
+    if (!chmod($source, $mode)) workspace_operation_error(500, 'Unable to change path permissions.');
 } elseif ($action === 'write') {
     if (!is_file($source) || strlen((string) ($input['content'] ?? '')) > 5 * 1024 * 1024) workspace_operation_error(400, 'Only text files up to 5 MB can be edited.');
     if (file_put_contents($source, (string) $input['content']) === false) workspace_operation_error(500, 'Unable to save file.');

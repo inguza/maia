@@ -219,3 +219,32 @@
     justify-content: center; padding: 0; text-align: center; width: 2rem;
 }
 .path-browser-list button.path-browser-rename-save:hover:not(:disabled) { background: #1d4ed8; border-color: #1d4ed8; }
+
+
+.path-browser-permissions-dialog {
+    box-sizing: border-box;
+    color: CanvasText;
+    max-height: min(90vh, 42rem);
+    max-width: min(32rem, calc(100vw - 2rem));
+    overflow-y: auto;
+    width: calc(100vw - 2rem);
+}
+.path-browser-permissions-dialog form { display: grid; gap: .75rem; }
+.path-browser-permissions-dialog h2 { margin: 0; overflow-wrap: anywhere; }
+.path-browser-permissions-kind,
+.path-browser-permissions-mode { color: #6b7280; margin: 0; }
+.path-browser-permissions-table { border-collapse: collapse; width: 100%; }
+.path-browser-permissions-table th,
+.path-browser-permissions-table td { padding: .35rem .5rem; }
+.path-browser-permissions-table thead th { text-align: center; }
+.path-browser-permissions-table thead th:first-child,
+.path-browser-permissions-table tbody th { text-align: left; }
+.path-browser-permissions-table td { text-align: center; }
+.path-browser-permissions-table input,
+.path-browser-permissions-special input { accent-color: #2563eb; height: 1rem; width: 1rem; }
+.path-browser-permissions-special { border: 1px solid #d1d5db; border-radius: .35rem; display: grid; gap: .45rem; margin: 0; padding: .6rem .75rem; }
+.path-browser-permissions-special label { align-items: center; display: flex; gap: .45rem; }
+.path-browser-permissions-special p { color: #6b7280; margin: .2rem 0 0; }
+.path-browser-permissions-error { color: #b91c1c; margin: 0; }
+.path-browser-permissions-dialog .maia-confirm-dialog-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+.path-browser-permissions-dialog button { margin: 0; }
