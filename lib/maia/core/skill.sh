@@ -527,7 +527,12 @@ handle_skill_command() {
 	    echo "----------------------------"
 	    prompt_for_scope "$scope" "skillsetcontext" "gen"
             ;;
-        append|allow|edit|change|replace|clear|clearnonotice|delete)
+	delete)
+	    handle_text_file_command "$filepath" "$subcmd" "$@"
+	    deduplicate_files "$filepath"
+	    handle_text_file_command "$skillset_context_file" delete #> /dev/null 2>&1
+	    ;;
+        append|allow|edit|change|replace|clear|clearnonotice)
 	    # seed on first append
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"
@@ -536,9 +541,6 @@ handle_skill_command() {
 	    deduplicate_files "$filepath"
 	    if [[ "$prompt_type" == "skillset" ]] ; then
 		refresh_allowed_skillset_file "$scope" "$skillset_file"
-		if [[ "$subcmd" == "delete" ]] ; then
-		    handle_text_file_command "$skillset_context_file" delete > /dev/null 2>&1
-		fi
 	    fi
 	    expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
 	    deduplicate_files "$skillset_context_file"
