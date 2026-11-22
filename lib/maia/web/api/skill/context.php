@@ -80,6 +80,12 @@ if ($method === 'GET') {
         skill_context_error(502, trim($source['error']) ?: 'Unable to resolve allowed skill scope.');
     }
     $allowedSourceScope = trim($source['output']) ?: 'default';
+
+    $memorySource = skill_context_run(['skill', '--type', 'memory', '--scope']);
+    if ($memorySource['status'] !== 0) {
+        skill_context_error(502, trim($memorySource['error']) ?: 'Unable to resolve skill memory scope.');
+    }
+    $memorySourceScope = trim($memorySource['output']) ?: 'default';
     // With no stored allow definition, edit the current page scope rather than
     // attempting to write to the pseudo-scope "default".
     $allowedScope = $allowedSourceScope === 'default' ? $scope : $allowedSourceScope;
@@ -102,7 +108,9 @@ if ($method === 'GET') {
         'scope' => $allowedScope,
         'allowedScope' => $allowedScope,
         'allowedSourceScope' => $allowedSourceScope,
-        'memoryScope' => $scope,
+        'memoryScope' => $memorySourceScope,
+        'memorySourceScope' => $memorySourceScope,
+        'memoryTargetScope' => $scope,
         'requestedScope' => $scope,
         'patterns' => array_values(array_unique($patternLines)),
         'skills' => $skills,
