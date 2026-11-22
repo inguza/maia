@@ -86,9 +86,6 @@ else
         else
             printf '%b' "[NOTICE] The requested file change requires approval. Only some requested text could be matched; no part was applied and the file is unchanged.\nChange ID: $id (matched patch portion)\nChange ID: $nextid (manual-resolution portion)\nReview both portions and resolve the unmatched text before applying or skipping them.\n\nThe content of the matched patch portion is the following:"
         fi
-	echo "\`\`\`patch"
-	read_file_by_line "$pfile"
-	echo "\`\`\`"
 	trigger_event "post-change-create" "${baseid}-${index}"
 	trigger_event "post-change-create" "${baseid}-${nextindex}"
     else
