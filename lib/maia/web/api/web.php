@@ -271,22 +271,38 @@ function maia_environment(): array
         $workspace = $urlWorkspace;
     }
 
+    $headerSession = trim((string) ($_SERVER['HTTP_X_MAIA_SESSION'] ?? ''));
+    $urlSession = trim((string) ($_SERVER['MAIA_URL_SESSION'] ?? ''));
+    $explicitSession = $headerSession !== '' ? $headerSession : $urlSession;
+
     if ($profile !== '') {
-        // Profile pages are independent of the currently selected session.
-        // Use the reserved null session so legacy resolution code has a
-        // deterministic session context without creating a real session.
+        // Profile pages select their own profile, independently of whichever
+        // session or workspace happens to be selected by the PHP process.
         $environment['MAIA_SESSION'] = '_EMPTY_';
         $environment['MAIA_PROFILE'] = $profile;
-    } elseif ($urlWorkspace !== '') {
-        // Workspace pages are also independent of the currently selected
-        // session. The explicit workspace selects the context being edited.
+        if ($workspace !== '') {
+            $environment['MAIA_WORKSPACE'] = $workspace;
+        } else {
+            unset($environment['MAIA_WORKSPACE']);
+        }
+    } elseif ($explicitSession !== '') {
+        // Session pages may also carry their associated workspace in the
+        // page context. The session metadata is authoritative for both its
+        // workspace and profile, so don't let those headers override it.
+        $environment['MAIA_SESSION'] = $explicitSession;
+        unset($environment['MAIA_PROFILE'], $environment['MAIA_WORKSPACE']);
+    } elseif ($workspace !== '') {
+        // A workspace page has no session/profile context to inherit. Use the
+        // workspace supplied by either the page header or URL and suppress
+        // the default session's profile/workspace indirection.
         $environment['MAIA_SESSION'] = '_EMPTY_';
+        $environment['MAIA_WORKSPACE'] = $workspace;
         unset($environment['MAIA_PROFILE']);
     } elseif ($homePage !== '') {
-        // The home page is an independent scope and must not inherit the
-        // currently selected session, workspace, or profile.
+        // The home page is independent of any selected session, workspace,
+        // or profile.
         $environment['MAIA_SESSION'] = '_EMPTY_';
-        unset($environment['MAIA_PROFILE']);
+        unset($environment['MAIA_PROFILE'], $environment['MAIA_WORKSPACE']);
     } else {
         $session = maia_selected_session();
         if ($session === null || $session === '') {
@@ -294,15 +310,9 @@ function maia_environment(): array
         } else {
             $environment['MAIA_SESSION'] = $session;
         }
-        unset($environment['MAIA_PROFILE']);
-    }
-
-    if ($workspace !== '') {
-        $environment['MAIA_WORKSPACE'] = $workspace;
-    } elseif ($profile !== '' || $homePage !== '') {
-        // Do not let a workspace inherited from the PHP process or another
-        // request affect profile or home resolution.
-        unset($environment['MAIA_WORKSPACE']);
+        // Session metadata, not stale process variables, determines related
+        // workspace and profile context.
+        unset($environment['MAIA_PROFILE'], $environment['MAIA_WORKSPACE']);
     }
 
     // Do not hold the PHP session lock while MAIA performs a long-running
