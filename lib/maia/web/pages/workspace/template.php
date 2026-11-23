@@ -17,7 +17,6 @@
             <h1>MAIA: <span data-role="filesystem-location"></span> (workspace <?= \maia_escape_html($page->workspaceName()) ?>)</h1>
         </header>
         <div class="panel-group workspace-panels" aria-label="Workspace panels">
-            <?= $page->renderComponent('files') ?>
             <?= $page->renderComponent('behavior') ?>
             <?= $page->renderComponent('configuration') ?>
             <?= $page->renderComponent('skills') ?>
