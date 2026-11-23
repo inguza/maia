@@ -416,7 +416,11 @@ handle_skill_command() {
 		subcmd="append"
 	    fi
 	    ;;
-	forget)
+	forget|change|edit)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    copy_over "$scope" "$prompt_type" "$filepath"
+	    ;;
+	disable|restrict)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;

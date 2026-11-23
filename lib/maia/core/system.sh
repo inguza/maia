@@ -181,7 +181,12 @@ handle_system_command() {
 	    handle_text_file_command "$filepath" "$@"
 	    ;;
 
-	edit|replace|clear|delete)
+	edit)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    copy_over "$scope" "$prompt_type" "$filepath"
+	    handle_text_file_command "$filepath" "$@"
+	    ;;
+	replace|clear|delete)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    handle_text_file_command "$filepath" "$@"
 	    ;;

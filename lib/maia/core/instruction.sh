@@ -141,20 +141,6 @@ EOF
     exit 0
 }
 
-copy_over() {
-    local implicit_scope="$1"
-    local prompt_type="$2"
-    local filepath="$3"
-    if [[ ! -f "$filepath" ]]; then
-	local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
-	if [[ -z "$msg" ]] ; then
-	    touch "$filepath"
-	else
-	    echo "$msg" > "$filepath"
-	fi
-    fi
-}
-
 handle_instruction_command() {
     [[ "$1" =~ ^-h|--help$ ]] && instruction_usage
     [[ "$2" =~ ^-h|--help$ ]] && instruction_usage
@@ -217,7 +203,7 @@ handle_instruction_command() {
 
     local remember=""
     case "$subcmd" in
-	append|remember|add)
+	append|remember|add|change|edit)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;
@@ -246,8 +232,6 @@ handle_instruction_command() {
             ;;
         change)
             [[ $# -eq 2 ]] || die "Usage: maia instruction change <instructionpattern> <replacement>"
-            mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$scope" "$prompt_type" "$filepath"
             change_instruction_pattern "$filepath" "$1" "$2"
             ;;
         append|remember|add|edit|replace|clear|clearnonotice|delete)

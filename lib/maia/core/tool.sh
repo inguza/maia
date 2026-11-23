@@ -335,7 +335,7 @@ handle_tool_command() {
 	    copy_over "$scope" "$prompt_type" "$filepath"
 	    subcmd="append"
 	    ;;
-	restrict)
+	restrict|change|disable|edit)
 	    # Materialize the target scope's inherited definition before editing.
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    copy_over "$scope" "$prompt_type" "$filepath"
@@ -489,8 +489,6 @@ handle_tool_command() {
 	    prompt_for_scope "$scope" "$prompt_type" "json"
 	    ;;
         disable)
-            mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$scope" "$prompt_type" "$filepath"
             local tmpfile="$(mktemp)"
             while IFS= read -r current || [[ -n "$current" ]]; do
                 local remove=false

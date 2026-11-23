@@ -120,7 +120,7 @@ handle_approve_command() {
 	    copy_over "$scope" "$prompt_type" "$filepath"
 	    subcmd="append"
 	    ;;
-        disable)
+        disable|change|edit)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;
