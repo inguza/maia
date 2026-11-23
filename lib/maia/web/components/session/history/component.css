@@ -27,6 +27,20 @@
 .session-history-message { border-radius:.75rem; max-width:80%; overflow-wrap:anywhere; padding:.75rem 1rem; white-space:pre-wrap; }
 .session-history-message.user { align-self:flex-end; background:#dbeafe; color:#172554; }
 .session-history-message.assistant { align-self:flex-start; background:#fff; color:#111827; }
+.session-history-message-view-controls { display:none; flex-wrap:wrap; gap:.15rem; justify-content:flex-end; margin:-.25rem -.35rem .45rem auto; }
+.session-history-message-view-controls button { background:transparent; border:0; border-radius:.25rem; color:#6b7280; cursor:pointer; font-size:.75rem; margin:0; padding:.15rem .35rem; }
+.session-history-message-view-controls button:hover { background:#e5e7eb; color:#111827; }
+.session-history-message-view-controls button[aria-pressed="true"] { background:#e5e7eb; color:#111827; font-weight:600; }
+.session-history-message-content { white-space:pre-wrap; }
+.session-history-message-content.session-history-message-markdown { white-space:normal; }
+.session-history-message-content.session-history-message-markdown > :first-child { margin-top:0; }
+.session-history-message-content.session-history-message-markdown > :last-child { margin-bottom:0; }
+.session-history-message-content pre { overflow-x:auto; white-space:pre; }
+.session-history-message-raw { margin:0; overflow:auto; overflow-wrap:anywhere; white-space:pre-wrap; }
+.session-history-entry-selected > .session-history-message-view-controls,
+.session-history-entry-tall > .session-history-message-view-controls,
+.session-history-entry-actions-floating-visible > .session-history-message-view-controls,
+.session-history-last-assistant-output > .session-history-message-view-controls { display:flex; }
 .session-history-message.grouped-tool-response { border:1px solid #9ca3af; }
 .session-history-message.tool { align-self:flex-start; background:#ecfeff; border-left:3px solid #0891b2; color:#164e63; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; margin-left:2rem; max-width:calc(90% - 2rem); }
 .session-history-tool-call { align-self:flex-start; background:#e5e7eb; border-left:3px solid #6b7280; border-radius:.5rem; color:#1f2937; margin:.5rem 0 0 1rem; max-width:90%; padding:.5rem .75rem; }
@@ -54,7 +68,12 @@
 
 .session-history-message a,.session-history-tool-result a { color:inherit; }
 .session-history-entry-actions { align-items:center; display:none; flex-wrap:wrap; gap:.35rem; margin-top:.6rem; }
-.session-history-entry-selected > .session-history-entry-actions,.session-history-entry-selected .session-history-tool-result > .session-history-entry-actions { display:flex; }
+.session-history-entry-actions-bottom { margin-top:.6rem; }
+.session-history-entry-selected > .session-history-entry-actions-bottom,
+.session-history-entry-selected .session-history-tool-result > .session-history-entry-actions-bottom { display:flex; }
+.session-history-entry-tall > .session-history-entry-actions-bottom { background:color-mix(in srgb, Canvas 94%, transparent); border-radius:.35rem; box-shadow:0 1px 4px #0002; display:flex; padding:.25rem; position:sticky; z-index:3; bottom:.35rem; margin-top:.6rem; }
+.session-history-entry-actions-floating { align-items:center; background:color-mix(in srgb, Canvas 96%, transparent); border:1px solid #d1d5db; border-radius:.4rem; box-shadow:0 2px 10px #0003; display:flex; flex-wrap:wrap; gap:.4rem; padding:.35rem; position:fixed; right:max(.75rem,calc((100vw - 70rem)/2)); top:.5rem; z-index:20; }
+.session-history-entry-actions-floating[hidden] { display:none !important; }
 .session-history-entry-action { color:CanvasText; font-size:.9rem; margin:0; padding:.2rem .4rem; }
 .session-history-entry-action:hover { background:#e5e7eb; color:#111827; }
 .session-history-hidden-group { align-self:stretch; color:#6b7280; font-size:.85rem; }

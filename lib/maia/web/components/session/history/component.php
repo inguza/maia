@@ -21,6 +21,9 @@ final class SessionHistoryComponent implements Component
             new Script('core/api.js'),
             new Script('core/ui.js'),
             new Script('components/action-menu/component.js'),
+            new Script('components/markdown/marked-18.0.14.umd.js'),
+            new Script('components/markdown/purify-3.4.17.min.js'),
+            new Script('components/markdown/renderer.js'),
             new Script('components/session/history/component.js'),
         ];
     }

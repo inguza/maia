@@ -64,8 +64,9 @@ final class PathBrowser implements Component
             new Script('core/api.js'),
             new Script('core/ui.js'),
             new Script('components/action-menu/component.js'),
-            new Script('components/path-browser/marked-18.0.14.umd.js'),
-            new Script('components/path-browser/purify-3.4.17.min.js'),
+            new Script('components/markdown/marked-18.0.14.umd.js'),
+            new Script('components/markdown/purify-3.4.17.min.js'),
+            new Script('components/markdown/renderer.js'),
             new Script('components/path-browser/markdown-viewer.js'),
             new Script('components/path-browser/component.js'),
         ];
