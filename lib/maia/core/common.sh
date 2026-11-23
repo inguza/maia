@@ -1996,11 +1996,7 @@ handle_text_file_command() {
             ;;
         delete)
             shift || true
-            if [[ ! -e "$file" ]] ; then
-		notice "Nothing to delete"
-	    else
-		rm -f "$file"
-	    fi
+	    rm -f "$file"
             ;;
         *)
             die "Unrecognized command '$subcmd'"
