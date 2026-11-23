@@ -221,6 +221,7 @@ USAGE
      Manage skills
   maia skill --scope
      Show the scope for the current skill definitions
+
 Manage LLM skills.
 
 COMMANDS
@@ -538,6 +539,8 @@ handle_skill_command() {
 	    handle_text_file_command "$filepath" "$subcmd" "$@"
 	    deduplicate_files "$filepath"
 	    handle_text_file_command "$skillset_context_file" delete #> /dev/null 2>&1
+	    refresh_allowed_skillset_file "$scope" "$skillset_file"
+	    refresh_allowed_skillset_context_file "$scope" "$skillset_context_file"
 	    ;;
         append|allow|edit|change|replace|clear|clearnonotice)
 	    # seed on first append
