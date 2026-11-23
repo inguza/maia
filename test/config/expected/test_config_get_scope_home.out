@@ -14,6 +14,7 @@ token_accuracy=auto
 term_loglevel=NOTICE
 tool_iteration_limit=20
 default_agent_instruction_remember=*
+reasoning_context=current_turn
 send_hook=
 api_type=AUTODETECT
 api_base_url=https://api.openai.com

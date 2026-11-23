@@ -14,6 +14,7 @@ token_accuracy
 term_loglevel
 tool_iteration_limit
 default_agent_instruction_remember
+reasoning_context
 send_hook
 api_type
 api_base_url
