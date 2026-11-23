@@ -416,6 +416,10 @@ handle_skill_command() {
 		subcmd="append"
 	    fi
 	    ;;
+	forget)
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    copy_over "$implicit_scope" "$prompt_type" "$filepath"
+	    ;;
 	clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
             : > "$filepath"
@@ -571,9 +575,6 @@ handle_skill_command() {
         forget)
             if [[ $# -lt 1 ]]; then
                 die "Usage: maia skill forget <skillname>..."
-            fi
-            if [[ ! -f "$skillset_context_file" ]]; then
-                return 0
             fi
             # Remove from loaded context
             local tmpfile="$(mktemp)"
