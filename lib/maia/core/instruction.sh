@@ -219,7 +219,7 @@ handle_instruction_command() {
     case "$subcmd" in
 	append|remember|add)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    copy_over "$implicit_scope" "$prompt_type" "$filepath"
+	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;
 	*)
 	    :
@@ -247,7 +247,7 @@ handle_instruction_command() {
         change)
             [[ $# -eq 2 ]] || die "Usage: maia instruction change <instructionpattern> <replacement>"
             mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$implicit_scope" "$prompt_type" "$filepath"
+            copy_over "$scope" "$prompt_type" "$filepath"
             change_instruction_pattern "$filepath" "$1" "$2"
             ;;
         append|remember|add|edit|replace|clear|clearnonotice|delete)
@@ -264,7 +264,7 @@ handle_instruction_command() {
         forget)
             # Materialize inherited selections before removing from this scope.
             mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$implicit_scope" "$prompt_type" "$filepath"
+            copy_over "$scope" "$prompt_type" "$filepath"
             # Forget instructions
             if [[ ! -s "$filepath" ]]; then
                 # Nothing to forget if file does not exist, or if it is empty

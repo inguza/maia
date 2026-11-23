@@ -332,8 +332,13 @@ handle_tool_command() {
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    # Start an explicit definition by inheriting the effective raw
 	    # definition from the parent scope, then append the new entry.
-	    copy_over "$implicit_scope" "$prompt_type" "$filepath"
+	    copy_over "$scope" "$prompt_type" "$filepath"
 	    subcmd="append"
+	    ;;
+	restrict)
+	    # Materialize the target scope's inherited definition before editing.
+	    mkdir -p "${SCOPE_DIR[$scope]}"
+	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;
         clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
@@ -361,16 +366,6 @@ handle_tool_command() {
             fi
             ;;
         restrict)
-	    # In case there is no file in this scope, copy it over
-	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    if [[ ! -f "$filepath" ]]; then
-		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
-		if [[ -z "$msg" ]] ; then
-		    touch "$filepath"
-		else
-		    echo "$msg" > "$filepath"
-		fi
-	    fi
             # Expand current allowed wildcards to explicit tool names
             mapfile -t allowed_patterns < "$filepath"
 	    mapfile_from_command expanded_tools expand_tool_wildcards "${allowed_patterns[@]}"
@@ -495,7 +490,7 @@ handle_tool_command() {
 	    ;;
         disable)
             mkdir -p "${SCOPE_DIR[$scope]}"
-            copy_over "$implicit_scope" "$prompt_type" "$filepath"
+            copy_over "$scope" "$prompt_type" "$filepath"
             local tmpfile="$(mktemp)"
             while IFS= read -r current || [[ -n "$current" ]]; do
                 local remove=false

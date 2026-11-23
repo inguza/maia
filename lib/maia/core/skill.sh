@@ -410,7 +410,7 @@ handle_skill_command() {
             fi
 	    if [[ "$subcmd" != "replace" ]] ; then
 		mkdir -p "${SCOPE_DIR[$scope]}"
-		copy_over "$implicit_scope" "$prompt_type" "$filepath"
+		copy_over "$scope" "$prompt_type" "$filepath"
 	    fi
 	    if [[ "$subcmd" == "allow" ]] ; then
 		subcmd="append"
@@ -418,7 +418,7 @@ handle_skill_command() {
 	    ;;
 	forget)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    copy_over "$implicit_scope" "$prompt_type" "$filepath"
+	    copy_over "$scope" "$prompt_type" "$filepath"
 	    ;;
 	clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
@@ -590,7 +590,7 @@ handle_skill_command() {
             ;;
     esac
     if [[ -n "$remember" ]] ; then
-	copy_over "$implicit_scope" "skillsetcontext" "$skillset_context_file"
+	copy_over "$scope" "skillsetcontext" "$skillset_context_file"
 	handle_text_file_command "$skillset_context_file" "$subcmd" "${remember[@]}"
 	expand_allowed_skillset_context_file "$scope" "$(file_for_scope "$scope" "skillset.txt")" "$skillset_context_file"
 	deduplicate_files "$skillset_context_file"

@@ -176,12 +176,7 @@ handle_system_command() {
 	    # seed on first append
 	    mkdir -p "${SCOPE_DIR[$scope]}"
 	    if [[ ! -f "$filepath" ]]; then
-		local msg=$(prompt_for_scope "$implicit_scope" "$prompt_type")
-		if [[ -z "$msg" ]] ; then
-		    touch "$filepath"
-		else
-		    echo "$msg" > "$filepath"
-		fi
+		copy_over "$scope" "$prompt_type" "$filepath"
 	    fi
 	    handle_text_file_command "$filepath" "$@"
 	    ;;
