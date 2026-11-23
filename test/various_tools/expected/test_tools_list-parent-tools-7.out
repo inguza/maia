@@ -94,6 +94,7 @@
 * session-resource-forget          -                (<MAIA_ROOT>/lib/maia/tools/session.td)
 * session-send                     -                (<MAIA_ROOT>/lib/maia/tools/session.td)
   shell-exec                       -                (<MAIA_ROOT>/lib/maia/tools/shell.td)
+  command-exec                     limited-exec     (<MAIA_ROOT>/lib/maia/tools/shell.td)
   context-skill-remember           -                (<MAIA_ROOT>/lib/maia/tools/skill.td)
   context-skill-forget             -                (<MAIA_ROOT>/lib/maia/tools/skill.td)
   skill-exec                       -                (<MAIA_ROOT>/lib/maia/tools/skill.td)
