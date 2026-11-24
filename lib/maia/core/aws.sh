@@ -46,7 +46,6 @@ sigv4headers() {
     local CONTENT_HASH
     if [[ -e "$PAYLOAD" ]] ; then
 	CONTENT_HASH=$(read_file "$PAYLOAD" | openssl dgst -sha256 -hex)
-	cp "$PAYLOAD" tmp-payload.txt
     else
 	CONTENT_HASH=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hex)
     fi
