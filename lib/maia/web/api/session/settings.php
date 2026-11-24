@@ -58,17 +58,6 @@ function session_settings_run(array $arguments, string $input = ''): array
     ];
 }
 
-/** @return array<string, string> */
-function session_settings_myl(string $text): array
-{
-    $values = [];
-    foreach (preg_split('/\R/', $text) as $line) {
-        if (preg_match('/^([^:[:space:]]+):[[:space:]]?(.*)$/', $line, $match)) {
-            $values[$match[1]] = $match[2];
-        }
-    }
-    return $values;
-}
 
 /** @return list<string> */
 function session_settings_list(array $arguments): array
@@ -103,7 +92,7 @@ function session_settings_values(): array
         if ($show['status'] !== 0) {
             session_settings_error(502, trim($show['error']) ?: 'Unable to read session settings.');
         }
-        $values = session_settings_myl($show['output']);
+        $values = myl_parse($show['output']);
     }
 
     $decodeList = static function (?string $value): array {
@@ -123,13 +112,7 @@ function session_settings_values(): array
         if ($workspace['status'] !== 0) {
             continue;
         }
-        $workspacePath = '';
-        foreach (preg_split('/\R/', $workspace['output']) as $line) {
-            if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
-                $workspacePath = trim($match[1]);
-                break;
-            }
-        }
+        $workspacePath = myl_parse($workspace['output'])['path'] ?? '';
         if ($workspacePath !== '' && maia_path_within_home($workspacePath)) {
             $workspaces[] = $workspaceName;
         }

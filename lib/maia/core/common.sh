@@ -86,6 +86,12 @@ declare -A DEFAULT_SETTINGS=(
 SETTINGS_KEYS=( "${!DEFAULT_SETTINGS[@]}" )
 readonly SETTINGS_KEYS
 
+# Only the names, no values here. Values are in libconfig dir
+declare -A DEFAULT_POLICY=(
+)
+POLICY_KEYS=( "${!DEFAULT_POLICY[@]}" )
+readonly POLICY_KEYS
+
 declare -A DEFAULT_COST=(
     [input_gpt_6_sol]=2
     [output_gpt_6_sol]=10
@@ -147,7 +153,9 @@ declare -A LOG_PRIORITIES=(
 # Scope handling
 declare -A SCOPE_DIR
 declare -A SCOPE_DIRS
-declare -a SCOPE_ORDER=(session profile workspace home user system default)
+declare -a SCOPE_ORDER=(session profile workspace home user system libconfig default)
+# Strict subset of SCOPE_ORDER. The GUI uses a different mechanism to find those paths
+declare -a POLICY_ORDER=(system home libconfig default)
 declare -a TOOL_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
 declare -A TOOL_DIRS
 declare -a SKILL_SEARCH_ORDER=(install system user home workspace profile session plugins extra)
@@ -197,6 +205,7 @@ init_scope_dirs() {
 	[home]="$data_dir"
 	[user]="$user_dir"
 	[system]="/etc/maia"
+	[libconfig]="$MAIA_CONFIG_DIR"
     )
     SCOPE_DIRS=(
 	[session]="${SCOPE_DIR[session]}"
@@ -204,6 +213,7 @@ init_scope_dirs() {
 	[home]="${SCOPE_DIR[home]}"
 	[user]="${SCOPE_DIR[user]}"
 	[system]="${SCOPE_DIR[system]}"
+	[libconfig]="${SCOPE_DIR[libconfig]}"
     )
     # Must be done last
     init_profile_search_dirs
@@ -2125,14 +2135,16 @@ files_in_scope() {
 load_scoped_myl() {
     local target_scope="$1" filename="$2"
     local -n _dst="$3"
-    local defaults="${4:-}" idx s file
+    local defaults="${4:-}"
+    local -n order="${5:-SCOPE_ORDER}"
+    local idx s file
     if [[ -n "$defaults" ]]; then
         copya "$defaults" _dst
     else
         _dst=()
     fi
-    for (( idx=${#SCOPE_ORDER[@]}-1; idx>=0; idx-- )); do
-        s=${SCOPE_ORDER[idx]}
+    for (( idx=${#order[@]}-1; idx>=0; idx-- )); do
+        s=${order[idx]}
         [[ "$s" == default ]] && continue
         local -a files=()
         mapfile_from_command files files_in_scope "$s" "$filename"

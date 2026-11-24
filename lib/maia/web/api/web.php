@@ -225,13 +225,8 @@ function maia_session_workspace(string $session): ?string
     if (proc_close($process) !== 0) {
         return null;
     }
-    foreach (preg_split('/\\R/', $output) as $line) {
-        if (preg_match('/^workspace:\\s*(.*)$/', $line, $match)) {
-            $workspace = trim($match[1]);
-            return preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $workspace) ? $workspace : null;
-        }
-    }
-    return null;
+    $workspace = myl_parse($output)['workspace'] ?? '';
+    return preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $workspace) ? $workspace : null;
 }
 
 function maia_selected_session(): ?string
@@ -438,13 +433,7 @@ function maia_history_workspace_root(): ?string
     if (!is_file($metadata)) {
         return null;
     }
-    $root = '';
-    foreach (file($metadata, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
-        if (preg_match('/^path:\\s*(.*)$/', $line, $match)) {
-            $root = trim($match[1]);
-            break;
-        }
-    }
+    $root = myl_get($metadata, 'path') ?? '';
     if ($root !== '' && $root[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\\\\/]/', $root)) {
         $root = $home . DIRECTORY_SEPARATOR . $root;
     }

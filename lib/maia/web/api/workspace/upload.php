@@ -27,10 +27,7 @@ $name = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_W
 if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $name)) workspace_upload_error(400, 'A workspace is required.');
 $home = maia_home_dir();
 $meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . 'workspace.myl';
-$root = '';
-foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
-    if (preg_match('/^path:\s*(.*)$/', $line, $m)) { $root = trim($m[1]); break; }
-}
+$root = myl_get($meta, 'path') ?? '';
 $root = realpath($root);
 if ($root === false || !is_dir($root)) workspace_upload_error(403, 'The workspace root is unavailable.');
 $relative = str_replace('\\', '/', trim((string) ($_POST['path'] ?? ''), " /\\"));

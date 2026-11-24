@@ -33,10 +33,12 @@ COMMANDS
 OPTIONS
 
   --scope <scope>
-    Specify the configuration layer: session, workspace, home (default), user, or system.
+    Specify the configuration layer: session*, workspace, home*, user, or system.
+
+    * Session is the default scope for all types, except policy.
 
   --type <type>
-    Select the configuration type: settings (default), cost or credentials.
+    Select the configuration type: settings (default), policy, cost or credentials.
 
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.

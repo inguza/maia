@@ -34,10 +34,7 @@ if ($content === '') file_selection_error(400, 'The selection is empty.');
 if (strlen($content) > 2 * 1024 * 1024) file_selection_error(413, 'The selection is too large.');
 $home = maia_home_dir();
 $meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspace . DIRECTORY_SEPARATOR . 'workspace.myl';
-$root = '';
-foreach (is_file($meta) ? (file($meta, FILE_IGNORE_NEW_LINES) ?: []) : [] as $line) {
-    if (preg_match('/^path:\s*(.*)$/', $line, $m)) { $root = trim($m[1]); break; }
-}
+$root = myl_get($meta, 'path') ?? '';
 $root = realpath($root);
 if ($root === false || !is_dir($root)) file_selection_error(403, 'The workspace root is unavailable.');
 $dir = $root . DIRECTORY_SEPARATOR . '.maia-context';

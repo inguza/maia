@@ -33,13 +33,7 @@ final class WorkspaceRoot
             throw new InvalidArgumentException('Workspace does not exist.');
         }
 
-        $configuredPath = '';
-        foreach (file($manifest, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
-            if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
-                $configuredPath = trim($match[1]);
-                break;
-            }
-        }
+        $configuredPath = myl_get($manifest, 'path') ?? '';
         if ($configuredPath === '') {
             throw new InvalidArgumentException('Workspace has no filesystem path.');
         }

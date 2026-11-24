@@ -43,10 +43,12 @@ COMMANDS
 OPTIONS
 
   --scope <scope>
-    Specify the configuration layer: session, workspace, home (default), user, or system.
+    Specify the configuration layer: session*, workspace, home*, user, or system.
+
+    * Session is the default scope for all types, except policy.
 
   --type <type>
-    Select the configuration type: settings (default), cost or credentials.
+    Select the configuration type: settings (default), policy, cost or credentials.
 
   --effective
     For set/unset: target the highest-priority scope where the key is currently defined.
@@ -214,12 +216,15 @@ handle_config_command() {
     fi
 
     local defaults_array
+    local default_scope=session
+    local default_view_scope=""
     case "$config_type" in
         settings)
             CONFIG_FILENAME=settings.myl
             CONFIG_SECRET=0
             ACTIVE_CONFIG_KEYS=( "${SETTINGS_KEYS[@]}" )
             ACTIVE_CONFIG_PATTERNS=( 'file_handling_mode_*' )
+	    ORDER=SCOPE_ORDER
 	    defaults_array=DEFAULT_SETTINGS
             ;;
         credentials)
@@ -227,34 +232,54 @@ handle_config_command() {
             CONFIG_SECRET=1
             ACTIVE_CONFIG_KEYS=( "${CREDENTIAL_KEYS[@]}" )
             ACTIVE_CONFIG_PATTERNS=( '*_token' )
+	    ORDER=SCOPE_ORDER
 	    defaults_array=EMPTY_CONFIG_DEFAULTS
+            ;;
+        policy)
+            CONFIG_FILENAME=policy.myl
+            CONFIG_SECRET=0
+            ACTIVE_CONFIG_KEYS=( "${POLICY_KEYS[@]}" )
+            ACTIVE_CONFIG_PATTERNS=( '' )
+	    ORDER=POLICY_ORDER
+	    defaults_array=DEFAULT_POLICY
+	    # Policy has a different default scope
+	    default_scope=home
+	    # System because the scope order is reversed for policy
+	    default_view_scope=system
             ;;
         cost)
             CONFIG_FILENAME=cost.myl
             CONFIG_SECRET=0
             ACTIVE_CONFIG_KEYS=( "${COST_KEYS[@]}" )
             ACTIVE_CONFIG_PATTERNS=( 'input_*' 'output_*')
+	    ORDER=SCOPE_ORDER
 	    defaults_array=DEFAULT_COST
             ;;
         *)
-            die "Unknown configuration type '$config_type'. Supported types: settings, cost, credentials."
+            die "Unknown configuration type '$config_type'. Supported types: settings, policy, cost, credentials."
             ;;
     esac
 
-    # Decide view vs write scopes. Both default to session.
+    if [[ "$config_type" == policy && "$scope_given" -eq 1 &&
+          "$scope" != home && "$scope" != system ]]; then
+        die "Policy configuration supports only the home and system scopes."
+    fi
+
+    # Policy values are written to home by default, but the default view starts
+    # at system so it includes every policy layer, including home and libconfig.
     if [[ "$scope_given" -eq 1 ]]; then
         write_scope="$scope"
         view_scope="$scope"
     else
-        write_scope="session"
-        view_scope="session"
+        write_scope="$default_scope"
+        view_scope="${default_view_scope:-$default_scope}"
     fi
 
     # Load the selected settings file into a local array for read operations.
     local -A selected_config=()
     local -A EMPTY_CONFIG_DEFAULTS=()
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
-    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" selected_config "$defaults_array"
+    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" selected_config "$defaults_array" "$ORDER"
 
     FILTER_CONFIG_KEYS=()
     local key
@@ -438,7 +463,7 @@ show_config() {
     local -A tmpconfig=()
     local -A EMPTY_CONFIG_DEFAULTS=()
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
-    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
+    load_scoped_myl "$view_scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array" "$ORDER"
     local keys
     if [[ -n "$name" ]]; then
         keys=($name)
@@ -548,7 +573,7 @@ get_scope_config() {
     local -A tmpconfig=()
     local -A EMPTY_CONFIG_DEFAULTS=()
     [[ "$CONFIG_SECRET" == 1 ]] && defaults_array=EMPTY_CONFIG_DEFAULTS
-    load_scoped_myl "$scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array"
+    load_scoped_myl "$scope" "$CONFIG_FILENAME" tmpconfig "$defaults_array" "$ORDER"
     if [[ "$CONFIG_SECRET" == 1 ]]; then
         local -a keys_to_show=()
         if [[ -n "$name" ]]; then
