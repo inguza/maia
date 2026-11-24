@@ -53,7 +53,7 @@ OPTIONS
     Do not include tasks in the request.
 
   --count
-    Count input tokens and exit.
+    Count input tokens and exit. Cannot be combined with --dry-run or --response-file.
 
 EXAMPLES
 
@@ -96,4 +96,6 @@ NOTES
 
   It is possible to configure a send_hook that is executed just before checking
   for authentication environment variables.
+
+  The send_hook is executed in --count mode.
 
