@@ -65,7 +65,7 @@ OPTIONS
     Do not include tasks in the request.
 
   --count
-    Count input tokens and exit.
+    Count input tokens and exit. Cannot be combined with --dry-run or --response-file.
 
 EXAMPLES
 
@@ -108,6 +108,8 @@ NOTES
 
   It is possible to configure a send_hook that is executed just before checking
   for authentication environment variables.
+
+  The send_hook is executed in --count mode.
 
 EOF
     exit 0
@@ -256,7 +258,7 @@ build_system_text() {
 
 # Build the API payload input array as a JSON string.
 build_messages_json() {
-    local outbox_file="$1"
+    local out="$1"
     local sys="$2"
     local model="$3"
     local tools_enabled="$4"
@@ -334,10 +336,6 @@ build_messages_json() {
 	printf '%s' "$msgs" > "$tmpf"
 	msgs=$(append_history "$tmpf" "$history_file")
 	rm -f "$tmpf"
-    fi
-    local out=""
-    if [[ -e "$outbox_file" ]]; then
-        out=$(read_file "$outbox_file")
     fi
     if [[ -n "$out" ]] ; then
 	append_message msgs "user" "$out"
@@ -609,7 +607,6 @@ handle_send_command() {
                 response_file="$1"
                 ;;
 	    --count)
-		shift
 		count=true
 		;;
             --model)
@@ -655,6 +652,10 @@ handle_send_command() {
 	    die "Unknown output mode '$output_mode'"
 	    ;;
     esac
+
+    if [[ "$count" == true && ( "$dry_run" == true || -n "$response_file" ) ]]; then
+        die "--count cannot be combined with --dry-run or --response-file."
+    fi
 
     if [[ -n "$temperature" && "$temperature" != null ]]; then
 	# Validate temperature is numeric and between 0 and 1
@@ -709,7 +710,9 @@ handle_send_command() {
 	    ;;
     esac
 
-    trigger_event "pre-send" "$api_type"
+    if [[ "$count" != true ]]; then
+        trigger_event "pre-send" "$api_type"
+    fi
 
     # Tools preparation
     local enabled_tools_json='[]'
@@ -786,62 +789,61 @@ handle_send_command() {
     fi
 
     local session_lock="$(session_lock_file)"
-    acquire_lock "$session_lock"
-    # Install signal handlers immediately after acquiring the lock so a cancel
-    # command that observes it cannot hit the startup window unhandled.
-    trap 'send_session_lock_signal_handler "$session_lock" 130' INT
-    trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
-    MAIA_SEND_INTERRUPTED=false
+    local MAIA_SEND_INTERRUPTED=false
     local active_curl_pid=""
     local tool_tmp_dir=""
-
-    # Consume a pending cancellation after the traps are active, before changing
-    # history or making the first provider request. The file contains only its
-    # Unix expiry time; concurrent cancel requests share the same marker.
     local cancel_file="$(resolve_session_path)/cancel"
     local pause_file="$(resolve_session_path)/pause"
-    if [[ -r "$cancel_file" ]]; then
-        local cancel_expiry cancel_now
-        cancel_expiry="$(cat "$cancel_file" 2>/dev/null)"
-        cancel_now="$(date +%s)"
-        if [[ "$cancel_expiry" =~ ^[0-9]+$ ]] && (( cancel_now < cancel_expiry )); then
-            # This send consumes the cancellation marker regardless of whether
-            # another cancellation replaced it while this send was starting.
-            rm -f -- "$cancel_file"
-            rm -f -- "$pause_file"
-            release_lock "$session_lock"
-            trap - INT TERM
-            die "Send cancelled by user."
-        elif [[ "$(cat "$cancel_file" 2>/dev/null)" == "$cancel_expiry" ]]; then
-            # Discard expired or malformed markers so they cannot cancel a
-            # later send. Do not remove a newer concurrent cancellation.
-            rm -f -- "$cancel_file"
+
+    if [[ "$count" != true ]]; then
+        acquire_lock "$session_lock"
+        # Install signal handlers immediately after acquiring the lock so a cancel
+        # command that observes it cannot hit the startup window unhandled.
+        trap 'send_session_lock_signal_handler "$session_lock" 130' INT
+        trap 'send_session_lock_signal_handler "$session_lock" 143' TERM
+
+        # Consume a pending cancellation after the traps are active, before changing
+        # history or making the first provider request. The file contains only its
+        # Unix expiry time; concurrent cancel requests share the same marker.
+        if [[ -r "$cancel_file" ]]; then
+            local cancel_expiry cancel_now
+            cancel_expiry="$(cat "$cancel_file" 2>/dev/null)"
+            cancel_now="$(date +%s)"
+            if [[ "$cancel_expiry" =~ ^[0-9]+$ ]] && (( cancel_now < cancel_expiry )); then
+                # This send consumes the cancellation marker regardless of whether
+                # another cancellation replaced it while this send was starting.
+                rm -f -- "$cancel_file"
+                rm -f -- "$pause_file"
+                release_lock "$session_lock"
+                trap - INT TERM
+                die "Send cancelled by user."
+            elif [[ "$(cat "$cancel_file" 2>/dev/null)" == "$cancel_expiry" ]]; then
+                # Discard expired or malformed markers so they cannot cancel a
+                # later send. Do not remove a newer concurrent cancellation.
+                rm -f -- "$cancel_file"
+            fi
         fi
     fi
 
-    # --count is a read-only preview: save state before applying any supplied
-    # draft and before the normal send path prunes stale reasoning entries.
-    local count_outbox_backup="" count_history_backup=""
-    local count_outbox_existed=false
-    if [[ "$count" == true ]]; then
-        if [[ -e "$outbox_file" ]]; then
-            count_outbox_existed=true
-            count_outbox_backup="$(mktemp "${outbox_file}.count.XXXXXX")"
-            cp -p -- "$outbox_file" "$count_outbox_backup" || die "Unable to preserve the session outbox for token counting."
-        fi
-        if [[ -e "$history_file" ]]; then
-            count_history_backup="$(mktemp "${history_file}.count.XXXXXX")"
-            cp -p -- "$history_file" "$count_history_backup" || die "Unable to preserve session history for token counting."
-        fi
-    fi
-
-    # If there are arguments, replace the outbox with the remaining args
+    local outbox_content=""
     if (( ${#args[@]} > 0 )); then
-        handle_user_command replace "${args[@]}"
+	if [[ "$count" == true ]]; then
+            # Count against an isolated outbox so neither replacing a supplied draft
+            # nor building the prompt can modify the session's real outbox.
+            local tmp_outbox_file="$(mktemp)"
+            handle_text_file_command "$tmp_outbox_file" replace "${args[@]}"
+	    outbox_content=$(read_file "$tmp_outbox_file")
+	    rm -f "$tmp_outbox_file"
+        else
+            handle_user_command replace "${args[@]}"
+	    outbox_content=$(read_file "$outbox_file")
+	fi
+    else
+	outbox_content=$(read_file "$outbox_file")
     fi
 
     # Ensure outbox is not empty.
-    if [[ ! -s "$outbox_file" && "$continue" == false && "$count" == false ]]; then
+    if [[ -z "$outbox_content" && "$continue" == false && "$count" == false ]]; then
 	rm -f -- "$pause_file"
 	release_lock "$session_lock"
         trap - INT TERM
@@ -867,9 +869,8 @@ handle_send_command() {
 	    ;;
     esac
 
-    local outbox_content=$(read_file "$outbox_file")
     local reasoning_context=$(get_setting reasoning_context)
-    if [[ -n "$outbox_content" && "$reasoning_context" == 'current_turn' ]]; then
+    if [[ "$count" != true && -n "$outbox_content" && "$reasoning_context" == 'current_turn' ]]; then
 	# https://developers.openai.com/api/docs/guides/reasoning
         # A new user message starts a new reasoning context; keep reasoning only
         # across iterations within this send's tool-call cycle.
@@ -885,21 +886,25 @@ handle_send_command() {
     local separator=false
     while (( allowed_iterations_left > 0 )) && [[ "$MAIA_SEND_INTERRUPTED" != true ]]; do
 	((iteration++))
-        if send_pause_requested "$pause_file"; then
+        if [[ "$count" != true ]] && send_pause_requested "$pause_file"; then
             allowed_iterations_left=0
             break
         fi
 	local messages_json
-	if ! messages_json=$(build_messages_json "$outbox_file" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$no_tasks" "$api_type") ; then
+	if ! messages_json=$(build_messages_json "$outbox_content" "$sys_m" "$model" "$tools_enabled" "$mode" "$no_files" "$no_tasks" "$api_type") ; then
 	    # Here we silently fail because this will only happen at die
 	    exit 1
 	fi
 	if [[ -z "$messages_json" ]]; then
-	    rm -f -- "$pause_file"
-	    release_lock "$session_lock"
+	    if [[ "$count" != true ]]; then
+	        rm -f -- "$pause_file"
+	        release_lock "$session_lock"
+	    fi
 	    die "Internal error. Empty message json."
 	fi
-	trigger_event "pre-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
+        if [[ "$count" != true ]]; then
+            trigger_event "pre-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
+        fi
 	local count_data_file=""
 	case "$api_type" in
 	    OPENAI_CHAT_COMPLETIONS)
@@ -996,8 +1001,8 @@ handle_send_command() {
             curl_extra_headers curl_headers
 
 	    # Check for Pause before any token-count request as well as immediately
-	    # before the completion request below.
-	    if send_pause_requested "$pause_file"; then
+	    # before the completion request below. Count mode has no pause/cancel state.
+	    if [[ "$count" != true ]] && send_pause_requested "$pause_file"; then
 		rm -f "$tmp_payload" "${tmp_payload}.count"
 		break
 	    fi
@@ -1028,16 +1033,6 @@ handle_send_command() {
 	    if [[ "$count" = "true" ]] ; then
 		echo "$prompt_tokens"
 		rm -f "$tmp_payload"
-		if [[ -n "$count_outbox_backup" ]]; then
-		    mv -f -- "$count_outbox_backup" "$outbox_file"
-		elif [[ "$count_outbox_existed" == false ]]; then
-		    rm -f -- "$outbox_file"
-		fi
-		if [[ -n "$count_history_backup" ]]; then
-		    mv -f -- "$count_history_backup" "$history_file"
-		fi
-		rm -f -- "$pause_file"
-		release_lock "$session_lock"
 		return 0
 	    fi
             if (( prompt_tokens > max_input_tokens )); then
@@ -1497,8 +1492,10 @@ handle_send_command() {
 	fi
 	trigger_event "post-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"
     done
-    trigger_event "post-send"
-    rm -f -- "$pause_file"
-    release_lock "$session_lock"
-    trap - INT TERM
+    if [[ "$count" != true ]]; then
+        trigger_event "post-send"
+        rm -f -- "$pause_file"
+        release_lock "$session_lock"
+        trap - INT TERM
+    fi
 }
