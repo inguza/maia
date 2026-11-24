@@ -6,7 +6,7 @@
     <title><?= \maia_escape_html($page->title()) ?></title>
     <?= $page->stylesheetTags() ?>
 </head>
-<body class="<?= \maia_escape_html($page->bodyClass()) ?>" data-maia-session="<?= \maia_escape_html($page->sessionName()) ?>"<?= $page->workspaceName() !== '' ? ' data-maia-workspace="' . \maia_escape_html($page->workspaceName()) . '"' : '' ?>>
+<body class="<?= \maia_escape_html($page->bodyClass()) ?>" data-maia-session="<?= \maia_escape_html($page->sessionName()) ?>">
     <script>window.MAIA_BASE_PATH = <?= json_encode(\maia_base_path(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;</script>
     <?= $page->renderComponent('sidebar') ?>
     <main class="app">
