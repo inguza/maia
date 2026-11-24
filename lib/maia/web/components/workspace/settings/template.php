@@ -1,7 +1,7 @@
 <section class="workspace-settings-panel" data-workspace-settings>
     <form data-workspace-settings-form>
         <label for="workspace-settings-path">
-            Workspace directory relative to MAIA home
+            Workspace directory (relative to MAIA home or an absolute path)
             <input id="workspace-settings-path" name="path" type="text" required autocomplete="off">
         </label>
         <p class="workspace-settings-status" data-workspace-settings-status role="status"></p>

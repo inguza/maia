@@ -88,6 +88,8 @@ readonly SETTINGS_KEYS
 
 # Only the names, no values here. Values are in libconfig dir
 declare -A DEFAULT_POLICY=(
+    [allow_external_workspaces]=''
+    [allow_external_workspace_paths]=''
 )
 POLICY_KEYS=( "${!DEFAULT_POLICY[@]}" )
 readonly POLICY_KEYS

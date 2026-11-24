@@ -14,6 +14,7 @@ namespace Maia\Web\Core;
 use InvalidArgumentException;
 
 require_once __DIR__ . '/browser_root.php';
+require_once dirname(__DIR__) . '/api/web.php';
 
 /** Resolves a workspace name to a trusted root and an independent URI root. */
 final class WorkspaceRoot
@@ -22,6 +23,9 @@ final class WorkspaceRoot
     {
         if (!preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
             throw new InvalidArgumentException('Invalid workspace name.');
+        }
+        if (!\maia_workspace_is_usable($workspaceName)) {
+            throw new InvalidArgumentException('Workspace is not available to the web interface.');
         }
         $maiaHome = maia_home_dir();
         if ($maiaHome === null || $maiaHome === '') {

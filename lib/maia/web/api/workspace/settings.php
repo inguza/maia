@@ -72,15 +72,16 @@ function workspace_settings_values(string $name): array
     if ($result['status'] !== 0) {
         workspace_settings_error(502, trim($result['error']) ?: 'Unable to read workspace settings.');
     }
-    $values = ['name' => $name, 'path' => '', 'filesets' => ''];
-    foreach (preg_split('/\R/', $result['output']) as $line) {
-        if (preg_match('/^([^:[:space:]]+):[[:space:]]?(.*)$/', $line, $match)) {
-            if (array_key_exists($match[1], $values)) {
-                $values[$match[1]] = trim($match[2]);
-            }
-        }
-    }
-    $values['path'] = workspace_settings_display_path($values['path']);
+    $values = array_merge(['name' => $name, 'path' => '', 'filesets' => ''], myl_parse($result['output']));
+    $resolvedPath = $values['path'] === '' ? false : realpath(maia_expand_home_path($values['path']));
+    $outsideHome = $resolvedPath !== false && !maia_path_within_home($resolvedPath);
+    $allowExternalPaths = maia_policy_bool('allow_external_workspace_paths');
+    $pathEditable = !$outsideHome || $allowExternalPaths;
+    $values['path'] = $outsideHome && !$allowExternalPaths
+        ? '<outside MAIA HOME>'
+        : workspace_settings_display_path((string) $values['path']);
+    $values['outsideHome'] = $outsideHome;
+    $values['pathEditable'] = $pathEditable;
     return $values;
 }
 
@@ -91,6 +92,9 @@ if ($name === '') {
 }
 if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
     workspace_settings_error(400, 'A workspace name is required.');
+}
+if (!maia_workspace_is_usable($name)) {
+    workspace_settings_error(404, 'Workspace is not available to the web interface.');
 }
 
 if ($method === 'GET') {
@@ -109,8 +113,13 @@ if (!is_array($input) || $path === '') {
 }
 $path = workspace_settings_absolute_path($path);
 $resolvedPath = realpath($path);
-if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_path_within_home($resolvedPath)) {
-    workspace_settings_error(400, 'The workspace path must be an existing directory inside MAIA home.');
+$allowExternalPaths = maia_policy_bool('allow_external_workspace_paths');
+if ($resolvedPath === false || !is_dir($resolvedPath) ||
+    (!$allowExternalPaths && !maia_path_within_home($resolvedPath))) {
+    $message = $allowExternalPaths
+        ? 'The workspace path must be an existing directory.'
+        : 'The workspace path must be an existing directory inside MAIA home.';
+    workspace_settings_error(400, $message);
 }
 $path = $resolvedPath;
 $result = workspace_settings_run(['workspace', 'set', '--path', $path, $name]);

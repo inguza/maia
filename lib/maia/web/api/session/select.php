@@ -33,8 +33,12 @@ if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
     session_select_error(400, 'Invalid session name.');
 }
 
-// The browser selected this name from its already-loaded session list. Store it
-// immediately; history loading will report if the session no longer exists.
+// The browser normally selects from the filtered list; keep direct requests
+// from selecting a session whose workspace is unavailable to the web UI.
+$workspace = maia_session_workspace($name) ?? '';
+if ($workspace !== '' && !maia_workspace_is_usable($workspace)) {
+    session_select_error(404, 'Session is not available to the web interface.');
+}
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }

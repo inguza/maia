@@ -25,11 +25,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
 }
 $name = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
 if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $name)) workspace_upload_error(400, 'A workspace is required.');
-$home = maia_home_dir();
-$meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . 'workspace.myl';
-$root = myl_get($meta, 'path') ?? '';
-$root = realpath($root);
-if ($root === false || !is_dir($root)) workspace_upload_error(403, 'The workspace root is unavailable.');
+$root = maia_workspace_root_path($name);
+if ($root === null || !maia_workspace_is_usable($name)) workspace_upload_error(404, 'Workspace is not available to the web interface.');
 $relative = str_replace('\\', '/', trim((string) ($_POST['path'] ?? ''), " /\\"));
 if ($relative !== '' && preg_match('/(^|\/)(\.\.?)(\/|$)/', $relative)) workspace_upload_error(400, 'Invalid upload directory.');
 $directory = $relative === '' ? $root : realpath($root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative));

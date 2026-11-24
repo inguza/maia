@@ -71,12 +71,9 @@ $workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['M
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_operation_error(400, 'A workspace is required.');
 }
-$home = maia_home_dir();
-$meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspaceName . DIRECTORY_SEPARATOR . 'workspace.myl';
-$root = myl_get($meta, 'path') ?? '';
-$root = realpath(maia_expand_home_path($root));
-if ($root === false || !is_dir($root)) {
-    workspace_operation_error(403, 'The workspace root is unavailable.');
+$root = maia_workspace_root_path($workspaceName);
+if ($root === null || !maia_workspace_is_usable($workspaceName)) {
+    workspace_operation_error(404, 'Workspace is not available to the web interface.');
 }
 $prefix = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 $relative = static function ($value): string {

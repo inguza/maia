@@ -39,29 +39,33 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 }
 
 $sessions = maia_sessions();
-$selected = $headerSelected !== ''
+$home = maia_home_dir();
+$items = [];
+foreach ($sessions as $name) {
+    $workspace = '';
+    if ($home !== null && $home !== '') {
+        $metadata = $home . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR
+            . $name . DIRECTORY_SEPARATOR . 'session.myl';
+        $workspace = myl_get($metadata, 'workspace') ?? '';
+    }
+    // Sessions tied to a workspace the GUI policy disallows are omitted from
+    // the API response, not merely hidden in the sidebar.
+    if ($workspace !== '' && !maia_workspace_is_usable($workspace)) {
+        continue;
+    }
+    $items[] = ['name' => $name, 'workspace' => $workspace];
+}
+$visibleNames = array_column($items, 'name');
+$preferred = $headerSelected !== ''
     ? $headerSelected
     : (in_array($cookieSelected, $sessions, true)
         ? $cookieSelected
         : (in_array($environmentSession, $sessions, true) ? $environmentSession : ($environmentSession ?: null)));
-
-$home = maia_home_dir();
-$items = array_map(
-    static function (string $name) use ($home, $selected): array {
-        $workspace = '';
-        if ($home !== null && $home !== '') {
-            $metadata = $home . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR
-                . $name . DIRECTORY_SEPARATOR . 'session.myl';
-            $workspace = myl_get($metadata, 'workspace') ?? '';
-        }
-        return [
-            'name' => $name,
-            'workspace' => $workspace,
-            'selected' => $name === $selected,
-        ];
-    },
-    $sessions
-);
+$selected = is_string($preferred) && in_array($preferred, $visibleNames, true) ? $preferred : null;
+foreach ($items as &$item) {
+    $item['selected'] = $item['name'] === $selected;
+}
+unset($item);
 
 echo json_encode([
     'ok' => true,

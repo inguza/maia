@@ -1,0 +1,2 @@
+allow_external_workspaces: false
+allow_external_workspace_paths: false

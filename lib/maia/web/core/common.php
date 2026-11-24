@@ -136,6 +136,15 @@ function maia_policy_get(string $key, ?string $default = null): ?string
     return array_key_exists($key, $policy) ? $policy[$key] : $default;
 }
 
+function maia_policy_bool(string $key, bool $default = false): bool
+{
+    $value = maia_policy_get($key);
+    if ($value === null) {
+        return $default;
+    }
+    return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
+}
+
 function maia_escape_html(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

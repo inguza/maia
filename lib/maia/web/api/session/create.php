@@ -35,9 +35,19 @@ $source = trim((string) ($input['source'] ?? ''));
 if ($source !== '' && !preg_match('/^[A-Za-z0-9_.%+-]+$/', $source)) {
     session_create_error(400, 'Invalid source session name.');
 }
+$workspace = trim((string) ($input['workspace'] ?? ''));
+if ($workspace !== '' && !maia_workspace_is_usable($workspace)) {
+    session_create_error(403, 'The selected workspace is not available to the web interface.');
+}
+if ($source !== '') {
+    $sourceWorkspace = maia_session_workspace($source) ?? '';
+    if ($sourceWorkspace !== '' && !maia_workspace_is_usable($sourceWorkspace)) {
+        session_create_error(403, 'The source session uses a workspace unavailable to the web interface.');
+    }
+}
 $arguments = [maia_binary(), 'session', 'create'];
-if (isset($input['workspace']) && (string) $input['workspace'] !== '') {
-    array_push($arguments, '--workspace', (string) $input['workspace']);
+if ($workspace !== '') {
+    array_push($arguments, '--workspace', $workspace);
 }
 if (isset($input['profile']) && (string) $input['profile'] !== '') {
     array_push($arguments, '--profile', (string) $input['profile']);
@@ -57,6 +67,35 @@ $error = (string) stream_get_contents($pipes[2]); fclose($pipes[2]);
 $status = proc_close($process);
 if ($status !== 0) {
     session_create_error(502, trim($error) ?: trim($output) ?: 'Unable to create the session.');
+}
+
+// A CLI default can select a workspace that was not submitted in the request.
+// If it falls outside the web policy, remove the just-created session rather
+// than returning a successful session that the sidebar must hide.
+$createdWorkspace = maia_session_workspace($name) ?? '';
+if ($createdWorkspace !== '' && !maia_workspace_is_usable($createdWorkspace)) {
+    $cleanup = proc_open(
+        [maia_binary(), 'session', 'delete', $name],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+        $cleanupPipes,
+        null,
+        maia_environment()
+    );
+    if (is_resource($cleanup)) {
+        fclose($cleanupPipes[0]);
+        stream_get_contents($cleanupPipes[1]);
+        fclose($cleanupPipes[1]);
+        $cleanupError = (string) stream_get_contents($cleanupPipes[2]);
+        fclose($cleanupPipes[2]);
+        $cleanupStatus = proc_close($cleanup);
+        if ($cleanupStatus !== 0) {
+            session_create_error(502, 'The session uses a workspace unavailable to the web interface and could not be cleaned up. '
+                . trim($cleanupError));
+        }
+    } else {
+        session_create_error(502, 'The session uses a workspace unavailable to the web interface and could not be cleaned up.');
+    }
+    session_create_error(403, 'The default workspace is not available to the web interface.');
 }
 
 echo json_encode([

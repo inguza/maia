@@ -113,7 +113,7 @@ function session_settings_values(): array
             continue;
         }
         $workspacePath = myl_parse($workspace['output'])['path'] ?? '';
-        if ($workspacePath !== '' && maia_path_within_home($workspacePath)) {
+        if ($workspacePath !== '' && maia_workspace_is_usable($workspaceName)) {
             $workspaces[] = $workspaceName;
         }
     }
@@ -146,6 +146,11 @@ if ($method !== 'POST') {
 $input = json_decode((string) (file_get_contents('php://input') ?: ''), true);
 if (!is_array($input)) {
     session_settings_error(400, 'Invalid settings data.');
+}
+
+$workspaceName = trim((string) ($input['workspace'] ?? ''));
+if ($workspaceName !== '' && !maia_workspace_is_usable($workspaceName)) {
+    session_settings_error(403, 'The selected workspace is not available to the web interface.');
 }
 
 $toList = static function ($value): string {

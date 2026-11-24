@@ -32,11 +32,12 @@ $content = is_array($input) ? (string) ($input['content'] ?? '') : '';
 $label = is_array($input) ? trim((string) ($input['label'] ?? 'selection')) : 'selection';
 if ($content === '') file_selection_error(400, 'The selection is empty.');
 if (strlen($content) > 2 * 1024 * 1024) file_selection_error(413, 'The selection is too large.');
-$home = maia_home_dir();
-$meta = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR . $workspace . DIRECTORY_SEPARATOR . 'workspace.myl';
-$root = myl_get($meta, 'path') ?? '';
-$root = realpath($root);
-if ($root === false || !is_dir($root)) file_selection_error(403, 'The workspace root is unavailable.');
+$sessionWorkspace = maia_session_workspace($session) ?? '';
+if ($sessionWorkspace !== '' && !maia_workspace_is_usable($sessionWorkspace)) {
+    file_selection_error(404, 'Session is not available to the web interface.');
+}
+$root = maia_workspace_root_path($workspace);
+if ($root === null || !maia_workspace_is_usable($workspace)) file_selection_error(404, 'Workspace is not available to the web interface.');
 $dir = $root . DIRECTORY_SEPARATOR . '.maia-context';
 if (!is_dir($dir) && !mkdir($dir, 0775, true)) file_selection_error(500, 'Unable to create the selection directory.');
 $safeLabel = preg_replace('/[^A-Za-z0-9_.-]+/', '_', basename($label)) ?: 'selection';

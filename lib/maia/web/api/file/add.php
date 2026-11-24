@@ -68,25 +68,9 @@ function files_add_run(array $arguments, ?string $cwd = null): array
     ];
 }
 
-$workspace = files_add_run(['workspace', 'show', '--raw']);
-if ($workspace['status'] !== 0) {
-    files_add_error(502, trim($workspace['error']) ?: 'Unable to determine the workspace.');
-}
-
-$workspaceRoot = null;
-foreach (preg_split('/\R/', $workspace['output']) as $line) {
-    if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
-        $workspaceRoot = trim($match[1]);
-        break;
-    }
-}
-if ($workspaceRoot === null || $workspaceRoot === '') {
-    files_add_error(400, 'The selected session has no workspace root.');
-}
-
-$workspaceRoot = realpath($workspaceRoot);
-if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
-    files_add_error(400, 'The workspace root does not exist.');
+$workspaceRoot = maia_history_workspace_root();
+if ($workspaceRoot === null || !is_dir($workspaceRoot)) {
+    files_add_error(403, 'The selected session has no workspace available to the web interface.');
 }
 // Expand local shell-style file patterns here: unlike a shell, the Files panel
 // sends its input as a literal argument to the CLI.

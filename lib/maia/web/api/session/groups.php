@@ -63,6 +63,40 @@ function session_groups_read(): array
     return $groups;
 }
 
+/** Hide memberships for sessions whose workspace the web policy disallows. */
+function session_groups_filter_unusable_sessions(array $groups): array
+{
+    $knownSessions = array_fill_keys(maia_sessions(), true);
+    $home = maia_home_dir();
+    $visibleGroups = [];
+    foreach ($groups as $group) {
+        if (!is_array($group) || !is_array($group['sessions'] ?? null)) {
+            continue;
+        }
+        $originalSessions = $group['sessions'];
+        $group['sessions'] = array_values(array_filter(
+            $originalSessions,
+            static function ($session) use ($knownSessions, $home): bool {
+                $session = (string) $session;
+                if (!isset($knownSessions[$session]) || $home === null) {
+                    return true;
+                }
+                $metadata = $home . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR
+                    . $session . DIRECTORY_SEPARATOR . 'session.myl';
+                $workspace = myl_get($metadata, 'workspace') ?? '';
+                return $workspace === '' || maia_workspace_is_usable($workspace);
+            }
+        ));
+        // Preserve intentionally empty groups, but don't expose group entries
+        // whose only members were filtered out by workspace policy.
+        if ($originalSessions !== [] && $group['sessions'] === []) {
+            continue;
+        }
+        $visibleGroups[] = $group;
+    }
+    return $visibleGroups;
+}
+
 function session_groups_validate_name(string $name): void
 {
     if ($name === '' || $name === '.' || $name === '..' || !preg_match('/^[A-Za-z0-9_.%+-]+$/', $name)) {
@@ -118,7 +152,7 @@ function session_groups_lock(int $mode)
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method === 'GET') {
     $lock = session_groups_lock(LOCK_SH);
-    $groups = session_groups_read();
+    $groups = session_groups_filter_unusable_sessions(session_groups_read());
     flock($lock, LOCK_UN);
     fclose($lock);
     echo json_encode(['ok' => true, 'groups' => $groups], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
@@ -234,6 +268,10 @@ if ($action === 'move') {
     }
     if (!maia_session_exists($session)) {
         session_groups_error(404, "Session '$session' does not exist.");
+    }
+    $sessionWorkspace = maia_session_workspace($session) ?? '';
+    if ($sessionWorkspace !== '' && !maia_workspace_is_usable($sessionWorkspace)) {
+        session_groups_error(404, 'Session is not available to the web interface.');
     }
     if ($group !== '') {
         session_groups_validate_name($group);

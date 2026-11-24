@@ -29,6 +29,9 @@ $name = trim((string) (file_get_contents('php://input') ?: ''));
 if ($name === '' || !preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*$/', $name)) {
     workspace_delete_error(400, 'Invalid workspace name.');
 }
+if (!maia_workspace_is_usable($name)) {
+    workspace_delete_error(404, 'Workspace is not available to the web interface.');
+}
 
 $process = proc_open(
     [maia_binary(), 'workspace', 'delete', $name],

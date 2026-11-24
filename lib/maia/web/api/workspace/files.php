@@ -29,6 +29,9 @@ $workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['M
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_files_error(400, 'A workspace is required.');
 }
+if (!maia_workspace_is_usable($workspaceName)) {
+    workspace_files_error(404, 'Workspace is not available to the web interface.');
+}
 
 $inputPath = (string) ($_GET['path'] ?? '');
 if (strpos($inputPath, "\0") !== false || str_contains($inputPath, "\n") || str_contains($inputPath, "\r")) {
@@ -50,35 +53,8 @@ foreach (explode('/', $inputPath) as $part) {
 }
 $relativePath = implode('/', $parts);
 
-$process = proc_open(
-    [maia_binary(), 'workspace', 'show', '--raw', $workspaceName],
-    [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-    $pipes,
-    null,
-    maia_environment()
-);
-if (!is_resource($process)) {
-    workspace_files_error(500, 'Unable to determine the workspace.');
-}
-fclose($pipes[0]);
-$output = (string) stream_get_contents($pipes[1]);
-fclose($pipes[1]);
-$diagnostic = (string) stream_get_contents($pipes[2]);
-fclose($pipes[2]);
-$status = proc_close($process);
-if ($status !== 0) {
-    workspace_files_error(502, trim($diagnostic) ?: 'Unable to determine the workspace.');
-}
-
-$workspaceRoot = '';
-foreach (preg_split('/\R/', $output) as $line) {
-    if (preg_match('/^path:\s*(.*)$/', $line, $match)) {
-        $workspaceRoot = trim($match[1]);
-        break;
-    }
-}
-$workspaceRoot = realpath(maia_expand_home_path($workspaceRoot));
-if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
+$workspaceRoot = maia_workspace_root_path($workspaceName);
+if ($workspaceRoot === null) {
     workspace_files_error(403, 'The workspace root is unavailable.');
 }
 

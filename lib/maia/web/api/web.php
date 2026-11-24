@@ -76,6 +76,38 @@ function maia_path_within_home(string $path): bool
     return $resolvedPath === $resolvedHome || str_starts_with($resolvedPath, $prefix);
 }
 
+function maia_workspace_root_path(string $name): ?string
+{
+    if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $name)) {
+        return null;
+    }
+    $home = maia_home_dir();
+    if ($home === null) {
+        return null;
+    }
+    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR
+        . $name . DIRECTORY_SEPARATOR . 'workspace.myl';
+    $configuredPath = myl_get($metadata, 'path');
+    if ($configuredPath === null || $configuredPath === '') {
+        return null;
+    }
+    $root = realpath(maia_expand_home_path($configuredPath));
+    return $root !== false && is_dir($root) ? $root : null;
+}
+
+function maia_workspace_is_usable(string $name): bool
+{
+    static $cache = [];
+    if (array_key_exists($name, $cache)) {
+        return $cache[$name];
+    }
+    $root = maia_workspace_root_path($name);
+    if ($root === null) {
+        return $cache[$name] = false;
+    }
+    return $cache[$name] = (maia_policy_bool('allow_external_workspaces') || maia_path_within_home($root));
+}
+
 function maia_relative_home_path(string $path): string
 {
     $home = maia_workspace_base();
@@ -208,47 +240,37 @@ function maia_session_workspace(string $session): ?string
     if (!preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $session) || $session === '_EMPTY_') {
         return null;
     }
-    $process = proc_open(
-        [maia_binary(), 'session', 'show', '--raw', $session],
-        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-        $pipes,
-        null,
-        maia_environment()
-    );
-    if (!is_resource($process)) {
+    $home = maia_home_dir();
+    if ($home === null) {
         return null;
     }
-    fclose($pipes[0]);
-    $output = (string) stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-    if (proc_close($process) !== 0) {
-        return null;
-    }
-    $workspace = myl_parse($output)['workspace'] ?? '';
+    $metadata = $home . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR
+        . $session . DIRECTORY_SEPARATOR . 'session.myl';
+    $workspace = myl_get($metadata, 'workspace') ?? '';
     return preg_match('/^[A-Za-z0-9_.%+\\-]+$/', $workspace) ? $workspace : null;
+}
+
+function maia_session_is_usable(string $session): bool
+{
+    $workspace = maia_session_workspace($session);
+    return $workspace === null || maia_workspace_is_usable($workspace);
 }
 
 function maia_selected_session(): ?string
 {
     $headerSession = trim((string) ($_SERVER['HTTP_X_MAIA_SESSION'] ?? ''));
-    if ($headerSession !== '') {
-        return $headerSession;
-    }
-
     $urlSession = trim((string) ($_SERVER['MAIA_URL_SESSION'] ?? ''));
-    if ($urlSession !== '') {
-        return $urlSession;
-    }
-
     // Compatibility fallback for older clients that still use PHP sessions.
-    $selected = trim((string) ($_SESSION['maia_session'] ?? ''));
-    if ($selected !== '') {
-        return $selected;
-    }
-
+    $cookieSession = trim((string) ($_SESSION['maia_session'] ?? ''));
     $environmentSession = trim((string) (getenv('MAIA_SESSION') ?: ''));
-    return $environmentSession !== '' ? $environmentSession : null;
+    $selected = $headerSession !== '' ? $headerSession
+        : ($urlSession !== '' ? $urlSession
+            : ($cookieSession !== '' ? $cookieSession
+                : ($environmentSession !== '' ? $environmentSession : null)));
+    if ($selected !== null && !maia_session_is_usable($selected)) {
+        return null;
+    }
+    return $selected;
 }
 
 /** @return array<string, string> */
@@ -275,7 +297,7 @@ function maia_environment(): array
         // session or workspace happens to be selected by the PHP process.
         $environment['MAIA_SESSION'] = '_EMPTY_';
         $environment['MAIA_PROFILE'] = $profile;
-        if ($workspace !== '') {
+        if ($workspace !== '' && maia_workspace_is_usable($workspace)) {
             $environment['MAIA_WORKSPACE'] = $workspace;
         } else {
             unset($environment['MAIA_WORKSPACE']);
@@ -284,14 +306,18 @@ function maia_environment(): array
         // Session pages may also carry their associated workspace in the
         // page context. The session metadata is authoritative for both its
         // workspace and profile, so don't let those headers override it.
-        $environment['MAIA_SESSION'] = $explicitSession;
+        $environment['MAIA_SESSION'] = maia_session_is_usable($explicitSession) ? $explicitSession : '_EMPTY_';
         unset($environment['MAIA_PROFILE'], $environment['MAIA_WORKSPACE']);
     } elseif ($workspace !== '') {
         // A workspace page has no session/profile context to inherit. Use the
         // workspace supplied by either the page header or URL and suppress
         // the default session's profile/workspace indirection.
         $environment['MAIA_SESSION'] = '_EMPTY_';
-        $environment['MAIA_WORKSPACE'] = $workspace;
+        if (maia_workspace_is_usable($workspace)) {
+            $environment['MAIA_WORKSPACE'] = $workspace;
+        } else {
+            unset($environment['MAIA_WORKSPACE']);
+        }
         unset($environment['MAIA_PROFILE']);
     } elseif ($homePage !== '') {
         // The home page is independent of any selected session, workspace,
@@ -416,29 +442,18 @@ function maia_history_text_parts(string $text, ?string $workspaceRoot, ?string $
 
 function maia_history_workspace_root(): ?string
 {
-    $workspace = trim((string) (getenv('MAIA_WORKSPACE') ?: ''));
+    // Resolve from the request context so stale process environment values do
+    // not override the workspace belonging to an explicitly selected session.
+    $environment = maia_environment();
+    $workspace = trim((string) ($environment['MAIA_WORKSPACE'] ?? ''));
     if ($workspace === '') {
         $session = maia_selected_session();
         $workspace = $session === null ? '' : (maia_session_workspace($session) ?: '');
     }
-    if ($workspace === '') {
+    if ($workspace === '' || !maia_workspace_is_usable($workspace)) {
         return null;
     }
-    $home = maia_home_dir();
-    if ($home === null || $home === '') {
-        return null;
-    }
-    $metadata = $home . DIRECTORY_SEPARATOR . 'workspaces' . DIRECTORY_SEPARATOR .
-        $workspace . DIRECTORY_SEPARATOR . 'workspace.myl';
-    if (!is_file($metadata)) {
-        return null;
-    }
-    $root = myl_get($metadata, 'path') ?? '';
-    if ($root !== '' && $root[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\\\\/]/', $root)) {
-        $root = $home . DIRECTORY_SEPARATOR . $root;
-    }
-    $root = realpath($root);
-    return $root !== false && is_dir($root) ? $root : null;
+    return maia_workspace_root_path($workspace);
 }
 
 function maia_history_change_set_ids(): array

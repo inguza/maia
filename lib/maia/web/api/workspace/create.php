@@ -22,16 +22,16 @@ function workspace_create_error(int $status, string $message, string $code = '')
     exit;
 }
 
-/** Resolve a missing directory path safely beneath the configured workspace base. */
-function workspace_create_missing_path(string $path): ?string
+/** Resolve a missing path, enforcing the home boundary unless policy permits external paths. */
+function workspace_create_missing_path(string $path, bool $allowExternal): ?string
 {
     $base = maia_workspace_base();
     $resolvedBase = $base === null ? false : realpath($base);
-    if ($resolvedBase === false) return null;
+    if (!$allowExternal && $resolvedBase === false) return null;
 
     $path = maia_expand_home_path($path);
     $normalized = str_replace('\\\\', '/', $path);
-    if (preg_match('#(^|/)\\.\\.(/|$)#', $normalized)) return null;
+    if (!$allowExternal && preg_match('#(^|/)\\.\\.(/|$)#', $normalized)) return null;
 
     $candidate = rtrim($path, DIRECTORY_SEPARATOR . '/\\\\');
     if ($candidate === '') return null;
@@ -46,12 +46,15 @@ function workspace_create_missing_path(string $path): ?string
     }
 
     $resolvedParent = realpath($candidate);
-    if ($resolvedParent === false || !is_dir($resolvedParent) || !maia_path_within_home($resolvedParent)) return null;
+    if ($resolvedParent === false || !is_dir($resolvedParent) ||
+        (!$allowExternal && !maia_path_within_home($resolvedParent))) return null;
     $target = $resolvedParent;
     foreach ($missingParts as $part) $target .= DIRECTORY_SEPARATOR . $part;
 
-    $prefix = rtrim($resolvedBase, DIRECTORY_SEPARATOR . '/\\\\') . DIRECTORY_SEPARATOR;
-    if ($target !== $resolvedBase && !str_starts_with($target, $prefix)) return null;
+    if (!$allowExternal) {
+        $prefix = rtrim($resolvedBase, DIRECTORY_SEPARATOR . '/\\\\') . DIRECTORY_SEPARATOR;
+        if ($target !== $resolvedBase && !str_starts_with($target, $prefix)) return null;
+    }
     return $target;
 }
 
@@ -70,6 +73,7 @@ if ($path === '') {
     workspace_create_error(400, 'A workspace path is required.');
 }
 $createPath = ($input['createPath'] ?? false) === true;
+$allowExternalPaths = maia_policy_bool('allow_external_workspace_paths');
 $path = maia_expand_home_path($path);
 $resolvedPath = realpath($path);
 if ($resolvedPath === false) {
@@ -78,17 +82,24 @@ if ($resolvedPath === false) {
     if (!$createPath) {
         workspace_create_error(409, 'The workspace directory does not exist.', 'workspace_path_missing');
     }
-    $directoryToCreate = workspace_create_missing_path($path);
+    $directoryToCreate = workspace_create_missing_path($path, $allowExternalPaths);
     if ($directoryToCreate === null) {
-        workspace_create_error(400, 'The workspace path must be inside MAIA home and may not traverse above it.');
+        $message = $allowExternalPaths
+            ? 'The workspace directory cannot be created at that path.'
+            : 'The workspace path must be inside MAIA home and may not traverse above it.';
+        workspace_create_error(400, $message);
     }
     if (!is_dir($directoryToCreate) && !@mkdir($directoryToCreate, 0775, true) && !is_dir($directoryToCreate)) {
         workspace_create_error(500, 'Unable to create the workspace directory.');
     }
     $resolvedPath = realpath($directoryToCreate);
 }
-if ($resolvedPath === false || !is_dir($resolvedPath) || !maia_path_within_home($resolvedPath)) {
-    workspace_create_error(400, 'The workspace path must be an existing directory inside MAIA home.');
+if ($resolvedPath === false || !is_dir($resolvedPath) ||
+    (!$allowExternalPaths && !maia_path_within_home($resolvedPath))) {
+    $message = $allowExternalPaths
+        ? 'The workspace path must be an existing directory.'
+        : 'The workspace path must be an existing directory inside MAIA home.';
+    workspace_create_error(400, $message);
 }
 $path = $resolvedPath;
 
