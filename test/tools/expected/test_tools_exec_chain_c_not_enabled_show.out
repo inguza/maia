@@ -1,0 +1,54 @@
+Allowed tools:
+--------------
+cust-exec-chain-a
+cust-exec-chain-b
+cust-exec-chain-e
+Tool definitions:
+-----------------
+[
+  {
+    "name": "cust-exec-chain-a",
+    "description": "Executable dependency-chain test tool A.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain-exec.td",
+    "tool-dependencies-missing": [
+      "cust-exec-chain-b"
+    ]
+  },
+  {
+    "name": "cust-exec-chain-b",
+    "description": "Executable dependency-chain test tool B.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain-exec.td",
+    "tool-dependencies-missing": [
+      "cust-exec-chain-c"
+    ]
+  },
+  {
+    "name": "cust-exec-chain-e",
+    "description": "Executable dependency-chain test tool E.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain-exec.td",
+    "exec-dependencies-missing": [
+      "xcusdkjfd"
+    ]
+  }
+]

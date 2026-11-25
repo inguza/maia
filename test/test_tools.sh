@@ -104,6 +104,40 @@ run_tools_cmd "tool_dependencies_delete-cp" delete
 rm -f "$XMAIA_HOME/.maia/tools/cust-core-pipe-dependent.td" \
       "$XMAIA_HOME/.maia/tools/cust-invalid-dependency.td"
 
+# Dependency-chain availability, including propagation from a missing executable.
+cp "$TEST_ROOT/tools/cust-chain.td" "$XMAIA_HOME/.maia/tools/"
+cp "$TEST_ROOT/tools/cust-chain-exec.td" "$XMAIA_HOME/.maia/tools/"
+
+run_tools_cmd "chain_all_enabled" replace "cust-chain-a" "cust-chain-b" "cust-chain-c" "cust-chain-e"
+run_tools_cmd "chain_all_enabled_list" list
+run_tools_cmd "chain_all_enabled_show" show
+run_tools_cmd "chain_b_not_enabled" replace "cust-chain-a" "cust-chain-c" "cust-chain-e"
+run_tools_cmd "chain_b_not_enabled_list" list
+run_tools_cmd "chain_b_not_enabled_show" show
+run_tools_cmd "chain_c_not_enabled" replace "cust-chain-a" "cust-chain-b" "cust-chain-e"
+run_tools_cmd "chain_c_not_enabled_list" list
+run_tools_cmd "chain_c_not_enabled_show" show
+run_tools_cmd "chain_e_not_enabled" replace "cust-chain-a" "cust-chain-b" "cust-chain-c"
+run_tools_cmd "chain_e_not_enabled_list" list
+run_tools_cmd "chain_e_not_enabled_show" show
+
+run_tools_cmd "exec_chain_all_enabled" replace "cust-exec-chain-a" "cust-exec-chain-b" "cust-exec-chain-c" "cust-exec-chain-e"
+run_tools_cmd "exec_chain_all_enabled_list" list
+run_tools_cmd "exec_chain_all_enabled_show" show
+run_tools_cmd "exec_chain_b_not_enabled" replace "cust-exec-chain-a" "cust-exec-chain-c" "cust-exec-chain-e"
+run_tools_cmd "exec_chain_b_not_enabled_list" list
+run_tools_cmd "exec_chain_b_not_enabled_show" show
+run_tools_cmd "exec_chain_c_not_enabled" replace "cust-exec-chain-a" "cust-exec-chain-b" "cust-exec-chain-e"
+run_tools_cmd "exec_chain_c_not_enabled_list" list
+run_tools_cmd "exec_chain_c_not_enabled_show" show
+run_tools_cmd "exec_chain_e_not_enabled" replace "cust-exec-chain-a" "cust-exec-chain-b" "cust-exec-chain-c"
+run_tools_cmd "exec_chain_e_not_enabled_list" list
+run_tools_cmd "exec_chain_e_not_enabled_show" show
+
+run_tools_cmd "chain_test_cleanup" delete
+rm -f "$XMAIA_HOME/.maia/tools/cust-chain.td" \
+      "$XMAIA_HOME/.maia/tools/cust-chain-exec.td"
+
 # edit not tested
 
 # MCP tests

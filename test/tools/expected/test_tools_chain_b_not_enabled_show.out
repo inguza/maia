@@ -1,0 +1,48 @@
+Allowed tools:
+--------------
+cust-chain-a
+cust-chain-c
+cust-chain-e
+Tool definitions:
+-----------------
+[
+  {
+    "name": "cust-chain-a",
+    "description": "Dependency-chain test tool A.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain.td",
+    "tool-dependencies-missing": [
+      "cust-chain-b"
+    ]
+  },
+  {
+    "name": "cust-chain-c",
+    "description": "Dependency-chain test tool C.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain.td"
+  },
+  {
+    "name": "cust-chain-e",
+    "description": "Dependency-chain test tool E.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-chain.td"
+  }
+]
