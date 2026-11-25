@@ -24,9 +24,7 @@ util-find
 util-grep
 util-head
 util-ls
-util-patch
 util-sed
-util-sed-inline
 util-sort
 util-tail
 util-uniq
