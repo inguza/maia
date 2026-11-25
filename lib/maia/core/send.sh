@@ -839,7 +839,9 @@ handle_send_command() {
 	    outbox_content=$(read_file "$outbox_file")
 	fi
     else
-	outbox_content=$(read_file "$outbox_file")
+	if [[ -e "$outbox_file" ]] ; then
+	    outbox_content=$(read_file "$outbox_file")
+	fi
     fi
 
     # Ensure outbox is not empty.
