@@ -24,7 +24,7 @@ default_session_extra_send_filesets default    ""
 default_session_filesets       default    "__SESSION_NAME__"
 default_workspace              default    "__SESSION_WORKSPACE__"
 file_handling_mode             default    "DEFAULT"
-http_logging                   default    true
+http_logging                   default    false
 max_input_tokens               default    64000
 max_output_tokens              default    32000
 max_tool_calls                 default    "null"

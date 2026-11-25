@@ -47,7 +47,7 @@ declare -A DEFAULT_SETTINGS=(
     # Reasoning related
     [reasoning_context]='current_turn'
     # Logging control
-    [http_logging]=true
+    [http_logging]=false
     [term_loglevel]=NOTICE
     # Interaction controls
     [tool_iteration_limit]=20
