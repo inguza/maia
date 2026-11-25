@@ -62,6 +62,9 @@ list_tools() {
                     $tool + {allowed: (.name | IN($allowed_names[]))} +
                     (if ($cached | has("exec-dependencies-missing")) then
                         {"exec-dependencies-missing": $cached["exec-dependencies-missing"]}
+                     else {} end) +
+                    (if ($cached | has("tool-dependencies-missing")) then
+                        {"tool-dependencies-missing": $cached["tool-dependencies-missing"]}
                      else {} end)
                 )
             ' <<<"$all_tools_json"
@@ -70,15 +73,19 @@ list_tools() {
         fi
         return
     fi
-    printf '  %-32s %-16s (%s)\n' 'Name' 'Effects' 'File'
+    printf '   %-32s %-16s (%s)\n' 'Name' 'Effects' 'File'
     printf '%s\n' '------------------------------------------------------------------------------------'
     if [[ -s "$allowed_tools_list_file" ]]; then
         jq -r --slurpfile allowed "$allowed_tools_list_file" '
-            ($allowed[0] | map(.name)) as $allowed_names |
-            .[] |
-            ((.effects // []) | if length == 0 then "-" else join("+") end) as $effects |
-            (if (.name | IN($allowed_names[])) then "*" else " " end) as $marker |
-            [$marker, .name, $effects, ("(" + .source + ")")] | @tsv
+            ($allowed[0]) as $allowed_defs |
+            ($allowed_defs | map(.name)) as $allowed_names |
+            .[] as $tool |
+            (($tool.effects // []) | if length == 0 then "-" else join("+") end) as $effects |
+            ($allowed_defs | map(select(.name == $tool.name)) | .[0] // {}) as $cached |
+            (if ($tool.name | IN($allowed_names[])) then
+                if ((($cached["exec-dependencies-missing"] // []) | length) > 0 or (($cached["tool-dependencies-missing"] // []) | length) > 0) then "*!" else "* " end
+             else "  " end) as $marker |
+            [$marker, $tool.name, $effects, ("(" + $tool.source + ")")] | @tsv
         ' <<<"$all_tools_json" | while IFS=$'\t' read -r marker name effects file; do
             printf '%s %-32s %-16s %s\n' "$marker" "$name" "$effects" "$file"
         done
@@ -86,7 +93,7 @@ list_tools() {
         jq -r '
             .[] |
             ((.effects // []) | if length == 0 then "-" else join("+") end) as $effects |
-            [" ", .name, $effects, ("(" + .source + ")")] | @tsv
+            ["  ", .name, $effects, ("(" + .source + ")")] | @tsv
         ' <<<"$all_tools_json" | while IFS=$'\t' read -r marker name effects file; do
             printf '%s %-32s %-16s %s\n' "$marker" "$name" "$effects" "$file"
         done
@@ -563,6 +570,9 @@ COMMANDS
 
   list [--json]
       List allowed tools and scope.
+
+      * means that the tool is allowed
+      ! means that the tool has a dependency problem
 
   view [--expand]
       View the allowed tools, optionally expand.

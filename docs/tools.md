@@ -142,9 +142,11 @@ There are two files maintained.
 If the tool definitions are updated after the `maia tool` command is run it may result in an out-of-date toolset.json file.
 You can check that by executing `maia tool verify` and if it is out of date, you can update it with `maia tool refresh`
 
+In `maia tool list`, `*` means the tool is allowed and `!` means it has a dependency problem. Thus `*!` means the tool is allowed but unavailable, so it is not offered to the AI. A blank marker means the tool is not allowed.
+
 ## Using Tools in AI Conversations
 
-When sending prompts to the AI, `maia` includes the metadata of all enabled tools in the request, allowing the AI to call these tools as functions.
+When sending prompts to the AI, `maia` includes the metadata of enabled and available tools in the request, allowing the AI to call these tools as functions.
 
 When the AI requests a tool function call, `maia` executes the corresponding tool executable with the provided JSON arguments and returns the result back to the AI.
 

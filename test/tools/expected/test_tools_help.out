@@ -12,6 +12,9 @@ COMMANDS
   list [--json]
       List allowed tools and scope.
 
+      * means that the tool is allowed
+      ! means that the tool has a dependency problem
+
   view [--expand]
       View the allowed tools, optionally expand.
 
