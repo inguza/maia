@@ -67,7 +67,7 @@ function workspace_operation_inline_mime(string $mime): bool
         $mime === 'application/pdf';
 }
 
-$workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? $_GET['workspace'] ?? ''));
+$workspaceName = trim((string) ($_SERVER['HTTP_X_MAIA_FILESYSTEM_WORKSPACE'] ?? $_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? $_GET['workspace'] ?? ''));
 if ($workspaceName === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $workspaceName)) {
     workspace_operation_error(400, 'A workspace is required.');
 }

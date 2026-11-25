@@ -23,7 +23,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'POST') !== 'POST') {
     header('Allow: POST');
     workspace_upload_error(405, 'Method not allowed.');
 }
-$name = trim((string) ($_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
+$name = trim((string) ($_SERVER['HTTP_X_MAIA_FILESYSTEM_WORKSPACE'] ?? $_SERVER['HTTP_X_MAIA_WORKSPACE'] ?? $_SERVER['MAIA_URL_WORKSPACE'] ?? ''));
 if ($name === '' || !preg_match('/^[A-Za-z0-9_.%+\-]+$/', $name)) workspace_upload_error(400, 'A workspace is required.');
 $root = maia_workspace_root_path($name);
 if ($root === null || !maia_workspace_is_usable($name)) workspace_upload_error(404, 'Workspace is not available to the web interface.');
