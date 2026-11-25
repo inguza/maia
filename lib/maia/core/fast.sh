@@ -557,7 +557,12 @@ normalize_lf() {
 read_file_by_line() {
     local filename="$1"
     local input=/dev/stdin
-    [[ -n "$filename" ]] && input="$filename"
+    if [[ -n "$filename" ]] ; then
+	if [[ ! -e "$filename" ]] ; then
+	    return 1
+	fi
+	input="$filename"
+    fi
 
     local line
     while IFS= read -r line || [[ -n "$line" ]]; do
@@ -582,7 +587,12 @@ strip_cr() {
 read_file() {
     local filename="$1"
     local input=/dev/stdin
-    [[ -n "$filename" ]] && input="$filename"
+    if [[ -n "$filename" ]] ; then
+	if [[ ! -e "$filename" ]] ; then
+	    return 1
+	fi
+	input="$filename"
+    fi
 
     while true; do
 	local line
@@ -598,6 +608,7 @@ read_file() {
             printf '%s' "$line"
 	fi
     done < "$input"
+    return 0
 }
 
 mapfile_from_command() {
