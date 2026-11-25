@@ -117,21 +117,10 @@ generate_allowed_toolset_def_file() {
     local effective_path="$tool_search_path:$PATH"
     local -a exec_dependencies=()
     mapfile_from_command exec_dependencies jq -r '[.[] | .["exec-dependencies"][]?] | unique[]' <<< "$all_tool_defs_json"
-    local -a dependency_search_dirs=()
-    IFS=: read -ra dependency_search_dirs <<< "$effective_path"
     local -a missing_exec_dependencies=()
     local dependency
     for dependency in "${exec_dependencies[@]}"; do
-        local dependency_found=false
-        local dependency_dir
-        for dependency_dir in "${dependency_search_dirs[@]}"; do
-            [[ -n "$dependency_dir" ]] || dependency_dir="."
-            if [[ -f "$dependency_dir/$dependency" && -x "$dependency_dir/$dependency" ]]; then
-                dependency_found=true
-                break
-            fi
-        done
-        if [[ "$dependency_found" != true ]]; then
+        if ! PATH="$effective_path" type -P "$dependency" >/dev/null 2>&1; then
             missing_exec_dependencies+=("$dependency")
         fi
     done
