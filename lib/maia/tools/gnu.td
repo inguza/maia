@@ -1,6 +1,7 @@
 [
   {
     "name":"util-grep",
+    "exec-dependencies": ["grep"],
     "description": "Search files using regular expressions, extended syntax.",
     "command": "util-grep.sh -R -E -F -G -i -v -w -x -c -s -n -a -I --",
     "inputSchema": {
@@ -39,6 +40,7 @@
   },
   {
     "name":"util-find",
+    "exec-dependencies": ["find"],
     "description": "Search files - but not files starting with a .",
     "command": "util-find.sh -d -depth -executable -nogroup -nouser -readable -ls",
     "inputSchema": {
@@ -89,6 +91,7 @@
   },
   {
     "name":"util-ls",
+    "exec-dependencies": ["ls"],
     "description": "List files",
     "command": "allowed-tool.sh ls pathspecs -B -l --time-style=long-iso -d -f -G -h -o -t -r -U -1 --",
     "inputSchema": {
@@ -115,6 +118,7 @@
   },
   {
     "name":"util-sort",
+    "exec-dependencies": ["sort"],
     "description": "Sort text content.",
     "command": "allowed-tool.sh sort filespecs -n -s -v --show-nonprinting --",
     "inputSchema": {
@@ -141,6 +145,7 @@
   },
   {
     "name":"util-cat",
+    "exec-dependencies": ["cat"],
     "description": "Print the content of one or more concatenated files to pipe to the next tool in a core-pipe. Use context-file-remember outside core-pipe.",
     "command": "allowed-tool.sh cat filespecs --",
     "inputSchema": {
@@ -167,6 +172,7 @@
   },
   {
     "name":"util-head",
+    "exec-dependencies": ["head"],
     "description": "Print the first part of one or more files to pipe to the next tool in a core-pipe. Use context-file-remember outside core-pipe.",
     "command": "head-tail.sh head --",
     "inputSchema": {
@@ -190,6 +196,7 @@
   },
   {
     "name":"util-tail",
+    "exec-dependencies": ["tail"],
     "description": "Print the last part of one or more files.",
     "command": "head-tail.sh tail --",
     "inputSchema": {
@@ -213,6 +220,7 @@
   },
   {
     "name":"util-wc",
+    "exec-dependencies": ["wc"],
     "description": "Count newline, word and bytes for files",
     "command": "allowed-tool.sh wc filespecs -c --bytes -m --chars -l --lines -w --words --",
     "inputSchema": {
@@ -239,6 +247,7 @@
   },
   {
     "name":"util-sed",
+    "exec-dependencies": ["sed"],
     "description": "Stream editor (write to files is forbidden) to pipe to the next tool in a core-pipe. Use context-file-remmber to learn the content of part of a file.",
     "command": "util-sed.sh --posix -n -s -E -r --regexp-extended --",
     "inputSchema": {
@@ -269,6 +278,7 @@
   },
   {
     "name":"util-sed-inline",
+    "exec-dependencies": ["sed"],
     "description": "Stream editor - inline replace allowed",
     "command": "util-sed.sh --posix -s -i -E -r --regexp-extended --",
     "effects":["write"],
@@ -300,6 +310,7 @@
   },
   {
     "name":"util-uniq",
+    "exec-dependencies": ["uniq"],
     "description": "Report or omit repeated lines.",
     "command": "allowed-tool-one-file.sh uniq -c -d -D -i -u",
     "inputSchema": {
@@ -323,6 +334,7 @@
   },
   {
     "name":"util-diff",
+    "exec-dependencies": ["diff"],
     "description": "Compare two files",
     "command": "allowed-tool.sh diff pathspecs -c -d -D -i -u --",
     "inputSchema": {
@@ -349,6 +361,7 @@
   },
   {
     "name":"util-patch",
+    "exec-dependencies": ["patch"],
     "description": "Count newline, word and bytes for files",
     "command": "util-patch.sh -b --backup-if-mismatch --no-backup-if-mismatch -c --dry-run -e -f -F -l -n --posix -s -t -T -u -Z",
     "effects":["write"],

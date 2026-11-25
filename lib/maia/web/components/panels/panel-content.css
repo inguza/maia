@@ -23,5 +23,9 @@
 .available-list .available-resource-heading { color: #6b7280; font-size: .8rem; font-weight: 600; }
 .available-list .available-resource-name { overflow-wrap: anywhere; }
 .available-list .available-resource-effects { white-space: nowrap; }
-.available-resource-state { flex: 0 0 auto; }
+.available-resource-state { align-items: center; display: flex; flex: 0 0 auto; gap: .35rem; }
+.tool-dependency-warning { position: relative; }
+.tool-dependency-warning summary { color: #b45309; cursor: pointer; font-size: 1rem; font-weight: 700; list-style: none; line-height: 1; }
+.tool-dependency-warning summary::-webkit-details-marker { display: none; }
+.tool-dependency-warning > span { background: #fff; border: 1px solid #d1d5db; border-radius: .25rem; box-shadow: 0 2px 8px #0002; color: #111827; font-size: .85rem; font-weight: 400; padding: .45rem .6rem; position: absolute; right: 0; top: calc(100% + .25rem); white-space: normal; width: max-content; max-width: min(16rem, 75vw); z-index: 2; }
 .credential-created { display: grid; gap: .4rem; overflow-wrap: anywhere; }

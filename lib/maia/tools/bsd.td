@@ -1,6 +1,7 @@
 [
   {
     "name":"util-file",
+    "exec-dependencies": ["file"],
     "description": "Determine file type.",
     "command": "allowed-tool.sh file -b -c --extension -i --mime --mime-type --mime-encoding -l -L -z --uncompress -Z --uncompress-noreport",
     "inputSchema": {

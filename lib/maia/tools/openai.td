@@ -1,6 +1,7 @@
 [
   {
     "name": "openai-image-generate",
+    "exec-dependencies": ["base64"],
     "api_def": {
       "type": "image_generation"
     },

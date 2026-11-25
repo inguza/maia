@@ -719,7 +719,7 @@ handle_send_command() {
     local tools_count=0
     if [[ "$no_tools" != true ]] ; then
 	enabled_tools_json=$(prompt_for_scope "session" "toolset" "json")
-	tools_count=$(jq 'length' <<<"$enabled_tools_json")
+	tools_count=$(jq '[.[] | select(."exec-dependencies-missing" == null)] | length' <<<"$enabled_tools_json")
     fi
 
     # Build API payload JSON

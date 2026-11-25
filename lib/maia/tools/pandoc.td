@@ -1,6 +1,7 @@
 [
   {
     "name":"pandoc",
+    "exec-dependencies": ["pandoc"],
     "description": "Convert documents between markup formats using pandoc.",
     "command": "pandoc.sh",
     "inputSchema": {

@@ -1,6 +1,7 @@
 [
   {
     "name":"net-request-tcp",
+    "exec-dependencies": ["timeout", "netcat"],
     "description": "Establish a tcp connection to a host and port to send data to it.",
     "command": "net-request-tcp.sh",
     "inputSchema": {
@@ -29,6 +30,7 @@
   },
   {
     "name": "net-request-ssl",
+    "exec-dependencies": ["timeout", "openssl"],
     "description": "Establish an SSL/TLS connection to a host and port to send data to it.",
     "command": "net-request-ssl.sh",
     "inputSchema": {

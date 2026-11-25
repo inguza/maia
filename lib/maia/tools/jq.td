@@ -1,6 +1,7 @@
 [
   {
     "name":"jq",
+    "exec-dependencies": ["jq"],
     "description": "Run jq",
     "command": "jq.sh",
     "inputSchema": {

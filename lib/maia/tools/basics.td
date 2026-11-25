@@ -81,6 +81,7 @@
   },
   {
     "name": "core-sleep",
+    "exec-dependencies": ["sleep"],
     "description": "Sleep for the specified duration.",
     "command": "sleep.sh",
     "inputSchema": {

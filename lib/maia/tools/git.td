@@ -1,6 +1,7 @@
 [
   {
     "name":"git-status",
+    "exec-dependencies": ["git"],
     "description": "Git status.",
     "command": "git-pathspecs-common.sh status -s --short -b --branch",
     "inputSchema": {
@@ -27,6 +28,7 @@
   },
   {
     "name":"git-log",
+    "exec-dependencies": ["git"],
     "description": "Git log.",
     "command": "git-pathspecs-common.sh log --no-decorate --source",
     "inputSchema": {
@@ -53,6 +55,7 @@
   },
   {
     "name":"git-show",
+    "exec-dependencies": ["git"],
     "description": "Git show.",
     "command": "git-show.sh --abbrev-commit --oneline",
     "inputSchema": {
@@ -79,6 +82,7 @@
   },
   {
     "name":"git-diff",
+    "exec-dependencies": ["git"],
     "description": "Git diff.",
     "command": "git-tree-pathspecs-common.sh diff switch -s --no-patch --raw --minimal --name-only --name-status --no-color -R --quiet --no-prefix --cached --merge-base",
     "inputSchema": {
@@ -109,6 +113,7 @@
   },
   {
     "name":"git-commit",
+    "exec-dependencies": ["git"],
     "description": "Git commit.",
     "command": "git-commit.sh --dry-run --short -q --quiet",
     "effects":["write"],
@@ -140,6 +145,7 @@
   },
   {
     "name":"git-reset",
+    "exec-dependencies": ["git"],
     "description": "Git reset.",
     "command": "git-tree-pathspecs-common.sh reset --soft --mixed --hard --merge -q --quiet --no-refresh",
     "effects":["write"],
@@ -171,6 +177,7 @@
   },
   {
     "name":"git-restore",
+    "exec-dependencies": ["git"],
     "description": "Git restore.",
     "command": "git-pathspecs-common.sh restore -m --merge",
     "effects":["write"],
@@ -198,6 +205,7 @@
   },
   {
     "name":"git-add",
+    "exec-dependencies": ["git"],
     "description": "Git add.",
     "command": "git-pathspecs-common.sh add -f --force --dry-run -N --intent-to-add --refresh",
     "effects":["write"],
@@ -225,6 +233,7 @@
   },
   {
     "name":"git-clean",
+    "exec-dependencies": ["git"],
     "description": "Git clean.",
     "command": "git-pathspecs-common.sh clean -f --force -n --dry-run -q --quiet -x -X -d",
     "effects":["write"],
@@ -252,6 +261,7 @@
   },
   {
     "name":"git-switch",
+    "exec-dependencies": ["git"],
     "description": "Git switch.",
     "command": "git-switch.sh -c -C -f --force -q --quiet",
     "effects":["write"],
@@ -276,6 +286,7 @@
   },
   {
     "name":"git-rebase",
+    "exec-dependencies": ["git"],
     "description": "Git rebase.",
     "command": "git-tree-ish-common.sh rebase --continue --skip --abort --quit -q --quiet -f --force-rebase --no-ff",
     "effects":["write"],
@@ -300,6 +311,7 @@
   },
   {
     "name":"git-merge",
+    "exec-dependencies": ["git"],
     "description": "Git merge.",
     "command": "git-tree-ish-common.sh merge --continue --abort --quit --apply -q --quiet --commit --no-commit -ff --ff-only --no-ff --squash --no-squash --stat -n --no-stat",
     "effects":["write"],
@@ -324,6 +336,7 @@
   },
   {
     "name":"git-revert",
+    "exec-dependencies": ["git"],
     "description": "Git revert.",
     "command": "git-revert.sh -n --no-commit --continue --skip --quit --abort",
     "effects":["write"],
@@ -351,6 +364,7 @@
   },
   {
     "name":"git-branch",
+    "exec-dependencies": ["git"],
     "description": "Git branch.",
     "command": "git-branch.sh -d -D -c -C -m -M",
     "effects":["write"],
@@ -379,6 +393,7 @@
   },
   {
     "name":"git-rm",
+    "exec-dependencies": ["git"],
     "description": "Git rm.",
     "command": "git-pathspecs-common.sh rm -f --force -n --dry-run -r --cached -q --quiet",
     "effects":["write"],
@@ -406,6 +421,7 @@
   },
   {
     "name":"git-mv",
+    "exec-dependencies": ["git"],
     "description": "Git mv.",
     "command": "git-mv.sh -f --force -n --dry-run",
     "effects":["write"],
@@ -434,6 +450,7 @@
   },
   {
     "name":"git-pull",
+    "exec-dependencies": ["git"],
     "description": "Git pull.",
     "command": "git-refspec-common.sh pull -q --quiet --rebase --ff-only --ff --no-ff",
     "effects":["write"],
@@ -465,6 +482,7 @@
   },
   {
     "name":"git-push",
+    "exec-dependencies": ["git"],
     "description": "Git push.",
     "command": "git-refspec-common.sh push -q --quiet",
     "effects":["push"],
@@ -496,6 +514,7 @@
   },
   {
     "name":"git-fetch",
+    "exec-dependencies": ["git"],
     "description": "Git fetch.",
     "command": "git-refspec-common.sh fetch -q --quiet -f --force -t --tags -n --no-tags --stdin",
     "effects":["write"],

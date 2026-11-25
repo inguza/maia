@@ -114,6 +114,9 @@ $tools = array_map(static function (array $tool): array {
         'description' => (string) ($tool['description'] ?? ''),
         'effects' => is_array($tool['effects'] ?? null) ? array_values($tool['effects']) : [],
         'allowed' => (bool) ($tool['allowed'] ?? false),
+        'execDependenciesMissing' => is_array($tool['exec-dependencies-missing'] ?? null)
+            ? array_values($tool['exec-dependencies-missing'])
+            : [],
         'source' => (string) ($tool['source'] ?? ''),
     ];
 }, $tools);

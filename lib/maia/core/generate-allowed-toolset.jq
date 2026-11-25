@@ -43,8 +43,19 @@ def allowed_filter:
   select(allowed_filter)
 ]
 |
-reduce .[] as $item (
+  reduce .[] as $item (
   {};
-  .[$item.name] = $item
+  .[$item.name] = (
+      [ $item["exec-dependencies"][]?
+        | select(. as $dependency | ($missing_exec_dependencies | index($dependency)) != null)
+      ]
+      | unique as $missing
+      | ($item | del(."exec-dependencies")) as $definition
+      | if ($missing | length) > 0 then
+          $definition + {"exec-dependencies-missing": $missing}
+        else
+          $definition
+        end
+    )
 )
 | [.[]]

@@ -1955,7 +1955,10 @@ Tool definitions:
       "required": [],
       "additionalProperties": false
     },
-    "source": "<MAIA_ROOT>/lib/maia/tools/pandoc.td"
+    "source": "<MAIA_ROOT>/lib/maia/tools/pandoc.td",
+    "exec-dependencies-missing": [
+      "pandoc"
+    ]
   },
   {
     "name": "session-create",

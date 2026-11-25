@@ -1,6 +1,7 @@
 [
   {
     "name":"file-write",
+    "exec-dependencies": ["diff"],
     "description": "Write content to a file.",
     "command": "file-write.sh",
     "instructions": [ "file.txt" ],
@@ -23,6 +24,7 @@
   },
   {
     "name":"file-append",
+    "exec-dependencies": ["diff"],
     "description": "Append content to the end of a file.",
     "command": "file-append.sh",
     "instructions": [ "file.txt" ],
@@ -45,6 +47,7 @@
   },
   {
     "name":"file-change",
+    "exec-dependencies": ["diff"],
     "description": "Update an existing file by making exact literal text replacements.",
     "command": "file-change.sh",
     "instructions": [ "file.txt", "file-change.txt" ],

@@ -1,5 +1,6 @@
 [
   .[]
+  | select(."exec-dependencies-missing" == null)
   | if (.name and .description and .inputSchema) then
       {
         type: "function",

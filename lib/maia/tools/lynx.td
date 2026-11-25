@@ -1,6 +1,7 @@
 [
   {
     "name":"web-browser-lynx",
+    "exec-dependencies": ["lynx"],
     "description": "Retrieve and browse a web page using Lynx. Returns the page content as text.",
     "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -mime_header -nolist -nonumbers -noredir -nostatus -notitle -reload -short_url -source",
     "inputSchema": {
@@ -27,6 +28,7 @@
   },
   {
     "name":"web-search-lynx",
+    "exec-dependencies": ["lynx"],
     "description": "Search the web using Lynx and return the search results as text.",
     "command": "lynx.sh -accept_all_cookies -center -force_secure -list_decoded -list_inline -listonly -nonumbers -nostatus -notitle -reload -short_url",
     "inputSchema": {

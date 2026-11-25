@@ -54,8 +54,16 @@ list_tools() {
     if [[ "${2:-}" == "--json" ]]; then
         if [[ -s "$allowed_tools_list_file" ]]; then
             jq --slurpfile allowed "$allowed_tools_list_file" '
-                ($allowed[0] | map(.name)) as $allowed_names |
-                map(. + {allowed: (.name | IN($allowed_names[]))})
+                ($allowed[0]) as $allowed_defs |
+                ($allowed_defs | map(.name)) as $allowed_names |
+                map(
+                    . as $tool |
+                    ($allowed_defs | map(select(.name == $tool.name)) | .[0] // {}) as $cached |
+                    $tool + {allowed: (.name | IN($allowed_names[]))} +
+                    (if ($cached | has("exec-dependencies-missing")) then
+                        {"exec-dependencies-missing": $cached["exec-dependencies-missing"]}
+                     else {} end)
+                )
             ' <<<"$all_tools_json"
         else
             jq 'map(. + {allowed: false})' <<<"$all_tools_json"
@@ -93,6 +101,42 @@ generate_allowed_toolset_def_file() {
     local all_tool_defs_json=$(load_all_tool_defs)
     local patterns_json="$(build_list_filter_from_patterns "$allowed_tools_list_file")"
 
+    if ! jq -e '
+        all(.[];
+            (has("exec-dependencies") | not) or
+            ((.["exec-dependencies"] | type) == "array" and
+             all(.["exec-dependencies"][];
+                 type == "string" and length > 0 and
+                 (contains("\n") | not) and (contains("\r") | not)))
+        )
+    ' >/dev/null <<< "$all_tool_defs_json"; then
+        die "Invalid exec-dependencies in tool definition: expected an array of non-empty executable names without line breaks."
+    fi
+
+    local tool_search_path="$(build_tool_search_path)"
+    local effective_path="$tool_search_path:$PATH"
+    local -a exec_dependencies=()
+    mapfile_from_command exec_dependencies jq -r '[.[] | .["exec-dependencies"][]?] | unique[]' <<< "$all_tool_defs_json"
+    local -a dependency_search_dirs=()
+    IFS=: read -ra dependency_search_dirs <<< "$effective_path"
+    local -a missing_exec_dependencies=()
+    local dependency
+    for dependency in "${exec_dependencies[@]}"; do
+        local dependency_found=false
+        local dependency_dir
+        for dependency_dir in "${dependency_search_dirs[@]}"; do
+            [[ -n "$dependency_dir" ]] || dependency_dir="."
+            if [[ -f "$dependency_dir/$dependency" && -x "$dependency_dir/$dependency" ]]; then
+                dependency_found=true
+                break
+            fi
+        done
+        if [[ "$dependency_found" != true ]]; then
+            missing_exec_dependencies+=("$dependency")
+        fi
+    done
+    local missing_exec_dependencies_json="$(printf '%s\n' "${missing_exec_dependencies[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')"
+
     local -a _arr
     mapfile_from_command _arr get_setting default_allowed_tool_effects
     local default_allowed_effects="$(printf '%s\n' "${_arr[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')"
@@ -101,6 +145,7 @@ generate_allowed_toolset_def_file() {
     # This uses the object index method that overwrites earlier entries
     jq --argjson default_allowed_effects "$default_allowed_effects" \
        --argjson patterns "$patterns_json" \
+       --argjson missing_exec_dependencies "$missing_exec_dependencies_json" \
        -f "$MAIA_CORE_LIB_DIR/generate-allowed-toolset.jq" \
        <<< "$all_tool_defs_json" > "$allowed_tools_def_file"
 }
