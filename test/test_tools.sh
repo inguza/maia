@@ -164,6 +164,27 @@ run_tools_cmd "list_after_replace_all_w" list
 run_tools_cmd "show_after_replace_all_w" show
 run_tools_cmd "view_after_replace_all_w" view
 
+# Regression tests for effect-aware tool restriction/materialization.
+restrict_fixture='[{"name":"util-1"},{"name":"util-2"},{"name":"util-3","effects":["write"]},{"name":"search-1","effects":["cost"]}]'
+assert_restricted_toolset() {
+    local restrictions="$1"
+    local expected="$2"
+    local actual
+    actual=$(jq -r \
+        --argjson default_allowed_effects '[]' \
+        --argjson patterns '["*","*:write"]' \
+        --argjson restrictions "$restrictions" \
+        -f "$M_ROOT/lib/maia/core/restrict-allowed-toolset.jq" \
+        <<< "$restrict_fixture")
+    if [[ "$actual" != "$expected" ]]; then
+        echo "Restriction regression failed for $restrictions"
+        printf 'Expected:\n%s\nActual:\n%s\n' "$expected" "$actual"
+        exit 1
+    fi
+}
+assert_restricted_toolset '["util-2"]' $'util-1\nutil-3:write'
+assert_restricted_toolset '["util-3:write"]' $'util-1\nutil-2'
+assert_restricted_toolset '["util-3"]' $'util-1\nutil-2'
 
 # Test skill restrict
 run_skills_cmd "restrict_empty" restrict "*"

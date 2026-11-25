@@ -366,34 +366,30 @@ handle_tool_command() {
             fi
             ;;
         restrict)
-            # Expand current allowed wildcards to explicit tool names
-            mapfile -t allowed_patterns < "$filepath"
-	    mapfile_from_command expanded_tools expand_tool_wildcards "${allowed_patterns[@]}"
-            # Deduplicate
-	    local tmpfile="$(mktemp)"
-	    printf '%s\n' "${expanded_tools[@]}" | sort -u > "$tmpfile"
-	    mapfile -t expanded_tools < "$tmpfile"
-	    rm -f "$tmpfile"
+            # Materialize the allow space against the tools currently available,
+            # applying the same effect-subset semantics as the allowed-tool
+            # generator. Restrictions may include an effect suffix (for example
+            # tool-name:write); an unsuffixed restriction removes every allowance
+            # for matching tool names.
+            local all_tool_defs_json="$(load_all_tool_defs)"
+            local patterns_json="$(build_list_filter_from_patterns "$filepath")"
+            local restrictions_json="$(printf '%s\n' "$@" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+            local -a _arr
+            mapfile_from_command _arr get_setting default_allowed_tool_effects
+            local default_allowed_effects="$(printf '%s\n' "${_arr[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')"
+            local tmpfile="$(mktemp)"
+            if ! jq -r --argjson default_allowed_effects "$default_allowed_effects" \
+               --argjson patterns "$patterns_json" \
+               --argjson restrictions "$restrictions_json" \
+               -f "$MAIA_CORE_LIB_DIR/restrict-allowed-toolset.jq" \
+               <<< "$all_tool_defs_json" > "$tmpfile"; then
+                rm -f "$tmpfile"
+                die "Failed to compute restricted tool allowlist."
+            fi
 
-            # Remove tools matching restrict patterns
-            local filtered_tools=()
-            for tool in "${expanded_tools[@]}"; do
-		local tool_name="${tool%%:*}"
-                local skip=false
-                for pattern in "$@"; do
-                    local regex_pattern="^${pattern//\*/.*}$"
-                    if [[ "$tool_name" =~ $regex_pattern ]]; then
-                        skip=true
-                        break
-                    fi
-                done
-                if ! $skip; then
-                    filtered_tools+=("$tool")
-                fi
-            done
-
-            # Update allowed tools file with filtered explicit list
-            printf '%s\n' "${filtered_tools[@]}" > "$filepath"
+            # Replace wildcard rules with the normalized explicit rules for
+            # the remaining allow space, then refresh the generated toolset.
+            mv "$tmpfile" "$filepath"
             refresh_allowed_toolset_files "$scope" "$filepath"
             ;;
 	discover)
