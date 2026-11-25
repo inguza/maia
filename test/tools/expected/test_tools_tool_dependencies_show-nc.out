@@ -1,0 +1,37 @@
+Allowed tools:
+--------------
+cust-*
+Tool definitions:
+-----------------
+[
+  {
+    "name": "cust-core-pipe-dependent",
+    "description": "Test tool that requires core-pipe.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-core-pipe-dependent.td",
+    "tool-dependencies-missing": [
+      "core-pipe"
+    ]
+  },
+  {
+    "name": "cust-invalid-dependency",
+    "description": "Test tool that requires a nonexistent tool.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-invalid-dependency.td",
+    "tool-dependencies-missing": [
+      "xcusdkjfd"
+    ]
+  }
+]

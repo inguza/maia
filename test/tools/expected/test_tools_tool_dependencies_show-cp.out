@@ -1,0 +1,76 @@
+Allowed tools:
+--------------
+cust-*
+core-pipe
+Tool definitions:
+-----------------
+[
+  {
+    "name": "core-pipe",
+    "description": "Execute multiple tools in pipeline order, piping the output from one to the next.",
+    "command": "core-pipe.sh",
+    "instructions": [
+      "basics.txt",
+      "core-pipe.txt"
+    ],
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the function/tool to use."
+              },
+              "arguments": {
+                "type": "object",
+                "description": "Arguments for the function/tool use.",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "name",
+              "arguments"
+            ]
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pipeline"
+      ],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_ROOT>/lib/maia/tools/basics.td"
+  },
+  {
+    "name": "cust-core-pipe-dependent",
+    "description": "Test tool that requires core-pipe.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-core-pipe-dependent.td"
+  },
+  {
+    "name": "cust-invalid-dependency",
+    "description": "Test tool that requires a nonexistent tool.",
+    "command": "cust-placeholder",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "source": "<MAIA_HOME>/.maia/tools/cust-invalid-dependency.td",
+    "tool-dependencies-missing": [
+      "xcusdkjfd"
+    ]
+  }
+]

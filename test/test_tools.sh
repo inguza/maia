@@ -88,6 +88,22 @@ run_tools_cmd "scope_after_delete" --scope
 run_tools_cmd "refresh_after_delete" refresh
 run_tools_cmd "verify_after_delete" verify
 
+# Regression test for strict tool-to-tool availability prerequisites.
+mkdir -p "$XMAIA_HOME/.maia/tools"
+cp "$TEST_ROOT/tools/cust-core-pipe-dependent.td" "$XMAIA_HOME/.maia/tools/"
+cp "$TEST_ROOT/tools/cust-invalid-dependency.td" "$XMAIA_HOME/.maia/tools/"
+run_tools_cmd "tool_dependencies_allow-nc" allow "cust-*"
+run_tools_cmd "tool_dependencies_list-nc" list
+run_tools_cmd "tool_dependencies_show-nc" show
+run_tools_cmd "tool_dependencies_delete-nc" delete
+#
+run_tools_cmd "tool_dependencies_allow-cp" allow "cust-*" "core-pipe"
+run_tools_cmd "tool_dependencies_list-cp" list
+run_tools_cmd "tool_dependencies_show-cp" show
+run_tools_cmd "tool_dependencies_delete-cp" delete
+rm -f "$XMAIA_HOME/.maia/tools/cust-core-pipe-dependent.td" \
+      "$XMAIA_HOME/.maia/tools/cust-invalid-dependency.td"
+
 # edit not tested
 
 # MCP tests
