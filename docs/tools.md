@@ -15,6 +15,8 @@ Each `.td` file should be a valid JSON object with the following fields:
 - `name` (string): The fully qualified name of the tool function, typically namespaced with dots (e.g., `"git.status"`).
 - `description` (string): A human-readable description of the tool's purpose, shown to the AI model.
 - `command` (string): The executable command or script that implements the tool.
+- `tool-dependencies` (optional, array of strings): Names of other tools that must be enabled and available for this tool to be offered to the AI model.
+- `exec-dependencies` (optional, array of strings): Executable names that must be available in `PATH` for this tool to be offered to the AI model. Availability is checked when you allow tools or run `maia tool refresh`.
 - `effects`: (optional) A list of effects the tool can have:
   - limited-write - Possible to write in certain cases, like append to file, create new file and similar
   - write - Can write to files, commit things and similar
@@ -44,6 +46,25 @@ Each `.td` file should be a valid JSON object with the following fields:
 The command is the executable to run and the executable is searched for in the same order as Tool Discovery takes place (described below).
 
 The command string can have space, and in that case the text after the space is the command arguments.
+
+Tool dependencies are strict availability prerequisites. If a dependency is not enabled or is unavailable, the dependent tool is not offered to the AI model. This applies transitively through dependency chains. Dependencies do not cause tools to run automatically or specify an execution order.
+
+Executable dependencies are also strict availability prerequisites. Each named executable must be found in `PATH` when you allow tools or run `maia tool refresh`; otherwise, the tool is not offered to the AI model. Run `maia tool refresh` after changing the executable environment to update its availability.
+
+For example, a tool that only accepts input from standard input can depend on `core-pipe`:
+
+```json
+{
+  "name": "custom-stdin-tool",
+  "description": "Process input from standard input",
+  "command": "custom-stdin-tool.sh",
+  "tool-dependencies": ["core-pipe"],
+  "parameters": {
+    "type": "object",
+    "properties": {}
+  }
+}
+```
 
 **Example: Provider tool**
 
