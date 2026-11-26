@@ -20,7 +20,7 @@ Example: file_handling_mode_mistral_24b file_handling_mode_qwen2_5_14b
 
 * `model` — Model to use for requests.
 * `temperature` — Controls randomness in model output.
-* `top_p` — Nucleus-sampling parameter (not supported by AWS Bedrock Completions API).
+* `top_p` — Nucleus-sampling parameter (not supported by AWS Bedrock Converse API).
 
 ## Sessions
 
@@ -29,6 +29,7 @@ Example: file_handling_mode_mistral_24b file_handling_mode_qwen2_5_14b
 
 ## Reasoning
 
+* `reasoning_effort` — Reasoning effort requested from the model (not supported by AWS Bedrock Converse API).
 * `reasoning_context` — Controls which reasoning items are retained in subsequent turns. Default 'current_turn'. Set to all_turns to keep reasoning in history.
 
 ## Agent managed sessions

@@ -29,6 +29,7 @@ prune_when_applied
 agent_session_allowed
 additional_tool_paths
 prune_mode
+reasoning_effort
 model
 file_handling_mode
 additional_skill_paths

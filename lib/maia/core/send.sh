@@ -569,6 +569,7 @@ handle_send_command() {
     local max_output_tokens=$(get_setting max_output_tokens)
     local max_input_tokens=$(get_setting max_input_tokens)
     local top_p=$(get_setting top_p)
+    local reasoning_effort=$(get_setting reasoning_effort)
     local max_tool_calls=$(get_setting max_tool_calls)
     local tool_loop_prevent
     read -ra tool_loop_prevent <<< "$(get_setting 'tool_loop_prevent')"
@@ -915,6 +916,7 @@ handle_send_command() {
 		printf '%s' "$messages_json_compl" > "$tmpmf"
 		jq -n \
 		   --arg model "$model" \
+		   --arg reasoning_effort "$reasoning_effort" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
 		   --argjson max_tokens "$max_output_tokens" \
@@ -930,6 +932,7 @@ handle_send_command() {
 		printf '%s' "$messages_json_resp" > "$tmpmf"
 		jq -n \
 		   --arg model "$model" \
+		   --arg reasoning_effort "$reasoning_effort" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
 		   --argjson max_tool_calls "$max_tool_calls" \

@@ -11,4 +11,6 @@
 +
 (if $top_p != null then {top_p: $top_p} else {} end)
 +
+(if $reasoning_effort != "" then {reasoning_effort: $reasoning_effort} else {} end)
++
 (if $tools != null then {tools: $tools} else {} end)

@@ -29,6 +29,7 @@ prune_when_applied=true
 agent_session_allowed=*
 additional_tool_paths=
 prune_mode=reduce
+reasoning_effort=
 model=gpt-6-luna
 file_handling_mode=DEFAULT
 additional_skill_paths=
