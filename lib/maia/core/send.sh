@@ -1007,6 +1007,7 @@ handle_send_command() {
 	local tools_call_json=""
 	local tool_results_json=""
 	local reasoning=""
+	local assistant_phase=""
 	if [[ -n "$response_file" ]]; then
             notice "Using response file $response_file"
             response=$(read_file "$response_file")
@@ -1163,6 +1164,7 @@ handle_send_command() {
                     tools_call_json=$(jq -c -f "$MAIA_CORE_LIB_DIR/send-aws-bedrock-converse-tool_calls.jq" <<<"$response")
 		fi
 	    fi
+	    assistant_phase=$(jq -r '([.output[]? | select(.type == "message") | .phase // empty] | map(select(type == "string" and length > 0)) | last) // .choices[0].message.phase // .output.message.phase // .phase // empty' <<<"$response" 2>/dev/null || true)
 	    if [[ "$tools_call_json" == "null" ]] ; then
 		tools_call_json=""
 	    fi
@@ -1304,11 +1306,12 @@ handle_send_command() {
         local shaid="$(printf '%s' "$reply$tools_call_json" | sha256sum | cut -c1-8)"
 
 	# Log the assistant response when the API returned a message or tool call.
-	if [[ -n "$tools_call_json" || -n "$reply" ]] ; then
+	if [[ -n "$tools_call_json" || -n "$reply" || -n "$assistant_phase" ]] ; then
 	    exclusive_json_modify "$history_file" \
 				  --arg txt "$reply" \
 				  --arg ts "$timestamp" \
 				  --arg id "$shaid" \
+				  --arg phase "$assistant_phase" \
 				  --argjson tools "${tools_call_json:-[]}" '
 	     . + [{
 	            role: "assistant",
@@ -1317,6 +1320,7 @@ handle_send_command() {
 		    content: (if $txt == "" then null else $txt end)
 		  }
 		  + (if ($tools | length) > 0 then {tool_calls: $tools} else {} end)
+		  + (if $phase != "" then {phase: $phase} else {} end)
 	     ]'
 	fi
 
@@ -1513,11 +1517,12 @@ handle_send_command() {
             tool_tmp_dir=""
 	    trigger_event "post-tool-calls" "$tool_tmp_dir" "${tool_call_ids[@]}"
 	fi
-	if [[ "$tools_call_json" ]] ; then
-	    # Tool call continue looping
+	if [[ -n "$tools_call_json" || "$assistant_phase" == "commentary" ]] ; then
+	    # Tool calls always require another iteration. Commentary can also be
+	    # followed by another assistant response, even without tool calls.
 	    ((allowed_iterations_left--))
 	else
-	    # No tool call, end looping
+	    # Any other response without tool calls ends the loop.
 	    allowed_iterations_left=0
 	fi
 	trigger_event "post-send-loop" "${iteration}" "${allowed_iterations_left}" "${messages_json}"

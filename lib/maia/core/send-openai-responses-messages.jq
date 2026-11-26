@@ -60,6 +60,7 @@ map(
           end
         )
       }
+      + (if $apitype == "OPENAI_RESPONSES" and .phase != null then {phase: .phase} else {} end)
     ] +
     (
       .tool_calls | map({
@@ -81,6 +82,7 @@ map(
         end
       )
     }
+    + (if $apitype == "OPENAI_RESPONSES" and .phase != null then {phase: .phase} else {} end)
   elif .role == "reasoning" then
     if .api_type == $apitype then
       .data
