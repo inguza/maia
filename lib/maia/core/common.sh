@@ -3140,14 +3140,69 @@ hook_execute() {
     return 0
 }
 
+# Execute executable hook files from one event directory. The associative
+# array named by $4 prevents the same shared directory hook from running more
+# than once when several enabled objects come from that directory.
+execute_event_hooks_in_dir() {
+    local event_dir="$1"
+    local event="$2"
+    local extrapath="$3"
+    local seen_name="$4"
+    shift 4
+    local -n _seen_event_hooks_ref="$seen_name"
+    local hook
+    for hook in "$event_dir"/*.hook; do
+        [[ -f "$hook" && -x "$hook" ]] || continue
+        [[ -v _seen_event_hooks_ref["$hook"] ]] && continue
+        _seen_event_hooks_ref["$hook"]=1
+        hook_execute "$hook" "$event" "$extrapath" "$@"
+    done
+}
+
 trigger_event() {
     local event="$1"
     shift
     local -a data=("$@")
-    # First look up built in hooks
-    for hook in "${MAIA_HOOKS_LIB_DIR}/$event/"*.hook ; do
-	[[ -f "$hook" && -x "$hook" ]] || continue
-	hook_execute "$hook" "$event" "" "${data[@]}"
+    local -A seen_hooks=()
+    local hook source owner_dir cache_file plugin_hooks_dir
+
+    # First look up built-in hooks.
+    execute_event_hooks_in_dir "${MAIA_HOOKS_LIB_DIR}/$event" "$event" "" seen_hooks "${data[@]}"
+
+    # The .list files contain the enabled tool-definition and skill source
+    # files. Their parent directories are the corresponding tool/skill roots.
+    local toolset_file="$(file_for_scope session "toolset.txt")"
+    if [[ -n "$toolset_file" ]]; then
+        cache_file="${toolset_file%.txt}.list"
+        if [[ -f "$cache_file" ]]; then
+            while IFS= read -r source || [[ -n "$source" ]]; do
+                [[ -n "$source" && -f "$source" ]] || continue
+                owner_dir="$(dirname -- "$source")"
+                execute_event_hooks_in_dir "$owner_dir/hooks/$event" "$event" "$owner_dir" seen_hooks "${data[@]}"
+            done < "$cache_file"
+        fi
+    fi
+
+    local skillset_file="$(file_for_scope session "skillset.txt")"
+    if [[ -n "$skillset_file" ]]; then
+        cache_file="${skillset_file%.txt}.list"
+        if [[ -f "$cache_file" ]]; then
+            while IFS= read -r source || [[ -n "$source" ]]; do
+                [[ -n "$source" && -f "$source" ]] || continue
+                owner_dir="$(dirname -- "$source")"
+                execute_event_hooks_in_dir "$owner_dir/hooks/$event" "$event" "$owner_dir" seen_hooks "${data[@]}"
+            done < "$cache_file"
+        fi
+    fi
+
+    # Plugins are always eligible, so discover their hook roots directly rather
+    # than maintaining an allowlist cache for them.
+    local plugin_hooks="$(resolve_plugin_paths "hooks")"
+    local -a plugin_hooks_dirs=()
+    IFS=: read -ra plugin_hooks_dirs <<< "$plugin_hooks"
+    for plugin_hooks_dir in "${plugin_hooks_dirs[@]}"; do
+        [[ -n "$plugin_hooks_dir" ]] || continue
+        execute_event_hooks_in_dir "$plugin_hooks_dir/$event" "$event" "$(dirname -- "$plugin_hooks_dir")" seen_hooks "${data[@]}"
     done
 }
 

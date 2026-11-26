@@ -204,6 +204,28 @@ generate_allowed_tools_instr_file() {
     done <<< "$instruction_files"
 }
 
+# Generate a simple list of enabled tool definition files.
+generate_allowed_toolset_list() {
+    local allowed_tools_def_file="$1"
+    local list_file="$2"
+    local tmpfile="${list_file}.tmp.$$"
+
+    if [[ -s "$allowed_tools_def_file" ]]; then
+        jq -r '
+            .[] |
+            select((."exec-dependencies-missing" // []) | length == 0) |
+            select((."tool-dependencies-missing" // []) | length == 0) |
+            .source // empty
+        ' "$allowed_tools_def_file" | sort -u > "$tmpfile" || {
+            rm -f "$tmpfile"
+            return 1
+        }
+    else
+        : > "$tmpfile"
+    fi
+    mv "$tmpfile" "$list_file"
+}
+
 # Refresh: regenerate tools.json based on the tools.txt file
 # This merges all discovered .td files and allowed tools state per scope
 refresh_allowed_toolset_files() {
@@ -211,12 +233,15 @@ refresh_allowed_toolset_files() {
     local allowed_tools_list_file="$2"
     local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
     local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"
+    local allowed_tools_cache_file="${allowed_tools_list_file%.txt}.list"
     if [ ! -e "$allowed_tools_list_file" ] ; then
 	rm -f "$allowed_tools_def_file"
 	rm -f "$allowed_tools_instr_file"
+        rm -f "$allowed_tools_cache_file"
     else
 	generate_allowed_toolset_def_file "$allowed_tools_list_file" "${allowed_tools_def_file}"
 	generate_allowed_tools_instr_file "$allowed_tools_list_file" "${allowed_tools_instr_file}"
+        generate_allowed_toolset_list "$allowed_tools_def_file" "$allowed_tools_cache_file"
 	info "Refreshed allowed toolset for scope '$scope'"
     fi
 }
@@ -228,6 +253,7 @@ verify_tools_def_file() {
     local allowed_tools_list_file="$2"
     local allowed_tools_def_file="${allowed_tools_list_file%.txt}.json"
     local allowed_tools_instr_file="${allowed_tools_list_file%set.txt}_instr.txt"
+    local allowed_tools_cache_file="${allowed_tools_list_file%.txt}.list"
     local err=0
     if [ ! -e "$allowed_tools_list_file" ] ; then
 	if [ -e "$allowed_tools_def_file" ] ; then
@@ -238,6 +264,10 @@ verify_tools_def_file() {
 	    warn "No tool instructions but toolset JSON file exist for $scope"
 	    err=1
 	fi
+        if [ -e "$allowed_tools_cache_file" ] ; then
+            warn "No tool definitions but tool list cache exists for $scope"
+            err=1
+        fi
     else
 	if [ ! -e "$allowed_tools_def_file" ] ; then
 	    warn "Tool definitions but no toolset JSON file exist for $scope"
@@ -265,6 +295,21 @@ verify_tools_def_file() {
 		notice "Allowed tools instruction cache for scope '$scope' is up to date"
 	    fi
 	fi
+        if [ ! -e "$allowed_tools_cache_file" ] ; then
+            warn "Tool definitions but no tool list cache exists for $scope"
+            err=1
+        else
+            generate_allowed_toolset_list "${allowed_tools_def_file}.tmp" "${allowed_tools_cache_file}.tmp"
+            if ! diff "$allowed_tools_cache_file" "${allowed_tools_cache_file}.tmp" > /dev/null ; then
+                warn "Allowed tool list cache for scope '$scope' is out of sync with the available tools."
+                diff -u "$allowed_tools_cache_file" "${allowed_tools_cache_file}.tmp"
+                err=1
+            else
+                notice "Allowed tool list cache for scope '$scope' is up to date"
+            fi
+            rm -f "${allowed_tools_cache_file}.tmp"
+        fi
+        rm -f "${allowed_tools_def_file}.tmp" "${allowed_tools_instr_file}.tmp"
     fi
     return $err
 }

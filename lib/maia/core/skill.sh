@@ -89,6 +89,28 @@ generate_skillset_gen() {
     fi
 }
 
+# Generate a list of source files for enabled skills.
+generate_skillset_list() {
+    local skillset_file="$1"
+    local list_file="$2"
+    local tmpfile="${list_file}.tmp.$$"
+
+    if [[ ! -e "$skillset_file" ]]; then
+        rm -f "$list_file" "$tmpfile"
+        return 0
+    fi
+
+    local skillsdata="$(get_all_ordered_skill_names "file")"
+    local allowed_glob="$(make_glob_from_file "$skillset_file")"
+    : > "$tmpfile"
+    while IFS=' ' read -r skill skillfile; do
+        [[ -n "$skill" && -n "$allowed_glob" && "$skill" == $allowed_glob ]] || continue
+        printf '%s\n' "$skillfile" >> "$tmpfile"
+    done <<< "$skillsdata"
+    sort -u "$tmpfile" -o "$tmpfile"
+    mv "$tmpfile" "$list_file"
+}
+
 generate_skillset_context_gen() {
     local scope="$1"
     local skillset_context_file="$2"
@@ -136,10 +158,12 @@ expand_allowed_skillset_context_file() {
 refresh_allowed_skillset_file() {
     local scope="$1" skillset_file="$2"
     local skillset_gen_file="${skillset_file%.txt}.gen"
+    local skillset_list_file="${skillset_file%.txt}.list"
     if [ ! -e "$skillset_file" ] ; then
-	rm -f "$skillset_gen_file"
+	rm -f "$skillset_gen_file" "$skillset_list_file"
     else
 	generate_skillset_gen "$scope" "$skillset_file" "$skillset_gen_file"
+        generate_skillset_list "$skillset_file" "$skillset_list_file"
     fi
 }
 
@@ -158,11 +182,16 @@ verify_skillset_files() {
     local skillset_file="$2"
     local skillset_context_file="$3"
     local skillset_gen_file="${skillset_file%.txt}.gen"
+    local skillset_list_file="${skillset_file%.txt}.list"
     local skillset_context_gen_file="${skillset_context_file%.txt}.gen"
     local err=0
     if [[ ! -e "$skillset_file" && -e "$skillset_gen_file" ]] ; then
 	warn "No skill allow definitions but skill list for scope $scope"
 	err=1
+    fi
+    if [[ ! -e "$skillset_file" && -e "$skillset_list_file" ]] ; then
+        warn "No skill allow definitions but skill source list for scope $scope"
+        err=1
     fi
     if [[ ! -e "$skillset_context_file" && -e "$skillset_context_gen_file" ]] ; then
 	warn "No skill memory definitions but memorized skill instructions for scope $scope"
@@ -171,6 +200,10 @@ verify_skillset_files() {
     if [[ -e "$skillset_file" && ! -e "$skillset_gen_file" ]] ; then
 	warn "Skill allow definitions but no skill list for scope $scope"
 	err=1
+    fi
+    if [[ -e "$skillset_file" && ! -e "$skillset_list_file" ]] ; then
+        warn "Skill allow definitions but no skill source list for scope $scope"
+        err=1
     fi
     if [[ -e "$skillset_context_file" && ! -e "$skillset_context_gen_file" ]] ; then
 	warn "Skill memory definitions but no memorized skill instructions for scope $scope"
@@ -186,6 +219,15 @@ verify_skillset_files() {
 	    else
 		notice "Allowed skills list for scope '$scope' is up to date"
 	    fi
+            generate_skillset_list "$skillset_file" "${skillset_list_file}.tmp"
+            if ! diff "$skillset_list_file" "${skillset_list_file}.tmp" > /dev/null ; then
+                warn "Allowed skill source list for '$scope' is out of sync with the available skills."
+                diff -u "$skillset_list_file" "${skillset_list_file}.tmp"
+                err=1
+            else
+                notice "Allowed skill source list for scope '$scope' is up to date"
+            fi
+            rm -f "${skillset_list_file}.tmp"
 	fi
 	if [[ -e "$skillset_context_file" ]] ; then
 	    generate_skillset_context_gen "$scope" "$skillset_context_file" "${skillset_context_gen_file}.tmp"
