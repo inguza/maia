@@ -35,6 +35,7 @@ prune_when_applied             default    true
 prune_when_skipped             default    true
 reasoning_context              default    "current_turn"
 reasoning_effort               default    ""
+reasoning_mode                 default    ""
 send_hook                      default    ""
 temperature                    default    "null"
 term_loglevel                  home       "NOTICE"

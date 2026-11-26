@@ -10,7 +10,10 @@
 +
 (if $top_p != null then {top_p: $top_p} else {} end)
 +
-(if $reasoning_effort != "" then {reasoning: {effort: $reasoning_effort}} else {} end)
+(if $reasoning_effort != "" or $reasoning_mode != "" then
+  {reasoning: ((if $reasoning_effort != "" then {effort: $reasoning_effort} else {} end)
+    + (if $reasoning_mode != "" then {mode: $reasoning_mode} else {} end))}
+ else {} end)
 +
 (if $max_tool_calls != null then {max_tool_calls: $max_tool_calls} else {} end)
 +

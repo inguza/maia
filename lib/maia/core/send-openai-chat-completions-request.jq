@@ -13,4 +13,6 @@
 +
 (if $reasoning_effort != "" then {reasoning_effort: $reasoning_effort} else {} end)
 +
+(if $reasoning_mode != "" then {reasoning_mode: $reasoning_mode} else {} end)
++
 (if $tools != null then {tools: $tools} else {} end)

@@ -66,7 +66,7 @@
             </div>
             <button id="config-model-specific-save" type="submit">Add</button>
         </form>
-        <p class="config-help">Set a file-handling or reasoning-effort parameter for a model. Values are free-form; suggestions are hints only. Press Tab to complete a matching suggestion. Model names use underscores in parameter names (for example, <code>reasoning_effort_gpt_5</code> for <code>gpt-5</code>). Reasoning effort suggestions: none, minimal, low, medium, high, xhigh, max.</p>
+        <p class="config-help">Set a file-handling, reasoning-effort, or reasoning-mode parameter for a model. Values are free-form; suggestions are hints only. Press Tab to complete a matching suggestion. Model names use underscores in parameter names (for example, <code>reasoning_effort_gpt_5</code> for <code>gpt-5</code>). Reasoning effort suggestions: none, minimal, low, medium, high, xhigh, max. Reasoning mode suggestions: standard, pro.</p>
     </details>
 </section>
 <section id="config-costs-panel" class="config-tab-panel" role="tabpanel" aria-labelledby="config-costs-tab" tabindex="0" hidden>

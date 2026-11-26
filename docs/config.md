@@ -12,25 +12,34 @@
 * `max_tool_calls` — The maximum number of total calls to built-in tools that can be processed in a response. Only for OpenAI Responses API.
 * `send_hook` — Optional hook executed when preparing or sending a request. This can be used, for example, to read the API credentials.
 
-It is also possible to set file handling mode per model as file_handling_mode_<model>.
-
-Example: file_handling_mode_mistral_24b file_handling_mode_qwen2_5_14b
-
 ### API parameters
 
 * `model` — Model to use for requests.
 * `temperature` — Controls randomness in model output.
 * `top_p` — Nucleus-sampling parameter (not supported by AWS Bedrock Converse API).
 
+### Reasoning
+
+* `reasoning_effort` — Reasoning effort requested from the model (not supported by AWS Bedrock Converse API). Empty by default.
+* `reasoning_mode` — Reasoning mode requested from the model (not supported by AWS Bedrock Converse API). Empty by default.
+* `reasoning_context` — Controls which reasoning items are retained in subsequent turns. Default 'current_turn'. Set to all_turns to keep reasoning in history.
+
+### Model specific
+
+Model-specific settings can override the corresponding global setting.
+
+ * `file_handling_mode_<model>`
+ * `reasoning_effort_<model>`
+ * `reasoning_mode_<model>`.
+
+Dots and dashes in model names are replaced with underscores.
+
+Examples: `file_handling_mode_mistral_24b`, `reasoning_effort_gpt_5`, `reasoning_mode_gpt_6_luna`
+
 ## Sessions
 
 * `default_profile` — Profile used by default.
 * `allowed_profiles` — Profiles available to agents.
-
-## Reasoning
-
-* `reasoning_effort` — Reasoning effort requested from the model (not supported by AWS Bedrock Converse API).
-* `reasoning_context` — Controls which reasoning items are retained in subsequent turns. Default 'current_turn'. Set to all_turns to keep reasoning in history.
 
 ## Agent managed sessions
 

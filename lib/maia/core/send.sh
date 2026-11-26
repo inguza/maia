@@ -570,6 +570,7 @@ handle_send_command() {
     local max_input_tokens=$(get_setting max_input_tokens)
     local top_p=$(get_setting top_p)
     local reasoning_effort=$(get_setting reasoning_effort)
+    local reasoning_mode=$(get_setting reasoning_mode)
     local max_tool_calls=$(get_setting max_tool_calls)
     local tool_loop_prevent
     read -ra tool_loop_prevent <<< "$(get_setting 'tool_loop_prevent')"
@@ -650,6 +651,10 @@ handle_send_command() {
     local model_reasoning_effort=$(get_setting "reasoning_effort_${reasoning_model_key}")
     if [[ -n "$model_reasoning_effort" ]]; then
         reasoning_effort="$model_reasoning_effort"
+    fi
+    local model_reasoning_mode=$(get_setting "reasoning_mode_${reasoning_model_key}")
+    if [[ -n "$model_reasoning_mode" ]]; then
+        reasoning_mode="$model_reasoning_mode"
     fi
 
     case "$output_mode" in
@@ -925,6 +930,7 @@ handle_send_command() {
 		jq -n \
 		   --arg model "$model" \
 		   --arg reasoning_effort "$reasoning_effort" \
+		   --arg reasoning_mode "$reasoning_mode" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
 		   --argjson max_tokens "$max_output_tokens" \
@@ -941,6 +947,7 @@ handle_send_command() {
 		jq -n \
 		   --arg model "$model" \
 		   --arg reasoning_effort "$reasoning_effort" \
+		   --arg reasoning_mode "$reasoning_mode" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
 		   --argjson max_tool_calls "$max_tool_calls" \

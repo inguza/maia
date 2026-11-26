@@ -26,6 +26,7 @@ default_agent_skill_allow
 default_agent_skill_forget
 default_agent_tool_restrict
 prune_when_applied
+reasoning_mode
 agent_session_allowed
 additional_tool_paths
 prune_mode
