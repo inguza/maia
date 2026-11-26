@@ -571,6 +571,7 @@ handle_send_command() {
     local top_p=$(get_setting top_p)
     local reasoning_effort=$(get_setting reasoning_effort)
     local reasoning_mode=$(get_setting reasoning_mode)
+    local reasoning_summary=$(get_setting reasoning_summary)
     local max_tool_calls=$(get_setting max_tool_calls)
     local tool_loop_prevent
     read -ra tool_loop_prevent <<< "$(get_setting 'tool_loop_prevent')"
@@ -655,6 +656,10 @@ handle_send_command() {
     local model_reasoning_mode=$(get_setting "reasoning_mode_${reasoning_model_key}")
     if [[ -n "$model_reasoning_mode" ]]; then
         reasoning_mode="$model_reasoning_mode"
+    fi
+    local model_reasoning_summary=$(get_setting "reasoning_summary_${reasoning_model_key}")
+    if [[ -n "$model_reasoning_summary" ]]; then
+        reasoning_summary="$model_reasoning_summary"
     fi
     local reasoning_context=$(get_setting reasoning_context)
     local model_reasoning_context=$(get_setting "reasoning_context_${reasoning_model_key}")
@@ -952,6 +957,7 @@ handle_send_command() {
 		   --arg model "$model" \
 		   --arg reasoning_effort "$reasoning_effort" \
 		   --arg reasoning_mode "$reasoning_mode" \
+		   --arg reasoning_summary "$reasoning_summary" \
 		   --argjson temperature "$temperature" \
 		   --argjson top_p "$top_p" \
 		   --argjson max_tool_calls "$max_tool_calls" \

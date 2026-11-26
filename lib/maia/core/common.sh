@@ -47,6 +47,7 @@ declare -A DEFAULT_SETTINGS=(
     # Reasoning related
     [reasoning_effort]=''
     [reasoning_mode]=''
+    [reasoning_summary]=''
     [reasoning_context]='current_turn'
     # Logging control
     [http_logging]=false

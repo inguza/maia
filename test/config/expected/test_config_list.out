@@ -7,6 +7,7 @@ http_logging
 default_agent_skill_remember
 allowed_profiles
 agent_session_prefix
+reasoning_summary
 tool_loop_prevent
 max_output_tokens
 default_workspace

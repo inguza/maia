@@ -66,7 +66,7 @@
             </div>
             <button id="config-model-specific-save" type="submit">Add</button>
         </form>
-        <p class="config-help">Set a file-handling, reasoning-effort, reasoning-mode, or reasoning-context parameter for a model. Values are free-form; suggestions are hints only. Press Tab to complete a matching suggestion. Model names use underscores in parameter names (for example, <code>reasoning_effort_gpt_5</code> for <code>gpt-5</code>). Reasoning effort suggestions: none, minimal, low, medium, high, xhigh, max. Reasoning mode suggestions: standard, pro. Reasoning context suggestions: current_turn, all_turns.</p>
+        <p class="config-help">Set a file-handling, reasoning-effort, reasoning-mode, reasoning-summary, or reasoning-context parameter for a model. Values are free-form; suggestions are hints only. Press Tab to complete a matching suggestion. Model names use underscores in parameter names (for example, <code>reasoning_effort_gpt_5</code> for <code>gpt-5</code>). Reasoning effort suggestions: none, minimal, low, medium, high, xhigh, max. Reasoning mode suggestions: standard, pro. Reasoning summary suggestions: auto, concise, detailed; availability depends on the model. Reasoning context suggestions: current_turn, all_turns.</p>
     </details>
 </section>
 <section id="config-costs-panel" class="config-tab-panel" role="tabpanel" aria-labelledby="config-costs-tab" tabindex="0" hidden>

@@ -22,6 +22,7 @@
 
 * `reasoning_effort` — Reasoning effort requested from the model (not supported by AWS Bedrock Converse API). Empty by default.
 * `reasoning_mode` — Reasoning mode requested from the model (not supported by AWS Bedrock Converse API). Empty by default.
+* `reasoning_summary` — Requested reasoning summary format (not supported by AWS Bedrock Converse API). Empty by default. Accepted values depend on the model.
 * `reasoning_context` — Controls which reasoning items are retained in subsequent turns. Default `current_turn`. Set to `all_turns` to keep reasoning in history.
 
 ### Model specific
@@ -31,11 +32,12 @@ Model-specific settings can override the corresponding global setting.
  * `file_handling_mode_<model>`
  * `reasoning_effort_<model>`
  * `reasoning_mode_<model>`
+ * `reasoning_summary_<model>`
  * `reasoning_context_<model>`.
 
 Dots and dashes in model names are replaced with underscores.
 
-Examples: `file_handling_mode_mistral_24b`, `reasoning_effort_gpt_5`, `reasoning_mode_gpt_6_luna`, `reasoning_context_gpt_6_luna`
+Examples: `file_handling_mode_mistral_24b`, `reasoning_effort_gpt_5`, `reasoning_mode_gpt_6_luna`, `reasoning_summary_gpt_6_luna`, `reasoning_context_gpt_6_luna`
 
 ## Sessions
 

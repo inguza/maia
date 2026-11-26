@@ -10,9 +10,10 @@
 +
 (if $top_p != null then {top_p: $top_p} else {} end)
 +
-(if $reasoning_effort != "" or $reasoning_mode != "" then
+(if $reasoning_effort != "" or $reasoning_mode != "" or $reasoning_summary != "" then
   {reasoning: ((if $reasoning_effort != "" then {effort: $reasoning_effort} else {} end)
-    + (if $reasoning_mode != "" then {mode: $reasoning_mode} else {} end))}
+    + (if $reasoning_mode != "" then {mode: $reasoning_mode} else {} end)
+    + (if $reasoning_summary != "" then {summary: $reasoning_summary} else {} end))}
  else {} end)
 +
 (if $max_tool_calls != null then {max_tool_calls: $max_tool_calls} else {} end)
