@@ -147,7 +147,7 @@ function config_context_values(string $scope, array $environment, string $type =
     config_context_fail_run($effectiveResult, 'Unable to get effective configuration.');
     $effective = config_context_parse_values($effectiveResult['output']);
     foreach (array_keys($effective) as $key) {
-        if ($type === 'settings' && preg_match('/^(file_handling_mode_|reasoning_effort_|reasoning_mode_)/', $key) && !config_context_is_hidden_key($key)) {
+        if ($type === 'settings' && preg_match('/^(file_handling_mode_|reasoning_effort_|reasoning_mode_|reasoning_context_)/', $key) && !config_context_is_hidden_key($key)) {
             $knownKeys[$key] = true;
         }
     }
@@ -247,7 +247,7 @@ function config_context_allowed_keys(string $scope, array $environment, string $
     $effectiveResult = config_context_run(array_merge(['config'], $typeArguments, ['--scope', $scope, 'get']), $environment);
     config_context_fail_run($effectiveResult, 'Unable to get effective configuration.');
     foreach (array_keys(config_context_parse_values($effectiveResult['output'])) as $key) {
-        if ($type === 'settings' && preg_match('/^(file_handling_mode_|reasoning_effort_|reasoning_mode_)/', $key)) $allowed[$key] = true;
+        if ($type === 'settings' && preg_match('/^(file_handling_mode_|reasoning_effort_|reasoning_mode_|reasoning_context_)/', $key)) $allowed[$key] = true;
     }
     return $allowed;
 }
@@ -336,8 +336,8 @@ if ($action === 'set') {
 } elseif ($action === 'add-model-setting') {
     $key = trim((string) ($input['key'] ?? ''));
     $value = trim((string) ($input['value'] ?? ''));
-    if (!preg_match('/^(file_handling_mode|reasoning_effort|reasoning_mode)_[A-Za-z0-9_]+$/', $key)) {
-        config_context_error(400, 'Use a parameter name like file_handling_mode_model_name, reasoning_effort_model_name, or reasoning_mode_model_name.');
+    if (!preg_match('/^(file_handling_mode|reasoning_effort|reasoning_mode|reasoning_context)_[A-Za-z0-9_]+$/', $key)) {
+        config_context_error(400, 'Use a parameter name like file_handling_mode_model_name, reasoning_effort_model_name, reasoning_mode_model_name, or reasoning_context_model_name.');
     }
     if ($value === '') {
         config_context_error(400, 'A value is required for the model-specific parameter.');

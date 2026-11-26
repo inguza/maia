@@ -656,6 +656,11 @@ handle_send_command() {
     if [[ -n "$model_reasoning_mode" ]]; then
         reasoning_mode="$model_reasoning_mode"
     fi
+    local reasoning_context=$(get_setting reasoning_context)
+    local model_reasoning_context=$(get_setting "reasoning_context_${reasoning_model_key}")
+    if [[ -n "$model_reasoning_context" ]]; then
+        reasoning_context="$model_reasoning_context"
+    fi
 
     case "$output_mode" in
 	full|final)
@@ -885,7 +890,6 @@ handle_send_command() {
 	    ;;
     esac
 
-    local reasoning_context=$(get_setting reasoning_context)
     if [[ "$count" != true && -n "$outbox_content" && "$reasoning_context" == 'current_turn' ]]; then
 	# https://developers.openai.com/api/docs/guides/reasoning
         # A new user message starts a new reasoning context; keep reasoning only

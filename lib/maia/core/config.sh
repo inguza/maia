@@ -223,7 +223,7 @@ handle_config_command() {
             CONFIG_FILENAME=settings.myl
             CONFIG_SECRET=0
             ACTIVE_CONFIG_KEYS=( "${SETTINGS_KEYS[@]}" )
-            ACTIVE_CONFIG_PATTERNS=( 'file_handling_mode_*' 'reasoning_effort_*' 'reasoning_mode_*' )
+            ACTIVE_CONFIG_PATTERNS=( 'file_handling_mode_*' 'reasoning_effort_*' 'reasoning_mode_*' 'reasoning_context_*' )
 	    ORDER=SCOPE_ORDER
 	    defaults_array=DEFAULT_SETTINGS
             ;;
