@@ -644,6 +644,14 @@ handle_send_command() {
         shift
     done
 
+    # Resolve model-specific reasoning effort after CLI model overrides have been applied.
+    local reasoning_model_key="${model//./_}"
+    reasoning_model_key="${reasoning_model_key//-/_}"
+    local model_reasoning_effort=$(get_setting "reasoning_effort_${reasoning_model_key}")
+    if [[ -n "$model_reasoning_effort" ]]; then
+        reasoning_effort="$model_reasoning_effort"
+    fi
+
     case "$output_mode" in
 	full|final)
 	    # ok

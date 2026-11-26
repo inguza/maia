@@ -56,10 +56,17 @@
     <details class="config-add-model-setting">
         <summary>Add model-specific parameter</summary>
         <form id="config-model-specific-form" class="config-add-inline-form config-add-model-setting-form">
-            <input id="config-model-specific-key" name="key" type="text" autocomplete="off" placeholder="file_handling_mode_model_name" aria-label="Model-specific parameter name" required>
-            <input id="config-model-specific-value" name="value" type="text" autocomplete="off" placeholder="APPEND" aria-label="Model-specific parameter value" required>
+            <div class="config-model-field">
+                <input id="config-model-specific-key" name="key" type="text" autocomplete="off" placeholder="reasoning_effort_model_name" aria-label="Model-specific parameter name" aria-autocomplete="list" aria-controls="config-model-specific-key-suggestions" required>
+                <div id="config-model-specific-key-suggestions" class="config-model-suggestions" role="listbox" aria-label="Suggested parameter names" hidden></div>
+            </div>
+            <div class="config-model-field">
+                <input id="config-model-specific-value" name="value" type="text" autocomplete="off" placeholder="Reasoning effort or file handling mode" aria-label="Model-specific parameter value" aria-autocomplete="list" aria-controls="config-model-specific-value-suggestions" required>
+                <div id="config-model-specific-value-suggestions" class="config-model-suggestions" role="listbox" aria-label="Suggested parameter values" hidden></div>
+            </div>
             <button id="config-model-specific-save" type="submit">Add</button>
         </form>
+        <p class="config-help">Set a file-handling or reasoning-effort parameter for a model. Values are free-form; suggestions are hints only. Press Tab to complete a matching suggestion. Model names use underscores in parameter names (for example, <code>reasoning_effort_gpt_5</code> for <code>gpt-5</code>). Reasoning effort suggestions: none, minimal, low, medium, high, xhigh, max.</p>
     </details>
 </section>
 <section id="config-costs-panel" class="config-tab-panel" role="tabpanel" aria-labelledby="config-costs-tab" tabindex="0" hidden>

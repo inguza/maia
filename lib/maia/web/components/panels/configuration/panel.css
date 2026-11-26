@@ -142,6 +142,49 @@
     max-width: none !important;
 }
 
+.config-model-field {
+    min-width: 0;
+    position: relative;
+    width: 100%;
+}
+
+.config-model-suggestions {
+    background: Canvas;
+    border: 1px solid #9ca3af;
+    border-radius: .35rem;
+    box-shadow: 0 .35rem .8rem rgb(0 0 0 / 20%);
+    left: 0;
+    max-height: 12rem;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + .2rem);
+    z-index: 8;
+}
+
+.config-model-suggestions[hidden] {
+    display: none;
+}
+
+.config-model-suggestions button {
+    background: transparent;
+    border: 0;
+    display: block;
+    height: auto;
+    margin: 0;
+    overflow: hidden;
+    padding: .4rem .55rem;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.config-model-suggestions button:hover,
+.config-model-suggestions button:focus-visible {
+    background: color-mix(in srgb, Highlight 15%, Canvas);
+}
+
 .config-add-cost-form {
     grid-template-columns: 28% repeat(2, minmax(0, 1fr)) auto;
 }
