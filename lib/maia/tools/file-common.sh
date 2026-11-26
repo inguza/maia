@@ -176,7 +176,7 @@ approval_is_allowed() {
     shift
 
     local rules_file rule pattern rule_action path path_allowed
-    rules_file="$(file_for_scope session approval.txt)"
+    rules_file="$(file_for_scope session file-approval.txt)"
     if [[ -z "$rules_file" || ! -f "$rules_file" ]]; then
         return 1
     fi

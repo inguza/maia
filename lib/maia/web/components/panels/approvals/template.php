@@ -10,6 +10,12 @@
     <h2>Approvals</h2>
     <button id="approvals-refresh" class="small-action" type="button" title="Refresh approvals" aria-label="Refresh approvals">&#x21BB;</button>
 </div>
+<div class="approvals-tabs" role="tablist" aria-label="Approval types">
+    <button id="approval-file-tab" class="approvals-tab" type="button" role="tab" aria-selected="true" aria-controls="approval-content" tabindex="0">File</button>
+    <button id="approval-exec-tab" class="approvals-tab" type="button" role="tab" aria-selected="false" aria-controls="approval-content" tabindex="-1">Exec</button>
+    <button id="approval-exec-def-tab" class="approvals-tab" type="button" role="tab" aria-selected="false" aria-controls="approval-content" tabindex="-1">Execdef</button>
+</div>
+<section id="approval-content" role="tabpanel" aria-labelledby="approval-file-tab" tabindex="0">
 <p id="approvals-scope" class="muted">Approval scope</p>
 <div class="inline-form">
     <label class="visually-hidden" for="approval-rule">Add approval rule</label>
@@ -23,3 +29,4 @@
 </div>
 <p id="approvals-status" class="status" role="status" aria-live="polite"></p>
 <ul id="approval-rule-list" class="item-list" aria-label="Approval rules"></ul>
+</section>

@@ -16,7 +16,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
 }
 
 $targetScope = approval_api_scope();
-$rulesResult = approval_api_run(['approve', '--scope', $targetScope, 'view']);
+$type = approval_api_type();
+$rulesResult = approval_api_run(['approve', '--type', $type, '--scope', $targetScope, 'view']);
 if ($rulesResult['status'] !== 0) {
     approval_api_error(502, trim($rulesResult['error']) ?: trim($rulesResult['output']) ?: 'Unable to read approval rules.');
 }

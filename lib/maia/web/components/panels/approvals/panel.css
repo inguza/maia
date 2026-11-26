@@ -4,3 +4,30 @@
     justify-content: space-between;
     margin-bottom: 0.5rem;
 }
+
+.approvals-tabs {
+    border-bottom: 1px solid color-mix(in srgb, CanvasText 20%, Canvas);
+    display: flex;
+    gap: .25rem;
+    margin: .5rem 0 .75rem;
+}
+
+.approvals-tab {
+    background: transparent;
+    border: 0;
+    border-bottom: .2rem solid transparent;
+    border-radius: .2rem .2rem 0 0;
+    cursor: pointer;
+    margin: 0;
+    padding: .5rem .75rem;
+}
+
+.approvals-tab[aria-selected="true"] {
+    border-bottom-color: Highlight;
+    font-weight: 600;
+}
+
+.approvals-tab:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+}

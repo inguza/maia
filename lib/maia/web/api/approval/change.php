@@ -14,9 +14,10 @@ $input = json_decode((string) (file_get_contents('php://input') ?: ''), true);
 if (!is_array($input)) {
     approval_api_error(400, 'Invalid approval change.');
 }
-$rule = approval_api_validate_rule(trim((string) ($input['rule'] ?? '')));
-$replacement = approval_api_validate_rule(trim((string) ($input['replacement'] ?? '')));
-$result = approval_api_run(['approve', '--scope', approval_api_scope(), 'change', $rule, $replacement]);
+$type = approval_api_type();
+$rule = approval_api_validate_rule(trim((string) ($input['rule'] ?? '')), $type);
+$replacement = approval_api_validate_rule(trim((string) ($input['replacement'] ?? '')), $type);
+$result = approval_api_run(['approve', '--type', $type, '--scope', approval_api_scope(), 'change', $rule, $replacement]);
 if ($result['status'] !== 0) {
     approval_api_error(502, trim($result['error']) ?: trim($result['output']) ?: 'Unable to change the approval rule.');
 }

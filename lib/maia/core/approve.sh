@@ -11,12 +11,12 @@ approve_usage() {
     cat <<'EOF'
 USAGE
 
-  maia approve [--scope <scope>] <command>
+  maia approve [--type <type>] [--scope <scope>] <command>
   maia approve --scope
-      Show the effective scope for approval rules.
+      Show the effective scope for the selected rule type.
 
-Manage file-operation approvals. Rules use shell globs relative to the
-workspace root.
+Manage file approvals (default), execution approvals, or executable rule
+definitions. Each type is stored independently in the selected scope.
 
 Possible actions to approve:
  - append - Append data to a file
@@ -54,25 +54,45 @@ Example:
 OPTIONS
 
   --scope <scope>  Use session, profile, workspace, home, user, or system.
+  --type <type>    Select file (default), exec, or exec-def rules.
   -h, --help       Show this help message and exit.
 EOF
     exit 0
 }
 
 handle_approve_command() {
-    [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${2:-}" == "-h" || "${2:-}" == "--help" ]] && approve_usage
+    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${2:-}" == "-h" || "${2:-}" == "--help" ]]; then
+        approve_usage
+    fi
 
-    local scope="" scopearg=""
+    local scope="" scopearg="" approval_type="file" approval_filename="file-approval.txt"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help)
                 approve_usage
                 ;;
             --scope)
-                shift
-                scope="$1"
-                shift || true
                 scopearg=yes
+                if (($# >= 2)) && [[ "$2" != -* ]]; then
+                    scope="$2"
+                    shift 2
+                else
+                    scope=""
+                    shift
+                fi
+                ;;
+            --type)
+                if (($# < 2)); then
+                    die "Missing value for --type."
+                fi
+                approval_type="$2"
+                shift 2
+                case "$approval_type" in
+                    file) approval_filename="file-approval.txt" ;;
+                    exec) approval_filename="exec-approval.txt" ;;
+                    exec-def) approval_filename="exec-def.txt" ;;
+                    *) die "Unknown approval type: $approval_type (expected file, exec, or exec-def)." ;;
+                esac
                 ;;
             *)
                 break
@@ -82,7 +102,7 @@ handle_approve_command() {
     local prompt_type="approval"
 
     local subcmd="${1:-view}"
-    shift
+    shift || true
 
     determine_implicit_scope "$prompt_type"
     if [[ "$scopearg" == "yes" && -z "$scope" ]]; then
@@ -110,19 +130,39 @@ handle_approve_command() {
     [[ "$scope" != "default" ]] || die "The default scope cannot store approval rules."
     load_settings "$scope"
 
-    local filepath="${SCOPE_DIR[$scope]}/${prompt_type}.txt"
+    local filepath="${SCOPE_DIR[$scope]}/${approval_filename}"
 
     case "$subcmd" in
 	append|enable|allow)
 	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    # Start an explicit definition by inheriting the effective raw
-	    # definition from the selected scope, then append the new entry.
-	    copy_over "$scope" "$prompt_type" "$filepath"
+            # Start an explicit definition by inheriting this rule type's
+            # effective file from the selected scope, then append the new entry.
+            if [[ ! -f "$filepath" ]]; then
+                local inherited_file
+                inherited_file="$(file_for_scope "$scope" "$approval_filename")"
+                if [[ -n "$inherited_file" && "$inherited_file" != "$filepath" && -f "$inherited_file" ]]; then
+                    cp -- "$inherited_file" "$filepath"
+                elif [[ "$approval_type" == file ]]; then
+                    prompt_for_scope default "$prompt_type" > "$filepath"
+                else
+                    : > "$filepath"
+                fi
+            fi
 	    subcmd="append"
 	    ;;
         disable|change|edit)
-	    mkdir -p "${SCOPE_DIR[$scope]}"
-	    copy_over "$scope" "$prompt_type" "$filepath"
+            mkdir -p "${SCOPE_DIR[$scope]}"
+            if [[ ! -f "$filepath" ]]; then
+                local inherited_file
+                inherited_file="$(file_for_scope "$scope" "$approval_filename")"
+                if [[ -n "$inherited_file" && "$inherited_file" != "$filepath" && -f "$inherited_file" ]]; then
+                    cp -- "$inherited_file" "$filepath"
+                elif [[ "$approval_type" == file ]]; then
+                    prompt_for_scope default "$prompt_type" > "$filepath"
+                else
+                    : > "$filepath"
+                fi
+            fi
 	    ;;
         clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"
@@ -135,7 +175,13 @@ handle_approve_command() {
 
     case "$subcmd" in
         view|"")
-            prompt_for_scope "$scope" "$prompt_type"
+            local effective_file
+            effective_file="$(file_for_scope "$scope" "$approval_filename")"
+            if [[ -n "$effective_file" && -f "$effective_file" ]]; then
+                read_file_by_line "$effective_file"
+            elif [[ "$approval_type" == file ]]; then
+                prompt_for_scope default "$prompt_type"
+            fi
             ;;
         append|edit|change|replace|delete|clear|clearnonotice)
             mkdir -p "${SCOPE_DIR[$scope]}"

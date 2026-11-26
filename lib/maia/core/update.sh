@@ -175,6 +175,69 @@ convert_x_json_files() {
     (( failed == 0 ))
 }
 
+migrate_approval_files() {
+    local maia_home file destination filelist migrated=0 skipped=0 failed=0
+    maia_home="$(resolve_home_dir)"
+
+    if [[ ! -d "$maia_home" ]]; then
+        notice "MAIA home '$maia_home' does not exist; skipping approval-file migration."
+        return 0
+    fi
+
+    filelist="$(mktemp)" || die "Unable to create temporary file."
+    if ! find "$maia_home" -type f -name approval.txt -print0 > "$filelist"; then
+        rm -f -- "$filelist"
+        die "Unable to find legacy approval files."
+    fi
+
+    while IFS= read -r -d '' file; do
+        destination="${file%/approval.txt}/file-approval.txt"
+        if [[ -e "$destination" ]]; then
+            # Preserve both sets of rules when a new-format file already
+            # exists. Keep destination order first and append distinct legacy
+            # entries; only remove the source after the replacement succeeds.
+            local merged
+            merged="$(mktemp "${destination}.XXXXXX")" || {
+                error "Unable to create a temporary file for '$destination'."
+                failed=$((failed + 1))
+                continue
+            }
+            if ! awk '!seen[$0]++' "$destination" "$file" > "$merged"; then
+                rm -f -- "$merged"
+                error "Unable to merge legacy approval file '$file'."
+                failed=$((failed + 1))
+                continue
+            fi
+            if ! mv -- "$merged" "$destination"; then
+                rm -f -- "$merged"
+                error "Unable to update '$destination' from '$file'."
+                failed=$((failed + 1))
+                continue
+            fi
+            if ! rm -- "$file"; then
+                error "Merged '$file' into '$destination' but could not remove the legacy file."
+                failed=$((failed + 1))
+                continue
+            fi
+            info "Merged '$file' into '$destination' and removed the legacy file."
+            migrated=$((migrated + 1))
+            continue
+        fi
+
+        if mv -- "$file" "$destination"; then
+            info "Moved '$file' to '$destination'."
+            migrated=$((migrated + 1))
+        else
+            error "Unable to move legacy approval file '$file'."
+            failed=$((failed + 1))
+        fi
+    done < "$filelist"
+
+    rm -f -- "$filelist"
+    notice "Approval-file migration complete: $migrated moved, $skipped skipped, $failed failed."
+    (( failed == 0 ))
+}
+
 definition_file_scope() {
     local maia_home="$1"
     local file="$2"
@@ -307,6 +370,7 @@ handle_update_command() {
             convert_profile_json_files
             convert_workspace_json_files
 	    move_config_myl_to_settings_myl_files
+            migrate_approval_files
             ;;
         refresh)
             refresh_scopes

@@ -29,6 +29,15 @@ function approval_api_scope(): string
     return $scope;
 }
 
+function approval_api_type(): string
+{
+    $type = (string) ($_GET['type'] ?? 'file');
+    if (!in_array($type, ['file', 'exec', 'exec-def'], true)) {
+        approval_api_error(400, 'Invalid approval type.');
+    }
+    return $type;
+}
+
 function approval_api_run(array $arguments): array
 {
     $process = proc_open(
@@ -49,22 +58,26 @@ function approval_api_run(array $arguments): array
     return ['output' => $output, 'error' => $error, 'status' => proc_close($process)];
 }
 
-function approval_api_validate_rule(string $rule): string
+function approval_api_validate_rule(string $rule, string $type = 'file'): string
 {
-    if ($rule === '' || strpos($rule, "\0") !== false || str_contains($rule, "\n") || str_contains($rule, "\r") ||
-        !preg_match('/^(.+):([^:]+)$/D', $rule)) {
-        approval_api_error(400, 'Enter one approval rule in path-pattern:action form.');
+    if ($rule === '' || strpos($rule, "\0") !== false || str_contains($rule, "\n") || str_contains($rule, "\r")) {
+        approval_api_error(400, 'Enter one non-empty approval entry on a single line.');
     }
-    $action = substr($rule, strrpos($rule, ':') + 1);
-    if (!in_array($action, ['append', 'create', 'change', 'delete', 'write'], true)) {
-        approval_api_error(400, "Unknown approval action '$action'. Valid actions: append, create, change, delete, write.");
+    if ($type === 'file') {
+        if (!preg_match('/^(.+):([^:]+)$/D', $rule)) {
+            approval_api_error(400, 'Enter a file rule in path-pattern:action form.');
+        }
+        $action = substr($rule, strrpos($rule, ':') + 1);
+        if (!in_array($action, ['append', 'create', 'change', 'delete', 'write'], true)) {
+            approval_api_error(400, "Unknown file approval action '$action'. Valid actions: append, create, change, delete, write.");
+        }
     }
     return $rule;
 }
 
 function approval_api_rule(): string
 {
-    return approval_api_validate_rule(trim((string) (file_get_contents('php://input') ?: '')));
+    return approval_api_validate_rule(trim((string) (file_get_contents('php://input') ?: '')), approval_api_type());
 }
 
 function approval_api_require_post(): void
@@ -75,9 +88,9 @@ function approval_api_require_post(): void
     }
 }
 
-function approval_api_execute(string $scope, string $command, ?string $rule = null): void
+function approval_api_execute(string $scope, string $command, ?string $rule = null, ?string $type = null): void
 {
-    $arguments = ['approve', '--scope', $scope, $command];
+    $arguments = ['approve', '--type', $type ?? approval_api_type(), '--scope', $scope, $command];
     if ($rule !== null) {
         $arguments[] = $rule;
     }

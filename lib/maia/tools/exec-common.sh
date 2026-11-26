@@ -7,7 +7,7 @@
 # Commercial licensing is available separately.
 #
 
-# Match direct command/argv calls against :exec rules in approval.txt.
+# Match direct command/argv calls against :exec rules in exec-approval.txt.
 # Rules are parsed once per tool process. Variable-length slots must be last,
 # allowing a deterministic left-to-right match without trying alternate lengths.
 # Usage: exec_approval_is_allowed <command> [argument ...]
@@ -189,7 +189,7 @@ _exec_load_approval_rules() {
     fi
 
     local file rule
-    file="$(file_for_scope session approval.txt)"
+    file="$(file_for_scope session exec-approval.txt)"
     if [[ -n "$file" && -f "$file" ]]; then
         while IFS= read -r rule || [[ -n "$rule" ]]; do
             rule="$(strip_cr "$rule")"
