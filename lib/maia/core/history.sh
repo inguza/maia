@@ -806,13 +806,13 @@ handle_history_command() {
 	    if (( sticky_only )); then range="-"; fi
 	    # default range to "last" if none provided
 	    [[ -z "$range" ]] && range="last"
-	    # Get entries using unified function
-	    local entries=$(get_history_entries "$range" "$user_only" "$assistant_only" "$sticky_only")
 	    if (( raw_output )); then
-		# Raw JSON output: print full JSON array
-		printf '%s\n' "$entries"
+		# Stream raw JSON directly from jq instead of holding the full array in a
+		# shell variable. The web API can then pass it through without a PHP copy.
+		get_history_entries "$range" "$user_only" "$assistant_only" "$sticky_only"
 	    else
-		# Human-readable output: print formatted entries
+		# Human-readable output: format the selected entries.
+		local entries=$(get_history_entries "$range" "$user_only" "$assistant_only" "$sticky_only")
 		printf '%s\n' "$entries" | print_history_entries
 	    fi
 	    ;;
