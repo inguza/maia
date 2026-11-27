@@ -4,7 +4,6 @@
  *
  * Licensed under the GNU General Public License v3.0.
  * See LICENSE-GPLv3.txt for the full license text.
- * Commercial licensing is available separately.
  */
 
 declare(strict_types=1);
@@ -23,8 +22,8 @@ function history_error(int $status, string $message): never
     exit;
 }
 
-/** @return array{status: int, output: string, error: string} */
-function history_run_cli(array $arguments): array
+/** Run MAIA without buffering its potentially huge JSON output in PHP memory. */
+function history_stream_cli(array $arguments): never
 {
     $process = proc_open(
         array_merge([getenv('MAIA_BIN') ?: 'maia'], $arguments),
@@ -34,113 +33,47 @@ function history_run_cli(array $arguments): array
         maia_environment()
     );
     if (!is_resource($process)) {
-        return ['status' => 500, 'output' => '', 'error' => 'Unable to start MAIA.'];
+        history_error(500, 'Unable to start MAIA.');
     }
+
     fclose($pipes[0]);
-    $output = (string) stream_get_contents($pipes[1]);
+    $buffer = tmpfile();
+    if ($buffer === false) {
+        fclose($pipes[1]);
+        $error = (string) stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        proc_close($process);
+        history_error(500, 'Unable to create a temporary history response buffer. ' . trim($error));
+    }
+
+    $copied = stream_copy_to_stream($pipes[1], $buffer);
     fclose($pipes[1]);
     $error = (string) stream_get_contents($pipes[2]);
     fclose($pipes[2]);
-    return ['status' => proc_close($process), 'output' => $output, 'error' => $error];
+    $status = proc_close($process);
+    if ($copied === false || $status !== 0) {
+        fclose($buffer);
+        history_error($status === 500 ? 500 : 502, trim($error) ?: 'MAIA returned an error.');
+    }
+
+    rewind($buffer);
+    fpassthru($buffer);
+    fclose($buffer);
+    exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     header('Allow: POST');
     history_error(405, 'Method not allowed.');
 }
 
 $stickyOnly = (string) ($_GET['stickyOnly'] ?? '') === '1';
-$includeSticky = !$stickyOnly && (string) ($_GET['includeSticky'] ?? '1') !== '0';
 $range = trim((string) (file_get_contents('php://input') ?: ''));
 if (!$stickyOnly && $range === '') {
     history_error(400, 'History range cannot be empty.');
 }
 
-$history = [];
-$rangeItemCount = 0;
-$rangeFirstIndex = null;
-$rangeLastIndex = null;
-$rangeFirstId = null;
-$rangeLastId = null;
-if (!$stickyOnly) {
-    $rangeResult = history_run_cli(['history', '--raw', $range]);
-    if ($rangeResult['status'] !== 0) {
-        history_error($rangeResult['status'] === 500 ? 500 : 502,
-            trim($rangeResult['error']) ?: 'MAIA returned an error.');
-    }
-    try {
-        $history = json_decode($rangeResult['output'], true, 512, JSON_THROW_ON_ERROR);
-    } catch (JsonException $exception) {
-        history_error(502, 'MAIA returned invalid history data.');
-    }
-    if (!is_array($history)) {
-        history_error(502, 'MAIA returned an invalid history list.');
-    }
-    $rangeItemCount = count($history);
-    $rangeFirstIndex = $history[0]['index'] ?? null;
-    $rangeLastIndex = $history === [] ? null : $history[array_key_last($history)]['index'] ?? null;
-    $rangeFirstId = $history[0]['id'] ?? null;
-    $rangeLastId = $history === [] ? null : $history[array_key_last($history)]['id'] ?? null;
+if ($stickyOnly) {
+    history_stream_cli(['history', '--raw', '--sticky']);
 }
-
-$stickyItems = [];
-if ($includeSticky || $stickyOnly) {
-    // Sticky entries can be fetched separately so the first requested history
-    // range is displayed without waiting for this additional CLI lookup.
-    $stickyResult = history_run_cli(['history', '--raw', '--sticky']);
-    if ($stickyResult['status'] !== 0) {
-        history_error($stickyResult['status'] === 500 ? 500 : 502,
-            trim($stickyResult['error']) ?: 'Unable to load sticky history entries.');
-    }
-    try {
-        $stickyItems = json_decode($stickyResult['output'], true, 512, JSON_THROW_ON_ERROR);
-    } catch (JsonException $exception) {
-        history_error(502, 'MAIA returned invalid sticky history data.');
-    }
-    if (!is_array($stickyItems)) {
-        history_error(502, 'MAIA returned an invalid sticky history list.');
-    }
-}
-$itemsByIndex = [];
-foreach ($history as $item) {
-    if (!is_array($item)) continue;
-    $key = isset($item['index']) ? (string) $item['index'] : 'item:' . count($itemsByIndex);
-    $itemsByIndex[$key] = $item;
-}
-foreach ($stickyItems as $item) {
-    if (!is_array($item)) continue;
-    $key = isset($item['index']) ? (string) $item['index'] : 'item:' . count($itemsByIndex);
-    $itemsByIndex[$key] = $item;
-}
-unset($history, $stickyItems);
-$history = array_values($itemsByIndex);
-unset($itemsByIndex);
-usort($history, static fn (array $a, array $b): int => (int) ($a['index'] ?? 0) <=> (int) ($b['index'] ?? 0));
-
-// Encode one history item at a time. Encoding the full response as one string
-// duplicates the (potentially very large) decoded history in PHP memory.
-echo '{"ok":true,"range":' . json_encode($range, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-    . ',"firstIndex":' . json_encode($rangeFirstIndex)
-    . ',"lastIndex":' . json_encode($rangeLastIndex)
-    . ',"firstId":' . json_encode($rangeFirstId, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-    . ',"lastId":' . json_encode($rangeLastId, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-    . ',"rangeItemCount":' . json_encode($rangeItemCount)
-    . ',"items":[';
-
-$firstItem = true;
-$encodedCount = 0;
-foreach ($history as $item) {
-    $encodedItem = json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
-    if ($encodedItem === false) {
-        history_error(500, 'Unable to encode a history entry.');
-    }
-    if (!$firstItem) echo ',';
-    echo $encodedItem;
-    $firstItem = false;
-    $encodedCount++;
-    if (($encodedCount % 16) === 0) {
-        if (ob_get_level() > 0) @ob_flush();
-        flush();
-    }
-}
-echo "]}\n";
+history_stream_cli(['history', '--raw', $range]);
