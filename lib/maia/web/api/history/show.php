@@ -102,21 +102,45 @@ if ($includeSticky || $stickyOnly) {
     }
 }
 $itemsByIndex = [];
-foreach (array_merge($history, $stickyItems) as $item) {
+foreach ($history as $item) {
     if (!is_array($item)) continue;
     $key = isset($item['index']) ? (string) $item['index'] : 'item:' . count($itemsByIndex);
     $itemsByIndex[$key] = $item;
 }
+foreach ($stickyItems as $item) {
+    if (!is_array($item)) continue;
+    $key = isset($item['index']) ? (string) $item['index'] : 'item:' . count($itemsByIndex);
+    $itemsByIndex[$key] = $item;
+}
+unset($history, $stickyItems);
 $history = array_values($itemsByIndex);
+unset($itemsByIndex);
 usort($history, static fn (array $a, array $b): int => (int) ($a['index'] ?? 0) <=> (int) ($b['index'] ?? 0));
 
-echo json_encode([
-    'ok' => true,
-    'range' => $range,
-    'firstIndex' => $rangeFirstIndex,
-    'lastIndex' => $rangeLastIndex,
-    'firstId' => $rangeFirstId,
-    'lastId' => $rangeLastId,
-    'rangeItemCount' => $rangeItemCount,
-    'items' => $history,
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+// Encode one history item at a time. Encoding the full response as one string
+// duplicates the (potentially very large) decoded history in PHP memory.
+echo '{"ok":true,"range":' . json_encode($range, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    . ',"firstIndex":' . json_encode($rangeFirstIndex)
+    . ',"lastIndex":' . json_encode($rangeLastIndex)
+    . ',"firstId":' . json_encode($rangeFirstId, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    . ',"lastId":' . json_encode($rangeLastId, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    . ',"rangeItemCount":' . json_encode($rangeItemCount)
+    . ',"items":[';
+
+$firstItem = true;
+$encodedCount = 0;
+foreach ($history as $item) {
+    $encodedItem = json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    if ($encodedItem === false) {
+        history_error(500, 'Unable to encode a history entry.');
+    }
+    if (!$firstItem) echo ',';
+    echo $encodedItem;
+    $firstItem = false;
+    $encodedCount++;
+    if (($encodedCount % 16) === 0) {
+        if (ob_get_level() > 0) @ob_flush();
+        flush();
+    }
+}
+echo "]}\n";
