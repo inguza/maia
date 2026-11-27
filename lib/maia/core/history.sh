@@ -19,6 +19,19 @@ COMMANDS
 
   show [options] [show-role-options] [<range>]
     Display entries in the given range, filtered by role(s).
+    --sticky displays all entries marked sticky, regardless of range.
+
+  sticky [<range>]
+    Always load entries alongside the requested history range in the web UI.
+
+  unsticky [<range>]
+    Stop always loading entries in the web UI.
+
+  retain [<range>]
+    Preserve entries through compaction and exclude them from the summary request.
+
+  unretain [<range>]
+    Stop preserving entries through compaction.
 
   pop [options] [<n>]
     Remove & print last n entries (default 1).
@@ -206,6 +219,18 @@ history_update_tool_relationships() {
         release_lock "${history_file}.lock"
         return 1
     fi
+    if [[ "$action" == "hide" ]]; then
+        if ! selected_indexes="$(jq --argjson indexes "$selected_indexes" '
+            . as $messages
+            | [ $indexes[] as $index
+                | select($messages[$index].retain != true)
+                | $index
+              ]
+        ' <<<"$indexed_history")"; then
+            release_lock "${history_file}.lock"
+            return 1
+        fi
+    fi
 
     local selected_call_ids
     if ! selected_call_ids="$(jq --argjson indexes "$selected_indexes" '
@@ -306,6 +331,7 @@ history_update_tool_relationships() {
             | if $action == "hide" then
                 if $selected
                    or ($item.role == "tool"
+                       and $item.retain != true
                        and ($call_ids | index($item.tool_call_id)) != null)
                 then
                     $item + {hidden: true}
@@ -646,6 +672,95 @@ history_prune() {
 }
 
 
+history_update_flag_range() {
+    local history_file="$1" action="$2" raw_range="$3"
+    local flag enabled slice
+    case "$action" in
+        sticky|unsticky) flag="sticky" ;;
+        retain|unretain) flag="retain" ;;
+        *) warn "Unknown history flag action '$action'."; return 1 ;;
+    esac
+    if [[ "$action" == "sticky" || "$action" == "retain" ]]; then enabled="on"; else enabled="off"; fi
+    slice="$(range_defaults "$raw_range")"
+
+    acquire_lock "${history_file}.lock" ""
+    local indexed_history
+    if ! indexed_history="$(jq "$jq_add_indexes" "$history_file")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+    local selected_indexes
+    if ! selected_indexes="$(jq "[.[${slice}][] | .index]" <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+    if [[ "$selected_indexes" == "[]" ]]; then
+        info "No history entries in range '${raw_range:-all}'."
+        release_lock "${history_file}.lock"
+        return 0
+    fi
+
+    # A tool exchange is one logical history item for sticky/retain purposes:
+    # selecting either its assistant call or a result updates the whole exchange.
+    local call_ids related_indexes
+    if ! call_ids="$(jq --argjson indexes "$selected_indexes" '
+        . as $messages
+        | [ $indexes[] as $index
+            | $messages[$index] as $item
+            | if $item.role == "assistant" then
+                $item.tool_calls[]?.id
+              elif $item.role == "tool" then
+                $item.tool_call_id
+              else empty end
+            | select(type == "string" and length > 0)
+          ] | unique
+    ' <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+    if ! related_indexes="$(jq --argjson indexes "$selected_indexes" --argjson call_ids "$call_ids" '
+        . as $messages
+        | ($indexes + [ $messages[]
+            | select((.role == "tool" and (.tool_call_id as $id | ($call_ids | index($id)) != null))
+                or (.role == "assistant" and any(.tool_calls[]?; .id as $id | ($call_ids | index($id)) != null)))
+            | .index
+          ]) | unique
+    ' <<<"$indexed_history")"; then
+        release_lock "${history_file}.lock"
+        return 1
+    fi
+    if [[ "$flag" == "retain" && "$enabled" == "on" ]]; then
+        local has_hidden
+        if ! has_hidden="$(jq --argjson indexes "$related_indexes" '
+            any(.[]; . as $item | (($indexes | index($item.index)) != null) and $item.hidden == true)
+        ' <<<"$indexed_history")"; then
+            release_lock "${history_file}.lock"
+            return 1
+        fi
+        if [[ "$has_hidden" == "true" ]]; then
+            warn "A hidden entry cannot be retained. Unhide the entry and its related tool exchange first."
+            release_lock "${history_file}.lock"
+            return 1
+        fi
+    fi
+
+    local status=0
+    json_modify "$history_file" --arg flag "$flag" --argjson indexes "$related_indexes" --arg enabled "$enabled" '
+        to_entries
+        | map(
+            .key as $index
+            | .value as $item
+            | if ($indexes | index($index | tonumber)) != null then
+                if $enabled == "on" then $item + {($flag): true}
+                else $item | del(.[$flag])
+                end
+              else $item end
+          )
+    ' || status=$?
+    release_lock "${history_file}.lock"
+    return "$status"
+}
+
 handle_history_command() {
     # 1) Help wins
     [[ "$1" =~ ^-h|--help$ ]] && history_usage
@@ -671,13 +786,14 @@ handle_history_command() {
 	show)
 	    shift
 	    # if no argument or an explicit empty-string is given, treat it like no-arg
-	    local range="" user_only=0 assistant_only=0 raw_output=0
+	    local range="" user_only=0 assistant_only=0 raw_output=0 sticky_only=0
 	    # parse all args
 	    for arg in "$@"; do
 		case "$arg" in
 		    -u|--user)       user_only=1         ;;
 		    -a|--assistant)  assistant_only=1    ;;
 		    --raw|--json)    raw_output=1 ;;
+		    --sticky)        sticky_only=1 ;;
 		    # detect any range-like token
 		    prompt|turn*|last|last-*|all) range="$arg" ;;
 		    -|[0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9]|*-[0-9]*|[0-9]*-[0-9]*|[0-9]*-) range="$arg" ;;
@@ -686,10 +802,12 @@ handle_history_command() {
 		    ;;
 		esac
 	    done
+	    # Sticky-only queries ignore the requested range and return every sticky item.
+	    if (( sticky_only )); then range="-"; fi
 	    # default range to "last" if none provided
 	    [[ -z "$range" ]] && range="last"
 	    # Get entries using unified function
-	    local entries=$(get_history_entries "$range" "$user_only" "$assistant_only")
+	    local entries=$(get_history_entries "$range" "$user_only" "$assistant_only" "$sticky_only")
 	    if (( raw_output )); then
 		# Raw JSON output: print full JSON array
 		printf '%s\n' "$entries"
@@ -807,6 +925,14 @@ handle_history_command() {
 	    info "History entry $replace_index replaced."
 	    ;;
 
+	sticky|unsticky|retain|unretain)
+	    local flag_action="$cmd"
+	    shift
+	    [[ $# -le 1 ]] || die "Usage: maia history $flag_action [<range>]"
+	    if ! history_update_flag_range "$history_file" "$flag_action" "${1:-}"; then return 1; fi
+	    info "History entries updated for '$flag_action' in range '${1:-all}'."
+	    ;;
+
 	restore)
 	    shift
             if ! history_restore_range "$history_file" "${1:-}"; then
@@ -817,6 +943,7 @@ handle_history_command() {
 
 	hide)
 	    shift
+            [[ $# -le 1 ]] || die "Usage: maia history hide [<range>]"
             if ! history_update_tool_relationships "$history_file" hide "${1:-}"; then
                 return 1
             fi
@@ -825,6 +952,7 @@ handle_history_command() {
 
 	unhide)
 	    shift
+            [[ $# -le 1 ]] || die "Usage: maia history unhide [<range>]"
             if ! history_update_tool_relationships "$history_file" unhide "${1:-}"; then
                 return 1
             fi
@@ -844,12 +972,12 @@ handle_history_command() {
 	    . "$MAIA_CORE_LIB_DIR/send.sh"
 	    local request=$(prompt_for_scope "session" "summarize")
 	    local summary
-	    summary=$(handle_send_command --no-files --no-tools --no-skills "$request")
+	    summary=$(handle_send_command --no-files --no-tools --no-skills --no-retained "$request")
 	    local status=$?
 	    if [[ -n "$summary" && $status -eq 0 ]] ; then
 		exclusive_json_modify "$history_file" '
 		    if length > 2 then
-		      .[0:-2] |= map(.hidden = true | .summarized = true)
+		      .[0:-2] |= map(if .retain == true then . else .hidden = true | .summarized = true end)
 		    else
 		      .
 		    end
@@ -920,6 +1048,7 @@ get_history_entries() {
     local range="${1:-"-"}"
     local user_only="${2:-0}"
     local assistant_only="${3:-0}"
+    local sticky_only="${4:-0}"
 
     local role=""
     if (( user_only && ! assistant_only )); then
@@ -935,7 +1064,11 @@ get_history_entries() {
         role_filter="."
     fi
 
-    local jq_filter="${jq_add_indexes} | ${role_filter} | .[${slice}]"
+    local sticky_filter="."
+    if (( sticky_only )); then
+        sticky_filter='map(select(.sticky == true))'
+    fi
+    local jq_filter="${jq_add_indexes} | ${sticky_filter} | ${role_filter} | .[${slice}]"
 
     local history_file="$(resolve_history_meta)"
 
@@ -948,7 +1081,9 @@ print_history_entries() {
     jq -r '.[] | [
         (.index | tostring),
         .role,
-	(.hidden // false),
+        (.hidden // false),
+        (.sticky // false),
+        (.retain // false),
         (.user_index // 0),
         (.assistant_index // 0),
         (.tool_index // 0),
@@ -958,7 +1093,7 @@ print_history_entries() {
 	(.tool_call_id // "-"),
         (.content | @base64),
         ((.tool_calls // "") | @base64)
-    ] | @tsv' | while IFS=$'\t' read -r idx role hidden user_idx assistant_idx tool_idx reasoning_idx ts id toolid content_b64 tools_call_b64; do
+    ] | @tsv' | while IFS=$'\t' read -r idx role hidden sticky retain user_idx assistant_idx tool_idx reasoning_idx ts id toolid content_b64 tools_call_b64; do
 	# Git Bash workaround
 	tools_call_b64="$(strip_cr "$tools_call_b64")"
 	local content=""
@@ -993,14 +1128,25 @@ print_history_entries() {
             role_idx=""
         fi
 
-	pr='[%d] %s#%s %s-%s\n'
+	local flags=""
+	[[ "$sticky" == true ]] && flags+=" [sticky]"
+	[[ "$retain" == true ]] && flags+=" [retain]"
+	pr='[%d] %s#%s %s-%s%s\n'
 	if [[ -n "$toolid" ]] ; then
-	    pr='[%d] %s#%s %s-%s %s\n'
+	    pr='[%d] %s#%s %s-%s %s%s\n'
 	fi
 	if [[ "$hidden" == true ]] ; then
-            printf "(hidden: $pr" "$idx" "$role" "$role_idx" "$ts" "$id)"
+            if [[ -n "$toolid" ]]; then
+                printf '(hidden: [%d] %s#%s %s-%s %s%s)\n' "$idx" "$role" "$role_idx" "$ts" "$id" "$toolid" "$flags"
+            else
+                printf '(hidden: [%d] %s#%s %s-%s%s)\n' "$idx" "$role" "$role_idx" "$ts" "$id" "$flags"
+            fi
 	else
-	    printf "$pr" "$idx" "$role" "$role_idx" "$ts" "$id" $toolid
+            if [[ -n "$toolid" ]]; then
+                printf '[%d] %s#%s %s-%s %s%s\n' "$idx" "$role" "$role_idx" "$ts" "$id" "$toolid" "$flags"
+            else
+                printf '[%d] %s#%s %s-%s%s\n' "$idx" "$role" "$role_idx" "$ts" "$id" "$flags"
+            fi
 	    if [[ -z "$toolid" ]] ; then
 		echo '----------------------------------------'
 	    else

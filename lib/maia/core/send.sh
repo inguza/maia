@@ -64,6 +64,9 @@ OPTIONS
   --no-tasks
     Do not include tasks in the request.
 
+  --no-retained
+    Do not include retained history entries in the request.
+
   --count
     Count input tokens and exit. Cannot be combined with --dry-run or --response-file.
 
@@ -131,13 +134,15 @@ append_message() {
 append_history() {
     local msgs_file="$1"
     local history_file="$2"
+    local exclude_retained="${3:-false}"
 
-    jq -s '
+    jq --argjson exclude_retained "$exclude_retained" -s '
         .[0] + (.[1]
             | map(
                 select(.hidden != true)
+                | select(($exclude_retained | not) or .retain != true)
                 | if type == "object" then
-                    del(.timestamp, .id, .backup, .summarized, .call_pruned)
+                    del(.timestamp, .id, .backup, .summarized, .call_pruned, .sticky, .retain)
                   else
                     .
                   end
@@ -334,7 +339,7 @@ build_messages_json() {
     if [[ -f "$history_file" ]]; then
 	local tmpf="$(mktemp)"
 	printf '%s' "$msgs" > "$tmpf"
-	msgs=$(append_history "$tmpf" "$history_file")
+	msgs=$(append_history "$tmpf" "$history_file" "$exclude_retained_history")
 	rm -f "$tmpf"
     fi
     if [[ -n "$out" ]] ; then
@@ -586,6 +591,7 @@ handle_send_command() {
     local no_skills=false
     local no_instructions=false
     local no_tasks=false
+    local exclude_retained_history=false
     init_tool_search_dirs "session"
 
     local dry_run=false
@@ -631,6 +637,9 @@ handle_send_command() {
                 ;;
             --no-instructions)
                 no_instructions=true
+                ;;
+            --no-retained)
+                exclude_retained_history=true
                 ;;
             --file-handling-mode|--file-handling)
                 shift

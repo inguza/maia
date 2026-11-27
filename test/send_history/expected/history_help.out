@@ -9,6 +9,19 @@ COMMANDS
 
   show [options] [show-role-options] [<range>]
     Display entries in the given range, filtered by role(s).
+    --sticky displays all entries marked sticky, regardless of range.
+
+  sticky [<range>]
+    Always load entries alongside the requested history range in the web UI.
+
+  unsticky [<range>]
+    Stop always loading entries in the web UI.
+
+  retain [<range>]
+    Preserve entries through compaction and exclude them from the summary request.
+
+  unretain [<range>]
+    Stop preserving entries through compaction.
 
   pop [options] [<n>]
     Remove & print last n entries (default 1).

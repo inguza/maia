@@ -61,6 +61,12 @@
 .session-history-tool-output { overflow-wrap:anywhere; white-space:pre-wrap; }
 .session-history-tool-empty { background:#ecfeff; border-radius:.35rem; color:#164e63; font-size:.8rem; padding:.25rem .45rem; }
 .session-history-metadata { align-items:baseline; color:#6b7280; display:flex; flex-wrap:wrap; font-size:.8rem; gap:.4rem; margin-top:.65rem; }
+.session-history-flag-badge { border:1px solid currentColor; border-radius:999px; font-size:.72rem; font-weight:600; line-height:1.25; padding:.08rem .45rem; }
+.session-history-flag-badge.sticky { background:#fef3c7; color:#92400e; }
+.session-history-flag-badge.retained { background:#dcfce7; color:#166534; }
+.session-history-gap { align-items:center; background:transparent; border:0; color:#6b7280; cursor:pointer; display:flex; font-family:inherit; font-size:.78rem; gap:.65rem; justify-content:center; margin:.2rem 0; padding:0; text-align:center; width:100%; }
+.session-history-gap:hover { color:CanvasText; text-decoration:underline; }
+.session-history-gap::before,.session-history-gap::after { background:#d1d5db; content:''; flex:1; height:1px; }
 .session-history-metadata time { white-space:nowrap; }
 .session-history-metadata .session-history-backup-toggle { flex:0 0 auto; white-space:nowrap; }
 .session-history-original-tool-input { background:color-mix(in srgb, CanvasText 4%, Canvas); border-radius:.25rem; margin:.45rem 0 0; overflow-wrap:anywhere; padding:.45rem .6rem; white-space:pre-wrap; }
@@ -117,4 +123,4 @@
     .session-history-menu-controls .maia-action-menu-trigger-text { display:none; }
     .session-history-message { max-width:94%; }
 }
-@media (prefers-color-scheme:dark) { .session-history-raw-error-leading { color:#f87171; } .session-history-raw-error-later { color:#fb923c; } .session-history-message.user { background:#1e3a8a; color:#dbeafe; } .session-history-message.assistant { background:#fff; color:#111827; } .session-history-message.tool { background:#164e63; color:#cffafe; } .session-history-tool-interaction { background:#374151; border-left-color:#9ca3af; color:#f9fafb; } .session-history-tool-result,.session-history-tool-empty { background:#164e63; color:#cffafe; } .session-history-hidden-group summary { background:#374151; color:#d1d5db; } .session-history-hidden-entry.user { background:#1e3a8a !important; } .session-history-hidden-entry.assistant { background:#fff !important; } .session-history-hidden-entry.tool { background:#164e63 !important; } }
+@media (prefers-color-scheme:dark) { .session-history-raw-error-leading { color:#f87171; } .session-history-raw-error-later { color:#fb923c; } .session-history-message.user { background:#1e3a8a; color:#dbeafe; } .session-history-message.assistant { background:#fff; color:#111827; } .session-history-message.tool { background:#164e63; color:#cffafe; } .session-history-tool-interaction { background:#374151; border-left-color:#9ca3af; color:#f9fafb; } .session-history-tool-result,.session-history-tool-empty { background:#164e63; color:#cffafe; } .session-history-hidden-group summary { background:#374151; color:#d1d5db; } .session-history-hidden-entry.user { background:#1e3a8a !important; } .session-history-hidden-entry.assistant { background:#fff !important; } .session-history-hidden-entry.tool { background:#164e63 !important; } .session-history-flag-badge.sticky { background:#78350f; color:#fde68a; } .session-history-flag-badge.retained { background:#14532d; color:#bbf7d0; } .session-history-gap::before,.session-history-gap::after { background:#4b5563; } }

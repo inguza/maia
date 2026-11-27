@@ -43,6 +43,11 @@ if (in_array($action, ['hide', 'unhide', 'delete'], true)) {
     }
     $arguments[] = $action;
     $arguments[] = (string) $index;
+} elseif (in_array($action, ['sticky', 'unsticky', 'retain', 'unretain'], true)) {
+    if (!is_int($index) && !(is_string($index) && ctype_digit($index))) {
+        history_action_error(400, 'A history index is required.');
+    }
+    $arguments = ['history', $action, (string) $index];
 } elseif (in_array($action, ['prune', 'cut'], true)) {
     if (!in_array($role, ['user', 'assistant', 'tool', 'reasoning'], true) ||
         (!is_int($roleIndex) && !(is_string($roleIndex) && ctype_digit($roleIndex)))) {
