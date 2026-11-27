@@ -105,6 +105,12 @@
     },
     {
       "type": "message",
+      "role": "assistant",
+      "content": [],
+      "phase": "final_answer"
+    },
+    {
+      "type": "message",
       "role": "user",
       "content": [
         {
@@ -121,7 +127,8 @@
           "type": "output_text",
           "text": "Mocked response"
         }
-      ]
+      ],
+      "phase": "final_answer"
     },
     {
       "type": "message",
@@ -340,6 +347,12 @@
     },
     {
       "type": "message",
+      "role": "assistant",
+      "content": [],
+      "phase": "final_answer"
+    },
+    {
+      "type": "message",
       "role": "user",
       "content": [
         {
@@ -356,7 +369,8 @@
           "type": "output_text",
           "text": "Mocked response"
         }
-      ]
+      ],
+      "phase": "final_answer"
     },
     {
       "type": "message",

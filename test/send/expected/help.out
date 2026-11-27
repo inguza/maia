@@ -52,6 +52,9 @@ OPTIONS
   --no-tasks
     Do not include tasks in the request.
 
+  --no-retained
+    Do not include retained history entries in the request.
+
   --count
     Count input tokens and exit. Cannot be combined with --dry-run or --response-file.
 

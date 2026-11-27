@@ -29,7 +29,8 @@
           "type": "output_text",
           "text": "Mocked response"
         }
-      ]
+      ],
+      "phase": "final_answer"
     },
     {
       "type": "message",
@@ -107,7 +108,8 @@
           "type": "output_text",
           "text": "Mocked response"
         }
-      ]
+      ],
+      "phase": "final_answer"
     },
     {
       "type": "message",
